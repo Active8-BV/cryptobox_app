@@ -8,6 +8,6 @@ cblogo/
 *.pyc
 *.dump
 Cryptobox/packages/
-Cryptobox/dist/
+Cryptobox/dist/ 
 ./Cryptobox/packages/
 ./Cryptobox/dist/
