@@ -27,7 +27,7 @@ add_tray()
 
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
-cryptobox_app = ($scope, memory) ->
+cryptobox_ctrl = ($scope, memory) ->
     $scope.python_version = get_version()
 
     $scope.handle_change =  ->
