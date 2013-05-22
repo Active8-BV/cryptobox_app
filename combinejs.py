@@ -15,6 +15,7 @@ def main():
 
     flist = list()
     flist.append("./source/lib/angular.min.js")
+    flist.append("./source/lib/js/app_basic.js")
     flist.append("./source/app.js")
     code = get_code(flist)
     open("./Cryptobox/Resources/cryptobox_app.js", "w").write(code)

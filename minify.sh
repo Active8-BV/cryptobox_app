@@ -5,9 +5,10 @@ function wait_bit {
 }
 
 function on_change_path_cmd {
-    python -OO when_changed.py $1 -c "$2; " &    
+    python275 -OO when_changed.py $1 -c "$2; " &
+    python275 -OO when_changed.py $1 -c "killall Cryptobox; ./build.sh &" &
     wait_bit
 }
-
-on_change_path_cmd ./source/app.coffee 'python -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python combinejs.py'
-python -OO kill_on_change_procs.py
+on_change_path_cmd ./source/app.py 'python275 -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python275 combinejs.py'
+on_change_path_cmd ./source/app.coffee 'python275 -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python275 combinejs.py'
+python275 -OO kill_on_change_procs.py
