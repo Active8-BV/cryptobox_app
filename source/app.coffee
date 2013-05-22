@@ -1,16 +1,12 @@
 
 
-# create and set menu
-
-use_my_python_data = (data) ->
-    console.log data
-
-
-pass = ->
-
-
 f_exit = ->
     Ti.App.exit()
+
+
+Ti.API.addEventListener(Ti.EXIT, ->
+    console.log "bye bye"
+)
 
 
 add_menu = ->
@@ -36,4 +32,7 @@ cryptobox_app = ($scope, memory) ->
 
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)
+
+    $scope.file_input_change = ->
+        py_file_input_change($scope.file_input)
 
