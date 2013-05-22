@@ -7,5 +7,7 @@ cblogo/
 *.pyo
 *.pyc
 *.dump
+Cryptobox/packages/
+Cryptobox/dist/
 ./Cryptobox/packages/
 ./Cryptobox/dist/
