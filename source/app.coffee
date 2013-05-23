@@ -21,7 +21,6 @@ add_menu()
 add_tray()
 
 
-
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
     memory.set("g_running", true)
@@ -37,7 +36,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         cmd_process.setOnRead(on_read)
 
         on_exit = (command) ->
-            console.log "app.cf:40", 'exit' + command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), "")
+            console.log "app.cf:39", 'exit' + command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), "")
 
         on_failure = ->
             p.reject("timeout occurred")
@@ -54,10 +53,9 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.file_input_change = ->
         py_file_input_change($scope.file_input)
 
-    $scope.open_dialog = ->
-        utils.force_digest($scope)
-        document.location= "https://www.cryptobox.nl/active8"
+    $scope.test = ->
+        alert("hello")
         #cv_open_save_dialog = (e) ->
-        #    console.log "app.cf:61", e.toString()
+        #    console.log "app.cf:59", e.toString()
         #print "app.cf:69", Ti.UI.openFolderChooserDialog(cv_open_save_dialog)
 

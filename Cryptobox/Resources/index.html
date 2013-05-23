@@ -15,21 +15,22 @@
 
     <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
     <link rel="stylesheet" type="text/css" href="bootstrap-responsive.css"/>
-    <script type="text/python" src="cryptobox_app.py"></script>
+
 </head>
 <body>
-
 <script type="text/javascript" src="cryptobox_app.js"></script>
 <div ng-controller="cryptobox_ctrl">
     <div class="container">
-        <div class="row-fluid"> 
-            <div class="span6">
-                python version: {{python_version}}
+        <div class="row">
+            
+            <div class="span11">
+                Python version: {{python_version}}<br/>
+                <p class="lead">Active8</p>
             </div>
-            <div class="span6"> 
-                 <button class="btn" type="button" ng-click="open_dialog()">Opslag map</button>
-                
-            </div>
+            <div class="span1">
+                <button class="btn" type="button" ng-click="test()">test</button>
+            </div>            
+            
         </div>
     </div>
 

@@ -46,7 +46,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     };
     cmd_process.setOnRead(on_read);
     on_exit = function(command) {
-      return console.log("app.cf:40", 'exit' + command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), ""));
+      return console.log("app.cf:39", 'exit' + command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), ""));
     };
     on_failure = function() {
       return p.reject("timeout occurred");
@@ -63,8 +63,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.file_input_change = function() {
     return py_file_input_change($scope.file_input);
   };
-  return $scope.open_dialog = function() {
-    utils.force_digest($scope);
-    return document.location = "https://www.cryptobox.nl/active8";
+  return $scope.test = function() {
+    return alert("hello");
   };
 };
