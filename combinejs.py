@@ -20,10 +20,6 @@ def main():
     code = get_code(flist)
     open("./Cryptobox/Resources/cryptobox_app.js", "w").write(code)
 
-    flist = list()
-    flist.append("./source/app.py")
-    code = get_code(flist)    
-    open("./Cryptobox/Resources/cryptobox_app.py", "w").write(code)
     
 if __name__ == "__main__":
     main()

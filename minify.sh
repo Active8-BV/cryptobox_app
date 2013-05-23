@@ -1,18 +1,19 @@
 
+source ./PYENV/bin/activate
 
 function wait_bit {
     sleep 0.2
 }
 
 function on_change_path_cmd {
-    python275 -OO when_changed.py $1 -c "$2; " &    
+    python -OO when_changed.py $1 -c "$2; " &    
     wait_bit
 }
-on_change_path_cmd ./source/app.py 'python275 -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python275 combinejs.py'
-on_change_path_cmd ./source/app.coffee 'python275 -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python275 combinejs.py'
-on_change_path_cmd ./Cryptobox/Resources/index.html 'python275 -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python275 combinejs.py'
+on_change_path_cmd ./source/app.py 'python -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python combinejs.py'
+on_change_path_cmd ./source/app.coffee 'python -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python combinejs.py'
+on_change_path_cmd ./Cryptobox/Resources/index.html 'python -OO cp.py  -r "0" -f ./source/app.coffee; coffee -c -l -b ./source/app.coffee; python combinejs.py'
 
-python275 kill_restart.py &
-python275 -OO kill_on_change_procs.py
+python kill_restart.py &
+python -OO kill_on_change_procs.py
 rm app.running
 

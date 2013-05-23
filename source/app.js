@@ -5,10 +5,6 @@ f_exit = function() {
   return Ti.App.exit();
 };
 
-Ti.API.addEventListener(Ti.EXIT, function() {
-  return console.log("Exiting Cryptobox");
-});
-
 add_menu = function() {
   var fileItem, menu;
 
@@ -19,8 +15,6 @@ add_menu = function() {
   return Ti.UI.setMenu(menu);
 };
 
-add_menu();
-
 add_tray = function() {
   var programTray, tmenu;
 
@@ -30,11 +24,30 @@ add_tray = function() {
   return programTray.setMenu(tmenu);
 };
 
+add_menu();
+
 add_tray();
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
 
 cryptobox_ctrl = function($scope, memory) {
+  var get_version, run_command;
+
+  run_command = function(cmd_name) {
+    var cmd, cmd_output, cmd_process, on_exit, stdout;
+
+    cmd = Ti.API.application.getDataPath() + "/Resources/" + cmd_name;
+    cmd_output = Ti.Filesystem.createTempFile();
+    cmd_process = Ti.Process.createProcess([cmd], stdout = cmd_output);
+    on_exit = function() {
+      return console.log('exiting');
+    };
+    return cmd_process.setOnExit(on_exit);
+  };
+  get_version = function() {
+    run_command("pyversion");
+    return "version";
+  };
   $scope.python_version = get_version();
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);
@@ -45,6 +58,8 @@ cryptobox_ctrl = function($scope, memory) {
   return $scope.open_dialog = function() {
     var cv_open_save_dialog;
 
+    console.log(get_version());
+    return;
     cv_open_save_dialog = function(e) {
       return console.log(e.toString());
     };

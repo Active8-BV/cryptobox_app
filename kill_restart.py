@@ -9,6 +9,6 @@ try:
             open("app.running", "w").write(".")
             os.system("./build.sh")
             os.remove("app.running")
-        print "restarting app"
+        print "restarting app"  
 finally:
     os.remove("app.running")
