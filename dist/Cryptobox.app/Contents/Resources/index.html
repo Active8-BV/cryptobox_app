@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html ng-app="cryptoboxApp">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <META NAME="copyright" CONTENT="Cryptobox is copyrighted by Active8 BV (www.a8.nl)">
+
+    <title>Cryptobox</title>
+
+    <style type="text/css">
+        body {
+            background: #fff;
+        }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="bootstrap-responsive.css"/>
+
+</head>
+<body>
+<script type="text/javascript" src="cryptobox_app.js"></script>
+<div ng-controller="cryptobox_ctrl">
+    <div class="container">
+        <div class="row">
+            
+            <div class="span11">
+                Python version: {{python_version}}<br/>
+                <p class="lead">Active8</p>
+            </div>
+            <div class="span1">
+                <button class="btn" type="button" ng-click="test()">test</button>
+            </div>            
+            
+        </div>
+    </div>
+
+</body>
+</html>

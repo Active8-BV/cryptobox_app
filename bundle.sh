@@ -8,4 +8,7 @@ mkdir -p "./Cryptobox/packages/osx/bundle"
 
 # dmg with app package within
 python "$path_to_sdk/tidebuilder.py" -p -n -t bundle -d "Cryptobox/packages/osx/bundle" -o "osx" "Cryptobox/"
-python "$path_to_sdk/tidebuilder.py" -h
+
+mv ./Cryptobox/packages/osx/bundle/Cryptobox.dmg ./dist
+mv ./Cryptobox/packages/osx/bundle/Cryptobox.app/ ./dist
+
