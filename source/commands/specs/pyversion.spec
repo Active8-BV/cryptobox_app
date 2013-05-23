@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-a = Analysis(['./commands/pyversion.py'],
+a = Analysis(['./source/commands/pyversion.py'],
              pathex=['/Users/rabshakeh/workspace/cryptobox/cryptobox_app'],
              hiddenimports=[],
              hookspath=None)
