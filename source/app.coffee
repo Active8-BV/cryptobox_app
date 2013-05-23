@@ -5,7 +5,7 @@ f_exit = ->
 
 
 Ti.API.addEventListener(Ti.EXIT, ->
-    console.log "bye bye"
+    console.log "Exiting Cryptobox"
 )
 
 
@@ -35,4 +35,9 @@ cryptobox_ctrl = ($scope, memory) ->
 
     $scope.file_input_change = ->
         py_file_input_change($scope.file_input)
+
+    $scope.open_dialog = ->
+        cv_open_save_dialog = (e) ->
+            console.log e.toString()
+        console.log Ti.UI.openFolderChooserDialog(cv_open_save_dialog, {"title": "Selecteer datamap Cryptobox", "path":Ti.Filesystem.getDocumentsDirectory().toString(), "default":"Cryptobox" })
 

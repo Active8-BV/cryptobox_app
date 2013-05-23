@@ -2179,7 +2179,7 @@ f_exit = function() {
 };
 
 Ti.API.addEventListener(Ti.EXIT, function() {
-  return console.log("bye bye");
+  return console.log("Exiting Cryptobox");
 });
 
 add_menu = function() {
@@ -2212,7 +2212,19 @@ cryptobox_ctrl = function($scope, memory) {
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);
   };
-  return $scope.file_input_change = function() {
+  $scope.file_input_change = function() {
     return py_file_input_change($scope.file_input);
+  };
+  return $scope.open_dialog = function() {
+    var cv_open_save_dialog;
+
+    cv_open_save_dialog = function(e) {
+      return console.log(e.toString());
+    };
+    return console.log(Ti.UI.openFolderChooserDialog(cv_open_save_dialog, {
+      "title": "Selecteer datamap Cryptobox",
+      "path": Ti.Filesystem.getDocumentsDirectory().toString(),
+      "default": "Cryptobox"
+    }));
   };
 };
