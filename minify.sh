@@ -1,5 +1,5 @@
 
-source ./PYENV/bin/activate
+
 rm -Rf ./Cryptobox/packages
 
 function wait_bit {

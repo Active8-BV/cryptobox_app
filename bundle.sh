@@ -1,6 +1,6 @@
 killall Python
 killall python
-source ./PYENV/bin/activate
+
 export path_to_sdk=~/Library/Application\ Support/TideSDK/sdk/osx/1.3.1-beta/
 
 # make sure directories exist
