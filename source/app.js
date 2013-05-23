@@ -30,19 +30,23 @@ add_tray();
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
 
-cryptobox_ctrl = function($scope, $q) {
-  var get_version, run_command;
+cryptobox_ctrl = function($scope, $q, memory, utils) {
+  var run_command;
 
+  memory.set("g_running", true);
   run_command = function(cmd_name) {
-    var cmd, cmd_output, cmd_process, on_exit, on_failure, p, stdout;
+    var cmd, cmd_process, on_exit, on_failure, on_read, p;
 
     p = $q.defer();
     cmd = Ti.API.getApplication().getResourcesPath() + "/" + cmd_name;
-    cmd_output = Ti.Filesystem.createTempFile();
-    cmd_process = Ti.Process.createProcess([cmd], stdout = cmd_output);
+    cmd_process = Ti.Process.createProcess([cmd]);
+    on_read = function(e) {
+      p.resolve(e.data.toString());
+      return utils.force_digest($scope);
+    };
+    cmd_process.setOnRead(on_read);
     on_exit = function(command) {
-      console.log('exiting', command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), ""));
-      return p.resolve("succes");
+      return console.log("app.cf:40", 'exit' + command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), ""));
     };
     on_failure = function() {
       return p.reject("timeout occurred");
@@ -52,15 +56,7 @@ cryptobox_ctrl = function($scope, $q) {
     cmd_process.launch();
     return p.promise;
   };
-  get_version = function() {
-    run_command("pyversion").then(function(success) {
-      return console.log(success);
-    }, function(error) {
-      return console.log(error);
-    });
-    return "version";
-  };
-  $scope.python_version = get_version();
+  $scope.python_version = run_command("pyversion");
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);
   };
@@ -68,17 +64,7 @@ cryptobox_ctrl = function($scope, $q) {
     return py_file_input_change($scope.file_input);
   };
   return $scope.open_dialog = function() {
-    var cv_open_save_dialog;
-
-    console.log(get_version());
-    return;
-    cv_open_save_dialog = function(e) {
-      return console.log(e.toString());
-    };
-    return console.log(Ti.UI.openFolderChooserDialog(cv_open_save_dialog, {
-      "title": "Selecteer datamap Cryptobox",
-      "path": Ti.Filesystem.getDocumentsDirectory().toString(),
-      "default": "Cryptobox"
-    }));
+    utils.force_digest($scope);
+    return document.location = "https://www.cryptobox.nl/active8";
   };
 };

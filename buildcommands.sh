@@ -1,5 +1,5 @@
 function compile() {
-    rm -Rf ./build
+    rm ./build/$1/*.pyz
     rm ./dist/$1 
     rm ./Cryptobox/Resources/$1
     echo "building", ./source/commands/$1.py

@@ -21,17 +21,23 @@ add_menu()
 add_tray()
 
 
+
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
-cryptobox_ctrl = ($scope, $q) ->
+cryptobox_ctrl = ($scope, $q, memory, utils) ->
+    memory.set("g_running", true)
+
     run_command = (cmd_name) ->
         p = $q.defer()
         cmd = Ti.API.getApplication().getResourcesPath() + "/" + cmd_name
-        cmd_output = Ti.Filesystem.createTempFile()
-        cmd_process = Ti.Process.createProcess([cmd], stdout = cmd_output)
+        cmd_process = Ti.Process.createProcess([cmd])
+
+        on_read = (e) ->
+            p.resolve(e.data.toString())
+            utils.force_digest($scope)
+        cmd_process.setOnRead(on_read)
 
         on_exit = (command) ->
-            console.log 'exiting', command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), "")
-            p.resolve("succes")
+            console.log "app.cf:40", 'exit' + command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), "")
 
         on_failure = ->
             p.reject("timeout occurred")
@@ -40,16 +46,7 @@ cryptobox_ctrl = ($scope, $q) ->
         cmd_process.launch()
         p.promise
 
-    get_version = ->
-        run_command("pyversion").then(
-            (success) ->
-                console.log success
-
-            (error) ->
-                console.log error
-        )
-        return "version"
-    $scope.python_version = get_version()
+    $scope.python_version = run_command("pyversion")
 
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)
@@ -58,10 +55,9 @@ cryptobox_ctrl = ($scope, $q) ->
         py_file_input_change($scope.file_input)
 
     $scope.open_dialog = ->
-        console.log get_version()
-        return
-
-        cv_open_save_dialog = (e) ->
-            console.log e.toString()
-        console.log Ti.UI.openFolderChooserDialog(cv_open_save_dialog, {"title": "Selecteer datamap Cryptobox", "path":Ti.Filesystem.getDocumentsDirectory().toString(), "default":"Cryptobox" })
+        utils.force_digest($scope)
+        document.location= "https://www.cryptobox.nl/active8"
+        #cv_open_save_dialog = (e) ->
+        #    console.log "app.cf:61", e.toString()
+        #print "app.cf:69", Ti.UI.openFolderChooserDialog(cv_open_save_dialog)
 
