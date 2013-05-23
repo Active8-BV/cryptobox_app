@@ -2203,22 +2203,34 @@ add_tray();
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
 
-cryptobox_ctrl = function($scope, memory) {
+cryptobox_ctrl = function($scope, $q) {
   var get_version, run_command;
 
   run_command = function(cmd_name) {
-    var cmd, cmd_output, cmd_process, on_exit, stdout;
+    var cmd, cmd_output, cmd_process, on_exit, on_failure, p, stdout;
 
-    cmd = Ti.API.application.getDataPath() + "/Resources/" + cmd_name;
+    p = $q.defer();
+    cmd = Ti.API.getApplication().getResourcesPath() + "/" + cmd_name;
     cmd_output = Ti.Filesystem.createTempFile();
     cmd_process = Ti.Process.createProcess([cmd], stdout = cmd_output);
-    on_exit = function() {
-      return console.log('exiting');
+    on_exit = function(command) {
+      console.log('exiting', command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), ""));
+      return p.resolve("succes");
     };
-    return cmd_process.setOnExit(on_exit);
+    on_failure = function() {
+      return p.reject("timeout occurred");
+    };
+    set_time_out(on_failure, 5000);
+    cmd_process.setOnExit(on_exit);
+    cmd_process.launch();
+    return p.promise;
   };
   get_version = function() {
-    run_command("pyversion");
+    run_command("pyversion").then(function(success) {
+      return console.log(success);
+    }, function(error) {
+      return console.log(error);
+    });
     return "version";
   };
   $scope.python_version = get_version();

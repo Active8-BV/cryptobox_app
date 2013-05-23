@@ -22,28 +22,33 @@ add_tray()
 
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
-cryptobox_ctrl = ($scope, memory) ->
-
-
+cryptobox_ctrl = ($scope, $q) ->
     run_command = (cmd_name) ->
-        cmd = Ti.API.application.getDataPath() + "/Resources/" + cmd_name
-
-
+        p = $q.defer()
+        cmd = Ti.API.getApplication().getResourcesPath() + "/" + cmd_name
         cmd_output = Ti.Filesystem.createTempFile()
         cmd_process = Ti.Process.createProcess([cmd], stdout = cmd_output)
 
-        on_exit = ->
-            console.log 'exiting'
+        on_exit = (command) ->
+            console.log 'exiting', command.getTarget().toString().replace(Ti.API.getApplication().getResourcesPath(), "")
+            p.resolve("succes")
 
-
+        on_failure = ->
+            p.reject("timeout occurred")
+        set_time_out(on_failure, 5000)
         cmd_process.setOnExit(on_exit)
-
+        cmd_process.launch()
+        p.promise
 
     get_version = ->
-        run_command("pyversion")
+        run_command("pyversion").then(
+            (success) ->
+                console.log success
+
+            (error) ->
+                console.log error
+        )
         return "version"
-
-
     $scope.python_version = get_version()
 
     $scope.handle_change =  ->
