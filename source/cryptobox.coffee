@@ -25,8 +25,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             utils.force_digest($scope)
 
 
-        options = { encoding: 'utf8', timeout: 15000, maxBuffer: 200*1024, killSignal: 'SIGTERM', cwd: null, env: null }
-        child_process.exec(cmd_to_run, options, process_result)
+        child_process.exec(cmd_to_run, process_result)
         p.promise
 
     $scope.python_version = run_command("pyversion")
