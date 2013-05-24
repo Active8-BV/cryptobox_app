@@ -16,6 +16,21 @@ def make_hash(data):
     return sha.hexdigest()
 
 
+def visit(arg, dirname, names):
+    dirname = dirname.replace(os.path.sep, "/")
+    filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
+    dirname_hash = make_hash(dirname)
+    nameshash = make_hash("".join(names))
+    folder = {}
+    folder["dirname"] = dirname
+    folder["dirnamehash"] = dirname_hash
+    folder["names"] = names
+    folder["filenames"] = filenames
+    folder["nameshash"] = nameshash
+    arg["dirname"][dirname] = folder
+    arg["dirnamehash"][dirname_hash] = folder
+
+
 def warning(*arg):
     sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip() + " (-h for help)\033[0m\n")
 
@@ -40,20 +55,6 @@ def exit_app_warning(*arg):
     exit(1)
 
 
-def visit(arg, dirname, names):
-    filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
-    dirname_hash = make_hash(dirname)
-    nameshash = make_hash("".join(names))
-    folder = {}
-    folder["dirname"] = dirname
-    folder["dirnamehash"] = dirname_hash
-    folder["names"] = names
-    folder["filenames"] = filenames
-    folder["nameshash"] = nameshash
-    arg["dirname"][dirname] = folder
-    arg["dirnamehash"][dirname_hash] = folder
-
-
 def main():
     (options, args) = add_options()
 
@@ -71,14 +72,15 @@ def main():
     args["dirname"] = {}
     args["dirnamehash"] = {}
     os.path.walk(options.dir, visit, args)
-    dirnamepickle = os.path.join(options.dir, "dirname_"+options.index)
+    dirnamepickle = os.path.join(options.dir, "dirname_" + options.index)
     dirnamehashpickle = os.path.join(options.dir, "dirnamehash_" + options.index)
     cPickle.dump(args["dirname"], open(dirnamepickle, "w"))
     cPickle.dump(args["dirnamehash"], open(dirnamehashpickle, "w"))
 
-    numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])+len(args["dirnamehash"])
+    numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]]) + len(args["dirnamehash"])
     log("done, indexed", numfiles, "files")
     print numfiles
-    
+
+
 if __name__ == "__main__":
     main()

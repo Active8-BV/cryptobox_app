@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html ng-app="cryptoboxApp">
 <head>
@@ -15,32 +14,34 @@
     </style>
 
     <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
-    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>    
-    <script type="text/javascript" src="js/angular-1.0.6.min.js"></script>    
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="js/angular-1.0.6.min.js"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/app_basic.min.js"></script>
-    <script type="text/javascript" src="cryptobox.js"></script>    
+    <script type="text/javascript" src="cryptobox.js"></script>
 </head>
 <body>
-
 
 
 <div ng-controller="cryptobox_ctrl">
     <div class="container">
         <div class="row">
             <br/>
+
             <div class="span10">
                 Python version: {{python_version}}<br/>
+
                 <p class="lead">Active8</p>
                 Files: {{num_files}}<br/>
             </div>
             <div class="span1">
                 <button class="btn" type="button" ng-click="run_commands()">run commands</button>
-            </div>            
-            
+            </div>
+
         </div>
     </div>
+</div>
 
 </body>
 </html>
