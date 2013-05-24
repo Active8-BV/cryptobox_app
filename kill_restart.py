@@ -3,6 +3,7 @@ import time
 from multiprocessing import Pool
 
 def bring_to_front():
+    time.sleep(0.3)
     os.system("osascript node_webkit_to_foreground.scpt")
 
 if __name__ == '__main__':

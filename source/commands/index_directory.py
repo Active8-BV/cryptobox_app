@@ -79,6 +79,6 @@ def main():
     numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])+len(args["dirnamehash"])
     log("done, indexed", numfiles, "files")
     print numfiles
-
+    
 if __name__ == "__main__":
     main()
