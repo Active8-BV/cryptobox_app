@@ -2,8 +2,18 @@
 # coding=utf-8
 import os
 import sys
+import cPickle
 from optparse import OptionParser
 from Crypto.Hash import SHA512
+
+
+def make_hash(data):
+    """ make hash
+    @param data:
+    """
+    sha = SHA512.new(data)
+    return sha.hexdigest()
+
 
 def warning(*arg):
     sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip() + " (-h for help)\033[0m\n")
@@ -30,7 +40,15 @@ def exit_app_warning(*arg):
 
 
 def visit(arg, dirname, names):
-    arg[dirname] = names
+    dirname_hash = make_hash(dirname)
+    nameshash = make_hash("".join(names))
+    folder = {}
+    folder["dirname"] = dirname
+    folder["dirnamehash"] = dirname_hash
+    folder["names"] = names
+    folder["nameshash"] = nameshash
+    arg["dirname"][dirname] = folder
+    arg["dirnamehash"][dirname_hash] = folder
 
 
 def main():
@@ -47,10 +65,12 @@ def main():
     log("Indexing", options.dir)
     args = {}
     args["DIR"] = options.dir
-    args["INDEX"] = options.index
+    args["dirname"] = {}
+    args["dirnamehash"] = {}
     os.path.walk(options.dir, visit, args)
+    cPickle.dump(args["dirname"], open("dirname_"+options.index, "w"))
+    cPickle.dump(args["dirnamehash"], open("dirnamehash_"+options.index, "w"))
     log("done")
-    print args.keys()
 
 
 if __name__ == "__main__":

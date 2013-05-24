@@ -1,3 +1,4 @@
+*.dict
 build/
 app.running
 server/.idea/
