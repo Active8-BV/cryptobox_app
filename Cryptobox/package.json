@@ -5,8 +5,9 @@
     "main": "index.html",
 
     "window": {
-        "toolbar": false,
-        "width": 660,
-        "height": 500
+        "toolbar": true,
+        "width": 1000,
+        "height": 500,
+        "always-on-top": false
     }
 }
