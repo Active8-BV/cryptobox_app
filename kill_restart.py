@@ -5,9 +5,9 @@ if os.path.exists("app.running"):
 try:
     while True:
         if not os.path.exists("app.running"):            
-            os.system("killall Cryptobox")
+            os.system("killall node-webkit")
             open("app.running", "w").write(".")
-            os.system("./build.sh")
+            os.system("make run")
             os.remove("app.running")
         print "restarting app"  
 finally:

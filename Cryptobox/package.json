@@ -1,11 +1,12 @@
 {
-  "name": "Cryptobox",
-  "description": "Cryptobox sync client",
-  "version": "0.1",
-  "main": "index.html",
-  "window": {
-    "toolbar": false,
-    "width": 660,
-    "height": 500
-  }
+    "name": "Cryptobox",
+    "description": "Cryptobox sync client",
+    "version": "0.1",
+    "main": "index.html",
+
+    "window": {
+        "toolbar": false,
+        "width": 660,
+        "height": 500
+    }
 }

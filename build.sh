@@ -1,8 +1,9 @@
-
-export path_to_sdk=~/Library/Application\ Support/TideSDK/sdk/osx/1.3.1-beta/
-
-# click-to-run
-rm -Rf "./Cryptobox/packages/osx/run"
-mkdir -p "Cryptobox/packages/osx/run"
-
-python "$path_to_sdk/tidebuilder.py" -r -t bundle -d "Cryptobox/packages/osx/run" -o "osx" "Cryptobox/"
+rm app.nw   
+mkdir app
+cd app 
+cp -r ../Cryptobox/ .
+cd ..
+zip -r app.zip ./app
+#rm -Rf ./app
+mv app.zip app.nw
+#./node-webkit.app/Contents/MacOS/node-webkit app.nw
