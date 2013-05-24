@@ -4,14 +4,15 @@ import os
 import sys
 import cPickle
 from optparse import OptionParser
-from Crypto.Hash import SHA512
+import hashlib
 
 
 def make_hash(data):
     """ make hash
     @param data:
     """
-    sha = SHA512.new(data)
+    sha = hashlib.sha512()
+    sha.update(data)
     return sha.hexdigest()
 
 
@@ -40,12 +41,14 @@ def exit_app_warning(*arg):
 
 
 def visit(arg, dirname, names):
+    filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
     dirname_hash = make_hash(dirname)
     nameshash = make_hash("".join(names))
     folder = {}
     folder["dirname"] = dirname
     folder["dirnamehash"] = dirname_hash
     folder["names"] = names
+    folder["filenames"] = filenames
     folder["nameshash"] = nameshash
     arg["dirname"][dirname] = folder
     arg["dirnamehash"][dirname_hash] = folder
@@ -68,10 +71,14 @@ def main():
     args["dirname"] = {}
     args["dirnamehash"] = {}
     os.path.walk(options.dir, visit, args)
-    cPickle.dump(args["dirname"], open("dirname_"+options.index, "w"))
-    cPickle.dump(args["dirnamehash"], open("dirnamehash_"+options.index, "w"))
-    log("done")
+    dirnamepickle = os.path.join(options.dir, "dirname_"+options.index)
+    dirnamehashpickle = os.path.join(options.dir, "dirnamehash_" + options.index)
+    cPickle.dump(args["dirname"], open(dirnamepickle, "w"))
+    cPickle.dump(args["dirnamehash"], open(dirnamehashpickle, "w"))
 
+    numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])+len(args["dirnamehash"])
+    log("done, indexed", numfiles, "files")
+    print numfiles
 
 if __name__ == "__main__":
     main()

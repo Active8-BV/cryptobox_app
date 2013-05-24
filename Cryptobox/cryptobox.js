@@ -3,42 +3,44 @@ var child_process, cryptobox_ctrl, path;
 
 child_process = require("child_process");
 
-path = require('path');
+path = require("path");
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var run_command;
+  var run_command,
+    _this = this;
 
   memory.set("g_running", true);
+  $scope.on_exit = function() {
+    return console.log("cryptobox.cf:12", window.globals);
+  };
+  window.addEventListener("beforeunload", $scope.on_exit);
   run_command = function(cmd_name) {
-    var cmd_to_run, options, p, process_result;
+    var child, cmd_to_run, p, process_result;
 
-    console.log("cryptobox.cf:12", cmd_name);
+    if (memory.has("g_process_" + cmd_name)) {
+      return;
+    }
+    console.log("cryptobox.cf:18", cmd_name);
     cmd_to_run = path.join(process.cwd(), "commands");
     cmd_to_run = path.join(cmd_to_run, cmd_name);
     p = $q.defer();
     process_result = function(error, stdout, stderr) {
       if (utils.exist(stderr)) {
-        console.log("cryptobox.cf:19", stderr);
+        console.log("cryptobox.cf:25", stderr);
       }
       if (utils.exist(error)) {
         p.reject(error);
       } else {
-        console.log("cryptobox.cf:23", "resolving");
+        console.log("cryptobox.cf:29", "resolving");
         p.resolve(stdout);
       }
+      memory.del("g_process_" + cmd_name, child);
       return utils.force_digest($scope);
     };
-    options = {
-      encoding: 'utf8',
-      timeout: 15000,
-      maxBuffer: 200 * 1024,
-      killSignal: 'SIGTERM',
-      cwd: null,
-      env: null
-    };
-    child_process.exec(cmd_to_run, options, process_result);
+    child = child_process.exec(cmd_to_run, process_result);
+    memory.set("g_process_" + cmd_name, child);
     return p.promise;
   };
   $scope.python_version = run_command("pyversion");
@@ -48,7 +50,8 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.file_input_change = function() {
     return py_file_input_change($scope.file_input);
   };
-  return $scope.test = function() {
-    return alert("hello");
+  $scope.index = function() {
+    return $scope.num_files = run_command("index_directory -d '/Users/rabshakeh/Desktop' -i 'mydir.dict'");
   };
+  return $scope.index();
 };
