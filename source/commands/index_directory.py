@@ -7,9 +7,31 @@ import gzip
 import shutil
 import pipes
 import cPickle
+import json
 from optparse import OptionParser
 import hashlib
 import multiprocessing
+
+
+def warning(*arg):
+    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip() + " (-h for help)\033[0m\n")
+
+
+def log(*arg):
+    sys.stderr.write("\033[93m" + " ".join([str(s) for s in arg]).strip() + "\n\033[0m")
+
+
+def add_options():
+    parser = OptionParser()
+    parser.add_option("-d", "--dir", dest="dir",
+                      help="index this DIR", metavar="DIR")
+    return parser.parse_args()
+
+
+def exit_app_warning(*arg):
+    warning(*arg)
+    print "-1"
+    exit(1)
 
 
 def timestamp_to_string(ts, short=False):
@@ -131,7 +153,6 @@ def save_file_data_as_object(filehash, outpath, fpath, password):
 
 
 def visit(arg, dirname, names):
-
     if ".cryptobox" not in dirname.lower():
         dirname = dirname.replace(os.path.sep, "/")
         filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
@@ -145,27 +166,6 @@ def visit(arg, dirname, names):
         folder["nameshash"] = nameshash
         arg["dirname"][dirname] = folder
         arg["dirnamehash"][dirname_hash] = folder
-
-
-def warning(*arg):
-    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip() + " (-h for help)\033[0m\n")
-
-
-def log(*arg):
-    sys.stderr.write("\033[93m" + " ".join([str(s) for s in arg]).strip() + "\n\033[0m")
-
-
-def add_options():
-    parser = OptionParser()
-    parser.add_option("-d", "--dir", dest="dir",
-                      help="index this DIR", metavar="DIR")
-    return parser.parse_args()
-
-
-def exit_app_warning(*arg):
-    warning(*arg)
-    print "-1"
-    exit(1)
 
 
 def ensure_directory(path):
@@ -190,7 +190,6 @@ def ensure_encryption_blobstore(datadir):
 
 def async_make_cryptogit_hash(fpath, datadir):
     try:
-
         filehash = os.popen("./git-hash-object " + pipes.quote(fpath)).read().strip()
 
         blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
@@ -209,7 +208,7 @@ def async_make_cryptogit_hash(fpath, datadir):
                 f_in.close()
                 os.remove(blobpath_dec)
             else:
-                raise IOError("Cannot find "+str(blobpath_dec))
+                raise IOError("Cannot find " + str(blobpath_dec))
 
         else:
             #print "skipping", os.path.basename(fpath)
@@ -250,8 +249,10 @@ def main():
     datadir = os.path.join(options.dir, ".cryptobox")
     ensure_directory(datadir)
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
+    cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
     cryptobox_index = {"dirname": args["dirname"], "dirnamehash": args["dirnamehash"]}
     cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
+    json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"))
 
     numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])
     #numdirs = len(args["dirnamehash"])
