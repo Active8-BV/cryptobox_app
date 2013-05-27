@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import gzip
 import shutil
 import pipes
 import cPickle
@@ -130,8 +131,8 @@ def save_file_data_as_object(filehash, outpath, fpath, password):
 
 
 def visit(arg, dirname, names):
-    if ".cryptobox" not in dirname:
 
+    if ".cryptobox" not in dirname.lower():
         dirname = dirname.replace(os.path.sep, "/")
         filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
         dirname_hash = make_sha1_hash(dirname)
@@ -194,11 +195,22 @@ def async_make_cryptogit_hash(fpath, datadir):
 
         blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
         blobpath_dec = os.path.join(blobdir, filehash + ".unencrypted")
+        blobpath_dec_zipped = os.path.join(blobdir, filehash + ".unencryptedzipped")
         blobpath_enc = os.path.join(blobdir, filehash + ".encrypted")
 
-        if not os.path.exists(blobpath_enc) and not os.path.exists(blobpath_dec):
+        if not os.path.exists(blobpath_enc) and not os.path.exists(blobpath_dec_zipped):
             ensure_directory(os.path.dirname(blobpath_dec))
             shutil.copy2(fpath, blobpath_dec)
+            if os.path.exists(blobpath_dec):
+                f_in = open(blobpath_dec, 'rb')
+                f_out = gzip.open(blobpath_dec_zipped, 'wb')
+                f_out.writelines(f_in)
+                f_out.close()
+                f_in.close()
+                os.remove(blobpath_dec)
+            else:
+                raise IOError("Cannot find "+str(blobpath_dec))
+
         else:
             #print "skipping", os.path.basename(fpath)
             pass
@@ -245,7 +257,7 @@ def main():
     #numdirs = len(args["dirnamehash"])
 
     log("Comparing", numfiles, "files against the cryptobox vault, using", multiprocessing.cpu_count(), "cores")
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count() * 2)
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
 
     processed_files = 0
     update_progress(processed_files, numfiles, "")
@@ -274,17 +286,13 @@ def main():
                 processed_files += 1
                 update_progress(processed_files, numfiles)
 
-                if result.successful():
-                    results.remove(result)
+                if not result.successful():
+                    result.get()
+                results.remove(result)
 
     pool.close()
     pool.join()
 
-    for result in results:
-        if result.ready():
-            if not result.successful():
-                print dir(result)
-                result.get()
 
 if __name__ == "__main__":
     main()
