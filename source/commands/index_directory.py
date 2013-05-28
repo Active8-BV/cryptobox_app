@@ -1,7 +1,11 @@
 #!/usr/bin/python2.7.apple
 # coding=utf-8
-import os
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+print sys.getdefaultencoding()
+
+import os
 import time
 import pipes
 import cPickle
@@ -11,6 +15,8 @@ import shutil
 from optparse import OptionParser
 import hashlib
 import multiprocessing
+
+
 g_lock = multiprocessing.Lock()
 
 
@@ -188,7 +194,7 @@ def update_progress(curr, total, msg=""):
             progress = 100
         if len(msg) == 0:
             msg = str(curr) + "/" + str(total)
-        sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress * "#", (100 - progress) * " ", progress, msg))
+        sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress/2 * "#", (50 - progress/2) * " ", progress, msg))
         sys.stderr.flush()
 
     finally:
@@ -278,7 +284,7 @@ def main():
     os.path.walk(options.dir, index_files_visit, args)
     log("\n\n")
     datadir = os.path.join(options.dir, ".cryptobox")
-    os.system("rm -Rf " + datadir)
+    #os.system("rm -Rf " + datadir)
     ensure_directory(datadir)
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
