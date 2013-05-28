@@ -3,14 +3,15 @@
 import os
 import sys
 import time
-import gzip
 import shutil
 import pipes
 import cPickle
 import json
+import math
 from optparse import OptionParser
 import hashlib
 import multiprocessing
+g_lock = multiprocessing.Lock()
 
 
 def warning(*arg):
@@ -152,20 +153,67 @@ def save_file_data_as_object(filehash, outpath, fpath, password):
     os.system(cmd)
 
 
-def visit(arg, dirname, names):
-    if ".cryptobox" not in dirname.lower():
-        dirname = dirname.replace(os.path.sep, "/")
-        filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
-        dirname_hash = make_sha1_hash(dirname)
-        nameshash = make_sha1_hash("".join(names))
-        folder = {}
-        folder["dirname"] = dirname
-        folder["dirnamehash"] = dirname_hash
-        folder["names"] = names
-        folder["filenames"] = filenames
-        folder["nameshash"] = nameshash
-        arg["dirname"][dirname] = folder
-        arg["dirnamehash"][dirname_hash] = folder
+def get_ignores():
+    return [".cryptobox", ".ds_store", "$recycle.bin"]
+
+
+def ignore_dirname(dirname):
+    ignores = get_ignores()
+    dirname_igore_finds = map(lambda x: dirname.find(x), ignores)
+    filtered_dirname = filter(lambda x: x > 0, dirname_igore_finds)
+    if len(filtered_dirname) > 0:
+        return True
+    return False
+
+
+def filter_names(names):
+    ignores = get_ignores()
+    return filter(lambda x: x not in ignores, names)
+
+
+def count_files_visit(arg, dirname, names):
+    if ignore_dirname(dirname):
+        return
+    names = filter_names(names)
+    arg["cnt"] += len([os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])])
+
+
+def update_progress(curr, total, msg=""):
+    global g_lock
+    g_lock.acquire()
+    try:
+        progress = int(math.ceil(float(curr) / (float(total) / 100)))
+        if progress > 100:
+            print "error progress more then 100", progress
+            progress = 100
+        if len(msg) == 0:
+            msg = str(curr) + "/" + str(total)
+        sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress * "#", (100 - progress) * " ", progress, msg))
+        sys.stderr.flush()
+
+    finally:
+        g_lock.release()
+
+
+def index_files_visit(arg, dirname, names):
+    if ignore_dirname(dirname):
+        return
+    names = filter_names(names)
+    dirname = dirname.replace(os.path.sep, "/")
+    filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
+    dirname_hash = make_sha1_hash(dirname)
+    nameshash = make_sha1_hash("".join(names))
+    folder = {}
+    folder["dirname"] = dirname
+    folder["dirnamehash"] = dirname_hash
+    folder["names"] = names
+    folder["filenames"] = filenames
+    folder["nameshash"] = nameshash
+    arg["dirname"][dirname] = folder
+    arg["dirnamehash"][dirname_hash] = folder
+
+    arg["numfiles"] += len(filenames)
+    update_progress(arg["numfiles"], arg["numfiles_cnt"])
 
 
 def ensure_directory(path):
@@ -187,49 +235,24 @@ def ensure_encryption_blobstore(datadir):
     for unencfile in files_to_encrypt:
         print unencfile
 
-
-def async_make_cryptogit_hash(fpath, datadir):
+#os.system(os.path.join(".", "gzip") + " " + blobpath_dec)
+def async_make_cryptogit_hash(fpath, datadir, progressdata):
     try:
-        filehash = os.popen("./git-hash-object " + pipes.quote(fpath)).read().strip()
-
+        filehash = os.popen(os.path.join(".", "git-hash-object") + " " + pipes.quote(fpath)).read().strip()
         blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
-        blobpath_dec = os.path.join(blobdir, filehash + ".unencrypted")
-        blobpath_dec_zipped = os.path.join(blobdir, filehash + ".unencryptedzipped")
-        blobpath_enc = os.path.join(blobdir, filehash + ".encrypted")
+        blobpath_dec = os.path.join(blobdir, filehash)
 
-        if not os.path.exists(blobpath_enc) and not os.path.exists(blobpath_dec_zipped):
+        if not os.path.exists(blobpath_dec) and not os.path.exists(blobpath_dec + ".gz"):
             ensure_directory(os.path.dirname(blobpath_dec))
-            shutil.copy2(fpath, blobpath_dec)
-            if os.path.exists(blobpath_dec):
-                f_in = open(blobpath_dec, 'rb')
-                f_out = gzip.open(blobpath_dec_zipped, 'wb')
-                f_out.writelines(f_in)
-                f_out.close()
-                f_in.close()
-                os.remove(blobpath_dec)
-            else:
-                raise IOError("Cannot find " + str(blobpath_dec))
-
+            #shutil.copy2(fpath, blobpath_dec)
+            progressdata["newblobs"]["filehash"] = (fpath, blobpath_dec)
         else:
             #print "skipping", os.path.basename(fpath)
             pass
 
+        return progressdata
     except Exception, e:
         handle_exception(e)
-
-
-def update_progress(curr, total, msg=""):
-    progress = int(float(curr) / (float(total) / 100))
-    if progress > 100:
-        print "error progress more then 100", progress
-        progress = 100
-    if len(msg) == 0:
-        msg = str(curr) + "/" + str(total)
-    sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress * "#", (100 - progress) * " ", progress, msg))
-    sys.stderr.flush()
-
-    if progress >= 100:
-        print
 
 
 def main():
@@ -239,14 +262,22 @@ def main():
         exit_app_warning("Need DIR (-d) to continue")
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
-    log("Building indexing for", options.dir)
+    log("Counting", options.dir)
+    numfiles = {}
+    numfiles["cnt"] = 0
+    os.path.walk(options.dir, count_files_visit, numfiles)
+
+    log("Indexing", numfiles["cnt"], "files")
     args = {}
     args["DIR"] = options.dir
     args["dirname"] = {}
     args["dirnamehash"] = {}
-    os.path.walk(options.dir, visit, args)
-
+    args["numfiles"] = 0
+    args["numfiles_cnt"] = numfiles["cnt"]
+    os.path.walk(options.dir, index_files_visit, args)
+    log("\n\n")
     datadir = os.path.join(options.dir, ".cryptobox")
+
     ensure_directory(datadir)
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
@@ -255,44 +286,53 @@ def main():
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"))
 
     numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])
-    #numdirs = len(args["dirnamehash"])
 
+    log("\n\n")
     log("Comparing", numfiles, "files against the cryptobox vault, using", multiprocessing.cpu_count(), "cores")
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
 
-    processed_files = 0
-    update_progress(processed_files, numfiles, "")
     results = []
-    for dirhash in cryptobox_index["dirnamehash"]:
-        update_progress(processed_files, numfiles)
-        for fname in cryptobox_index["dirnamehash"][dirhash]["filenames"]:
-            file_dir = cryptobox_index["dirnamehash"][dirhash]["dirname"]
-            file_path = os.path.join(file_dir, fname)
 
-            result = pool.apply_async(async_make_cryptogit_hash, (file_path, datadir))
-            results.append(result)
+    def done_hashing(e):
+        progressdata["processed_files"] += 1
+        update_progress(progressdata["processed_files"], progressdata["numfiles"])
 
-        for result in results:
-            if result.ready():
-                processed_files += 1
-                update_progress(processed_files, numfiles)
+    progressdata = {}
+    progressdata["processed_files"] = 0
+    progressdata["numfiles"] = numfiles
+    progressdata["newblobs"] = {}
 
-                if result.successful():
+    try:
+        for dirhash in cryptobox_index["dirnamehash"]:
+            for fname in cryptobox_index["dirnamehash"][dirhash]["filenames"]:
+                file_dir = cryptobox_index["dirnamehash"][dirhash]["dirname"]
+                file_path = os.path.join(file_dir, fname)
+
+                result = pool.apply_async(async_make_cryptogit_hash, (file_path, datadir, progressdata), callback=done_hashing)
+                #result = None
+                #apply(async_make_cryptogit_hash, (file_path, datadir))
+                if result:
+                    results.append(result)
+
+            for result in results:
+                if hasattr(result, "ready") and result.ready():
+                    if result.successful():
+                        results.remove(result)
+
+        while results:
+            time.sleep(0.1)
+            for result in results:
+                if hasattr(result, "ready") and result.ready():
+                    if not result.successful():
+                        result.get()
                     results.remove(result)
-
-    while results:
-        time.sleep(0.1)
-        for result in results:
-            if result.ready():
-                processed_files += 1
-                update_progress(processed_files, numfiles)
-
-                if not result.successful():
-                    result.get()
-                results.remove(result)
-
-    pool.close()
-    pool.join()
+                else:
+                    results.remove(result)
+        print progressdata
+    finally:
+        pool.close()
+        pool.join()
+        log("\n\n")
 
 
 if __name__ == "__main__":
