@@ -1,3 +1,4 @@
+*.lnk
 *.dict
 build/
 app.running
