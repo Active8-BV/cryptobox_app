@@ -289,7 +289,7 @@ def main():
     numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])
 
     log("\n\n")
-    num_cores = multiprocessing.cpu_count() / 4
+    num_cores = multiprocessing.cpu_count() / 2
     if num_cores < 1:
         num_cores = 1
     log("Check hashes for", numfiles, "files, using", num_cores, "cores")
