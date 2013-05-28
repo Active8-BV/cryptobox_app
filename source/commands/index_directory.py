@@ -3,11 +3,11 @@
 import os
 import sys
 import time
-import shutil
 import pipes
 import cPickle
 import json
 import math
+import shutil
 from optparse import OptionParser
 import hashlib
 import multiprocessing
@@ -168,7 +168,7 @@ def ignore_dirname(dirname):
 
 def filter_names(names):
     ignores = get_ignores()
-    return filter(lambda x: x not in ignores, names)
+    return filter(lambda x: x.lower() not in ignores, names)
 
 
 def count_files_visit(arg, dirname, names):
@@ -199,6 +199,7 @@ def index_files_visit(arg, dirname, names):
     if ignore_dirname(dirname):
         return
     names = filter_names(names)
+
     dirname = dirname.replace(os.path.sep, "/")
     filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
     dirname_hash = make_sha1_hash(dirname)
@@ -243,14 +244,14 @@ def async_make_cryptogit_hash(fpath, datadir, progressdata):
         blobpath_dec = os.path.join(blobdir, filehash)
 
         if not os.path.exists(blobpath_dec) and not os.path.exists(blobpath_dec + ".gz"):
-            ensure_directory(os.path.dirname(blobpath_dec))
             #shutil.copy2(fpath, blobpath_dec)
-            progressdata["newblobs"]["filehash"] = (fpath, blobpath_dec)
+            progressdata["newblobs"]
+            return filehash, fpath, blobpath_dec
         else:
             #print "skipping", os.path.basename(fpath)
             pass
 
-        return progressdata
+        return None
     except Exception, e:
         handle_exception(e)
 
@@ -277,7 +278,7 @@ def main():
     os.path.walk(options.dir, index_files_visit, args)
     log("\n\n")
     datadir = os.path.join(options.dir, ".cryptobox")
-
+    os.system("rm -Rf " + datadir)
     ensure_directory(datadir)
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
@@ -288,51 +289,61 @@ def main():
     numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])
 
     log("\n\n")
-    log("Comparing", numfiles, "files against the cryptobox vault, using", multiprocessing.cpu_count(), "cores")
+    num_cores = multiprocessing.cpu_count() / 4
+    if num_cores < 1:
+        num_cores = 1
+    log("Check hashes for", numfiles, "files, using", num_cores, "cores")
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-
-    results = []
-
-    def done_hashing(e):
-        progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"])
 
     progressdata = {}
     progressdata["processed_files"] = 0
     progressdata["numfiles"] = numfiles
     progressdata["newblobs"] = {}
 
-    try:
-        for dirhash in cryptobox_index["dirnamehash"]:
-            for fname in cryptobox_index["dirnamehash"][dirhash]["filenames"]:
-                file_dir = cryptobox_index["dirnamehash"][dirhash]["dirname"]
-                file_path = os.path.join(file_dir, fname)
+    def done_hashing(e):
+        progressdata["processed_files"] += 1
+        update_progress(progressdata["processed_files"], progressdata["numfiles"])
 
-                result = pool.apply_async(async_make_cryptogit_hash, (file_path, datadir, progressdata), callback=done_hashing)
-                #result = None
-                #apply(async_make_cryptogit_hash, (file_path, datadir))
-                if result:
-                    results.append(result)
+        if e:
+            d = {}
+            d["filehash"] = e[0]
+            d["fpath"] = e[1]
+            d["blobpath_dec"] = e[2]
+            progressdata["newblobs"][d["filehash"]] = d
 
-            for result in results:
-                if hasattr(result, "ready") and result.ready():
-                    if result.successful():
-                        results.remove(result)
+    results = []
+    for dirhash in cryptobox_index["dirnamehash"]:
+        for fname in cryptobox_index["dirnamehash"][dirhash]["filenames"]:
+            file_dir = cryptobox_index["dirnamehash"][dirhash]["dirname"]
+            file_path = os.path.join(file_dir, fname)
+            result = pool.apply_async(async_make_cryptogit_hash, (file_path, datadir, progressdata), callback=done_hashing)
+            #result = None
+            #apply(async_make_cryptogit_hash, (file_path, datadir))
+            if result:
+                results.append(result)
+    pool.close()
+    pool.join()
+    for result in results:
+        if not result.successful():
+            result.get()
+    sys.stderr.flush()
+    log("")
+    log("")
 
-        while results:
-            time.sleep(0.1)
-            for result in results:
-                if hasattr(result, "ready") and result.ready():
-                    if not result.successful():
-                        result.get()
-                    results.remove(result)
-                else:
-                    results.remove(result)
-        print progressdata
-    finally:
-        pool.close()
-        pool.join()
-        log("\n\n")
+    if len(progressdata["newblobs"]) == 0:
+        exit(1)
+
+    log("Copy", len(progressdata["newblobs"]), "objects to store")
+    counter = 0
+    for i in progressdata["newblobs"]:
+        counter += 1
+        d = progressdata["newblobs"][i]
+        ensure_directory(os.path.dirname(d["blobpath_dec"]))
+        shutil.copy2(d["fpath"], d["blobpath_dec"])
+        update_progress(counter, len(progressdata["newblobs"]))
+    log("")
+
+
 
 
 if __name__ == "__main__":
