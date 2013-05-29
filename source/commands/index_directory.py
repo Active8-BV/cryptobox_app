@@ -417,6 +417,9 @@ def compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_b
     progressdata = {}
     progressdata["processed_files"] = 0
     progressdata["numfiles"] = len(new_blobs)
+    def done_comcrypting(e):
+        progressdata["processed_files"] += 1
+        update_progress(progressdata["processed_files"], progressdata["numfiles"])
 
     pool = multiprocessing.Pool(processes=num_cores)
 
@@ -425,7 +428,7 @@ def compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_b
     for fhash in new_blobs:
         counter += 1
         ensure_directory(new_blobs[fhash]["blobdir"])
-        result = pool.apply_async(zip_compress_and_store_object, (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret))
+        result = pool.apply_async(zip_compress_and_store_object, (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret), callback=done_comcrypting)
         comcrypt_results.append(result)
     pool.close()
     pool.join()
