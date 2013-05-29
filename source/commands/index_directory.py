@@ -2,30 +2,33 @@
 # coding=utf-8
 import sys
 reload(sys)
+# noinspection PyUnresolvedReferences
 sys.setdefaultencoding('utf-8')
 print sys.getdefaultencoding()
-
+import zlib
 import os
 import time
-import pipes
 import cPickle
 import json
 import math
-import shutil
+import re
 from optparse import OptionParser
-import hashlib
 import multiprocessing
-
+from Crypto import Random
+from Crypto.Hash import SHA, SHA512, HMAC
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
 
 g_lock = multiprocessing.Lock()
 
 
 def warning(*arg):
-    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip() + " (-h for help)\033[0m\n")
+    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + " (-h for help)\033[0m\n")
 
 
 def log(*arg):
-    sys.stderr.write("\033[93m" + " ".join([str(s) for s in arg]).strip() + "\n\033[0m")
+    msg = " ".join([str(s) for s in arg]).strip(" ")
+    sys.stderr.write("\033[93m" + msg + "\n\033[0m")
 
 
 def add_options():
@@ -148,15 +151,158 @@ def make_sha1_hash(data):
     """ make hash
     @param data:
     """
-    sha = hashlib.sha1()
+    sha = SHA.new()
     sha.update(data)
     return sha.hexdigest()
 
 
-def save_file_data_as_object(filehash, outpath, fpath, password):
-    outfile = os.path.join(outpath, filehash)
-    cmd = "openssl enc -aes-256-cbc -in " + fpath + " -pass pass:" + password + " -out " + outfile
-    os.system(cmd)
+def make_hash(data):
+    """ make hash
+    @param data:
+    """
+    sha = SHA512.new(data)
+    return sha.hexdigest()
+
+
+def make_hash_str(data, secret):
+    """ make hash
+    @param data:
+    """
+    if isinstance(data, dict):
+        sortedkeys = data.keys()
+        sortedkeys.sort()
+        data2 = {}
+        for key in sortedkeys:
+            data2[key] = str(data[key])
+        data = data2
+    elif isinstance(data, list):
+        data = data[0]
+    if len(data) > 100:
+        data = data[:100]
+    data = re.sub('[\Waouiae]+', "", str(data).lower())
+    hmac = HMAC.new(secret, digestmod=SHA512)
+    hmac.update(str(data))
+    return hmac.hexdigest()
+
+
+def pasword_derivation(key, salt, size=32):
+    """
+    @param key:
+    @type key: str
+    @param salt:
+    @type salt: str
+    @return:
+    @rtype: str
+    """
+    return PBKDF2(key, salt, size)
+
+
+#noinspection PyArgumentEqualDefault
+def encrypt(salt, secret, data):
+    """
+    encrypt data or a list of data with the password (key)
+    @param data: data to encrypt
+    @type data: list, bytearray
+    @return: ecnrypted data dict
+    @rtype: dict
+    """
+    if not data:
+        print
+        # the block size for the cipher object; must be 16, 24, or 32 for AES
+    block_size = 32
+    # the character used for padding--with a block cipher such as AES, the value
+    # you encrypt must be a multiple of block_size in length.  This character is
+    # used to ensure that your value is always a multiple of block_size
+    padding = "{"
+    # one-liner to sufficiently pad the text to be encrypted
+    pad = lambda s: s + (block_size - len(s) % block_size) * padding
+    # enhance secret
+    Random.atfork()
+    initialization_vector = Random.new().read(AES.block_size)
+    cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    # encode the list or string
+    data_hash = make_hash_str(data, secret)
+    encoded_data = cipher.encrypt(pad(data))
+
+    encoded_hash = make_hash_str(encoded_data, secret)
+    encrypted_data_dict = {
+        "salt": salt,
+        "hash": data_hash,
+        "initialization_vector": initialization_vector,
+        "encoded_data": encoded_data
+    }
+    if encoded_hash == data_hash:
+        raise Exception("data is not encrypted")
+    return encrypted_data_dict
+
+
+class EncryptionHashMismatch(Exception):
+    """
+    raised when the hash of the decrypted data doesn't match the hash of the original data
+    """
+    pass
+
+
+#noinspection PyArgumentEqualDefault
+def decrypt(secret, encrypted_data_dict, hashcheck=True):
+    """
+    encrypt data or a list of data with the password (key)
+    @param key: password
+    @type key: str
+    @param encrypted_data_dict: encrypted data
+    @type encrypted_data_dict: dict
+    @return: the data
+    @rtype: list, bytearray
+    """
+    # the character used for padding--with a block cipher such as AES, the value
+    # you encrypt must be a multiple of block_size in length.  This character is
+    # used to ensure that your value is always a multiple of block_size
+    padding = "{"
+    # one-liners to encrypt/encode and decrypt/decode a str
+    # encrypt with AES, encode with base64
+    # initialization_vector = Random.new().read(AES.block_size)
+    if not isinstance(encrypted_data_dict, dict):
+        pass
+    if 16 != len(encrypted_data_dict["initialization_vector"]):
+        raise Exception("initialization_vector len is not 16")
+    cipher = AES.new(secret, AES.MODE_CFB, IV=encrypted_data_dict["initialization_vector"])
+    decoded = cipher.decrypt(encrypted_data_dict["encoded_data"]).rstrip(padding)
+    data_hash = make_hash_str(decoded, secret)
+    if "hash" in encrypted_data_dict and hashcheck:
+        if data_hash != encrypted_data_dict["hash"]:
+            raise EncryptionHashMismatch("the decryption went wrong, hash didn't match")
+    return decoded
+
+
+def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
+    fout = open(path, "wb")
+    fout.write(data)
+    fout.close()
+    os.utime(path, (a_time, m_time))
+    os.chmod(path, st_mode)
+    os.chown(path, st_uid, st_gid)
+
+
+def read_file(path):
+    data = open(path, "rb").read()
+    stats = os.stat(path)
+    return data, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid
+
+
+def read_file_to_fdict(path):
+    ft = read_file(path)
+    file_dict = {}
+    file_dict["data"] = ft[0]
+    file_dict["st_atime"] = int(ft[1])
+    file_dict["st_mtime"] = int(ft[2])
+    file_dict["st_mode"] = int(ft[3])
+    file_dict["st_uid"] = int(ft[4])
+    file_dict["st_gid"] = int(ft[5])
+    return file_dict
+
+
+def write_fdict_to_file(fdict, path):
+    write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
 
 
 def get_ignores():
@@ -194,7 +340,7 @@ def update_progress(curr, total, msg=""):
             progress = 100
         if len(msg) == 0:
             msg = str(curr) + "/" + str(total)
-        sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress/2 * "#", (50 - progress/2) * " ", progress, msg))
+        sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg))
         sys.stderr.flush()
 
     finally:
@@ -213,12 +359,11 @@ def index_files_visit(arg, dirname, names):
     folder = {}
     folder["dirname"] = dirname
     folder["dirnamehash"] = dirname_hash
-    folder["names"] = names
+
     folder["filenames"] = filenames
     folder["nameshash"] = nameshash
-    arg["dirname"][dirname] = folder
-    arg["dirnamehash"][dirname_hash] = folder
 
+    arg["folders"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
     update_progress(arg["numfiles"], arg["numfiles_cnt"])
 
@@ -242,24 +387,51 @@ def ensure_encryption_blobstore(datadir):
     for unencfile in files_to_encrypt:
         print unencfile
 
-#os.system(os.path.join(".", "gzip") + " " + blobpath_dec)
-def async_make_cryptogit_hash(fpath, datadir, progressdata):
-    try:
-        filehash = os.popen(os.path.join(".", "git-hash-object") + " " + pipes.quote(fpath)).read().strip()
-        blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
-        blobpath_dec = os.path.join(blobdir, filehash)
 
-        if not os.path.exists(blobpath_dec) and not os.path.exists(blobpath_dec + ".gz"):
-            #shutil.copy2(fpath, blobpath_dec)
-            progressdata["newblobs"]
-            return filehash, fpath, blobpath_dec
-        else:
-            #print "skipping", os.path.basename(fpath)
-            pass
+def make_cryptogit_hash(fpath, datadir):
+    file_dict = read_file_to_fdict(fpath)
+    filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
+    blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
+    blobpath = os.path.join(blobdir, filehash[2:])
+    filedata = {"filehash": filehash, "fpath": fpath, "blobpath": blobpath, "blobdir": blobdir}
+    filedata["blob_exists"] = os.path.exists(blobpath)
+    return filedata
+
+
+def zip_compress_and_store_object(fpath, blobpath, salt, secret):
+    try:
+        file_dict = read_file_to_fdict(fpath)
+        compressed_file_dict = zlib.compress(cPickle.dumps(file_dict, cPickle.HIGHEST_PROTOCOL), 9)
+        encrypted_file_dict = encrypt(salt, secret, compressed_file_dict)
+        cPickle.dump(encrypted_file_dict, open(blobpath, "wb"), cPickle.HIGHEST_PROTOCOL)
 
         return None
     except Exception, e:
         handle_exception(e)
+
+
+def compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs):
+    num_cores = multiprocessing.cpu_count()
+    if num_cores < 1:
+        num_cores = 1
+    progressdata = {}
+    progressdata["processed_files"] = 0
+    progressdata["numfiles"] = len(new_blobs)
+
+    pool = multiprocessing.Pool(processes=num_cores)
+
+    counter = 0
+    comcrypt_results = []
+    for fhash in new_blobs:
+        counter += 1
+        ensure_directory(new_blobs[fhash]["blobdir"])
+        result = pool.apply_async(zip_compress_and_store_object, (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret))
+        comcrypt_results.append(result)
+    pool.close()
+    pool.join()
+    for result in comcrypt_results:
+        if not result.successful():
+            result.get()
 
 
 def main():
@@ -269,7 +441,8 @@ def main():
         exit_app_warning("Need DIR (-d) to continue")
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
-    log("Counting", options.dir)
+    log("Start index for", options.dir, "\n")
+
     numfiles = {}
     numfiles["cnt"] = 0
     os.path.walk(options.dir, count_files_visit, numfiles)
@@ -277,77 +450,55 @@ def main():
     log("Indexing", numfiles["cnt"], "files")
     args = {}
     args["DIR"] = options.dir
-    args["dirname"] = {}
-    args["dirnamehash"] = {}
+    args["folders"] = {}
     args["numfiles"] = 0
     args["numfiles_cnt"] = numfiles["cnt"]
     os.path.walk(options.dir, index_files_visit, args)
-    log("\n\n")
+
     datadir = os.path.join(options.dir, ".cryptobox")
-    #os.system("rm -Rf " + datadir)
+
+    os.system("rm -Rf " + datadir)
+
     ensure_directory(datadir)
+    cryptobox_index = args["folders"]
+
+    numfiles = reduce(lambda x, y: x + y, [len(args["folders"][x]["filenames"]) for x in args["folders"]])
+
+    log("\n")
+    log("Checking", numfiles, "files")
+    password = "kjhfsd98"
+    salt = Random.new().read(32)
+    secret = pasword_derivation(password, salt)
+
+    new_blobs = {}
+    file_cnt = 0
+    new_objects = 0
+    for dirhash in cryptobox_index:
+        for fname in cryptobox_index[dirhash]["filenames"]:
+            file_cnt += 1
+            file_dir = cryptobox_index[dirhash]["dirname"]
+            file_path = os.path.join(file_dir, fname)
+            filedata = make_cryptogit_hash(file_path, datadir)
+            update_progress(file_cnt, numfiles)
+            if not filedata["blob_exists"]:
+                new_blobs[filedata["filehash"]] = filedata
+                new_objects += 1
+            if len(new_blobs) > 100:
+                compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs)
+                new_blobs = {}
+
+    if len(new_blobs) > 0:
+        compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs)
+
+
+    sys.stderr.flush()
+    log("\n")
+    log("writing tree, found", new_objects, "new objects")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
-    cryptobox_index = {"dirname": args["dirname"], "dirnamehash": args["dirnamehash"]}
     cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
-    json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"))
+    json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
-    numfiles = reduce(lambda x, y: x + y, [len(args["dirnamehash"][x]["filenames"]) for x in args["dirnamehash"]])
-
-    log("\n\n")
-    num_cores = multiprocessing.cpu_count() / 2
-    if num_cores < 1:
-        num_cores = 1
-    log("Check hashes for", numfiles, "files, using", num_cores, "cores")
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-
-    progressdata = {}
-    progressdata["processed_files"] = 0
-    progressdata["numfiles"] = numfiles
-    progressdata["newblobs"] = {}
-
-    def done_hashing(e):
-        progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"])
-
-        if e:
-            d = {}
-            d["filehash"] = e[0]
-            d["fpath"] = e[1]
-            d["blobpath_dec"] = e[2]
-            progressdata["newblobs"][d["filehash"]] = d
-
-    results = []
-    for dirhash in cryptobox_index["dirnamehash"]:
-        for fname in cryptobox_index["dirnamehash"][dirhash]["filenames"]:
-            file_dir = cryptobox_index["dirnamehash"][dirhash]["dirname"]
-            file_path = os.path.join(file_dir, fname)
-            result = pool.apply_async(async_make_cryptogit_hash, (file_path, datadir, progressdata), callback=done_hashing)
-            #result = None
-            #apply(async_make_cryptogit_hash, (file_path, datadir))
-            if result:
-                results.append(result)
-    pool.close()
-    pool.join()
-    for result in results:
-        if not result.successful():
-            result.get()
-    sys.stderr.flush()
-    log("")
-    log("")
-
-    if len(progressdata["newblobs"]) == 0:
-        exit(1)
-
-    log("Copy", len(progressdata["newblobs"]), "objects to store")
-    counter = 0
-    for i in progressdata["newblobs"]:
-        counter += 1
-        d = progressdata["newblobs"][i]
-        ensure_directory(os.path.dirname(d["blobpath_dec"]))
-        shutil.copy2(d["fpath"], d["blobpath_dec"])
-        update_progress(counter, len(progressdata["newblobs"]))
-    log("")
 
 
 

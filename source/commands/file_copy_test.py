@@ -1,35 +1,44 @@
 # coding=utf-8
 import os
-import stat
+
+
+def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
+    fout = open(path, "wb")
+    fout.write(data)
+    fout.close()
+    os.utime(path, (a_time, m_time))
+    os.chmod(path, st_mode)
+    os.chown(path, st_uid, st_gid)
+
+
+def read_file(path):
+    data = open(path, "rb").read()
+    stats = os.stat(path)
+    return data, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid
+
+
+def read_file_to_fdict(path):
+    ft = read_file(path)
+    file_dict = {}
+    file_dict["data"] = ft[0]
+    file_dict["st_atime"] = int(ft[1])
+    file_dict["st_mtime"] = int(ft[2])
+    file_dict["st_mode"] = int(ft[3])
+    file_dict["st_uid"] = int(ft[4])
+    file_dict["st_gid"] = int(ft[5])
+    return file_dict
+
+
+def write_fdict_to_file(fdict, path):
+    write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
+
 
 def main():
-    stats = os.stat("./gzip")
-    open("gzip_copy2", "w").write(open("./gzip", "r").read())
-    stats2 = os.stat("./gzip_copy2")
-    #print stats
-    #print stats2
-
-    mode = stats.st_mode
-    os.chmod("./gzip_copy2", mode)
-    uid = stats.st_uid
-    gid = stats.st_gid
-    #os.chown("./gzip_copy2", uid, gid)
-        
-
-    atime = stats[stat.ST_ATIME]
-    mtime = stats[stat.ST_MTIME]
-    os.utime("./gzip_copy2", (atime, mtime))
-
-
-
-
-    print "----------"
-    stats = os.stat("./gzip")
-    stats2 = os.stat("./gzip_copy2")
-    print stats
-    print stats2
+    fd = read_file_to_fdict("./gzip")
+    write_fdict_to_file(fd, "./gzip_copy3")
 
     os.system("ls -las gzip*")
+
 
 if __name__ == "__main__":
     main()
