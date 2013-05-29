@@ -35,6 +35,13 @@ def add_options():
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="dir",
                       help="index this DIR", metavar="DIR")
+    parser.add_option("-l", "--encrypt", dest="encrypt", action='store_true',
+                      help="index and possible decrypt files)", metavar="ENCRYPT")
+    parser.add_option("-o", "--decrypt", dest="decrypt", action='store_true',
+                      help="decrypt and correct the directory", metavar="DECRYPT")
+    parser.add_option("-r", "--remove", dest="remove", action='store_true',
+                      help="remove the unencrypted files", metavar="DECRYPT")
+
     return parser.parse_args()
 
 
@@ -334,6 +341,8 @@ def update_progress(curr, total, msg=""):
     global g_lock
     g_lock.acquire()
     try:
+        if total == 0:
+            return
         progress = int(math.ceil(float(curr) / (float(total) / 100)))
         if progress > 100:
             print "error progress more then 100", progress
@@ -359,8 +368,7 @@ def index_files_visit(arg, dirname, names):
     folder = {}
     folder["dirname"] = dirname
     folder["dirnamehash"] = dirname_hash
-
-    folder["filenames"] = filenames
+    folder["filenames"] = [{'name': x} for x in filenames]
     folder["nameshash"] = nameshash
 
     arg["folders"][dirname_hash] = folder
@@ -410,7 +418,7 @@ def zip_compress_and_store_object(fpath, blobpath, salt, secret):
         handle_exception(e)
 
 
-def compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs):
+def compress_and_encrypt_new_blobs(salt, secret, new_blobs):
     num_cores = multiprocessing.cpu_count()
     if num_cores < 1:
         num_cores = 1
@@ -438,19 +446,12 @@ def compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_b
             result.get()
 
 
-def main():
-    (options, args) = add_options()
-
-    if not options.dir:
-        exit_app_warning("Need DIR (-d) to continue")
-    if not os.path.exists(options.dir):
-        exit_app_warning("DIR [", options.dir, "] does not exist")
+def index_and_encrypt(options):
     log("Start index for", options.dir, "\n")
 
     numfiles = {}
     numfiles["cnt"] = 0
     os.path.walk(options.dir, count_files_visit, numfiles)
-
     log("Indexing", numfiles["cnt"], "files")
     args = {}
     args["DIR"] = options.dir
@@ -458,55 +459,90 @@ def main():
     args["numfiles"] = 0
     args["numfiles_cnt"] = numfiles["cnt"]
     os.path.walk(options.dir, index_files_visit, args)
-
     datadir = os.path.join(options.dir, ".cryptobox")
-
-    os.system("rm -Rf " + datadir)
-
+    #os.system("rm -Rf " + datadir)
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
-
     numfiles = reduce(lambda x, y: x + y, [len(args["folders"][x]["filenames"]) for x in args["folders"]])
-
     log("\n")
     log("Checking", numfiles, "files")
     password = "kjhfsd98"
     salt = Random.new().read(32)
     secret = pasword_derivation(password, salt)
-
     new_blobs = {}
     file_cnt = 0
     new_objects = 0
+    original_file_paths = []
+    original_dir_paths = set()
     for dirhash in cryptobox_index:
         for fname in cryptobox_index[dirhash]["filenames"]:
             file_cnt += 1
             file_dir = cryptobox_index[dirhash]["dirname"]
-            file_path = os.path.join(file_dir, fname)
+            original_dir_paths.add(file_dir)
+            file_path = os.path.join(file_dir, fname["name"])
+            original_file_paths.append(file_path)
             filedata = make_cryptogit_hash(file_path, datadir)
-            update_progress(file_cnt, numfiles)
+            fname["hash"] = filedata["filehash"]
             if not filedata["blob_exists"]:
                 new_blobs[filedata["filehash"]] = filedata
                 new_objects += 1
-            if len(new_blobs) > 100:
-                compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs)
+            if len(new_blobs) > 1500:
+                log("\n")
+                log("lots of new blobs, doing in between comcrypt fase")
+                compress_and_encrypt_new_blobs(salt, secret, new_blobs)
                 new_blobs = {}
-    print
-    print 
+                log("\n")
+            update_progress(file_cnt, numfiles)
     if len(new_blobs) > 0:
-        compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs)
-
-
-    sys.stderr.flush()
+        log("\n")
+        log("Comcrypting", len(new_blobs), "blobs")
+        if len(new_blobs) > 0:
+            compress_and_encrypt_new_blobs(salt, secret, new_blobs)
+        sys.stderr.flush()
     log("\n")
     log("writing tree, found", new_objects, "new objects")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
+    if options.remove:
+        cryptobox_index["locked"] = True
+    else:
+        cryptobox_index["locked"] = False
     cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
+    return original_dir_paths, original_file_paths
 
 
+def main():
+    (options, args) = add_options()
 
+    if not options.dir:
+        exit_app_warning("Need DIR (-d) to continue")
+    if not os.path.exists(options.dir):
+        exit_app_warning("DIR [", options.dir, "] does not exist")
+    if not options.encrypt and not options.decrypt:
+        exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
 
+    if options.encrypt:
+        original_dir_paths, file_paths = index_and_encrypt(options)
+        if options.dir in original_dir_paths:
+            original_dir_paths.remove(options.dir)
+        if os.path.join(options.dir, "/") in original_dir_paths:
+            original_dir_paths.remove(os.path.join(options.dir, "/"))
+        if options.remove:
+            for f in file_paths:
+                os.remove(f)
+            for d in original_dir_paths:
+                dstore = os.path.join(d, ".DS_Store")
+                if os.path.exists(dstore):
+                    os.remove(dstore)
+                os.rmdir(d)
+
+    if options.decrypt:
+        datadir = os.path.join(options.dir, ".cryptobox")
+        cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
+        cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
+        for dirhash in cryptobox_index:
+            print cryptobox_index[dirhash]
 
 if __name__ == "__main__":
     main()
