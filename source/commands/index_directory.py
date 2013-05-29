@@ -417,6 +417,7 @@ def compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_b
     progressdata = {}
     progressdata["processed_files"] = 0
     progressdata["numfiles"] = len(new_blobs)
+
     def done_comcrypting(e):
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"])
@@ -489,7 +490,8 @@ def main():
             if len(new_blobs) > 100:
                 compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs)
                 new_blobs = {}
-
+    print
+    print 
     if len(new_blobs) > 0:
         compress_and_encrypt_new_blobs(salt, secret, cryptobox_index, datadir, new_blobs)
 
