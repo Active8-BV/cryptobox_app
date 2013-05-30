@@ -4,7 +4,8 @@ import sys
 reload(sys)
 # noinspection PyUnresolvedReferences
 sys.setdefaultencoding('utf-8')
-print sys.getdefaultencoding()
+
+import shutil
 import zlib
 import os
 import time
@@ -23,7 +24,7 @@ g_lock = multiprocessing.Lock()
 
 
 def warning(*arg):
-    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + " (-h for help)\033[0m\n")
+    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + "\033[0m\n")
 
 
 def log(*arg):
@@ -47,7 +48,6 @@ def add_options():
 
 def exit_app_warning(*arg):
     warning(*arg)
-    print "-1"
     exit(1)
 
 
@@ -251,11 +251,9 @@ class EncryptionHashMismatch(Exception):
 
 
 #noinspection PyArgumentEqualDefault
-def decrypt(secret, encrypted_data_dict, hashcheck=True):
+def decrypt(key, encrypted_data_dict, hashcheck=True):
     """
     encrypt data or a list of data with the password (key)
-    @param key: password
-    @type key: str
     @param encrypted_data_dict: encrypted data
     @type encrypted_data_dict: dict
     @return: the data
@@ -272,6 +270,7 @@ def decrypt(secret, encrypted_data_dict, hashcheck=True):
         pass
     if 16 != len(encrypted_data_dict["initialization_vector"]):
         raise Exception("initialization_vector len is not 16")
+    secret = pasword_derivation(key, encrypted_data_dict["salt"])
     cipher = AES.new(secret, AES.MODE_CFB, IV=encrypted_data_dict["initialization_vector"])
     decoded = cipher.decrypt(encrypted_data_dict["encoded_data"]).rstrip(padding)
     data_hash = make_hash_str(decoded, secret)
@@ -420,12 +419,11 @@ def zip_compress_and_store_object(fpath, blobpath, salt, secret):
 
 def compress_and_encrypt_new_blobs(salt, secret, new_blobs):
     num_cores = multiprocessing.cpu_count()
-    if num_cores < 1:
-        num_cores = 1
     progressdata = {}
     progressdata["processed_files"] = 0
     progressdata["numfiles"] = len(new_blobs)
 
+    # noinspection PyUnusedLocal
     def done_comcrypting(e):
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"])
@@ -446,8 +444,18 @@ def compress_and_encrypt_new_blobs(salt, secret, new_blobs):
             result.get()
 
 
-def index_and_encrypt(options):
-    log("Start index for", options.dir, "\n")
+def index_and_encrypt(salt, secret, options):
+    datadir = os.path.join(options.dir, ".cryptobox")
+    cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
+    if os.path.exists(cryptobox_index_path):
+        current_cryptobox_index = cPickle.load(open(cryptobox_index_path, "r"))
+        if current_cryptobox_index["locked"] is True:
+            exit_app_warning("Current directory is locked")
+            return
+        else:
+            shutil.copy2(cryptobox_index_path, cryptobox_index_path+".backup")
+
+    log("Start index for", options.dir, "using", multiprocessing.cpu_count(), "cores")
 
     numfiles = {}
     numfiles["cnt"] = 0
@@ -459,28 +467,21 @@ def index_and_encrypt(options):
     args["numfiles"] = 0
     args["numfiles_cnt"] = numfiles["cnt"]
     os.path.walk(options.dir, index_files_visit, args)
-    datadir = os.path.join(options.dir, ".cryptobox")
+
     #os.system("rm -Rf " + datadir)
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
     numfiles = reduce(lambda x, y: x + y, [len(args["folders"][x]["filenames"]) for x in args["folders"]])
     log("\n")
     log("Checking", numfiles, "files")
-    password = "kjhfsd98"
-    salt = Random.new().read(32)
-    secret = pasword_derivation(password, salt)
     new_blobs = {}
     file_cnt = 0
     new_objects = 0
-    original_file_paths = []
-    original_dir_paths = set()
     for dirhash in cryptobox_index:
         for fname in cryptobox_index[dirhash]["filenames"]:
             file_cnt += 1
             file_dir = cryptobox_index[dirhash]["dirname"]
-            original_dir_paths.add(file_dir)
             file_path = os.path.join(file_dir, fname["name"])
-            original_file_paths.append(file_path)
             filedata = make_cryptogit_hash(file_path, datadir)
             fname["hash"] = filedata["filehash"]
             if not filedata["blob_exists"]:
@@ -509,7 +510,71 @@ def index_and_encrypt(options):
         cryptobox_index["locked"] = False
     cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
-    return original_dir_paths, original_file_paths
+
+    if options.remove:
+        for fname in os.listdir(options.dir):
+            if fname.lower() not in get_ignores():
+                fpath = os.path.join(options.dir, fname)
+                if os.path.isdir(fpath):
+                    shutil.rmtree(fpath, True)
+                else:
+                    os.remove(fpath)
+
+
+def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, password):
+    fdir = os.path.join(blobdir, fhash[:2])
+    blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
+    blob_comp = decrypt(password, blob_enc, True)
+    file_blob = cPickle.loads(zlib.decompress(blob_comp))
+    for dirhash in cryptobox_index:
+        if isinstance(cryptobox_index[dirhash], dict):
+            for cfile in cryptobox_index[dirhash]["filenames"]:
+                if fhash == cfile["hash"]:
+                    fpath = os.path.join(cryptobox_index[dirhash]["dirname"], cfile["name"])
+                    if not os.path.exists(fpath):
+                        write_fdict_to_file(file_blob, fpath)
+
+
+def decrypt_and_build_filetree(options, password):
+    datadir = os.path.join(options.dir, ".cryptobox")
+    blobdir = os.path.join(datadir, "blobs")
+    cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
+    cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
+    hashes = set()
+    for dirhash in cryptobox_index:
+        if isinstance(cryptobox_index[dirhash], dict):
+            if "dirname" in cryptobox_index[dirhash]:
+                if not os.path.exists(cryptobox_index[dirhash]["dirname"]):
+                    ensure_directory(cryptobox_index[dirhash]["dirname"])
+            for cfile in cryptobox_index[dirhash]["filenames"]:
+                fpath = os.path.join(cryptobox_index[dirhash]["dirname"], cfile["name"])
+                if not os.path.exists(fpath):
+                    hashes.add(cfile["hash"])
+
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    progressdata = {}
+    progressdata["processed_files"] = 0
+    progressdata["numfiles"] = len(hashes)
+
+    # noinspection PyUnusedLocal
+    def done_decrypting(e):
+        progressdata["processed_files"] += 1
+        update_progress(progressdata["processed_files"], progressdata["numfiles"])
+
+    decrypt_results = []
+    for fhash in hashes:
+        result = pool.apply_async(decrypt_blob_to_filepaths, (blobdir, cryptobox_index, fhash, password), callback=done_decrypting)
+        decrypt_results.append(result)
+    pool.close()
+    pool.join()
+    for result in decrypt_results:
+        if not result.successful():
+            result.get()
+    cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
+    cryptobox_index["locked"] = False
+    cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
+    json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
+    log("\n")
 
 
 def main():
@@ -522,27 +587,16 @@ def main():
     if not options.encrypt and not options.decrypt:
         exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
 
+    password = "kjhfsd98"
+    salt = Random.new().read(32)
+    secret = pasword_derivation(password, salt)
+
     if options.encrypt:
-        original_dir_paths, file_paths = index_and_encrypt(options)
-        if options.dir in original_dir_paths:
-            original_dir_paths.remove(options.dir)
-        if os.path.join(options.dir, "/") in original_dir_paths:
-            original_dir_paths.remove(os.path.join(options.dir, "/"))
-        if options.remove:
-            for f in file_paths:
-                os.remove(f)
-            for d in original_dir_paths:
-                dstore = os.path.join(d, ".DS_Store")
-                if os.path.exists(dstore):
-                    os.remove(dstore)
-                os.rmdir(d)
+        index_and_encrypt(salt, secret, options)
 
     if options.decrypt:
-        datadir = os.path.join(options.dir, ".cryptobox")
-        cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
-        cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
-        for dirhash in cryptobox_index:
-            print cryptobox_index[dirhash]
+        decrypt_and_build_filetree(options, password)
+
 
 if __name__ == "__main__":
     main()
