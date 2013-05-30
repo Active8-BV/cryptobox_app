@@ -251,7 +251,7 @@ class EncryptionHashMismatch(Exception):
 
 
 #noinspection PyArgumentEqualDefault
-def decrypt(key, encrypted_data_dict, hashcheck=True):
+def decrypt(secret, encrypted_data_dict, hashcheck=True):
     """
     encrypt data or a list of data with the password (key)
     @param encrypted_data_dict: encrypted data
@@ -270,7 +270,7 @@ def decrypt(key, encrypted_data_dict, hashcheck=True):
         pass
     if 16 != len(encrypted_data_dict["initialization_vector"]):
         raise Exception("initialization_vector len is not 16")
-    secret = pasword_derivation(key, encrypted_data_dict["salt"])
+    #secret = pasword_derivation(key, encrypted_data_dict["salt"])
     cipher = AES.new(secret, AES.MODE_CFB, IV=encrypted_data_dict["initialization_vector"])
     decoded = cipher.decrypt(encrypted_data_dict["encoded_data"]).rstrip(padding)
     data_hash = make_hash_str(decoded, secret)
@@ -444,7 +444,11 @@ def compress_and_encrypt_new_blobs(salt, secret, new_blobs):
             result.get()
 
 
-def index_and_encrypt(salt, secret, options):
+def index_and_encrypt(options, password):
+    salt = Random.new().read(32)
+    salt = "1234"
+    secret = pasword_derivation(password, salt)
+
     datadir = os.path.join(options.dir, ".cryptobox")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     if os.path.exists(cryptobox_index_path):
@@ -502,12 +506,14 @@ def index_and_encrypt(salt, secret, options):
         sys.stderr.flush()
     log("\n")
     log("writing tree, found", new_objects, "new objects")
+
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
     if options.remove:
         cryptobox_index["locked"] = True
     else:
         cryptobox_index["locked"] = False
+    cryptobox_index["salt"] = salt
     cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
@@ -521,19 +527,21 @@ def index_and_encrypt(salt, secret, options):
                     os.remove(fpath)
 
 
-def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, password):
-    fdir = os.path.join(blobdir, fhash[:2])
-    blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
-    blob_comp = decrypt(password, blob_enc, True)
-    file_blob = cPickle.loads(zlib.decompress(blob_comp))
-    for dirhash in cryptobox_index:
-        if isinstance(cryptobox_index[dirhash], dict):
-            for cfile in cryptobox_index[dirhash]["filenames"]:
-                if fhash == cfile["hash"]:
-                    fpath = os.path.join(cryptobox_index[dirhash]["dirname"], cfile["name"])
-                    if not os.path.exists(fpath):
-                        write_fdict_to_file(file_blob, fpath)
-
+def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
+    try:
+        fdir = os.path.join(blobdir, fhash[:2])
+        blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
+        blob_comp = decrypt(secret, blob_enc, True)
+        file_blob = cPickle.loads(zlib.decompress(blob_comp))
+        for dirhash in cryptobox_index:
+            if isinstance(cryptobox_index[dirhash], dict):
+                for cfile in cryptobox_index[dirhash]["filenames"]:
+                    if fhash == cfile["hash"]:
+                        fpath = os.path.join(cryptobox_index[dirhash]["dirname"], cfile["name"])
+                        if not os.path.exists(fpath):
+                            write_fdict_to_file(file_blob, fpath)
+    except Exception, e:
+        handle_exception(e, False)
 
 def decrypt_and_build_filetree(options, password):
     datadir = os.path.join(options.dir, ".cryptobox")
@@ -561,9 +569,10 @@ def decrypt_and_build_filetree(options, password):
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"])
 
+    secret = pasword_derivation(password, cryptobox_index["salt"])
     decrypt_results = []
     for fhash in hashes:
-        result = pool.apply_async(decrypt_blob_to_filepaths, (blobdir, cryptobox_index, fhash, password), callback=done_decrypting)
+        result = pool.apply_async(decrypt_blob_to_filepaths, (blobdir, cryptobox_index, fhash, secret), callback=done_decrypting)
         decrypt_results.append(result)
     pool.close()
     pool.join()
@@ -588,11 +597,9 @@ def main():
         exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
 
     password = "kjhfsd98"
-    salt = Random.new().read(32)
-    secret = pasword_derivation(password, salt)
 
     if options.encrypt:
-        index_and_encrypt(salt, secret, options)
+        index_and_encrypt(options, password)
 
     if options.decrypt:
         decrypt_and_build_filetree(options, password)
