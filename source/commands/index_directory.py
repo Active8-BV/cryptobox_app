@@ -33,11 +33,11 @@ def log(*arg):
 
 def add_options():
     parser = OptionParser()
-    parser.add_option("-d", "--dir", dest="dir",
+    parser.add_option("-f", "--dir", dest="dir",
                       help="index this DIR", metavar="DIR")
-    parser.add_option("-l", "--encrypt", dest="encrypt", action='store_true',
+    parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true',
                       help="index and possible decrypt files)", metavar="ENCRYPT")
-    parser.add_option("-o", "--decrypt", dest="decrypt", action='store_true',
+    parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true',
                       help="decrypt and correct the directory", metavar="DECRYPT")
     parser.add_option("-r", "--remove", dest="remove", action='store_true',
                       help="remove the unencrypted files", metavar="DECRYPT")
