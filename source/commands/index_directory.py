@@ -42,6 +42,8 @@ def add_options():
                       help="decrypt and correct the directory", metavar="DECRYPT")
     parser.add_option("-r", "--remove", dest="remove", action='store_true',
                       help="remove the unencrypted files", metavar="DECRYPT")
+    parser.add_option("-c", "--clear", dest="clear", action='store_true',
+                      help="clear all cryptobox data", metavar="DECRYPT")
 
     return parser.parse_args()
 
@@ -404,7 +406,6 @@ def make_cryptogit_hash(fpath, datadir, cryptobox_index):
 def read_and_encrypt_file(fpath, blobpath, salt, secret):
     try:
         file_dict = read_file_to_fdict(fpath)
-        #pickled_file_dict = cPickle.dumps(file_dict, cPickle.HIGHEST_PROTOCOL)
         encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
         cPickle.dump(encrypted_file_dict, open(blobpath, "wb"), cPickle.HIGHEST_PROTOCOL)
         return None
@@ -464,7 +465,7 @@ def index_and_encrypt(options, password):
     args["numfiles"] = 0
     args["numfiles_cnt"] = dnumfiles["cnt"]
     os.path.walk(options.dir, index_files_visit, args)
-    os.system("rm -Rf " + datadir)
+
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
     numfiles = reduce(lambda x, y: x + y, [len(args["folders"]["dirnames"][x]["filenames"]) for x in args["folders"]["dirnames"]])
@@ -580,11 +581,16 @@ def decrypt_and_build_filetree(options, password):
     if len(hashes) > 0:
         print
 
+
 def main():
     (options, args) = add_options()
 
     if not options.dir:
-        exit_app_warning("Need DIR (-d) to continue")
+        exit_app_warning("Need DIR (-f or --dir) to continue")
+    if options.clear:
+        datadir = os.path.join(options.dir, ".cryptobox")
+        shutil.rmtree(datadir, True)
+        log("cleared all data")
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
     if not options.encrypt and not options.decrypt:
