@@ -213,10 +213,7 @@ def encrypt(salt, secret, data):
     @return: ecnrypted data dict
     @rtype: dict
     """
-    if not data:
-        print
-        # the block size for the cipher object; must be 16, 24, or 32 for AES
-    block_size = 32
+    # the block size for the cipher object; must be 16, 24, or 32 for AES
     # the character used for padding--with a block cipher such as AES, the value
     # you encrypt must be a multiple of block_size in length.  This character is
     # used to ensure that your value is always a multiple of block_size
@@ -235,7 +232,7 @@ def encrypt(salt, secret, data):
         "initialization_vector": initialization_vector,
         "encoded_data": encoded_data
     }
-    if encoded_hash == data_hash:
+    if encoded_hash == data_hash and len(data.strip()) > 0:
         raise Exception("data is not encrypted")
     return encrypted_data_dict
 
@@ -270,9 +267,11 @@ def decrypt(secret, encrypted_data_dict, hashcheck=True):
     cipher = AES.new(secret, AES.MODE_CFB, IV=encrypted_data_dict["initialization_vector"])
     decoded = cipher.decrypt(encrypted_data_dict["encoded_data"])
     data_hash = make_hash_str(decoded, secret)
+
     if "hash" in encrypted_data_dict and hashcheck:
-        if data_hash != encrypted_data_dict["hash"]:
-            raise EncryptionHashMismatch("the decryption went wrong, hash didn't match")
+        if len(decoded) > 0:
+            if data_hash != encrypted_data_dict["hash"]:
+                raise EncryptionHashMismatch("the decryption went wrong, hash didn't match")
     return decoded
 
 
@@ -332,21 +331,19 @@ def count_files_visit(arg, dirname, names):
     arg["cnt"] += len([os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])])
 
 
-def update_progress(curr, total, msg=""):
+def update_progress(curr, total, msg):
     global g_lock
     g_lock.acquire()
     try:
         if total == 0:
             return
         progress = int(math.ceil(float(curr) / (float(total) / 100)))
-        if progress > 100:
-            print "error progress more then 100", progress
-            progress = 100
-        if len(msg) == 0:
-            msg = str(curr) + "/" + str(total)
+        #if progress > 100:
+        #    print "error progress more then 100", progress
+        #    progress = 100
+        msg = msg + " " + str(curr) + "/" + str(total)
         sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg))
         sys.stderr.flush()
-
     finally:
         g_lock.release()
 
@@ -368,7 +365,8 @@ def index_files_visit(arg, dirname, names):
 
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
-    update_progress(arg["numfiles"], arg["numfiles_cnt"])
+    if arg["numfiles_cnt"] > 2000:
+        update_progress(arg["numfiles"], arg["numfiles_cnt"], "indexing")
 
 
 def ensure_directory(path):
@@ -391,30 +389,30 @@ def ensure_encryption_blobstore(datadir):
         print unencfile
 
 
-def make_cryptogit_hash(fpath, datadir):
+def make_cryptogit_hash(fpath, datadir, cryptobox_index):
     file_dict = read_file_to_fdict(fpath)
     filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
     filedata = {"filehash": filehash, "fpath": fpath, "blobpath": blobpath, "blobdir": blobdir}
     filedata["blob_exists"] = os.path.exists(blobpath)
+    del file_dict["data"]
+    cryptobox_index["filestats"][fpath] = file_dict
     return filedata
 
 
-def read_and_encrypt_file(fpath, blobpath, salt, secret, cryptobox_index):
+def read_and_encrypt_file(fpath, blobpath, salt, secret):
     try:
         file_dict = read_file_to_fdict(fpath)
-        #cryptobox_index["filestats"]
-        pickled_file_dict = cPickle.dumps(file_dict, cPickle.HIGHEST_PROTOCOL)
-        encrypted_file_dict = encrypt(salt, secret, pickled_file_dict)
+        #pickled_file_dict = cPickle.dumps(file_dict, cPickle.HIGHEST_PROTOCOL)
+        encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
         cPickle.dump(encrypted_file_dict, open(blobpath, "wb"), cPickle.HIGHEST_PROTOCOL)
-
         return None
     except Exception, e:
         handle_exception(e)
 
 
-def encrypt_new_blobs(salt, secret, new_blobs, cryptobox_index):
+def encrypt_new_blobs(salt, secret, new_blobs):
     num_cores = multiprocessing.cpu_count()
     progressdata = {}
     progressdata["processed_files"] = 0
@@ -423,7 +421,7 @@ def encrypt_new_blobs(salt, secret, new_blobs, cryptobox_index):
     # noinspection PyUnusedLocal
     def done_encrypting(e):
         progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"])
+        update_progress(progressdata["processed_files"], progressdata["numfiles"], "encrypting")
 
     pool = multiprocessing.Pool(processes=num_cores)
 
@@ -432,7 +430,7 @@ def encrypt_new_blobs(salt, secret, new_blobs, cryptobox_index):
     for fhash in new_blobs:
         counter += 1
         ensure_directory(new_blobs[fhash]["blobdir"])
-        result = pool.apply_async(read_and_encrypt_file, (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret, cryptobox_index), callback=done_encrypting)
+        result = pool.apply_async(read_and_encrypt_file, (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret), callback=done_encrypting)
         encrypt_results.append(result)
     pool.close()
     pool.join()
@@ -457,25 +455,19 @@ def index_and_encrypt(options, password):
         salt = Random.new().read(32)
     secret = pasword_derivation(password, salt)
 
-    log("Start index for", options.dir, "using", multiprocessing.cpu_count(), "cores")
-
-    numfiles = {}
-    numfiles["cnt"] = 0
-    os.path.walk(options.dir, count_files_visit, numfiles)
-    log("Indexing", numfiles["cnt"], "files")
+    dnumfiles = {}
+    dnumfiles["cnt"] = 0
+    os.path.walk(options.dir, count_files_visit, dnumfiles)
     args = {}
     args["DIR"] = options.dir
-    args["folders"] = {"dirnames": {}}
+    args["folders"] = {"dirnames": {}, "filestats": {}}
     args["numfiles"] = 0
-    args["numfiles_cnt"] = numfiles["cnt"]
+    args["numfiles_cnt"] = dnumfiles["cnt"]
     os.path.walk(options.dir, index_files_visit, args)
-
-    #os.system("rm -Rf " + datadir)
+    os.system("rm -Rf " + datadir)
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
     numfiles = reduce(lambda x, y: x + y, [len(args["folders"]["dirnames"][x]["filenames"]) for x in args["folders"]["dirnames"]])
-    log("\n")
-    log("Checking", numfiles, "files")
     new_blobs = {}
     file_cnt = 0
     new_objects = 0
@@ -484,26 +476,18 @@ def index_and_encrypt(options, password):
             file_cnt += 1
             file_dir = cryptobox_index["dirnames"][dirhash]["dirname"]
             file_path = os.path.join(file_dir, fname["name"])
-            filedata = make_cryptogit_hash(file_path, datadir)
+            filedata = make_cryptogit_hash(file_path, datadir, cryptobox_index)
             fname["hash"] = filedata["filehash"]
             if not filedata["blob_exists"]:
                 new_blobs[filedata["filehash"]] = filedata
                 new_objects += 1
             if len(new_blobs) > 1500:
-                log("\n")
-                log("lots of new blobs, doing in between encrypt fase")
-                encrypt_new_blobs(salt, secret, new_blobs, cryptobox_index)
+                encrypt_new_blobs(salt, secret, new_blobs)
                 new_blobs = {}
-                log("\n")
-            update_progress(file_cnt, numfiles)
+            update_progress(file_cnt, numfiles, "checking")
     if len(new_blobs) > 0:
-        log("\n")
-        log("Encrypting", len(new_blobs), "blobs")
         if len(new_blobs) > 0:
-            encrypt_new_blobs(salt, secret, new_blobs, cryptobox_index)
-        sys.stderr.flush()
-    log("\n")
-    log("writing tree, found", new_objects, "new objects")
+            encrypt_new_blobs(salt, secret, new_blobs)
 
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
     cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
@@ -516,27 +500,40 @@ def index_and_encrypt(options, password):
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
     if options.remove:
+        cnt = 0
+        total = len(os.listdir(options.dir))
         for fname in os.listdir(options.dir):
+            cnt += 1
+            update_progress(cnt, total, "deleting")
             if fname.lower() not in get_ignores():
                 fpath = os.path.join(options.dir, fname)
                 if os.path.isdir(fpath):
                     shutil.rmtree(fpath, True)
                 else:
                     os.remove(fpath)
+    print
 
 
 def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
     try:
         fdir = os.path.join(blobdir, fhash[:2])
         blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
-        blob_pickled = decrypt(secret, blob_enc, True)
-        file_blob = cPickle.loads(blob_pickled)
+
+        file_blob = {}
+        file_blob["data"] = decrypt(secret, blob_enc, True)
         for dirhash in cryptobox_index["dirnames"]:
             for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
                 if fhash == cfile["hash"]:
                     fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
                     if not os.path.exists(fpath):
+                        ft = cryptobox_index["filestats"][fpath]
+                        file_blob["st_atime"] = int(ft["st_atime"])
+                        file_blob["st_mtime"] = int(ft["st_mtime"])
+                        file_blob["st_mode"] = int(ft["st_mode"])
+                        file_blob["st_uid"] = int(ft["st_uid"])
+                        file_blob["st_gid"] = int(ft["st_gid"])
                         write_fdict_to_file(file_blob, fpath)
+
     except Exception, e:
         handle_exception(e, False)
 
@@ -564,7 +561,7 @@ def decrypt_and_build_filetree(options, password):
     # noinspection PyUnusedLocal
     def done_decrypting(e):
         progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"])
+        update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting")
 
     secret = pasword_derivation(password, base64.decodestring(cryptobox_index["salt_b64"]))
     decrypt_results = []
@@ -580,8 +577,8 @@ def decrypt_and_build_filetree(options, password):
     cryptobox_index["locked"] = False
     cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
-    log("\n")
-
+    if len(hashes) > 0:
+        print
 
 def main():
     (options, args) = add_options()
