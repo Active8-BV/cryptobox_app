@@ -518,16 +518,21 @@ def decrypt_and_build_filetree(options, password):
     datadir = os.path.join(options.dir, ".cryptobox")
     blobdir = os.path.join(datadir, "blobs")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
-    cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
+
+    if os.path.exists(cryptobox_index_path):
+        cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
+    else:
+        cryptobox_index = None
     hashes = set()
-    for dirhash in cryptobox_index["dirnames"]:
-        if "dirname" in cryptobox_index["dirnames"][dirhash]:
-            if not os.path.exists(cryptobox_index["dirnames"][dirhash]["dirname"]):
-                ensure_directory(cryptobox_index["dirnames"][dirhash]["dirname"])
-        for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
-            fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
-            if not os.path.exists(fpath):
-                hashes.add(cfile["hash"])
+    if cryptobox_index:
+        for dirhash in cryptobox_index["dirnames"]:
+            if "dirname" in cryptobox_index["dirnames"][dirhash]:
+                if not os.path.exists(cryptobox_index["dirnames"][dirhash]["dirname"]):
+                    ensure_directory(cryptobox_index["dirnames"][dirhash]["dirname"])
+            for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
+                fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
+                if not os.path.exists(fpath):
+                    hashes.add(cfile["hash"])
 
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     progressdata = {}
