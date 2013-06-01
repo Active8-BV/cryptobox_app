@@ -308,30 +308,6 @@ def write_fdict_to_file(fdict, path):
     write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
 
 
-def get_ignores():
-    return [".cryptobox", ".ds_store", "$recycle.bin"]
-
-
-def ignore_dirname(dirname):
-    ignores = get_ignores()
-    dirname_igore_finds = map(lambda x: dirname.find(x), ignores)
-    filtered_dirname = filter(lambda x: x > 0, dirname_igore_finds)
-    if len(filtered_dirname) > 0:
-        return True
-    return False
-
-
-def filter_names(names):
-    ignores = get_ignores()
-    return filter(lambda x: x.lower() not in ignores, names)
-
-
-def count_files_visit(arg, dirname, names):
-    if ignore_dirname(dirname):
-        return
-    names = filter_names(names)
-    arg["cnt"] += len([os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])])
-
 
 def update_progress(curr, total, msg):
     global g_lock
@@ -351,10 +327,6 @@ def update_progress(curr, total, msg):
 
 
 def index_files_visit(arg, dirname, names):
-    if ignore_dirname(dirname):
-        return
-    names = filter_names(names)
-
     dirname = dirname.replace(os.path.sep, "/")
     filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.isdir(x), [os.path.join(dirname, x) for x in names])]
     dirname_hash = make_sha1_hash(dirname)
@@ -367,8 +339,6 @@ def index_files_visit(arg, dirname, names):
 
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
-    if arg["numfiles_cnt"] > 2000:
-        update_progress(arg["numfiles"], arg["numfiles_cnt"], "indexing")
 
 
 def ensure_directory(path):
@@ -448,7 +418,6 @@ def index_and_encrypt(options, password):
         current_cryptobox_index = cPickle.load(open(cryptobox_index_path, "r"))
         salt = base64.decodestring(current_cryptobox_index["salt_b64"])
         if current_cryptobox_index["locked"] is True:
-            exit_app_warning("Current directory is locked")
             return
         else:
             shutil.copy2(cryptobox_index_path, cryptobox_index_path + ".backup")
@@ -456,15 +425,20 @@ def index_and_encrypt(options, password):
         salt = Random.new().read(32)
     secret = pasword_derivation(password, salt)
 
-    dnumfiles = {}
-    dnumfiles["cnt"] = 0
-    os.path.walk(options.dir, count_files_visit, dnumfiles)
     args = {}
     args["DIR"] = options.dir
     args["folders"] = {"dirnames": {}, "filestats": {}}
     args["numfiles"] = 0
-    args["numfiles_cnt"] = dnumfiles["cnt"]
     os.path.walk(options.dir, index_files_visit, args)
+
+    print args
+
+    json.dump(args, open("indexwalk.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
+    for dirname in args["folders"]["dirnames"]:
+        if datadir in args["folders"]["dirnames"][dirname]:
+            del args["folders"]["dirnames"][dirname]
+    json.dump(args, open("indexwalk2.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
+    exit(1)
 
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
@@ -503,15 +477,16 @@ def index_and_encrypt(options, password):
     if options.remove:
         cnt = 0
         total = len(os.listdir(options.dir))
-        for fname in os.listdir(options.dir):
+        ld = os.listdir(options.dir)
+        ld.remove(".cryptoboc")
+        for fname in ld:
             cnt += 1
             update_progress(cnt, total, "deleting")
-            if fname.lower() not in get_ignores():
-                fpath = os.path.join(options.dir, fname)
-                if os.path.isdir(fpath):
-                    shutil.rmtree(fpath, True)
-                else:
-                    os.remove(fpath)
+            fpath = os.path.join(options.dir, fname)
+            if os.path.isdir(fpath):
+                shutil.rmtree(fpath, True)
+            else:
+                os.remove(fpath)
     print
 
 
@@ -591,6 +566,7 @@ def main():
         datadir = os.path.join(options.dir, ".cryptobox")
         shutil.rmtree(datadir, True)
         log("cleared all data")
+
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
     if not options.encrypt and not options.decrypt:
@@ -602,6 +578,8 @@ def main():
         index_and_encrypt(options, password)
 
     if options.decrypt:
+        if options.clear:
+            return
         decrypt_and_build_filetree(options, password)
 
 
