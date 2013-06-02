@@ -492,6 +492,7 @@ def index_and_encrypt(options):
                 shutil.rmtree(fpath, True)
             else:
                 os.remove(fpath)
+
     obsolute_blob_store_entries = set()
     blob_dirs = os.path.join(datadir, "blobs")
     for blob_dir in os.listdir(blob_dirs):
@@ -511,6 +512,8 @@ def index_and_encrypt(options):
         blob_entries = [f for f in os.listdir(blob_dir) if not f.startswith('.')]
         if len(blob_entries) == 0:
             shutil.rmtree(blob_dir, True)
+    if numfiles > 0:
+        print
 
 
 def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
@@ -587,20 +590,44 @@ def decrypt_and_build_filetree(options):
         cryptobox_index["locked"] = False
         cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
         json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
-        if len(hashes) > 0:
-            print
+    if len(hashes) > 0:
+        print
 
 
-def on_server(method, cryptobox, payload={}):
+def on_server(method, cryptobox, payload={}, cookies={}):
     SERVER = "http://127.0.0.1:8000/"
     #SERVER = "https://www.cryptobox.nl/"
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
-    request = requests.post(SERVICE, data=payload)
-    return request.json()
+    request = requests.post(SERVICE, data=json.dumps(payload), cookies=cookies)
+    return request
 
 
 def server_time(cryptobox):
     return float(on_server("clock", cryptobox)[0])
+
+def request_error(result):
+    error = result.text
+    errors = error.split('<div id="summary">')
+    errors = errors[1].split("</div>")
+    print errors[0]
+
+def authorize(username, password, cryptobox):
+    cookies = dict(c_persist_fingerprint_client_part='123')
+    payload = {}
+    payload["username"] = username
+    payload["password"] = password
+    result = on_server("authorize", cryptobox, payload, cookies)
+    print result.json()
+    payload["otp"] = ""#result.json()[1]["otp"]
+    cookies["c_token"] = result.cookies["c_token"]
+    print result.cookies.keys()
+    payload["trust_computer"] = True
+    payload["trused_location_name"] = "Sync-client"
+
+    result = on_server("checkotp", cryptobox, payload=payload, cookies=cookies)
+    print result.json()
+    #request_error(result)
+    return False
 
 
 def main():
@@ -621,8 +648,12 @@ def main():
         exit_app_warning("No password given (-p or --password)")
     if not options.password:
         exit_app_warning("No password given (-p or --password)")
+    if not options.username:
+        exit_app_warning("No username given (-u or --username)")
     if not options.cryptobox:
         exit_app_warning("No cryptobox given (-s or --cryptobox)")
+
+    print authorize(options.username, options.password, options.cryptobox)
 
     if options.encrypt:
         index_and_encrypt(options)

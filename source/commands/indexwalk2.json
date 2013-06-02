@@ -1,19 +1,22 @@
 {
-    "DIR": "/Users/rabshakeh/Desktop/test/",
+    "DIR": "/Users/rabshakeh/Desktop/Test/",
     "folders": {
         "dirnames": {
-            "9c59ee6125be1b058e8b0c4335a100ec470a74df": {
-                "dirname": "/Users/rabshakeh/Desktop/test/",
-                "dirnamehash": "9c59ee6125be1b058e8b0c4335a100ec470a74df",
+            "907da542829e7813ff6039f2f70b3e535f804c1c": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/",
+                "dirnamehash": "907da542829e7813ff6039f2f70b3e535f804c1c",
                 "filenames": [
                     {
                         "name": ".DS_Store"
+                    },
+                    {
+                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
                     }
                 ],
-                "nameshash": "4968ce20ca491441a8774eeaf1ba07bc3aa5105a"
+                "nameshash": "ce0be4bbe418a1ab97a4b1c0dbcb11d540355d03"
             }
         },
         "filestats": {}
     },
-    "numfiles": 5
+    "numfiles": 8
 }
