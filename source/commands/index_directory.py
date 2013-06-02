@@ -44,6 +44,8 @@ def add_options():
                       help="remove the unencrypted files", metavar="DECRYPT")
     parser.add_option("-c", "--clear", dest="clear", action='store_true',
                       help="clear all cryptobox data", metavar="DECRYPT")
+    parser.add_option("-p", "--password", dest="password",
+                      help="password used for encryption", metavar="PASSWORD")
 
     return parser.parse_args()
 
@@ -150,7 +152,7 @@ def handle_exception(exc, raise_again=True, return_error=False):
         return error.replace("\033[95m", "")
     else:
         import sys
-        sys.stdout.write(str(error) + '\033[0m')
+        sys.stderr.write(str(error) + '\033[0m')
     if raise_again:
         raise exc
     return "\033[93m" + error
@@ -289,18 +291,19 @@ def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
 def read_file(path):
     data = open(path, "rb").read()
     stats = os.stat(path)
-    return data, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid
+    return data, stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid
 
 
 def read_file_to_fdict(path):
     ft = read_file(path)
     file_dict = {}
     file_dict["data"] = ft[0]
-    file_dict["st_atime"] = int(ft[1])
-    file_dict["st_mtime"] = int(ft[2])
-    file_dict["st_mode"] = int(ft[3])
-    file_dict["st_uid"] = int(ft[4])
-    file_dict["st_gid"] = int(ft[5])
+    file_dict["st_ctime"] = int(ft[1])
+    file_dict["st_atime"] = int(ft[2])
+    file_dict["st_mtime"] = int(ft[3])
+    file_dict["st_mode"] = int(ft[4])
+    file_dict["st_uid"] = int(ft[5])
+    file_dict["st_gid"] = int(ft[6])
     return file_dict
 
 
@@ -308,20 +311,23 @@ def write_fdict_to_file(fdict, path):
     write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
 
 
+last_update_string_len = 0
+
 
 def update_progress(curr, total, msg):
     global g_lock
+    global last_update_string_len
     g_lock.acquire()
     try:
         if total == 0:
             return
         progress = int(math.ceil(float(curr) / (float(total) / 100)))
-        #if progress > 100:
-        #    print "error progress more then 100", progress
-        #    progress = 100
         msg = msg + " " + str(curr) + "/" + str(total)
-        sys.stderr.write("\r\033[93m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg))
-        sys.stderr.flush()
+        update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
+        if len(update_string) < last_update_string_len:
+            sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
+        sys.stderr.write(update_string)
+        last_update_string_len = len(update_string)
     finally:
         g_lock.release()
 
@@ -351,14 +357,6 @@ def encrypt_blobstore(arg, dirname, names):
     if len(unencfiles) > 0:
         for fname in unencfiles:
             arg.append(os.path.join(dirname, fname))
-
-
-def ensure_encryption_blobstore(datadir):
-    blobdir = os.path.join(datadir, "blobs")
-    files_to_encrypt = []
-    os.path.walk(blobdir, encrypt_blobstore, files_to_encrypt)
-    for unencfile in files_to_encrypt:
-        print unencfile
 
 
 def make_cryptogit_hash(fpath, datadir, cryptobox_index):
@@ -431,14 +429,11 @@ def index_and_encrypt(options, password):
     args["numfiles"] = 0
     os.path.walk(options.dir, index_files_visit, args)
 
-    print args
-
     json.dump(args, open("indexwalk.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
-    for dirname in args["folders"]["dirnames"]:
-        if datadir in args["folders"]["dirnames"][dirname]:
+    for dirname in args["folders"]["dirnames"].copy():
+        if datadir in args["folders"]["dirnames"][dirname]["dirname"]:
             del args["folders"]["dirnames"][dirname]
     json.dump(args, open("indexwalk2.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
-    exit(1)
 
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
@@ -476,9 +471,9 @@ def index_and_encrypt(options, password):
 
     if options.remove:
         cnt = 0
-        total = len(os.listdir(options.dir))
         ld = os.listdir(options.dir)
-        ld.remove(".cryptoboc")
+        ld.remove(".cryptobox")
+        total = len(ld)
         for fname in ld:
             cnt += 1
             update_progress(cnt, total, "deleting")
@@ -521,6 +516,8 @@ def decrypt_and_build_filetree(options, password):
 
     if os.path.exists(cryptobox_index_path):
         cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
+        if cryptobox_index["locked"] is False:
+            return
     else:
         cryptobox_index = None
     hashes = set()
@@ -551,15 +548,18 @@ def decrypt_and_build_filetree(options, password):
         decrypt_results.append(result)
     pool.close()
     pool.join()
+    successfull_decryption = True
     for result in decrypt_results:
         if not result.successful():
             result.get()
-    cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
-    cryptobox_index["locked"] = False
-    cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
-    json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
-    if len(hashes) > 0:
-        print
+            successfull_decryption = False
+    if successfull_decryption:
+        cryptobox_jsonindex_path = os.path.join(datadir, "cryptobox_index.json")
+        cryptobox_index["locked"] = False
+        cPickle.dump(cryptobox_index, open(cryptobox_index_path, "w"))
+        json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
+        if len(hashes) > 0:
+            print
 
 
 def main():
@@ -576,16 +576,16 @@ def main():
         exit_app_warning("DIR [", options.dir, "] does not exist")
     if not options.encrypt and not options.decrypt:
         exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
-
-    password = "kjhfsd98"
+    if not options.password:
+        exit_app_warning("No password given (-p or --password)")
 
     if options.encrypt:
-        index_and_encrypt(options, password)
+        index_and_encrypt(options, options.password)
 
     if options.decrypt:
         if options.clear:
             return
-        decrypt_and_build_filetree(options, password)
+        decrypt_and_build_filetree(options, options.password)
 
 
 if __name__ == "__main__":
