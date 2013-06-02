@@ -441,6 +441,8 @@ def index_and_encrypt(options, password):
     new_blobs = {}
     file_cnt = 0
     new_objects = 0
+    hash_set_on_disk = set()
+
     for dirhash in cryptobox_index["dirnames"]:
         for fname in cryptobox_index["dirnames"][dirhash]["filenames"]:
             file_cnt += 1
@@ -448,6 +450,7 @@ def index_and_encrypt(options, password):
             file_path = os.path.join(file_dir, fname["name"])
             filedata = make_cryptogit_hash(file_path, datadir, cryptobox_index)
             fname["hash"] = filedata["filehash"]
+            hash_set_on_disk.add(filedata["filehash"])
             if not filedata["blob_exists"]:
                 new_blobs[filedata["filehash"]] = filedata
                 new_objects += 1
@@ -455,6 +458,7 @@ def index_and_encrypt(options, password):
                 encrypt_new_blobs(salt, secret, new_blobs)
                 new_blobs = {}
             update_progress(file_cnt, numfiles, "checking")
+
     if len(new_blobs) > 0:
         if len(new_blobs) > 0:
             encrypt_new_blobs(salt, secret, new_blobs)
@@ -483,6 +487,28 @@ def index_and_encrypt(options, password):
             else:
                 os.remove(fpath)
     print
+    print
+
+    print
+    obsolute_blob_store_entries = set()
+    blob_dirs = os.path.join(datadir, "blobs")
+    for blob_dir in os.listdir(blob_dirs):
+        blob_store = os.path.join(blob_dirs, blob_dir)
+        for blob_file in os.listdir(blob_store):
+            found = False
+            for fhash in hash_set_on_disk:
+                if fhash == (blob_dir + blob_file):
+                    found = True
+            if not found:
+                obsolute_blob_store_entries.add(blob_dir + blob_file)
+
+    for f_hash in obsolute_blob_store_entries:
+        blob_dir = os.path.join(blob_dirs, f_hash[:2])
+        blob_path = os.path.join(blob_dir, f_hash[2:])
+        os.remove(blob_path)
+        blob_entries = [f for f in os.listdir(blob_dir) if not f.startswith('.')]
+        if len(blob_entries) == 0:
+            shutil.rmtree(blob_dir, True)
 
 
 def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
