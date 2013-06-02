@@ -1,51 +1,19 @@
 {
-    "DIR": "/Users/rabshakeh/Desktop/test/",
+    "DIR": "/Users/rabshakeh/Desktop/Test/",
     "folders": {
         "dirnames": {
-            "26cc865c7938dae488b12c322fcac59bc65bc352": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/cd",
-                "dirnamehash": "26cc865c7938dae488b12c322fcac59bc65bc352",
+            "907da542829e7813ff6039f2f70b3e535f804c1c": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/",
+                "dirnamehash": "907da542829e7813ff6039f2f70b3e535f804c1c",
                 "filenames": [
                     {
-                        "name": "dd1611b9deaba247ba5bcee97e8452552b4c68"
+                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
                     }
                 ],
-                "nameshash": "9b78936970df641a2a7f5f1e829c3dbc4f53c1c0"
-            },
-            "85d15314c02e1fdefb6ee4c6cf2022b508b7a862": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs",
-                "dirnamehash": "85d15314c02e1fdefb6ee4c6cf2022b508b7a862",
-                "filenames": [],
-                "nameshash": "034778198a045c1ed80be271cdd029b76874f6fc"
-            },
-            "9c59ee6125be1b058e8b0c4335a100ec470a74df": {
-                "dirname": "/Users/rabshakeh/Desktop/test/",
-                "dirnamehash": "9c59ee6125be1b058e8b0c4335a100ec470a74df",
-                "filenames": [
-                    {
-                        "name": "fermeture+3X.flv"
-                    }
-                ],
-                "nameshash": "6f53728e83d78848a3811040c8f6cfd6feb094a9"
-            },
-            "a37ecf8e9124f0bf0d0869927fdca788413f492c": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox",
-                "dirnamehash": "a37ecf8e9124f0bf0d0869927fdca788413f492c",
-                "filenames": [
-                    {
-                        "name": "cryptobox_index.json"
-                    },
-                    {
-                        "name": "cryptobox_index.pickle"
-                    },
-                    {
-                        "name": "cryptobox_index.pickle.backup"
-                    }
-                ],
-                "nameshash": "17e3b9c8c04d1faaceed9f9a708daaca610b347e"
+                "nameshash": "6f0f87f1d1e7f929c9bfa004ef99fee2726d360f"
             }
         },
         "filestats": {}
     },
-    "numfiles": 5
+    "numfiles": 1
 }
