@@ -1,37 +1,43 @@
 {
-    "DIR": "/Users/rabshakeh/Desktop/test/",
+    "DIR": "/Users/rabshakeh/Desktop/Test/",
     "folders": {
         "dirnames": {
-            "81c5ee01b1587c5e07e8bd1cb7a624555d2c7ddd": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/50",
-                "dirnamehash": "81c5ee01b1587c5e07e8bd1cb7a624555d2c7ddd",
-                "filenames": [
-                    {
-                        "name": "08ddfcf53c02e82d7eee2e57c38e5672ef89f6"
-                    }
-                ],
-                "nameshash": "abdd9d91c845dfd14d8b878bd3849231eb46c772"
-            },
-            "85d15314c02e1fdefb6ee4c6cf2022b508b7a862": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs",
-                "dirnamehash": "85d15314c02e1fdefb6ee4c6cf2022b508b7a862",
-                "filenames": [],
-                "nameshash": "e1822db470e60d090affd0956d743cb0e7cdf113"
-            },
-            "9c59ee6125be1b058e8b0c4335a100ec470a74df": {
-                "dirname": "/Users/rabshakeh/Desktop/test/",
-                "dirnamehash": "9c59ee6125be1b058e8b0c4335a100ec470a74df",
+            "907da542829e7813ff6039f2f70b3e535f804c1c": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/",
+                "dirnamehash": "907da542829e7813ff6039f2f70b3e535f804c1c",
                 "filenames": [
                     {
                         "name": ".DS_Store"
+                    },
+                    {
+                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
                     }
                 ],
-                "nameshash": "4968ce20ca491441a8774eeaf1ba07bc3aa5105a"
+                "nameshash": "ce0be4bbe418a1ab97a4b1c0dbcb11d540355d03"
             },
-            "a37ecf8e9124f0bf0d0869927fdca788413f492c": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox",
-                "dirnamehash": "a37ecf8e9124f0bf0d0869927fdca788413f492c",
+            "a5b01d551e1767dafb90d9c69cc73e5a13ed5fdb": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox/blobs/93",
+                "dirnamehash": "a5b01d551e1767dafb90d9c69cc73e5a13ed5fdb",
                 "filenames": [
+                    {
+                        "name": "4147cf719f16fa2b8444765c21ee2d8fc83252"
+                    }
+                ],
+                "nameshash": "af586e33163af22f424875b737a343a1c0bc032a"
+            },
+            "af250907291d51ba465bbac815e01519028df062": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox/blobs",
+                "dirnamehash": "af250907291d51ba465bbac815e01519028df062",
+                "filenames": [],
+                "nameshash": "29af520683124b3cb63c5512abeb731594161e0b"
+            },
+            "def596f21ce9f8fa64392c4491acd8e6843b12ab": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox",
+                "dirnamehash": "def596f21ce9f8fa64392c4491acd8e6843b12ab",
+                "filenames": [
+                    {
+                        "name": ".DS_Store"
+                    },
                     {
                         "name": "cryptobox_index.json"
                     },
@@ -42,10 +48,20 @@
                         "name": "cryptobox_index.pickle.backup"
                     }
                 ],
-                "nameshash": "17e3b9c8c04d1faaceed9f9a708daaca610b347e"
+                "nameshash": "c2c080bcbd4658b548d5d91888bba0c46721ba11"
+            },
+            "e5619890dd9b360c403656386c54fa37a815d7c2": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox/blobs/e6",
+                "dirnamehash": "e5619890dd9b360c403656386c54fa37a815d7c2",
+                "filenames": [
+                    {
+                        "name": "bdd85f75e3efbdf18fc94f3b4b9cff5f14e1ad"
+                    }
+                ],
+                "nameshash": "4969476b361d1400bc35135347e0fbecd9969e6a"
             }
         },
         "filestats": {}
     },
-    "numfiles": 5
+    "numfiles": 8
 }
