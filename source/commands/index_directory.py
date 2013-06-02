@@ -5,6 +5,7 @@ reload(sys)
 # noinspection PyUnresolvedReferences
 sys.setdefaultencoding('utf-8')
 
+import re
 import base64
 import shutil
 import os
@@ -12,7 +13,7 @@ import time
 import cPickle
 import json
 import math
-import re
+import requests
 from optparse import OptionParser
 import multiprocessing
 from Crypto import Random
@@ -44,8 +45,12 @@ def add_options():
                       help="remove the unencrypted files", metavar="DECRYPT")
     parser.add_option("-c", "--clear", dest="clear", action='store_true',
                       help="clear all cryptobox data", metavar="DECRYPT")
+    parser.add_option("-u", "--username", dest="username",
+                      help="cryptobox username", metavar="USERNAME")
     parser.add_option("-p", "--password", dest="password",
                       help="password used for encryption", metavar="PASSWORD")
+    parser.add_option("-s", "--cryptobox", dest="cryptobox",
+                      help="cryptobox slug", metavar="CRYPTOBOX")
 
     return parser.parse_args()
 
@@ -408,7 +413,8 @@ def encrypt_new_blobs(salt, secret, new_blobs):
             result.get()
 
 
-def index_and_encrypt(options, password):
+def index_and_encrypt(options):
+    password = options.password
     datadir = os.path.join(options.dir, ".cryptobox")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
 
@@ -486,10 +492,6 @@ def index_and_encrypt(options, password):
                 shutil.rmtree(fpath, True)
             else:
                 os.remove(fpath)
-    print
-    print
-
-    print
     obsolute_blob_store_entries = set()
     blob_dirs = os.path.join(datadir, "blobs")
     for blob_dir in os.listdir(blob_dirs):
@@ -535,7 +537,8 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
         handle_exception(e, False)
 
 
-def decrypt_and_build_filetree(options, password):
+def decrypt_and_build_filetree(options):
+    password = options.password
     datadir = os.path.join(options.dir, ".cryptobox")
     blobdir = os.path.join(datadir, "blobs")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
@@ -588,6 +591,18 @@ def decrypt_and_build_filetree(options, password):
             print
 
 
+def on_server(method, cryptobox, payload={}):
+    SERVER = "http://127.0.0.1:8000/"
+    #SERVER = "https://www.cryptobox.nl/"
+    SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
+    request = requests.post(SERVICE, data=payload)
+    return request.json()
+
+
+def server_time(cryptobox):
+    return float(on_server("clock", cryptobox)[0])
+
+
 def main():
     (options, args) = add_options()
 
@@ -604,14 +619,18 @@ def main():
         exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
     if not options.password:
         exit_app_warning("No password given (-p or --password)")
+    if not options.password:
+        exit_app_warning("No password given (-p or --password)")
+    if not options.cryptobox:
+        exit_app_warning("No cryptobox given (-s or --cryptobox)")
 
     if options.encrypt:
-        index_and_encrypt(options, options.password)
+        index_and_encrypt(options)
 
     if options.decrypt:
         if options.clear:
             return
-        decrypt_and_build_filetree(options, options.password)
+        decrypt_and_build_filetree(options)
 
 
 if __name__ == "__main__":

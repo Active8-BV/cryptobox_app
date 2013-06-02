@@ -2,16 +2,6 @@
     "DIR": "/Users/rabshakeh/Desktop/test/",
     "folders": {
         "dirnames": {
-            "214fc35369a372381576350d6e05ea5e2ab72cfd": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/7b",
-                "dirnamehash": "214fc35369a372381576350d6e05ea5e2ab72cfd",
-                "filenames": [
-                    {
-                        "name": "f196ce4488a60a372d76fb737a36166c654399"
-                    }
-                ],
-                "nameshash": "bfe5a38ab40488c9bf01a0053964145e4ad79a32"
-            },
             "81c5ee01b1587c5e07e8bd1cb7a624555d2c7ddd": {
                 "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/50",
                 "dirnamehash": "81c5ee01b1587c5e07e8bd1cb7a624555d2c7ddd",
@@ -26,7 +16,7 @@
                 "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs",
                 "dirnamehash": "85d15314c02e1fdefb6ee4c6cf2022b508b7a862",
                 "filenames": [],
-                "nameshash": "3791c08e8930d582a9b7ab80ef86723aaae6bd63"
+                "nameshash": "e1822db470e60d090affd0956d743cb0e7cdf113"
             },
             "9c59ee6125be1b058e8b0c4335a100ec470a74df": {
                 "dirname": "/Users/rabshakeh/Desktop/test/",
@@ -53,19 +43,9 @@
                     }
                 ],
                 "nameshash": "17e3b9c8c04d1faaceed9f9a708daaca610b347e"
-            },
-            "f530b7967131700f2b1111eb2e144a7ed57b5cfd": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/2d",
-                "dirnamehash": "f530b7967131700f2b1111eb2e144a7ed57b5cfd",
-                "filenames": [
-                    {
-                        "name": "54684a1f234227362513cf857bab93b061f094"
-                    }
-                ],
-                "nameshash": "a17cc9fd6e01182898c9c4be5df611bc03aaa891"
             }
         },
         "filestats": {}
     },
-    "numfiles": 7
+    "numfiles": 5
 }
