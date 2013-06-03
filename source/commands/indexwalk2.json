@@ -1,22 +1,143 @@
 {
-    "DIR": "/Users/rabshakeh/Desktop/Test/",
+    "DIR": "/Users/rabshakeh/Desktop/test/",
     "folders": {
         "dirnames": {
-            "907da542829e7813ff6039f2f70b3e535f804c1c": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/",
-                "dirnamehash": "907da542829e7813ff6039f2f70b3e535f804c1c",
+            "9c59ee6125be1b058e8b0c4335a100ec470a74df": {
+                "dirname": "/Users/rabshakeh/Desktop/test/",
+                "dirnamehash": "9c59ee6125be1b058e8b0c4335a100ec470a74df",
                 "filenames": [
                     {
                         "name": ".DS_Store"
                     },
                     {
-                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
+                        "name": "42-50 group test.pdf"
+                    },
+                    {
+                        "name": "KW32_p053N_56_caravanwereld.pdf"
                     }
                 ],
-                "nameshash": "ce0be4bbe418a1ab97a4b1c0dbcb11d540355d03"
+                "nameshash": "e2806da2a1f33cd64eb94b8a035ccbb919c85879"
+            },
+            "d9081a8e26e02114fb05f4845762adaf55baeb96": {
+                "dirname": "/Users/rabshakeh/Desktop/test/dropboxstatus",
+                "dirnamehash": "d9081a8e26e02114fb05f4845762adaf55baeb96",
+                "filenames": [
+                    {
+                        "name": "dropboxstatus-busy-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy2-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy2-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy2.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy3-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy3-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy3.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy4-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy4-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-busy4.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam2-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam2-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam2.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam3-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam3-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam3.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam4-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam4-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-cam4.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-glow-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-idle-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-idle-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-idle.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-logo-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-logo-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-logo.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-pause-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-pause-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-pause.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-x-lep-inv.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-x-lep.tiff"
+                    },
+                    {
+                        "name": "dropboxstatus-x.tiff"
+                    }
+                ],
+                "nameshash": "33298e0052bbe7256c549cfee98e8823b302a410"
             }
         },
         "filestats": {}
     },
-    "numfiles": 8
+    "numfiles": 83
 }
