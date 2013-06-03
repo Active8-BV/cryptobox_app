@@ -15,6 +15,8 @@ import json
 import math
 import requests
 import subprocess
+import socket
+import urllib
 from optparse import OptionParser
 import multiprocessing
 from Crypto import Random
@@ -50,8 +52,10 @@ def add_options():
                       help="cryptobox username", metavar="USERNAME")
     parser.add_option("-p", "--password", dest="password",
                       help="password used for encryption", metavar="PASSWORD")
-    parser.add_option("-s", "--cryptobox", dest="cryptobox",
+    parser.add_option("-b", "--cryptobox", dest="cryptobox",
                       help="cryptobox slug", metavar="CRYPTOBOX")
+    parser.add_option("-s", "--sync", dest="sync", action='store_true',
+                      help="sync with server", metavar="SYNC")
 
     return parser.parse_args()
 
@@ -482,12 +486,9 @@ def index_and_encrypt(options):
     json.dump(cryptobox_index, open(cryptobox_jsonindex_path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
     if options.remove:
-        cnt = 0
         ld = os.listdir(options.dir)
         ld.remove(".cryptobox")
-        total = len(ld)
         for fname in ld:
-            cnt += 1
             fpath = os.path.join(options.dir, fname)
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
@@ -595,6 +596,150 @@ def decrypt_and_build_filetree(options):
         print
 
 
+class MemoryNoKey(Exception):
+    pass
+
+
+class MemoryExpired(Exception):
+    pass
+
+
+class Memory(object):
+    _instance = None
+    data = {}
+    timestamps = {}
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            # noinspection PyArgumentList
+            cls._instance = super(Memory, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def set(self, key, value, timeout_seconds=None, timeout_minute=None):
+        self.data[key] = value
+        if timeout_minute:
+            timeout_seconds = timeout_minute * 60
+        if timeout_seconds:
+            self.timestamps[key] = (time.time(), timeout_seconds)
+
+    def has(self, key):
+        if key in self.timestamps:
+            if int(time.time() - self.timestamps[key][0]) > self.timestamps[key][1]:
+                timestamp = self.timestamps[key][0]
+                timeout = self.timestamps[key][1]
+                del self.data[key]
+                if key in self.timestamps:
+                    del self.timestamps[key]
+                raise MemoryExpired(key + ", " + str(int(time.time() - timestamp) - timeout) + " seconds")
+        return key in self.data
+
+    def ttl(self, key, show_seconds=False):
+        if key in self.timestamps:
+            timestamp = self.timestamps[key][0]
+            timeout = self.timestamps[key][1]
+            seconds = timeout - int(time.time() - timestamp)
+            if show_seconds:
+                return seconds
+            else:
+                return int(math.ceil(float(seconds) / 60))
+        return None
+
+    def get(self, key):
+        if self.has(key):
+            if key in self.timestamps:
+                self.timestamps[key] = (time.time(), self.timestamps[key][1])
+            return self.data[key]
+        else:
+            raise MemoryNoKey(str(key))
+
+    def delete(self, key):
+        if self.has(key):
+            del self.data[key]
+            if key in self.timestamps:
+                del self.timestamps[key]
+        else:
+            raise MemoryNoKey(str(key))
+
+    def size(self):
+        return len(self.data)
+
+    def save(self, datadir):
+        mempath = os.path.join(datadir, "memory.pickle")
+        data = (self.data, self.timestamps)
+        cPickle.dump(data, open(mempath, "wb"))
+
+
+    def load(self, datadir):
+        mempath = os.path.join(datadir, "memory.pickle")
+        if os.path.exists(mempath):
+            data = cPickle.load(open(mempath, "rb"))
+            self.data = data[0]
+            self.timestamps = data[1]
+            for k in self.data.copy():
+                try:
+                    self.has(k)
+                except MemoryExpired:
+                    pass
+
+
+def get_b64mstyle():
+    return "data:b64encode/mstyle,"
+
+
+def b64_decode_mstyle(s):
+    if not isinstance(s, str) and not isinstance(s, unicode):
+        return s
+    b64mstyle = get_b64mstyle()
+    if s.find(b64mstyle) != 0:
+        return s
+    s = s.replace(b64mstyle, "")
+    s = base64.decodestring(s.replace("-", "="))
+    s = urllib.unquote(s)
+    return s
+
+
+def b64_encode_mstyle(s):
+    if not isinstance(s, str) and not isinstance(s, unicode):
+        return s
+    b64mstyle = get_b64mstyle()
+    if s.find(b64mstyle) != -1:
+        return s
+    s = urllib.quote(s, safe='~()*!.\'')
+    s = base64.encodestring(s).replace("=", "-").replace("\n", "")
+    s = b64mstyle + s
+    return s
+
+
+def b64_object_mstyle(d):
+    if isinstance(d, dict):
+        for k in d:
+            d[k] = b64_object_mstyle(d[k])
+        return d
+    if isinstance(d, list):
+        cnt = 0
+        for k in d:
+            d[cnt] = b64_object_mstyle(k)
+            cnt += 1
+        return d
+    d = b64_decode_mstyle(d)
+    return d
+
+
+def object_b64_mstyle(d):
+    if isinstance(d, dict):
+        for k in d:
+            d[k] = object_b64_mstyle(d[k])
+        return d
+    if isinstance(d, list):
+        cnt = 0
+        for k in d:
+            d[cnt] = object_b64_mstyle(k)
+            cnt += 1
+        return d
+    d = b64_encode_mstyle(d)
+    return d
+
+
 def request_error(result):
     open("error.html", "w").write(result.text)
     subprocess.call(["lynx", "error.html"])
@@ -602,13 +747,24 @@ def request_error(result):
     return
 
 
-def on_server(method, cryptobox, payload={}, cookies={}, session=None):
+class ServerForbidden(Exception):
+    pass
+
+
+class NotAuthorized(Exception):
+    pass
+
+
+def on_server(method, cryptobox, payload, session):
+    cookies = dict(c_persist_fingerprint_client_part=fingerprint())
     SERVER = "http://127.0.0.1:8000/"
     #SERVER = "https://www.cryptobox.nl/"
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
     if not session:
         session = requests
     result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
+    if result.status_code == 403:
+        raise ServerForbidden(method)
     if result.status_code != 200:
         request_error(result)
         return None
@@ -616,27 +772,31 @@ def on_server(method, cryptobox, payload={}, cookies={}, session=None):
 
 
 def server_time(cryptobox):
-    return float(on_server("clock", cryptobox)[0])
+    return float(on_server("clock", cryptobox, payload=None, session=None)[0])
 
 
 class PasswordException(Exception):
     pass
 
 
+def fingerprint():
+    fp = str(socket.gethostname()) + ":" + str(socket.gethostbyname(socket.gethostname()))
+    fph = make_hash(fp)
+    return fph
+
+
 def authorize(username, password, cryptobox):
     session = requests.Session()
-    cookies = dict(c_persist_fingerprint_client_part='123')
     payload = {}
     payload["username"] = username
     payload["password"] = password
-    result = on_server("authorize", cryptobox=cryptobox, payload=payload, cookies=cookies, session=session)
+    result = on_server("authorize", cryptobox=cryptobox, payload=payload, session=session)
     payload["trust_computer"] = True
     payload["trused_location_name"] = "Cryptobox"
     results = result.json()
     if results[0]:
         results = results[1]
         results["cryptobox"] = cryptobox
-        results["cookies"] = cookies
         results["payload"] = payload
         return session, results
     else:
@@ -645,29 +805,57 @@ def authorize(username, password, cryptobox):
 
 def check_otp(session, results):
     if not "otp" in results:
-        log("trused")
         return True
     else:
         payload = results["payload"]
         cryptobox = results["cryptobox"]
-        cookies = results["cookies"]
         payload["otp"] = results["otp"]
-        results = on_server("checkotp", cryptobox=cryptobox, payload=payload, cookies=cookies, session=session)
+        results = on_server("checkotp", cryptobox=cryptobox, payload=payload, session=session)
         results = results.json()
         return results
 
 
 def authorize_user(options):
     try:
+        memory = Memory()
+        if memory.has("session"):
+            log("using previous session")
+            return True
         session, results = authorize(options.username, options.password, options.cryptobox)
+        memory.set("session", session, timeout_minute=30)
         return check_otp(session, results)
     except PasswordException, p:
         warning(p, "not authorized")
         return False
 
 
+def authorized(options):
+    memory = Memory()
+    cryptobox = options.cryptobox
+    result = on_server("authorized", cryptobox=cryptobox, payload=None, session=memory.get("session")).json()
+    return result[0]
+
+
+class TreeLoadError(Exception):
+    pass
+
+
+def get_tree(options):
+    memory = Memory()
+    cryptobox = options.cryptobox
+    result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+    if not result[0]:
+        raise TreeLoadError()
+    for node in result[1]:
+        print node
+        print
+
+
 def main():
     (options, args) = add_options()
+    datadir = os.path.join(options.dir, ".cryptobox")
+    memory = Memory()
+    memory.load(datadir)
 
     if not options.dir:
         exit_app_warning("Need DIR (-f or --dir) to continue")
@@ -678,8 +866,9 @@ def main():
 
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
+
     if not options.encrypt and not options.decrypt:
-        exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
+        warning("No encrypt or decrypt directive given (-d or -e)")
 
     if not options.password:
         exit_app_warning("No password given (-p or --password)")
@@ -688,21 +877,24 @@ def main():
         if not options.username:
             exit_app_warning("No username given (-u or --username)")
         if not options.cryptobox:
-            exit_app_warning("No cryptobox given (-s or --cryptobox)")
+            exit_app_warning("No cryptobox given (-b or --cryptobox)")
 
     if options.password and options.username and options.cryptobox:
         if authorize_user(options):
-            log("user", options.username, "authorized")
-        return
+            if options.sync:
+                log("syncing")
+                tree = get_tree(options)
+                print tree
 
     if options.encrypt:
         index_and_encrypt(options)
 
     if options.decrypt:
-        if options.clear:
-            return
-        decrypt_and_build_filetree(options)
+        if not options.clear:
+            decrypt_and_build_filetree(options)
+
+    memory.save(datadir)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
