@@ -262,9 +262,12 @@
                     },
                     {
                         "name": "cryptobox_index.pickle.backup"
+                    },
+                    {
+                        "name": "memory.pickle"
                     }
                 ],
-                "nameshash": "17e3b9c8c04d1faaceed9f9a708daaca610b347e"
+                "nameshash": "1d390b7e03def04f47badbbffa44e27a50483197"
             },
             "b4307486e210628594c1dbf21aa688fac5461c8e": {
                 "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/1e",
@@ -547,5 +550,5 @@
         },
         "filestats": {}
     },
-    "numfiles": 83
+    "numfiles": 84
 }
