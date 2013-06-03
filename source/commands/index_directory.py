@@ -14,6 +14,7 @@ import cPickle
 import json
 import math
 import requests
+import subprocess
 from optparse import OptionParser
 import multiprocessing
 from Crypto import Random
@@ -422,6 +423,7 @@ def index_and_encrypt(options):
         current_cryptobox_index = cPickle.load(open(cryptobox_index_path, "r"))
         salt = base64.decodestring(current_cryptobox_index["salt_b64"])
         if current_cryptobox_index["locked"] is True:
+            log("cryptobox is locked")
             return
         else:
             shutil.copy2(cryptobox_index_path, cryptobox_index_path + ".backup")
@@ -486,7 +488,6 @@ def index_and_encrypt(options):
         total = len(ld)
         for fname in ld:
             cnt += 1
-            update_progress(cnt, total, "deleting")
             fpath = os.path.join(options.dir, fname)
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
@@ -594,40 +595,75 @@ def decrypt_and_build_filetree(options):
         print
 
 
-def on_server(method, cryptobox, payload={}, cookies={}):
+def request_error(result):
+    open("error.html", "w").write(result.text)
+    subprocess.call(["lynx", "error.html"])
+    os.remove("error.html")
+    return
+
+
+def on_server(method, cryptobox, payload={}, cookies={}, session=None):
     SERVER = "http://127.0.0.1:8000/"
     #SERVER = "https://www.cryptobox.nl/"
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
-    request = requests.post(SERVICE, data=json.dumps(payload), cookies=cookies)
-    return request
+    if not session:
+        session = requests
+    result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
+    if result.status_code != 200:
+        request_error(result)
+        return None
+    return result
 
 
 def server_time(cryptobox):
     return float(on_server("clock", cryptobox)[0])
 
-def request_error(result):
-    error = result.text
-    errors = error.split('<div id="summary">')
-    errors = errors[1].split("</div>")
-    print errors[0]
+
+class PasswordException(Exception):
+    pass
+
 
 def authorize(username, password, cryptobox):
+    session = requests.Session()
     cookies = dict(c_persist_fingerprint_client_part='123')
     payload = {}
     payload["username"] = username
     payload["password"] = password
-    result = on_server("authorize", cryptobox, payload, cookies)
-    print result.json()
-    payload["otp"] = ""#result.json()[1]["otp"]
-    cookies["c_token"] = result.cookies["c_token"]
-    print result.cookies.keys()
+    result = on_server("authorize", cryptobox=cryptobox, payload=payload, cookies=cookies, session=session)
     payload["trust_computer"] = True
-    payload["trused_location_name"] = "Sync-client"
+    payload["trused_location_name"] = "Cryptobox"
+    results = result.json()
+    if results[0]:
+        results = results[1]
+        results["cryptobox"] = cryptobox
+        results["cookies"] = cookies
+        results["payload"] = payload
+        return session, results
+    else:
+        raise PasswordException(username)
 
-    result = on_server("checkotp", cryptobox, payload=payload, cookies=cookies)
-    print result.json()
-    #request_error(result)
-    return False
+
+def check_otp(session, results):
+    if not "otp" in results:
+        log("trused")
+        return True
+    else:
+        payload = results["payload"]
+        cryptobox = results["cryptobox"]
+        cookies = results["cookies"]
+        payload["otp"] = results["otp"]
+        results = on_server("checkotp", cryptobox=cryptobox, payload=payload, cookies=cookies, session=session)
+        results = results.json()
+        return results
+
+
+def authorize_user(options):
+    try:
+        session, results = authorize(options.username, options.password, options.cryptobox)
+        return check_otp(session, results)
+    except PasswordException, p:
+        warning(p, "not authorized")
+        return False
 
 
 def main():
@@ -644,16 +680,20 @@ def main():
         exit_app_warning("DIR [", options.dir, "] does not exist")
     if not options.encrypt and not options.decrypt:
         exit_app_warning("No encrypt or decrypt directive given (-d or -e)")
-    if not options.password:
-        exit_app_warning("No password given (-p or --password)")
-    if not options.password:
-        exit_app_warning("No password given (-p or --password)")
-    if not options.username:
-        exit_app_warning("No username given (-u or --username)")
-    if not options.cryptobox:
-        exit_app_warning("No cryptobox given (-s or --cryptobox)")
 
-    print authorize(options.username, options.password, options.cryptobox)
+    if not options.password:
+        exit_app_warning("No password given (-p or --password)")
+
+    if options.username or options.cryptobox:
+        if not options.username:
+            exit_app_warning("No username given (-u or --username)")
+        if not options.cryptobox:
+            exit_app_warning("No cryptobox given (-s or --cryptobox)")
+
+    if options.password and options.username and options.cryptobox:
+        if authorize_user(options):
+            log("user", options.username, "authorized")
+        return
 
     if options.encrypt:
         index_and_encrypt(options)
