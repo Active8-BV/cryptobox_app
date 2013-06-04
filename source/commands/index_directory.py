@@ -417,7 +417,6 @@ def encrypt_new_blobs(salt, secret, new_blobs):
         if not result.successful():
             result.get()
     pool.terminate()
-
 def index_and_encrypt(options):
     password = options.password
     datadir = os.path.join(options.dir, ".cryptobox")
