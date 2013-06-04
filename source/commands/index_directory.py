@@ -545,6 +545,9 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
 def decrypt_and_build_filetree(options):
     password = options.password
     datadir = os.path.join(options.dir, ".cryptobox")
+    if not os.path.exists(datadir):
+        warning("nothing to decrypt", datadir, "does not exists")
+        return
     blobdir = os.path.join(datadir, "blobs")
     cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
 
@@ -664,10 +667,10 @@ class Memory(object):
         return len(self.data)
 
     def save(self, datadir):
-        mempath = os.path.join(datadir, "memory.pickle")
-        data = (self.data, self.timestamps)
-        cPickle.dump(data, open(mempath, "wb"))
-
+        if os.path.exists(datadir):
+            mempath = os.path.join(datadir, "memory.pickle")
+            data = (self.data, self.timestamps)
+            cPickle.dump(data, open(mempath, "wb"))
 
     def load(self, datadir):
         mempath = os.path.join(datadir, "memory.pickle")
@@ -747,6 +750,12 @@ def request_error(result):
     return
 
 
+def fingerprint():
+    fp = str(socket.gethostname())
+    fph = make_hash(fp)
+    return fph
+
+
 class ServerForbidden(Exception):
     pass
 
@@ -777,12 +786,6 @@ def server_time(cryptobox):
 
 class PasswordException(Exception):
     pass
-
-
-def fingerprint():
-    fp = str(socket.gethostname()) + ":" + str(socket.gethostbyname(socket.gethostname()))
-    fph = make_hash(fp)
-    return fph
 
 
 def authorize(username, password, cryptobox):
@@ -843,11 +846,19 @@ class TreeLoadError(Exception):
 def get_tree(options):
     memory = Memory()
     cryptobox = options.cryptobox
-    result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+    try:
+        result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+    except ServerForbidden:
+        log("unauthorized try again")
+        if memory.has("session"):
+            memory.delete("session")
+        authorize_user(options)
+        result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     if not result[0]:
         raise TreeLoadError()
     for node in result[1]:
-        print node
+        #print node["doc"]["m_slugpath"]
+        print node["doc"]["m_path"], node["doc"]["m_short_id"], node["doc"]["m_data_id"]
         print
 
 

@@ -1,259 +1,53 @@
 {
-    "DIR": "/Users/rabshakeh/Desktop/test/",
+    "DIR": "/Users/rabshakeh/Desktop/Test/",
     "folders": {
         "dirnames": {
-            "0a108c5eacc9dc219b73c3c48c1d101ec9dac90d": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/c2",
-                "dirnamehash": "0a108c5eacc9dc219b73c3c48c1d101ec9dac90d",
+            "1524e09314497a42b81b46c963790413259e6056": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox/blobs/92",
+                "dirnamehash": "1524e09314497a42b81b46c963790413259e6056",
                 "filenames": [
                     {
-                        "name": "6f71a7fee41532cb98410f4289be9505426d94"
+                        "name": "c73f469089fa07e041911f102bb3d2aa8eef5e"
                     }
                 ],
-                "nameshash": "0a29202b7ced559dcecd3ece288f79c831256482"
+                "nameshash": "f4dcba35f6374eef6454aa2ce58b2f97c5e05c4e"
             },
-            "0a35a75aa5b1f503101ad7e7f8cc88f0f0c28cc9": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/af",
-                "dirnamehash": "0a35a75aa5b1f503101ad7e7f8cc88f0f0c28cc9",
-                "filenames": [
-                    {
-                        "name": "c1cd120018201efd87f2be40b370a5245ca564"
-                    }
-                ],
-                "nameshash": "51717ffa6f297b2b0ab083b2d145886681eacfef"
-            },
-            "12e70beabb6b639141660722928ef6f6be0f2b84": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/d7",
-                "dirnamehash": "12e70beabb6b639141660722928ef6f6be0f2b84",
-                "filenames": [
-                    {
-                        "name": "02f0a6ef1ccba90c99492d1e448d9fc9ec091e"
-                    }
-                ],
-                "nameshash": "ffcccfd0d9d6f75216494fad62331f361c670656"
-            },
-            "14ea93d3b4601c68d7be8376c59eaad5ec748321": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/27",
-                "dirnamehash": "14ea93d3b4601c68d7be8376c59eaad5ec748321",
-                "filenames": [
-                    {
-                        "name": "3d0cf33c534109d38465bff011e71c5d38ce22"
-                    }
-                ],
-                "nameshash": "89f6cabdde89cc20cc214b70b73e2c205017e30b"
-            },
-            "214fc35369a372381576350d6e05ea5e2ab72cfd": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/7b",
-                "dirnamehash": "214fc35369a372381576350d6e05ea5e2ab72cfd",
-                "filenames": [
-                    {
-                        "name": "f196ce4488a60a372d76fb737a36166c654399"
-                    }
-                ],
-                "nameshash": "bfe5a38ab40488c9bf01a0053964145e4ad79a32"
-            },
-            "2160168dc23e7bae12b60b7dd2fe4fc93b8e9de2": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/f8",
-                "dirnamehash": "2160168dc23e7bae12b60b7dd2fe4fc93b8e9de2",
-                "filenames": [
-                    {
-                        "name": "4f44361866d3c107cd285b36b585fe83101402"
-                    }
-                ],
-                "nameshash": "55ca58e32da647d02355630ad0ac07442e3a347a"
-            },
-            "293aff48a8c4e3ec9d46b1fbaf3a1e80857f3690": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/3c",
-                "dirnamehash": "293aff48a8c4e3ec9d46b1fbaf3a1e80857f3690",
-                "filenames": [
-                    {
-                        "name": "01ad6b4277e8c51e4e9e19a8b1aeb7e462e447"
-                    }
-                ],
-                "nameshash": "e7230524da628d6c7e78af2bb03217ef1495b00d"
-            },
-            "2c0b02d3fa44272523304dd12f14d667db2425db": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/da",
-                "dirnamehash": "2c0b02d3fa44272523304dd12f14d667db2425db",
-                "filenames": [
-                    {
-                        "name": "f5f9d9e8743a633bdf393d372437e306676029"
-                    }
-                ],
-                "nameshash": "71273087b63329d357e6566cc9481568677210bb"
-            },
-            "2c700a9315d57f31b0859049ebd78abab0d7efbf": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/0f",
-                "dirnamehash": "2c700a9315d57f31b0859049ebd78abab0d7efbf",
-                "filenames": [
-                    {
-                        "name": "f65b1d2f58a0d2f37ae1da67e2909d584ffdcc"
-                    }
-                ],
-                "nameshash": "afa2235615a287e41fab74b6e2b334f8007fea90"
-            },
-            "2ffe049214e6e342717d2851586e40b7de46a39c": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/4e",
-                "dirnamehash": "2ffe049214e6e342717d2851586e40b7de46a39c",
-                "filenames": [
-                    {
-                        "name": "1ae5b5496e0df0d8455651fc5b678b152262a1"
-                    }
-                ],
-                "nameshash": "adb7d732fe28f0da64c76c94ef609289180657bf"
-            },
-            "3ee750ae544bd48c1b9771f79c710fe5f46c8b1c": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/51",
-                "dirnamehash": "3ee750ae544bd48c1b9771f79c710fe5f46c8b1c",
-                "filenames": [
-                    {
-                        "name": "8a39a213c69e4aaf5d8108c3f57af4f969575d"
-                    }
-                ],
-                "nameshash": "b0a7943482c66ab9b029f30bec16303eab92e3c6"
-            },
-            "49094bd6ff0e724733aa423c5694f337fb50e9ac": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/3b",
-                "dirnamehash": "49094bd6ff0e724733aa423c5694f337fb50e9ac",
-                "filenames": [
-                    {
-                        "name": "b1c4a9d0e0d35083e017e79fcc7321b1263399"
-                    }
-                ],
-                "nameshash": "8a74eca642c9c826c703696c981fa96e745c7772"
-            },
-            "587c8e7301d76909a4c6ac3e89833cb15ae605d2": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/32",
-                "dirnamehash": "587c8e7301d76909a4c6ac3e89833cb15ae605d2",
-                "filenames": [
-                    {
-                        "name": "f5df9239a2f7496f0730c51dc045ca2c213aae"
-                    }
-                ],
-                "nameshash": "74ba8e3ed597557b2096f429cf422f4d9faba9bd"
-            },
-            "629bbaf79bd3513f59842aa87371282ca392ebba": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/9d",
-                "dirnamehash": "629bbaf79bd3513f59842aa87371282ca392ebba",
-                "filenames": [
-                    {
-                        "name": "85a676c27916dab21b99c1136ee680c3926b17"
-                    }
-                ],
-                "nameshash": "272efc92eba0753ffb72967ef7f07dbfec6e83cf"
-            },
-            "6d35529f59234b08549971212fcb57738c92f3c3": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/48",
-                "dirnamehash": "6d35529f59234b08549971212fcb57738c92f3c3",
-                "filenames": [
-                    {
-                        "name": "85e11123b955c80309980caaf7d7a56552a7b6"
-                    },
-                    {
-                        "name": "8e97adc30f5a40d032215b60cadb9a8216b775"
-                    }
-                ],
-                "nameshash": "8b0c813c8affec9b8d1accf6b93e56de3c8b551a"
-            },
-            "73fcfc1e4e656603f5ad8c923bc086e42059aa14": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/2e",
-                "dirnamehash": "73fcfc1e4e656603f5ad8c923bc086e42059aa14",
-                "filenames": [
-                    {
-                        "name": "8b81b765d420af43a4fb37c0c0ecd5834a7e43"
-                    }
-                ],
-                "nameshash": "0616481abfe100679b6c323aeeb9e25152b441fc"
-            },
-            "76c39d3d571602bff237c6a25e120694e81d044d": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/df",
-                "dirnamehash": "76c39d3d571602bff237c6a25e120694e81d044d",
-                "filenames": [
-                    {
-                        "name": "afc11e271af7c21718f91180e09d1da6a8e9b6"
-                    },
-                    {
-                        "name": "f623a3e89a4938a2220e50de09eafa949f0840"
-                    }
-                ],
-                "nameshash": "8662f111b6014f543c2e89eb1866479e9f47a877"
-            },
-            "81c5ee01b1587c5e07e8bd1cb7a624555d2c7ddd": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/50",
-                "dirnamehash": "81c5ee01b1587c5e07e8bd1cb7a624555d2c7ddd",
-                "filenames": [
-                    {
-                        "name": "08ddfcf53c02e82d7eee2e57c38e5672ef89f6"
-                    }
-                ],
-                "nameshash": "abdd9d91c845dfd14d8b878bd3849231eb46c772"
-            },
-            "85d15314c02e1fdefb6ee4c6cf2022b508b7a862": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs",
-                "dirnamehash": "85d15314c02e1fdefb6ee4c6cf2022b508b7a862",
-                "filenames": [],
-                "nameshash": "949d7e2bb0962660eba9a17f2c586fa26b2f580c"
-            },
-            "9c59ee6125be1b058e8b0c4335a100ec470a74df": {
-                "dirname": "/Users/rabshakeh/Desktop/test/",
-                "dirnamehash": "9c59ee6125be1b058e8b0c4335a100ec470a74df",
+            "907da542829e7813ff6039f2f70b3e535f804c1c": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/",
+                "dirnamehash": "907da542829e7813ff6039f2f70b3e535f804c1c",
                 "filenames": [
                     {
                         "name": ".DS_Store"
                     },
                     {
-                        "name": "42-50 group test.pdf"
+                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
+                    }
+                ],
+                "nameshash": "ce0be4bbe418a1ab97a4b1c0dbcb11d540355d03"
+            },
+            "a5b01d551e1767dafb90d9c69cc73e5a13ed5fdb": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox/blobs/93",
+                "dirnamehash": "a5b01d551e1767dafb90d9c69cc73e5a13ed5fdb",
+                "filenames": [
+                    {
+                        "name": "4147cf719f16fa2b8444765c21ee2d8fc83252"
+                    }
+                ],
+                "nameshash": "af586e33163af22f424875b737a343a1c0bc032a"
+            },
+            "af250907291d51ba465bbac815e01519028df062": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox/blobs",
+                "dirnamehash": "af250907291d51ba465bbac815e01519028df062",
+                "filenames": [],
+                "nameshash": "177fece697d92de3404eda71739595836edadc4e"
+            },
+            "def596f21ce9f8fa64392c4491acd8e6843b12ab": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/.cryptobox",
+                "dirnamehash": "def596f21ce9f8fa64392c4491acd8e6843b12ab",
+                "filenames": [
+                    {
+                        "name": ".DS_Store"
                     },
-                    {
-                        "name": "KW32_p053N_56_caravanwereld.pdf"
-                    }
-                ],
-                "nameshash": "e2806da2a1f33cd64eb94b8a035ccbb919c85879"
-            },
-            "9c74ed4d1713606b6e28ebb61eef90af4388a306": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/64",
-                "dirnamehash": "9c74ed4d1713606b6e28ebb61eef90af4388a306",
-                "filenames": [
-                    {
-                        "name": "2a6faea7115c355e86ef0a53bb65fd089dea65"
-                    }
-                ],
-                "nameshash": "c8ccebe94ec8f5dccf1df2081cac16c8afbb7d24"
-            },
-            "9d59f9ad217cc1bf721e52d1971a25d6d383a459": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/d1",
-                "dirnamehash": "9d59f9ad217cc1bf721e52d1971a25d6d383a459",
-                "filenames": [
-                    {
-                        "name": "7c2f5ef2da75f41fa43adfa8fa4c0b2471fbd4"
-                    }
-                ],
-                "nameshash": "7cd8e50119ab846f7410dea28c5dbcde6bae4e24"
-            },
-            "9dee8fc20a818790f529e63b779539769abaaeec": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/c6",
-                "dirnamehash": "9dee8fc20a818790f529e63b779539769abaaeec",
-                "filenames": [
-                    {
-                        "name": "5048b0dad19d6a6c9345d4b843e6683bd1bb3d"
-                    }
-                ],
-                "nameshash": "d37279b459814a623f0ee470cf9d0d5f52fce44d"
-            },
-            "a0a44a80c6c49ec906f23f1367aac62a8ff8748c": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/0c",
-                "dirnamehash": "a0a44a80c6c49ec906f23f1367aac62a8ff8748c",
-                "filenames": [
-                    {
-                        "name": "8f8b3bfd4518eb1d4af3e2a3914f198aac85c3"
-                    }
-                ],
-                "nameshash": "b33c6e2213aa209a6a016e1cf5b224d3039c2223"
-            },
-            "a37ecf8e9124f0bf0d0869927fdca788413f492c": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox",
-                "dirnamehash": "a37ecf8e9124f0bf0d0869927fdca788413f492c",
-                "filenames": [
                     {
                         "name": "cryptobox_index.json"
                     },
@@ -267,288 +61,10 @@
                         "name": "memory.pickle"
                     }
                 ],
-                "nameshash": "1d390b7e03def04f47badbbffa44e27a50483197"
-            },
-            "b4307486e210628594c1dbf21aa688fac5461c8e": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/1e",
-                "dirnamehash": "b4307486e210628594c1dbf21aa688fac5461c8e",
-                "filenames": [
-                    {
-                        "name": "ae6d8b2cce60ca449fbff31956393d27e0322c"
-                    }
-                ],
-                "nameshash": "badb88d8eccce1e38d476d97d95b53f14dc3cd65"
-            },
-            "b4ae689fea9514e7009fc123558f63e06e243821": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/fa",
-                "dirnamehash": "b4ae689fea9514e7009fc123558f63e06e243821",
-                "filenames": [
-                    {
-                        "name": "038d70764f8b7f0eef2a0429fd3dfffcd843d5"
-                    }
-                ],
-                "nameshash": "08de71360c75705c51d78852bc01870b598c9db6"
-            },
-            "b7b5b50a5b2ca0b635b7396552773376ba2395b7": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/a5",
-                "dirnamehash": "b7b5b50a5b2ca0b635b7396552773376ba2395b7",
-                "filenames": [
-                    {
-                        "name": "a593ca676323ba9d2c2bbed7001bfe4c77f2d7"
-                    }
-                ],
-                "nameshash": "637d5a85a21b7a5ff239b946b956aafb12577f74"
-            },
-            "bdbe8decdae8f7bcc44b55418b88660acfd3efb4": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/ec",
-                "dirnamehash": "bdbe8decdae8f7bcc44b55418b88660acfd3efb4",
-                "filenames": [
-                    {
-                        "name": "a8759895770b705f4b15281195c3beb6e35062"
-                    }
-                ],
-                "nameshash": "86913353caa9dacea51a3e66899f9ce8fe157a2e"
-            },
-            "bf2c8164468889e60166c50fc1b82ea9d0b88844": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/e2",
-                "dirnamehash": "bf2c8164468889e60166c50fc1b82ea9d0b88844",
-                "filenames": [
-                    {
-                        "name": "c2aba0a7f82d0eb952d69b403f67c7d84d1d67"
-                    }
-                ],
-                "nameshash": "3416a5c0dfbae24c886e0e9fe56fa3bd240ab2f1"
-            },
-            "c371969bfd12df5a0e27d71202a1e8464fd97a5d": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/6a",
-                "dirnamehash": "c371969bfd12df5a0e27d71202a1e8464fd97a5d",
-                "filenames": [
-                    {
-                        "name": "5790e7d8b01ace319a561a23342dcbd3f7c5aa"
-                    }
-                ],
-                "nameshash": "438a50bd1876ba4a8901869754d4737244c94309"
-            },
-            "c70e8a4989de3a9ee68ab6597204f42b1cdc131f": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/ad",
-                "dirnamehash": "c70e8a4989de3a9ee68ab6597204f42b1cdc131f",
-                "filenames": [
-                    {
-                        "name": "7aadfd0f4cc62d70cc41829e97845296deef7e"
-                    }
-                ],
-                "nameshash": "683f82a6d8fa34815a7f9e92437cc149b54e22c8"
-            },
-            "cefc3e68c0f7afca58647f3616b6b98aab4a777e": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/65",
-                "dirnamehash": "cefc3e68c0f7afca58647f3616b6b98aab4a777e",
-                "filenames": [
-                    {
-                        "name": "878074410c8bc31604b38b2f8ac0be790a5887"
-                    }
-                ],
-                "nameshash": "8a7b30668d5e504ccbcb5c29739e13ac3c6a0727"
-            },
-            "d06689707de2ccf2631a40efa9f938b728d0d173": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/c8",
-                "dirnamehash": "d06689707de2ccf2631a40efa9f938b728d0d173",
-                "filenames": [
-                    {
-                        "name": "972fa301cb07cdce5403e4188c0b5b6c95a4fa"
-                    }
-                ],
-                "nameshash": "402bd2ee2fc5f075bb049815f50e46297969e65e"
-            },
-            "d9081a8e26e02114fb05f4845762adaf55baeb96": {
-                "dirname": "/Users/rabshakeh/Desktop/test/dropboxstatus",
-                "dirnamehash": "d9081a8e26e02114fb05f4845762adaf55baeb96",
-                "filenames": [
-                    {
-                        "name": "dropboxstatus-busy-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy2-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy2-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy2.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy3-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy3-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy3.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy4-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy4-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-busy4.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam2-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam2-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam2.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam3-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam3-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam3.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam4-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam4-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-cam4.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-glow-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-idle-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-idle-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-idle.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-logo-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-logo-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-logo.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-pause-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-pause-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-pause.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-x-lep-inv.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-x-lep.tiff"
-                    },
-                    {
-                        "name": "dropboxstatus-x.tiff"
-                    }
-                ],
-                "nameshash": "33298e0052bbe7256c549cfee98e8823b302a410"
-            },
-            "e1ea0a5d792a390c24a107e48aaa66051888cf99": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/13",
-                "dirnamehash": "e1ea0a5d792a390c24a107e48aaa66051888cf99",
-                "filenames": [
-                    {
-                        "name": "9803b6066a11ec5d356d3f4b102470b764cf82"
-                    }
-                ],
-                "nameshash": "e61b6005e5f58e5a7470fe187eb5b0c431c6a173"
-            },
-            "e73fa5229bbc7a5cfc30f4446a51d45b6300d838": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/97",
-                "dirnamehash": "e73fa5229bbc7a5cfc30f4446a51d45b6300d838",
-                "filenames": [
-                    {
-                        "name": "1fcc3cbcc0969d0e0f94f2186c1863c999f3d0"
-                    }
-                ],
-                "nameshash": "f07d42289f7baf0b2a371a738a9e155df65c1101"
-            },
-            "f530b7967131700f2b1111eb2e144a7ed57b5cfd": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/2d",
-                "dirnamehash": "f530b7967131700f2b1111eb2e144a7ed57b5cfd",
-                "filenames": [
-                    {
-                        "name": "54684a1f234227362513cf857bab93b061f094"
-                    }
-                ],
-                "nameshash": "a17cc9fd6e01182898c9c4be5df611bc03aaa891"
-            },
-            "f7c9b6145838c4a0ed40c9d60b082b4a9fd1f5a1": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/25",
-                "dirnamehash": "f7c9b6145838c4a0ed40c9d60b082b4a9fd1f5a1",
-                "filenames": [
-                    {
-                        "name": "7cd027ad25334b14bd0a5c45cc58f41dedbe81"
-                    }
-                ],
-                "nameshash": "bb34d36133286b528d717beaf1b8defde62b63fc"
-            },
-            "f9d3a17720a2066c808992a2d8a0c8f6596ea93d": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/04",
-                "dirnamehash": "f9d3a17720a2066c808992a2d8a0c8f6596ea93d",
-                "filenames": [
-                    {
-                        "name": "7696dfc7ef6d088c9ad58824be86140f718cf7"
-                    }
-                ],
-                "nameshash": "2bdba4872bb6a21506224cfacb729cf71d513bfe"
-            },
-            "fb2c128385b68888795df5bb87eb75b2ff438873": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/7a",
-                "dirnamehash": "fb2c128385b68888795df5bb87eb75b2ff438873",
-                "filenames": [
-                    {
-                        "name": "4a8fb7443ad358c6ffb191e0efd2fe1c66ae3f"
-                    }
-                ],
-                "nameshash": "571acf0a3569de8c8d64e4eceecc2f9858c0e5e3"
-            },
-            "fdc2b91d13fbed3dd82cb8a94965427687759247": {
-                "dirname": "/Users/rabshakeh/Desktop/test/.cryptobox/blobs/26",
-                "dirnamehash": "fdc2b91d13fbed3dd82cb8a94965427687759247",
-                "filenames": [
-                    {
-                        "name": "37c1704787c66020c5883369d691ce8e824535"
-                    }
-                ],
-                "nameshash": "ec77869235b5fe6fb9fbd7078b527c2679bebd4e"
+                "nameshash": "9864c33fb136c45ff0631640ebc3f78dac0eed72"
             }
         },
         "filestats": {}
     },
-    "numfiles": 84
+    "numfiles": 9
 }
