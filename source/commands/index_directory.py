@@ -416,7 +416,7 @@ def encrypt_new_blobs(salt, secret, new_blobs):
     for result in encrypt_results:
         if not result.successful():
             result.get()
-
+    pool.terminate()
 
 def index_and_encrypt(options):
     password = options.password
