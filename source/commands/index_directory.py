@@ -975,8 +975,8 @@ def write_blob_to_filepaths(fhash, files_grouped_by_content_hash, options):
             blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
             salt, secret = get_secret(options)
             data = decrypt(secret, blob_enc, True)
-        print new_path
-        write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+        if data:
+            write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
 
 
 def ensure_not_unique_content(options, file_nodes):
