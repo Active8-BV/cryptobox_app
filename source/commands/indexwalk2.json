@@ -1,22 +1,393 @@
 {
-    "DIR": "/Users/rabshakeh/Desktop/Test/",
+    "DIR": "/Users/rabshakeh/Desktop/active8",
     "folders": {
         "dirnames": {
-            "907da542829e7813ff6039f2f70b3e535f804c1c": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/",
-                "dirnamehash": "907da542829e7813ff6039f2f70b3e535f804c1c",
+            "0666389fe3330e51a2fe47a81c32ec4f619b40ff": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/all_types",
+                "dirnamehash": "0666389fe3330e51a2fe47a81c32ec4f619b40ff",
+                "filenames": [
+                    {
+                        "name": "bmptest.bmp"
+                    },
+                    {
+                        "name": "document.pdf"
+                    },
+                    {
+                        "name": "excel.xlsx"
+                    },
+                    {
+                        "name": "excel_old.xls"
+                    },
+                    {
+                        "name": "gtest.gif"
+                    },
+                    {
+                        "name": "icons.zip"
+                    },
+                    {
+                        "name": "icons_18x18_A_01.psd"
+                    },
+                    {
+                        "name": "logo-active8.ai"
+                    },
+                    {
+                        "name": "pres_new.pptx"
+                    },
+                    {
+                        "name": "pres_old.ppt"
+                    },
+                    {
+                        "name": "ptest.png"
+                    },
+                    {
+                        "name": "rich.rtf"
+                    },
+                    {
+                        "name": "test.as"
+                    },
+                    {
+                        "name": "test.c"
+                    },
+                    {
+                        "name": "test.cpp"
+                    },
+                    {
+                        "name": "test.cs"
+                    },
+                    {
+                        "name": "test.fdsfs.txt"
+                    },
+                    {
+                        "name": "test.java"
+                    },
+                    {
+                        "name": "test.js"
+                    },
+                    {
+                        "name": "test.php"
+                    },
+                    {
+                        "name": "test.rb"
+                    },
+                    {
+                        "name": "test.txt"
+                    },
+                    {
+                        "name": "word.docx"
+                    },
+                    {
+                        "name": "word_old.doc"
+                    }
+                ],
+                "nameshash": "6988b452751b7be6c26e9e0a2f9e59413b52abed"
+            },
+            "0a4cb76267a7558a75999717e653bcbe5bf7d9a4": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox/blobs/0b",
+                "dirnamehash": "0a4cb76267a7558a75999717e653bcbe5bf7d9a4",
+                "filenames": [
+                    {
+                        "name": "a231d240501b744357ad07ae0811eaf6bfe584"
+                    }
+                ],
+                "nameshash": "c0be4b276a30d0092ce982cf50d924c8f86e7999"
+            },
+            "186c721b3d413f5cca1beaf78be9c782f888f43c": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox/blobs/84",
+                "dirnamehash": "186c721b3d413f5cca1beaf78be9c782f888f43c",
+                "filenames": [
+                    {
+                        "name": "7a7c0dff5e427c46d84b61da24b12abcc78e41"
+                    }
+                ],
+                "nameshash": "030068e9f88569ba811996ef53eaa492ac098af8"
+            },
+            "2d131ca246f90635eaaea46b6e6a49508ccb0aa1": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox/blobs/e8",
+                "dirnamehash": "2d131ca246f90635eaaea46b6e6a49508ccb0aa1",
+                "filenames": [
+                    {
+                        "name": "67420905e609f1b137a436a8ea8014e2160848"
+                    }
+                ],
+                "nameshash": "c518eaaeb3442149604f7940a4a7e7d56dcf95d0"
+            },
+            "4affc4e48b8bd0e41cf303f7beb378c220c385c6": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test",
+                "dirnamehash": "4affc4e48b8bd0e41cf303f7beb378c220c385c6",
                 "filenames": [
                     {
                         "name": ".DS_Store"
                     },
                     {
-                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
+                        "name": "Game.of.Thrones.S03E08.720p.HDTV.x264-EVOLVE 2.srt"
+                    },
+                    {
+                        "name": "test.txt"
+                    },
+                    {
+                        "name": "whatstevesaid-130519104415-phpapp01.pdf"
                     }
                 ],
-                "nameshash": "ce0be4bbe418a1ab97a4b1c0dbcb11d540355d03"
+                "nameshash": "943c12248f368be01f0ec76f85b26017ad4d6a85"
+            },
+            "4c5398e0e37ed972300d8387692f40f27e992d2f": {
+                "dirname": "/Users/rabshakeh/Desktop/active8",
+                "dirnamehash": "4c5398e0e37ed972300d8387692f40f27e992d2f",
+                "filenames": [
+                    {
+                        "name": ".DS_Store"
+                    },
+                    {
+                        "name": "2000px-Fibonacci_spiral_34.png"
+                    },
+                    {
+                        "name": "975521-in-01-de-DEVOLO_DLAN_500_AVMINI_STARTER_KIT.pdf"
+                    },
+                    {
+                        "name": "begeleidend-schrijven.doc"
+                    },
+                    {
+                        "name": "bmptest.bmp"
+                    },
+                    {
+                        "name": "box 6 vector.ai"
+                    },
+                    {
+                        "name": "favicon.ico"
+                    },
+                    {
+                        "name": "Flow bestanden uploaden.docx"
+                    },
+                    {
+                        "name": "FontShop-ff_milo_ot_black-88026.zip"
+                    },
+                    {
+                        "name": "Gray Hat Python.pdf"
+                    },
+                    {
+                        "name": "gtest.gif"
+                    },
+                    {
+                        "name": "index.html"
+                    },
+                    {
+                        "name": "info.txt"
+                    },
+                    {
+                        "name": "jtest.jpg"
+                    },
+                    {
+                        "name": "logo-active8.ai"
+                    },
+                    {
+                        "name": "logo_A_01.psd"
+                    },
+                    {
+                        "name": "Nighttown scene 01 Intro & History.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 02 Opening and Early Years pt 1.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 03 The Early Years pt 2.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 04 The Pioneers of Dance.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 05 Rock vs Dance.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 06 Nirvana.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 07 Live Performances.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 08 The Building and its Location.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 09 Special Events.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 10 Reggae.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 11 Sub Culture pt1.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 12 Sub,- and Youth Culture pt2.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 13 TV & 10 yrs celebration.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 14 The Final Chapter.mp4"
+                    },
+                    {
+                        "name": "Nighttown scene 15 Credits.mp4"
+                    },
+                    {
+                        "name": "Nighttown Trailer.mp4"
+                    },
+                    {
+                        "name": "node-webkit.pdf"
+                    },
+                    {
+                        "name": "OReilly.Twisted.Network.Programming.Essentials.2nd.Edition.2013.RETAIL.eBook-ELOHiM.pdf"
+                    },
+                    {
+                        "name": "overzicht-20120-03-01.xlsx"
+                    },
+                    {
+                        "name": "page_orange.gif"
+                    },
+                    {
+                        "name": "pagestest.pages"
+                    },
+                    {
+                        "name": "parse_sales.py"
+                    },
+                    {
+                        "name": "photo1.JPG"
+                    },
+                    {
+                        "name": "Plan van aanpak Themagewijze dialoog 2-0.docx"
+                    },
+                    {
+                        "name": "pres_new.pptx"
+                    },
+                    {
+                        "name": "pres_old.ppt"
+                    },
+                    {
+                        "name": "raboledensite.ppt"
+                    },
+                    {
+                        "name": "RaboNL.mov"
+                    },
+                    {
+                        "name": "Rockwell.ttf"
+                    },
+                    {
+                        "name": "rtf.rtf"
+                    },
+                    {
+                        "name": "Suppliers voor Web applicatie en  Mobile Apps - Randvoorwaarden - v0.1.pptx"
+                    },
+                    {
+                        "name": "template-factuur.xls"
+                    },
+                    {
+                        "name": "test-RJ.csv"
+                    },
+                    {
+                        "name": "test.as"
+                    },
+                    {
+                        "name": "test.pages"
+                    },
+                    {
+                        "name": "twitter_logo_withbird_white.eps"
+                    },
+                    {
+                        "name": "V_O_stylesheet.css"
+                    },
+                    {
+                        "name": "Violent Python - A Cookbook for Hackers, Forensic Analysts, Penetration Testers and Security Engineers.pdf"
+                    },
+                    {
+                        "name": "winopener.js"
+                    }
+                ],
+                "nameshash": "c3988739f8a08cef01f7d14db4b02516d6099dfc"
+            },
+            "718b27cb267db34ee033c920a623c4cbfd0f43b8": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test.txt",
+                "dirnamehash": "718b27cb267db34ee033c920a623c4cbfd0f43b8",
+                "filenames": [
+                    {
+                        "name": "test.txt"
+                    }
+                ],
+                "nameshash": "4b6fcb2d521ef0fd442a5301e7932d16cc9f375a"
+            },
+            "7a9eb5a671e96fe6dded8df8172b463c16e7ed5d": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/presentations",
+                "dirnamehash": "7a9eb5a671e96fe6dded8df8172b463c16e7ed5d",
+                "filenames": [
+                    {
+                        "name": "bigcouch-oreilly-101025095147-phpapp02.pdf"
+                    },
+                    {
+                        "name": "codemotion2012-120325101104-phpapp02.pdf"
+                    },
+                    {
+                        "name": "node-js-bestpractices-111202033526-phpapp02.pdf"
+                    },
+                    {
+                        "name": "whatstevesaid-130519104415-phpapp01.pdf"
+                    }
+                ],
+                "nameshash": "f1054e15ddc33dc9d72ebb1eb0512d80fb3f7a4a"
+            },
+            "7bee5eb4d022e24f8d8b97b2b70d55cddef24509": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/braun",
+                "dirnamehash": "7bee5eb4d022e24f8d8b97b2b70d55cddef24509",
+                "filenames": [
+                    {
+                        "name": "precisie-trimmer.pdf"
+                    },
+                    {
+                        "name": "silk-epil.pdf"
+                    }
+                ],
+                "nameshash": "04161783cac9335c0d3f6cd154006a7085d6da63"
+            },
+            "dab058e93ff1c7ed850ce4448cfefa03c482f17b": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox/blobs",
+                "dirnamehash": "dab058e93ff1c7ed850ce4448cfefa03c482f17b",
+                "filenames": [],
+                "nameshash": "aadc6d273366120f50c69175a02fd780fea26e65"
+            },
+            "e74544ebad6d50c7e639b9c62be9a3e45d77ebf0": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox/blobs/69",
+                "dirnamehash": "e74544ebad6d50c7e639b9c62be9a3e45d77ebf0",
+                "filenames": [
+                    {
+                        "name": "9ee59f15b0c3ebe1938d8cad066ed64dd31d6f"
+                    }
+                ],
+                "nameshash": "2f83b80c2f3836457897a48d5a791accee942b58"
+            },
+            "ed60d145beb1812e38b340ead1d31a63fbf497da": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox/blobs/78",
+                "dirnamehash": "ed60d145beb1812e38b340ead1d31a63fbf497da",
+                "filenames": [
+                    {
+                        "name": "6212bcebd6938423a27afdd28751652dacd81f"
+                    }
+                ],
+                "nameshash": "cecca4d13e9c69d7903e15e1df2cbb7bc2e16484"
+            },
+            "efd14e51b7735018bc49559fbd94eef28989448e": {
+                "dirname": "/Users/rabshakeh/Desktop/active8/test/.cryptobox",
+                "dirnamehash": "efd14e51b7735018bc49559fbd94eef28989448e",
+                "filenames": [
+                    {
+                        "name": "cryptobox_index.json"
+                    },
+                    {
+                        "name": "cryptobox_index.pickle"
+                    },
+                    {
+                        "name": "cryptobox_index.pickle.backup"
+                    }
+                ],
+                "nameshash": "17e3b9c8c04d1faaceed9f9a708daaca610b347e"
             }
         },
         "filestats": {}
     },
-    "numfiles": 9
+    "numfiles": 188
 }
