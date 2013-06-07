@@ -26,6 +26,9 @@ from Crypto.Protocol.KDF import PBKDF2
 
 g_lock = multiprocessing.Lock()
 
+SERVER = "http://127.0.0.1:8000/"
+#SERVER = "https://www.cryptobox.nl/"
+
 
 def warning(*arg):
     sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + "\033[0m\n")
@@ -56,6 +59,8 @@ def add_options():
                       help="cryptobox slug", metavar="CRYPTOBOX")
     parser.add_option("-s", "--sync", dest="sync", action='store_true',
                       help="sync with server", metavar="SYNC")
+    parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads",
+                      help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
 
     return parser.parse_args()
 
@@ -294,8 +299,10 @@ def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
     fout.write(data)
     fout.close()
     os.utime(path, (a_time, m_time))
-    os.chmod(path, st_mode)
-    os.chown(path, st_uid, st_gid)
+    if st_mode:
+        os.chmod(path, st_mode)
+    if st_uid and st_gid:
+        os.chown(path, st_uid, st_gid)
 
 
 def read_file(path):
@@ -419,22 +426,57 @@ def encrypt_new_blobs(salt, secret, new_blobs):
     pool.terminate()
 
 
+def get_data_dir(options):
+    return os.path.join(options.dir, ".cryptobox")
+
+
+def get_blob_dir(options):
+    datadir = get_data_dir(options)
+    return os.path.join(datadir, "blobs")
+
+
+def get_cryptobox_index_path(options):
+    datadir = get_data_dir(options)
+    return os.path.join(datadir, "cryptobox_index.pickle")
+
+
+def get_cryptobox_index(options):
+    cryptobox_index_path = get_cryptobox_index_path(options)
+    if os.path.exists(cryptobox_index_path):
+        return cPickle.load(open(cryptobox_index_path, "r"))
+    return None
+
+
+def cryptobox_locked(options):
+    current_cryptobox_index = get_cryptobox_index(options)
+    if current_cryptobox_index:
+        if current_cryptobox_index["locked"] is True:
+            return True
+    return False
+
+
+def get_secret(options):
+    password = options.password
+    current_cryptobox_index = get_cryptobox_index(options)
+    if current_cryptobox_index:
+        salt = base64.decodestring(current_cryptobox_index["salt_b64"])
+    else:
+        salt = Random.new().read(32)
+    return salt, pasword_derivation(password, salt)
+
+
 def index_and_encrypt(options):
     password = options.password
-    datadir = os.path.join(options.dir, ".cryptobox")
-    cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
-
-    if os.path.exists(cryptobox_index_path):
-        current_cryptobox_index = cPickle.load(open(cryptobox_index_path, "r"))
-        salt = base64.decodestring(current_cryptobox_index["salt_b64"])
-        if current_cryptobox_index["locked"] is True:
-            log("cryptobox is locked")
+    datadir = get_data_dir(options)
+    cryptobox_index_path = get_cryptobox_index_path(options)
+    current_cryptobox_index = get_cryptobox_index(options)
+    if current_cryptobox_index:
+        if cryptobox_locked(options):
+            warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
             return
         else:
             shutil.copy2(cryptobox_index_path, cryptobox_index_path + ".backup")
-    else:
-        salt = Random.new().read(32)
-    secret = pasword_derivation(password, salt)
+    salt, secret = get_secret(options)
 
     args = {}
     args["DIR"] = options.dir
@@ -500,21 +542,23 @@ def index_and_encrypt(options):
     blob_dirs = os.path.join(datadir, "blobs")
     for blob_dir in os.listdir(blob_dirs):
         blob_store = os.path.join(blob_dirs, blob_dir)
-        for blob_file in os.listdir(blob_store):
-            found = False
-            for fhash in hash_set_on_disk:
-                if fhash == (blob_dir + blob_file):
-                    found = True
-            if not found:
-                obsolute_blob_store_entries.add(blob_dir + blob_file)
+        if os.path.isdir(blob_store):
+            for blob_file in os.listdir(blob_store):
+                found = False
+                for fhash in hash_set_on_disk:
+                    if fhash == (blob_dir + blob_file):
+                        found = True
+                if not found:
+                    obsolute_blob_store_entries.add(blob_dir + blob_file)
 
     for f_hash in obsolute_blob_store_entries:
         blob_dir = os.path.join(blob_dirs, f_hash[:2])
         blob_path = os.path.join(blob_dir, f_hash[2:])
         os.remove(blob_path)
-        blob_entries = [f for f in os.listdir(blob_dir) if not f.startswith('.')]
-        if len(blob_entries) == 0:
-            shutil.rmtree(blob_dir, True)
+        if os.path.isdir(blob_dir):
+            blob_entries = [f for f in os.listdir(blob_dir) if not f.startswith('.')]
+            if len(blob_entries) == 0:
+                shutil.rmtree(blob_dir, True)
     if numfiles > 0:
         print
 
@@ -543,18 +587,19 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
         handle_exception(e, False)
 
 
+#datadir = get_data_dir(options)
+
 def decrypt_and_build_filetree(options):
     password = options.password
-    datadir = os.path.join(options.dir, ".cryptobox")
+    datadir = get_data_dir(options)
     if not os.path.exists(datadir):
         warning("nothing to decrypt", datadir, "does not exists")
         return
     blobdir = os.path.join(datadir, "blobs")
-    cryptobox_index_path = os.path.join(datadir, "cryptobox_index.pickle")
-
-    if os.path.exists(cryptobox_index_path):
-        cryptobox_index = cPickle.load(open(cryptobox_index_path, "rb"))
-        if cryptobox_index["locked"] is False:
+    cryptobox_index_path = get_cryptobox_index_path(options)
+    cryptobox_index = get_cryptobox_index(options)
+    if cryptobox_index:
+        if not cryptobox_locked(options):
             return
     else:
         cryptobox_index = None
@@ -761,24 +806,42 @@ class ServerForbidden(Exception):
     pass
 
 
+class ServerError(Exception):
+    pass
+
+
 class NotAuthorized(Exception):
     pass
 
 
+def parse_http_result(result):
+    if result.status_code == 403:
+        raise ServerForbidden(result.reason)
+    if result.status_code == 500:
+        request_error(result)
+        raise ServerError(result.reason)
+    return result
+
+
 def on_server(method, cryptobox, payload, session):
+    global SERVER
     cookies = dict(c_persist_fingerprint_client_part=fingerprint())
-    SERVER = "http://127.0.0.1:8000/"
-    #SERVER = "https://www.cryptobox.nl/"
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
     if not session:
         session = requests
     result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
-    if result.status_code == 403:
-        raise ServerForbidden(method)
-    if result.status_code != 200:
-        request_error(result)
-        return None
-    return result
+    return parse_http_result(result)
+
+
+def download_server(options, url):
+    global SERVER
+    cookies = dict(c_persist_fingerprint_client_part=fingerprint())
+    url = os.path.normpath(url)
+    URL = SERVER + options.cryptobox + "/" + url
+    memory = Memory()
+    session = memory.get("session")
+    result = session.get(URL, cookies=cookies)
+    return parse_http_result(result)
 
 
 def server_time(cryptobox):
@@ -823,7 +886,6 @@ def authorize_user(options):
     try:
         memory = Memory()
         if memory.has("session"):
-            log("using previous session")
             return True
         session, results = authorize(options.username, options.password, options.cryptobox)
         memory.set("session", session, timeout_minute=30)
@@ -844,7 +906,96 @@ class TreeLoadError(Exception):
     pass
 
 
-def get_tree(options):
+def have_blob(options, blob_hash):
+    blobdir = os.path.join(get_blob_dir(options), blob_hash[:2])
+    blobpath = os.path.join(blobdir, blob_hash[2:])
+    return os.path.exists(blobpath)
+
+
+def ensure_directory_sync(options, node_path):
+    new_dir = os.path.join(options.dir, node_path.lstrip("/"))
+    ensure_directory(new_dir)
+    return new_dir
+
+
+def ensure_directories_sync(options, unique_dirs):
+    for udir in unique_dirs:
+        udir = udir.lstrip("/").strip()
+        if len(udir) > 0:
+            ensure_directory_sync(options, udir)
+
+
+def download_blob(options, node):
+    try:
+        st_mtime = int(node["content_hash_latest_timestamp"][1])
+        dirname_of_path = os.path.dirname(node["doc"]["m_path"])
+        new_dir = ensure_directory_sync(options, dirname_of_path)
+        new_path = os.path.join(new_dir, node["doc"]["m_name"])
+        url = "download/" + node["doc"]["m_short_id"]
+        result = download_server(options, url)
+        write_file(path=new_path, data=result.content, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+        return url
+    except Exception, e:
+        handle_exception(e)
+
+
+def get_unique_content(options, all_unique_nodes):
+    unique_nodes_hashes = filter(lambda fhash: not have_blob(options, fhash), all_unique_nodes)
+    unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
+
+    pool = multiprocessing.Pool(processes=options.numdownloadthreads)
+    downloaded_files = []
+
+    # noinspection PyUnusedLocal
+    def done_downloading(e):
+        downloaded_files.append(e)
+        update_progress(len(downloaded_files), len(unique_nodes), "downloading")
+
+    download_results = []
+    for node in unique_nodes:
+        result = pool.apply_async(download_blob, (options, node), callback=done_downloading)
+        download_results.append(result)
+    pool.close()
+    pool.join()
+    for result in download_results:
+        if not result.successful():
+            result.get()
+    pool.terminate()
+
+
+def write_blob_to_filepaths(fhash, files_grouped_by_content_hash, options):
+    data = None
+    for node in files_grouped_by_content_hash[fhash]:
+        st_mtime = int(node["content_hash_latest_timestamp"][1])
+        dirname_of_path = os.path.dirname(node["doc"]["m_path"])
+        new_dir = ensure_directory_sync(options, dirname_of_path)
+        new_path = os.path.join(new_dir, node["doc"]["m_name"])
+        if not data:
+            fdir = os.path.join(get_blob_dir(options), fhash[:2])
+            blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
+            salt, secret = get_secret(options)
+            data = decrypt(secret, blob_enc, True)
+        print new_path
+        write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+
+
+def ensure_not_unique_content(options, file_nodes):
+    files_grouped_by_content_hash = {}
+
+    for sfile in file_nodes:
+        fhash = sfile["content_hash_latest_timestamp"][0]
+        if fhash not in files_grouped_by_content_hash:
+            files_grouped_by_content_hash[fhash] = []
+        files_grouped_by_content_hash[fhash].append(sfile)
+    for fhash in files_grouped_by_content_hash:
+        write_blob_to_filepaths(fhash, files_grouped_by_content_hash, options)
+
+
+def sync_server(options):
+    if cryptobox_locked(options):
+        exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
+        return
+
     memory = Memory()
     cryptobox = options.cryptobox
     try:
@@ -857,10 +1008,20 @@ def get_tree(options):
         result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     if not result[0]:
         raise TreeLoadError()
+    unique_content = {}
+    unique_dirs = set()
+    files = []
     for node in result[1]:
-        #print node["doc"]["m_slugpath"]
-        print node["doc"]["m_path"], node["doc"]["m_short_id"], node["doc"]["m_data_id"]
-        print
+        dirname_of_path = os.path.dirname(node["doc"]["m_path"])
+        unique_dirs.add(dirname_of_path)
+        if node["content_hash_latest_timestamp"]:
+            unique_content[node["content_hash_latest_timestamp"][0]] = node
+            files.append(node)
+
+    get_unique_content(options, unique_content)
+    ensure_directories_sync(options, unique_dirs)
+    index_and_encrypt(options)
+    ensure_not_unique_content(options, files)
 
 
 def main():
@@ -869,12 +1030,14 @@ def main():
     memory = Memory()
     memory.load(datadir)
 
+    if not options.numdownloadthreads:
+        options.numdownloadthreads = 2
+    else:
+        options.numdownloadthreads = int(options.numdownloadthreads)
+    log(options.numdownloadthreads, "downloadthreads")
+
     if not options.dir:
         exit_app_warning("Need DIR (-f or --dir) to continue")
-    if options.clear:
-        datadir = os.path.join(options.dir, ".cryptobox")
-        shutil.rmtree(datadir, True)
-        log("cleared all data")
 
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
@@ -894,9 +1057,9 @@ def main():
     if options.password and options.username and options.cryptobox:
         if authorize_user(options):
             if options.sync:
-                log("syncing")
-                tree = get_tree(options)
-                print tree
+                if not options.encrypt:
+                    exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+                sync_server(options)
 
     if options.encrypt:
         index_and_encrypt(options)
@@ -904,6 +1067,14 @@ def main():
     if options.decrypt:
         if not options.clear:
             decrypt_and_build_filetree(options)
+
+    if options.clear:
+        if options.encrypt:
+            exit_app_warning("clear options cannot be used together with encrypt, possible data loss")
+            return
+        datadir = get_data_dir(options)
+        shutil.rmtree(datadir, True)
+        log("cleared all meta data in ", get_data_dir(options))
 
     memory.save(datadir)
 
