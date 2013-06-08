@@ -925,15 +925,20 @@ def ensure_directories_sync(options, unique_dirs):
             ensure_directory_sync(options, udir)
 
 
+def downloaded_blob_to_file(node, options, data):
+    st_mtime = int(node["content_hash_latest_timestamp"][1])
+    dirname_of_path = os.path.dirname(node["doc"]["m_path"])
+    new_dir = ensure_directory_sync(options, dirname_of_path)
+    new_path = os.path.join(new_dir, node["doc"]["m_name"])
+    write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+
+
 def download_blob(options, node):
     try:
-        st_mtime = int(node["content_hash_latest_timestamp"][1])
-        dirname_of_path = os.path.dirname(node["doc"]["m_path"])
-        new_dir = ensure_directory_sync(options, dirname_of_path)
-        new_path = os.path.join(new_dir, node["doc"]["m_name"])
         url = "download/" + node["doc"]["m_short_id"]
         result = download_server(options, url)
-        write_file(path=new_path, data=result.content, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+
+        downloaded_blob_to_file(node, options, result.content)
         return url
     except Exception, e:
         handle_exception(e)
@@ -966,17 +971,13 @@ def get_unique_content(options, all_unique_nodes):
 def write_blob_to_filepaths(fhash, files_grouped_by_content_hash, options):
     data = None
     for node in files_grouped_by_content_hash[fhash]:
-        st_mtime = int(node["content_hash_latest_timestamp"][1])
-        dirname_of_path = os.path.dirname(node["doc"]["m_path"])
-        new_dir = ensure_directory_sync(options, dirname_of_path)
-        new_path = os.path.join(new_dir, node["doc"]["m_name"])
         if not data:
             fdir = os.path.join(get_blob_dir(options), fhash[:2])
             blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
             salt, secret = get_secret(options)
             data = decrypt(secret, blob_enc, True)
         if data:
-            write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+            downloaded_blob_to_file(node, options, data)
 
 
 def ensure_not_unique_content(options, file_nodes):
@@ -1026,18 +1027,19 @@ def sync_server(options):
 
 def main():
     (options, args) = add_options()
-    datadir = os.path.join(options.dir, ".cryptobox")
-    memory = Memory()
-    memory.load(datadir)
 
     if not options.numdownloadthreads:
-        options.numdownloadthreads = 2
+        options.numdownloadthreads = multiprocessing.cpu_count() * 2
     else:
         options.numdownloadthreads = int(options.numdownloadthreads)
     log(options.numdownloadthreads, "downloadthreads")
 
     if not options.dir:
         exit_app_warning("Need DIR (-f or --dir) to continue")
+
+    datadir = os.path.join(options.dir, ".cryptobox")
+    memory = Memory()
+    memory.load(datadir)
 
     if not os.path.exists(options.dir):
         exit_app_warning("DIR [", options.dir, "] does not exist")
@@ -1054,12 +1056,21 @@ def main():
         if not options.cryptobox:
             exit_app_warning("No cryptobox given (-b or --cryptobox)")
 
+    if options.sync:
+        if not options.username:
+            exit_app_warning("No username given (-u or --username)")
+        if not options.password:
+            exit_app_warning("No password given (-p or --password)")
+        if not options.cryptobox:
+            exit_app_warning("No cryptobox given (-b or --cryptobox)")
+
     if options.password and options.username and options.cryptobox:
         if authorize_user(options):
             if options.sync:
                 if not options.encrypt:
                     exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
                 sync_server(options)
+
 
     if options.encrypt:
         index_and_encrypt(options)
