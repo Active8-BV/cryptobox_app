@@ -2,93 +2,35 @@
     "DIR": "/Users/rabshakeh/Desktop/Test",
     "folders": {
         "dirnames": {
-            "346060883bdbb7e475ef5e615d7a20f467787221": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Mijn map",
-                "dirnamehash": "346060883bdbb7e475ef5e615d7a20f467787221",
-                "filenames": [
-                    {
-                        "name": "py_settings.jar"
-                    },
-                    {
-                        "name": "test.js"
-                    },
-                    {
-                        "name": "test.php"
-                    },
-                    {
-                        "name": "test.rb"
-                    },
-                    {
-                        "name": "test.txt"
-                    },
-                    {
-                        "name": "word.docx"
-                    },
-                    {
-                        "name": "word_old.doc"
-                    }
-                ],
-                "nameshash": "6b64d1673a0c173bcd29afcc1849d3fc224268bf"
+            "0fcbe7ab5cc0a05728b2c2a3d33fdc99c7a6b71b": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox/blobs/84",
+                "dirnamehash": "0fcbe7ab5cc0a05728b2c2a3d33fdc99c7a6b71b",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
             },
-            "34a6cfe024d770ad0d19a0d3f3741c583fb40c43": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Datum test",
-                "dirnamehash": "34a6cfe024d770ad0d19a0d3f3741c583fb40c43",
-                "filenames": [
-                    {
-                        "name": "2013-06-06 21.34.36.jpg"
-                    },
-                    {
-                        "name": "LICENSE"
-                    },
-                    {
-                        "name": "test.txt"
-                    }
-                ],
-                "nameshash": "c917ca13a7c4bc792541b8672e55fe89c4b268f3"
+            "4a0de6f999ede61280b89a3db1c2db64a93ef048": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox/blobs",
+                "dirnamehash": "4a0de6f999ede61280b89a3db1c2db64a93ef048",
+                "filenames": [],
+                "nameshash": "aadc6d273366120f50c69175a02fd780fea26e65"
             },
-            "53eecc9a72aeee341ef49ae78c202c92645bff86": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Mijn map/Erik",
-                "dirnamehash": "53eecc9a72aeee341ef49ae78c202c92645bff86",
-                "filenames": [
-                    {
-                        "name": "2013-06-06 21.34.36.jpg"
-                    },
-                    {
-                        "name": "LICENSE"
-                    },
-                    {
-                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
-                    },
-                    {
-                        "name": "test.txt"
-                    }
-                ],
-                "nameshash": "08f9bae6177e9d49260d7ba08aface8b370a2f46"
+            "62d32fda6acb4530e5e1e06f86e27929f84bffbe": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox/blobs/78",
+                "dirnamehash": "62d32fda6acb4530e5e1e06f86e27929f84bffbe",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
             },
-            "7713a28e15ee481661dbf13dc0994d28742b4dca": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Mijn map/Erik/Mijn map",
-                "dirnamehash": "7713a28e15ee481661dbf13dc0994d28742b4dca",
-                "filenames": [
-                    {
-                        "name": "py_settings.jar"
-                    },
-                    {
-                        "name": "test.js"
-                    },
-                    {
-                        "name": "test.php"
-                    },
-                    {
-                        "name": "test.txt"
-                    },
-                    {
-                        "name": "word.docx"
-                    },
-                    {
-                        "name": "word_old.doc"
-                    }
-                ],
-                "nameshash": "02e62958efea9ff3078f364d86961b1f34fea609"
+            "7e51da4ae0c149a10c75b4d2845b0733848d5477": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/presentations",
+                "dirnamehash": "7e51da4ae0c149a10c75b4d2845b0733848d5477",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            "8275aeb59f888b353fea4670d256adf8af8120d7": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/braun",
+                "dirnamehash": "8275aeb59f888b353fea4670d256adf8af8120d7",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
             },
             "8345e5d6ffcff1300c336581569a91306d006053": {
                 "dirname": "/Users/rabshakeh/Desktop/Test",
@@ -98,95 +40,46 @@
                         "name": ".DS_Store"
                     }
                 ],
-                "nameshash": "f1fae6f924278a24492be8a42e7efb4283e42858"
+                "nameshash": "2a930063251db649b87b180eb084a7059d71b7c5"
             },
-            "88cf10fa1e64fc0b0d0c52a8d6c03bce27c5783e": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Erik",
-                "dirnamehash": "88cf10fa1e64fc0b0d0c52a8d6c03bce27c5783e",
-                "filenames": [
-                    {
-                        "name": ".DS_Store"
-                    },
-                    {
-                        "name": "2013-06-06 21.34.36.jpg"
-                    },
-                    {
-                        "name": "LICENSE"
-                    },
-                    {
-                        "name": "Oreilly.Learning.Android.Mar.2011.pdf"
-                    },
-                    {
-                        "name": "test.txt"
-                    }
-                ],
-                "nameshash": "7a8181cebf4bb0bc78cd4c2f4af8e9da46591601"
+            "8ce7f3278dc740cb5eb2ac2625f5a5f6715ff88e": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/all_types",
+                "dirnamehash": "8ce7f3278dc740cb5eb2ac2625f5a5f6715ff88e",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
             },
-            "931adc9515fb286525052c2d31c55dd98dc65285": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Erik/banks",
-                "dirnamehash": "931adc9515fb286525052c2d31c55dd98dc65285",
-                "filenames": [
-                    {
-                        "name": "banks.py"
-                    },
-                    {
-                        "name": "client.py"
-                    },
-                    {
-                        "name": "Readme.txt"
-                    },
-                    {
-                        "name": "server.py"
-                    }
-                ],
-                "nameshash": "48ce3113d91d58c3b73124c77ebb60b394579702"
+            "9ffc3c9e96a27886fc3c62b3e9fc0077c8ca5e7d": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test",
+                "dirnamehash": "9ffc3c9e96a27886fc3c62b3e9fc0077c8ca5e7d",
+                "filenames": [],
+                "nameshash": "b9be1f143899e0fc34e13b41ed48c51be9430a6d"
             },
-            "c35159baea523fb9d5506c27ad854823cc7372d2": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Mijn map/Erik/banks",
-                "dirnamehash": "c35159baea523fb9d5506c27ad854823cc7372d2",
-                "filenames": [
-                    {
-                        "name": "banks.py"
-                    },
-                    {
-                        "name": "client.py"
-                    },
-                    {
-                        "name": "Readme.txt"
-                    },
-                    {
-                        "name": "server.py"
-                    }
-                ],
-                "nameshash": "48ce3113d91d58c3b73124c77ebb60b394579702"
+            "cc0b95c65bb3e11b2f01a0df957cab37a4a0d003": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox/blobs/69",
+                "dirnamehash": "cc0b95c65bb3e11b2f01a0df957cab37a4a0d003",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
             },
-            "cedd06c5102a11275347bf20f3001b45e7c396ee": {
-                "dirname": "/Users/rabshakeh/Desktop/Test/Erik/Mijn map",
-                "dirnamehash": "cedd06c5102a11275347bf20f3001b45e7c396ee",
-                "filenames": [
-                    {
-                        "name": "py_settings.jar"
-                    },
-                    {
-                        "name": "test.js"
-                    },
-                    {
-                        "name": "test.php"
-                    },
-                    {
-                        "name": "test.txt"
-                    },
-                    {
-                        "name": "word.docx"
-                    },
-                    {
-                        "name": "word_old.doc"
-                    }
-                ],
-                "nameshash": "02e62958efea9ff3078f364d86961b1f34fea609"
+            "d9d11dfb9b57a4b90118b5164cd7ab4d9055ef66": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox/blobs/0b",
+                "dirnamehash": "d9d11dfb9b57a4b90118b5164cd7ab4d9055ef66",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+            },
+            "db498c30e074d6b0913a0e5ca93080c1f279c679": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox",
+                "dirnamehash": "db498c30e074d6b0913a0e5ca93080c1f279c679",
+                "filenames": [],
+                "nameshash": "1c78cbb080d390dc91864629f9786e69279df0bc"
+            },
+            "e804b251532ffb2cc47d4aeb98c746af9f987b6c": {
+                "dirname": "/Users/rabshakeh/Desktop/Test/test/.cryptobox/blobs/e8",
+                "dirnamehash": "e804b251532ffb2cc47d4aeb98c746af9f987b6c",
+                "filenames": [],
+                "nameshash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
             }
         },
         "filestats": {}
     },
-    "numfiles": 59
+    "numfiles": 4
 }
