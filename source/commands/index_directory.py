@@ -34,6 +34,14 @@ def warning(*arg):
     sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + "\033[0m\n")
 
 
+def strcmp(s1, s2):
+    if not s1 or not s2:
+        return False
+    s1 = s1.strip()
+    s2 = s2.strip()
+    return s1 == s2
+
+
 def log(*arg):
     msg = " ".join([str(s) for s in arg]).strip(" ")
     sys.stderr.write("\033[93m" + msg + "\n\033[0m")
@@ -251,7 +259,7 @@ def encrypt(salt, secret, data):
         "initialization_vector": initialization_vector,
         "encoded_data": encoded_data
     }
-    if encoded_hash == data_hash and len(data.strip()) > 0:
+    if strcmp(encoded_hash, data_hash) and len(data.strip()) > 0:
         raise Exception("data is not encrypted")
     return encrypted_data_dict
 
@@ -466,7 +474,6 @@ def get_secret(options):
 
 
 def index_and_encrypt(options):
-    password = options.password
     datadir = get_data_dir(options)
     cryptobox_index_path = get_cryptobox_index_path(options)
     current_cryptobox_index = get_cryptobox_index(options)
@@ -484,11 +491,9 @@ def index_and_encrypt(options):
     args["numfiles"] = 0
     os.path.walk(options.dir, index_files_visit, args)
 
-    json.dump(args, open("indexwalk.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
     for dirname in args["folders"]["dirnames"].copy():
         if datadir in args["folders"]["dirnames"][dirname]["dirname"]:
             del args["folders"]["dirnames"][dirname]
-    json.dump(args, open("indexwalk2.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
     ensure_directory(datadir)
     cryptobox_index = args["folders"]
@@ -540,13 +545,14 @@ def index_and_encrypt(options):
 
     obsolute_blob_store_entries = set()
     blob_dirs = os.path.join(datadir, "blobs")
+    ensure_directory(blob_dirs)
     for blob_dir in os.listdir(blob_dirs):
         blob_store = os.path.join(blob_dirs, blob_dir)
         if os.path.isdir(blob_store):
             for blob_file in os.listdir(blob_store):
                 found = False
                 for fhash in hash_set_on_disk:
-                    if fhash == (blob_dir + blob_file):
+                    if strcmp(fhash, (blob_dir + blob_file)):
                         found = True
                 if not found:
                     obsolute_blob_store_entries.add(blob_dir + blob_file)
@@ -572,7 +578,7 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
         file_blob["data"] = decrypt(secret, blob_enc, True)
         for dirhash in cryptobox_index["dirnames"]:
             for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
-                if fhash == cfile["hash"]:
+                if strcmp(fhash, cfile["hash"]):
                     fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
                     if not os.path.exists(fpath):
                         ft = cryptobox_index["filestats"][fpath]
@@ -925,7 +931,7 @@ def ensure_directories_sync(options, unique_dirs):
             ensure_directory_sync(options, udir)
 
 
-def downloaded_blob_to_file(node, options, data):
+def write_blob_to_filepaths(fhash, node, options, data):
     st_mtime = int(node["content_hash_latest_timestamp"][1])
     dirname_of_path = os.path.dirname(node["doc"]["m_path"])
     new_dir = ensure_directory_sync(options, dirname_of_path)
@@ -933,27 +939,47 @@ def downloaded_blob_to_file(node, options, data):
     write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
 
 
+def ensure_not_unique_content(options, file_nodes, data, downloaded_fhash):
+    files_same_hash = []
+
+    for sfile in file_nodes:
+        fhash = sfile["content_hash_latest_timestamp"][0]
+        if strcmp(fhash, downloaded_fhash):
+            files_same_hash.append(sfile)
+    for fnode in files_same_hash:
+        write_blob_to_filepaths(fnode["content_hash_latest_timestamp"][0], fnode, options, data)
+
+
+def download_server_stub(options, url):
+    class O(object):
+        def __init__(self):
+            self.url = ""
+            self.content = ""
+    o = O()
+    o.url = url
+    o.content = "hello"
+    return o
+
+
 def download_blob(options, node):
     try:
         url = "download/" + node["doc"]["m_short_id"]
         result = download_server(options, url)
-
-        downloaded_blob_to_file(node, options, result.content)
-        return url
+        return {"url": result.url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result.content}
     except Exception, e:
         handle_exception(e)
 
 
-def get_unique_content(options, all_unique_nodes):
+def get_unique_content(options, all_unique_nodes, files):
     unique_nodes_hashes = filter(lambda fhash: not have_blob(options, fhash), all_unique_nodes)
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-
     pool = multiprocessing.Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
     # noinspection PyUnusedLocal
-    def done_downloading(e):
-        downloaded_files.append(e)
+    def done_downloading(result):
+        ensure_not_unique_content(options, files, result["content"], result["content_hash"])
+        downloaded_files.append(result["url"])
         update_progress(len(downloaded_files), len(unique_nodes), "downloading")
 
     download_results = []
@@ -966,30 +992,6 @@ def get_unique_content(options, all_unique_nodes):
         if not result.successful():
             result.get()
     pool.terminate()
-
-
-def write_blob_to_filepaths(fhash, files_grouped_by_content_hash, options):
-    data = None
-    for node in files_grouped_by_content_hash[fhash]:
-        if not data:
-            fdir = os.path.join(get_blob_dir(options), fhash[:2])
-            blob_enc = cPickle.load(open(os.path.join(fdir, fhash[2:])))
-            salt, secret = get_secret(options)
-            data = decrypt(secret, blob_enc, True)
-        if data:
-            downloaded_blob_to_file(node, options, data)
-
-
-def ensure_not_unique_content(options, file_nodes):
-    files_grouped_by_content_hash = {}
-
-    for sfile in file_nodes:
-        fhash = sfile["content_hash_latest_timestamp"][0]
-        if fhash not in files_grouped_by_content_hash:
-            files_grouped_by_content_hash[fhash] = []
-        files_grouped_by_content_hash[fhash].append(sfile)
-    for fhash in files_grouped_by_content_hash:
-        write_blob_to_filepaths(fhash, files_grouped_by_content_hash, options)
 
 
 def sync_server(options):
@@ -1009,6 +1011,8 @@ def sync_server(options):
         result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     if not result[0]:
         raise TreeLoadError()
+    json.dump(result[1], open("servertree.json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
+
     unique_content = {}
     unique_dirs = set()
     files = []
@@ -1019,10 +1023,8 @@ def sync_server(options):
             unique_content[node["content_hash_latest_timestamp"][0]] = node
             files.append(node)
 
-    get_unique_content(options, unique_content)
     ensure_directories_sync(options, unique_dirs)
-    index_and_encrypt(options)
-    ensure_not_unique_content(options, files)
+    get_unique_content(options, unique_content, files)
 
 
 def main():
@@ -1071,7 +1073,6 @@ def main():
                     exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
                 sync_server(options)
 
-
     if options.encrypt:
         index_and_encrypt(options)
 
@@ -1090,5 +1091,5 @@ def main():
     memory.save(datadir)
 
 
-if __name__ == '__main__':
+if strcmp(__name__, '__main__'):
     main()
