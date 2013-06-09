@@ -1,0 +1,2655 @@
+[
+    {
+        "_id": "hqqk",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1368795877.330612,
+            "m_data_id": "",
+            "m_date": 1368795877.330493,
+            "m_date_human": "17/05/13 15:04",
+            "m_date_time": 1368795877330.493,
+            "m_mime": "folder",
+            "m_name": "documenten",
+            "m_nodetype": "folder",
+            "m_order": 0,
+            "m_parent": "",
+            "m_path": "/",
+            "m_short_id": "hqqk",
+            "m_size": 432762362,
+            "m_slug": "documenten",
+            "m_slugpath": "/"
+        },
+        "parent": null,
+        "rootparent": null
+    },
+    {
+        "_id": "ggpz",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1369214350.010146,
+            "m_data_id": "",
+            "m_date": 1369214350.009923,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214350009.923,
+            "m_mime": "folder",
+            "m_name": "testmap-bestanden",
+            "m_nodetype": "folder",
+            "m_order": 0,
+            "m_parent": "hqqk",
+            "m_path": "/testmap-bestanden",
+            "m_short_id": "ggpz",
+            "m_size": 42960751,
+            "m_slug": "testmap-bestanden",
+            "m_slugpath": "/testmap-bestanden"
+        },
+        "parent": "hqqk",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "gsfm",
+        "content_hash_latest_timestamp": [
+            "15957a3dc81414899e43a90427a07ab328652b1f",
+            1370518052.946254
+        ],
+        "doc": {
+            "m_creation_time": 1369214350.017724,
+            "m_data_id": "crypto_doc_b533bc389cdc4c0fb04ed3ed59cff9a5",
+            "m_date": 1369214350.017441,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214350017.441,
+            "m_mime": "image/png",
+            "m_name": "2000px-Fibonacci_spiral_34.png",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/2000px-Fibonacci_spiral_34.png",
+            "m_short_id": "gsfm",
+            "m_size": 56676,
+            "m_slug": "2000px-fibonacci_spiral_34png",
+            "m_slugpath": "/testmap-bestanden/2000px-fibonacci_spiral_34png"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "njsx",
+        "content_hash_latest_timestamp": [
+            "efeee7b5d958fbb1e2ba99b35ed7aa475aa35b2b",
+            1370518102.947243
+        ],
+        "doc": {
+            "m_creation_time": 1369214354.917475,
+            "m_data_id": "crypto_doc_da2b77f710ab45068dd4fbbb4a18e4ec",
+            "m_date": 1369214354.917247,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214354917.247,
+            "m_mime": "application/pdf",
+            "m_name": "975521-in-01-de-DEVOLO_DLAN_500_AVMINI_STARTER_KIT.pdf",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/975521-in-01-de-DEVOLO_DLAN_500_AVMINI_STARTER_KIT.pdf",
+            "m_short_id": "njsx",
+            "m_size": 390659,
+            "m_slug": "975521-in-01-de-devolo_dlan_500_avmini_starter_kitpdf",
+            "m_slugpath": "/testmap-bestanden/975521-in-01-de-devolo_dlan_500_avmini_starter_kitpdf"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "bmxv",
+        "content_hash_latest_timestamp": [
+            "a59792ab94d85bbee94168fa01928fc30e4edfdf",
+            1370518053.31257
+        ],
+        "doc": {
+            "m_creation_time": 1369214360.009531,
+            "m_data_id": "crypto_doc_99acafcfb6dd4ea9b84e1698d641bf41",
+            "m_date": 1369214360.009329,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214360009.329,
+            "m_mime": "application/msword",
+            "m_name": "begeleidend-schrijven.doc",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/begeleidend-schrijven.doc",
+            "m_short_id": "bmxv",
+            "m_size": 33792,
+            "m_slug": "begeleidend-schrijvendoc",
+            "m_slugpath": "/testmap-bestanden/begeleidend-schrijvendoc"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "kvqs",
+        "content_hash_latest_timestamp": [
+            "bf1f30fd7736e295795cbf0bfce8d23749216bf9",
+            1370518067.473692
+        ],
+        "doc": {
+            "m_creation_time": 1369214365.595041,
+            "m_data_id": "crypto_doc_0fd82712c9bd49b384ba7edb286d4eb7",
+            "m_date": 1369214365.594855,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214365594.855,
+            "m_mime": "application/postscript",
+            "m_name": "box 6 vector.ai",
+            "m_nodetype": "file",
+            "m_order": 3,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/box 6 vector.ai",
+            "m_short_id": "kvqs",
+            "m_size": 1882848,
+            "m_slug": "box-6-vectorai",
+            "m_slugpath": "/testmap-bestanden/box-6-vectorai"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "wctx",
+        "content_hash_latest_timestamp": [
+            "fd91e95afc0205a74c69f5a5879ade10f80977ae",
+            1370518075.558072
+        ],
+        "doc": {
+            "m_creation_time": 1369214369.911352,
+            "m_data_id": "crypto_doc_1c576d193f8843648b9e8583e441f38f",
+            "m_date": 1369214369.91113,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214369911.13,
+            "m_mime": "image/x-icon",
+            "m_name": "favicon.ico",
+            "m_nodetype": "file",
+            "m_order": 4,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/favicon.ico",
+            "m_short_id": "wctx",
+            "m_size": 1150,
+            "m_slug": "faviconico",
+            "m_slugpath": "/testmap-bestanden/faviconico"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "wkhw",
+        "content_hash_latest_timestamp": [
+            "ed4d405429aff7f8905be5724fb0b89c416591fb",
+            1370518127.049954
+        ],
+        "doc": {
+            "m_creation_time": 1369214374.383005,
+            "m_data_id": "crypto_doc_99b21dd2d4e3431d8b14df1658a4c7a0",
+            "m_date": 1369214374.382805,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214374382.8052,
+            "m_mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "m_name": "Flow bestanden uploaden.docx",
+            "m_nodetype": "file",
+            "m_order": 5,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/Flow bestanden uploaden.docx",
+            "m_short_id": "wkhw",
+            "m_size": 109892,
+            "m_slug": "flow-bestanden-uploadendocx",
+            "m_slugpath": "/testmap-bestanden/flow-bestanden-uploadendocx"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "njqw",
+        "content_hash_latest_timestamp": [
+            "4319aebc805521150e233fefdc6315547de68808",
+            1370518051.064615
+        ],
+        "doc": {
+            "m_creation_time": 1369214379.915812,
+            "m_data_id": "crypto_doc_769b0cda7c044636b6c85cdeb3166fe9",
+            "m_date": 1369214379.915611,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214379915.611,
+            "m_mime": "application/zip",
+            "m_name": "FontShop-ff_milo_ot_black-88026.zip",
+            "m_nodetype": "file",
+            "m_order": 6,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/FontShop-ff_milo_ot_black-88026.zip",
+            "m_short_id": "njqw",
+            "m_size": 640147,
+            "m_slug": "fontshop-ff_milo_ot_black-88026zip",
+            "m_slugpath": "/testmap-bestanden/fontshop-ff_milo_ot_black-88026zip"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "bgst",
+        "content_hash_latest_timestamp": [
+            "c58f82fea3ce325bcfc8e20ff2abfa4a60d4a858",
+            1370518200.241605
+        ],
+        "doc": {
+            "m_creation_time": 1369214384.051064,
+            "m_data_id": "crypto_doc_399f35f34ddf404abf59691d0dfadefe",
+            "m_date": 1369214384.050865,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214384050.865,
+            "m_mime": "text/html",
+            "m_name": "index.html",
+            "m_nodetype": "file",
+            "m_order": 7,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/index.html",
+            "m_short_id": "bgst",
+            "m_size": 476,
+            "m_slug": "indexhtml",
+            "m_slugpath": "/testmap-bestanden/indexhtml"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "qxpp",
+        "content_hash_latest_timestamp": [
+            "b69ec96ee4d2ccb94e80286092d91a75d6b1e134",
+            1370518194.609746
+        ],
+        "doc": {
+            "m_creation_time": 1369214388.399907,
+            "m_data_id": "crypto_doc_a04ab2cf3e324d31a21bfc13ae63b519",
+            "m_date": 1369214388.3997,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214388399.7,
+            "m_mime": "text/plain",
+            "m_name": "info.txt",
+            "m_nodetype": "file",
+            "m_order": 8,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/info.txt",
+            "m_short_id": "qxpp",
+            "m_size": 762,
+            "m_slug": "infotxt",
+            "m_slugpath": "/testmap-bestanden/infotxt"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "htzx",
+        "content_hash_latest_timestamp": [
+            "4c1b7cf2871b176d35f81edb93a7e68dfe1134e4",
+            1370518223.161531
+        ],
+        "doc": {
+            "m_creation_time": 1369214392.941476,
+            "m_data_id": "crypto_doc_17da7b6a24b04cc3978199a21b9c7e3e",
+            "m_date": 1369214392.941261,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214392941.261,
+            "m_mime": "image/x-photoshop",
+            "m_name": "logo_A_01.psd",
+            "m_nodetype": "file",
+            "m_order": 9,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/logo_A_01.psd",
+            "m_short_id": "htzx",
+            "m_size": 255368,
+            "m_slug": "logo_a_01psd",
+            "m_slugpath": "/testmap-bestanden/logo_a_01psd"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "tmrb",
+        "content_hash_latest_timestamp": [
+            "98a20cbee4888c120efe863a48bee19086dc1798",
+            1370518070.720173
+        ],
+        "doc": {
+            "m_creation_time": 1369214397.641271,
+            "m_data_id": "crypto_doc_7027a85ad91b4c6eaf81bbd1a6916b9e",
+            "m_date": 1369214397.641043,
+            "m_date_human": "22/05/13 11:19",
+            "m_date_time": 1369214397641.043,
+            "m_mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "m_name": "overzicht-20120-03-01.xlsx",
+            "m_nodetype": "file",
+            "m_order": 10,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/overzicht-20120-03-01.xlsx",
+            "m_short_id": "tmrb",
+            "m_size": 42800,
+            "m_slug": "overzicht-20120-03-01xlsx",
+            "m_slugpath": "/testmap-bestanden/overzicht-20120-03-01xlsx"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "wxcb",
+        "content_hash_latest_timestamp": [
+            "a31355c7314627a1c3f61c8061c7b5512546f66e",
+            1370518127.997247
+        ],
+        "doc": {
+            "m_creation_time": 1369214404.703282,
+            "m_data_id": "crypto_doc_46f62cd2e0af42ab872b2d37bb921822",
+            "m_date": 1369214404.703079,
+            "m_date_human": "22/05/13 11:20",
+            "m_date_time": 1369214404703.079,
+            "m_mime": "image/gif",
+            "m_name": "page_orange.gif",
+            "m_nodetype": "file",
+            "m_order": 11,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/page_orange.gif",
+            "m_short_id": "wxcb",
+            "m_size": 195,
+            "m_slug": "page_orangegif",
+            "m_slugpath": "/testmap-bestanden/page_orangegif"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "hwsb",
+        "content_hash_latest_timestamp": [
+            "88e1d279f17ba6f1304ea9dbe5cc7170d2d58675",
+            1370518102.001541
+        ],
+        "doc": {
+            "m_creation_time": 1369214412.918383,
+            "m_data_id": "crypto_doc_72aeae05ea4247e68b87e57a1821ee6b",
+            "m_date": 1369214412.918124,
+            "m_date_human": "22/05/13 11:20",
+            "m_date_time": 1369214412918.124,
+            "m_mime": "text/x-python",
+            "m_name": "parse_sales.py",
+            "m_nodetype": "file",
+            "m_order": 12,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/parse_sales.py",
+            "m_short_id": "hwsb",
+            "m_size": 2633,
+            "m_slug": "parse_salespy",
+            "m_slugpath": "/testmap-bestanden/parse_salespy"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "kgph",
+        "content_hash_latest_timestamp": [
+            "7277f70d9827a7611bc55b3e05329d5ddb464289",
+            1370518052.60062
+        ],
+        "doc": {
+            "m_creation_time": 1369214422.336762,
+            "m_data_id": "crypto_doc_5404135edf334aea91a5940eb377f2f6",
+            "m_date": 1369214422.336069,
+            "m_date_human": "22/05/13 11:20",
+            "m_date_time": 1369214422336.069,
+            "m_mime": "image/jpeg",
+            "m_name": "photo1.JPG",
+            "m_nodetype": "file",
+            "m_order": 13,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/photo1.JPG",
+            "m_short_id": "kgph",
+            "m_size": 2140869,
+            "m_slug": "photo1jpg",
+            "m_slugpath": "/testmap-bestanden/photo1jpg"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "nzwm",
+        "content_hash_latest_timestamp": [
+            "36ec74ab341d232d54e361a5de3b7c59d57dc6cd",
+            1370518138.100481
+        ],
+        "doc": {
+            "m_creation_time": 1369214428.883524,
+            "m_data_id": "crypto_doc_990e4e0db3324849a8478e5b8dc86828",
+            "m_date": 1369214428.883341,
+            "m_date_human": "22/05/13 11:20",
+            "m_date_time": 1369214428883.341,
+            "m_mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "m_name": "Plan van aanpak Themagewijze dialoog 2-0.docx",
+            "m_nodetype": "file",
+            "m_order": 14,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/Plan van aanpak Themagewijze dialoog 2-0.docx",
+            "m_short_id": "nzwm",
+            "m_size": 18655,
+            "m_slug": "plan-van-aanpak-themagewijze-dialoog-2-0docx",
+            "m_slugpath": "/testmap-bestanden/plan-van-aanpak-themagewijze-dialoog-2-0docx"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "gstd",
+        "content_hash_latest_timestamp": [
+            "d70d99e3448b29c7d3f116a17425fe5ceb147675",
+            1370518041.237953
+        ],
+        "doc": {
+            "m_creation_time": 1369214447.233722,
+            "m_data_id": "crypto_doc_3f4c126631d94505a2338689eaafd815",
+            "m_date": 1369214447.233541,
+            "m_date_human": "22/05/13 11:20",
+            "m_date_time": 1369214447233.541,
+            "m_mime": "application/vnd.ms-powerpoint",
+            "m_name": "raboledensite.ppt",
+            "m_nodetype": "file",
+            "m_order": 15,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/raboledensite.ppt",
+            "m_short_id": "gstd",
+            "m_size": 21399040,
+            "m_slug": "raboledensiteppt",
+            "m_slugpath": "/testmap-bestanden/raboledensiteppt"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "jtgk",
+        "content_hash_latest_timestamp": [
+            "ef32a75c0c38b4bcdea0dcae675a466664fddcab",
+            1370518126.523541
+        ],
+        "doc": {
+            "m_creation_time": 1369214461.876453,
+            "m_data_id": "crypto_doc_233dfa5e51ea4666ba36cd76c8aedc51",
+            "m_date": 1369214461.876225,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214461876.225,
+            "m_mime": "video/quicktime",
+            "m_name": "RaboNL.mov",
+            "m_nodetype": "file",
+            "m_order": 16,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/RaboNL.mov",
+            "m_short_id": "jtgk",
+            "m_size": 14349083,
+            "m_slug": "rabonlmov",
+            "m_slugpath": "/testmap-bestanden/rabonlmov"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "cgzf",
+        "content_hash_latest_timestamp": [
+            "01fe755606b24b5860e9fa687dfacdbabcdc89a0",
+            1370518053.663672
+        ],
+        "doc": {
+            "m_creation_time": 1369214467.159335,
+            "m_data_id": "crypto_doc_90de1b2e47d54b1fb941410ab0ac8f88",
+            "m_date": 1369214467.159162,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214467159.162,
+            "m_mime": null,
+            "m_name": "Rockwell.ttf",
+            "m_nodetype": "file",
+            "m_order": 17,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/Rockwell.ttf",
+            "m_short_id": "cgzf",
+            "m_size": 62552,
+            "m_slug": "rockwellttf",
+            "m_slugpath": "/testmap-bestanden/rockwellttf"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "gcfs",
+        "content_hash_latest_timestamp": [
+            "3b373c0573ce8436de49fb39766a0c2d9c997e5e",
+            1370518107.150983
+        ],
+        "doc": {
+            "m_creation_time": 1369214471.675381,
+            "m_data_id": "crypto_doc_ffb696d8bb1240bd87e737adade6e611",
+            "m_date": 1369214471.675177,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214471675.177,
+            "m_mime": "application/rtf",
+            "m_name": "rtf.rtf",
+            "m_nodetype": "file",
+            "m_order": 18,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/rtf.rtf",
+            "m_short_id": "gcfs",
+            "m_size": 245101,
+            "m_slug": "rtfrtf",
+            "m_slugpath": "/testmap-bestanden/rtfrtf"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "rqqt",
+        "content_hash_latest_timestamp": [
+            "6bd3b80c8261509f66c147c3d27881a317d76b59",
+            1370518074.666026
+        ],
+        "doc": {
+            "m_creation_time": 1369214476.423953,
+            "m_data_id": "crypto_doc_a6388641e9d248f29447bfa2021d3f25",
+            "m_date": 1369214476.423762,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214476423.762,
+            "m_mime": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "m_name": "Suppliers voor Web applicatie en  Mobile Apps - Randvoorwaarden - v0.1.pptx",
+            "m_nodetype": "file",
+            "m_order": 19,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/Suppliers voor Web applicatie en  Mobile Apps - Randvoorwaarden - v0.1.pptx",
+            "m_short_id": "rqqt",
+            "m_size": 900307,
+            "m_slug": "suppliers-voor-web-applicatie-en-mobile-apps-randvoorwaarden-v01pptx",
+            "m_slugpath": "/testmap-bestanden/suppliers-voor-web-applicatie-en-mobile-apps-randvoorwaarden-v01pptx"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "tzfd",
+        "content_hash_latest_timestamp": [
+            "a368975eb7b4c4b35cb384f70aa5f7363357109d",
+            1370518232.477444
+        ],
+        "doc": {
+            "m_creation_time": 1369214480.712004,
+            "m_data_id": "crypto_doc_2c28e85b0cc54ab7a36742b605ed7a52",
+            "m_date": 1369214480.71185,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214480711.8499,
+            "m_mime": "application/vnd.ms-excel",
+            "m_name": "template-factuur.xls",
+            "m_nodetype": "file",
+            "m_order": 20,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/template-factuur.xls",
+            "m_short_id": "tzfd",
+            "m_size": 42496,
+            "m_slug": "template-factuurxls",
+            "m_slugpath": "/testmap-bestanden/template-factuurxls"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "mfjv",
+        "content_hash_latest_timestamp": [
+            "aa91df271eefeb92cd251c790243c3e167a5a390",
+            1370518066.40482
+        ],
+        "doc": {
+            "m_creation_time": 1369214485.14638,
+            "m_data_id": "crypto_doc_432389ae3ac7489685e49b79906c5773",
+            "m_date": 1369214485.14618,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214485146.18,
+            "m_mime": "text/csv",
+            "m_name": "test-RJ.csv",
+            "m_nodetype": "file",
+            "m_order": 21,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/test-RJ.csv",
+            "m_short_id": "mfjv",
+            "m_size": 183,
+            "m_slug": "test-rjcsv",
+            "m_slugpath": "/testmap-bestanden/test-rjcsv"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "khxz",
+        "content_hash_latest_timestamp": [
+            "9740ff086b051eeb666d41098f9485a299404cb4",
+            1370518075.175722
+        ],
+        "doc": {
+            "m_creation_time": 1369214489.693277,
+            "m_data_id": "crypto_doc_2640da41daaa4056b848bb0248f6c379",
+            "m_date": 1369214489.693144,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214489693.144,
+            "m_mime": "application/postscript",
+            "m_name": "twitter_logo_withbird_white.eps",
+            "m_nodetype": "file",
+            "m_order": 22,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/twitter_logo_withbird_white.eps",
+            "m_short_id": "khxz",
+            "m_size": 384409,
+            "m_slug": "twitter_logo_withbird_whiteeps",
+            "m_slugpath": "/testmap-bestanden/twitter_logo_withbird_whiteeps"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "vkhg",
+        "content_hash_latest_timestamp": [
+            "76167228ae70f592edb0be1f4a5ad3548827ab83",
+            1370518233.212503
+        ],
+        "doc": {
+            "m_creation_time": 1369214493.833129,
+            "m_data_id": "crypto_doc_f9a61ae125af44438ba16f2e9ac7c692",
+            "m_date": 1369214493.832998,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214493832.998,
+            "m_mime": "text/css",
+            "m_name": "V_O_stylesheet.css",
+            "m_nodetype": "file",
+            "m_order": 23,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/V_O_stylesheet.css",
+            "m_short_id": "vkhg",
+            "m_size": 474,
+            "m_slug": "v_o_stylesheetcss",
+            "m_slugpath": "/testmap-bestanden/v_o_stylesheetcss"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "ntzj",
+        "content_hash_latest_timestamp": [
+            "1fb237964ad57e53a13359b9144e3c509f5508a0",
+            1370518196.02683
+        ],
+        "doc": {
+            "m_creation_time": 1369214498.531727,
+            "m_data_id": "crypto_doc_ccb217d8d79c431680203bb780f7a452",
+            "m_date": 1369214498.531562,
+            "m_date_human": "22/05/13 11:21",
+            "m_date_time": 1369214498531.562,
+            "m_mime": "application/javascript",
+            "m_name": "winopener.js",
+            "m_nodetype": "file",
+            "m_order": 24,
+            "m_parent": "ggpz",
+            "m_path": "/testmap-bestanden/winopener.js",
+            "m_short_id": "ntzj",
+            "m_size": 184,
+            "m_slug": "winopenerjs",
+            "m_slugpath": "/testmap-bestanden/winopenerjs"
+        },
+        "parent": "ggpz",
+        "rootparent": "ggpz"
+    },
+    {
+        "_id": "vnhv",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1369663008.505581,
+            "m_data_id": "",
+            "m_date": 1369663008.505352,
+            "m_date_human": "27/05/13 15:56",
+            "m_date_time": 1369663008505.352,
+            "m_mime": "folder",
+            "m_name": "Cool",
+            "m_nodetype": "folder",
+            "m_order": 1,
+            "m_parent": "hqqk",
+            "m_path": "/Cool",
+            "m_short_id": "vnhv",
+            "m_size": 46573802,
+            "m_slug": "cool",
+            "m_slugpath": "/cool"
+        },
+        "parent": "hqqk",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "thvz",
+        "content_hash_latest_timestamp": [
+            "1e3bdfd493df250210c3c207a957d1c287dec3ab",
+            1370518105.719265
+        ],
+        "doc": {
+            "m_creation_time": 1369663008.514617,
+            "m_data_id": "crypto_doc_3d1db43703d442f083ece35be87d38ed",
+            "m_date": 1369663008.514338,
+            "m_date_human": "27/05/13 15:56",
+            "m_date_time": 1369663008514.3381,
+            "m_mime": "application/pdf",
+            "m_name": "Gray Hat Python.pdf",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "vnhv",
+            "m_path": "/Cool/Gray Hat Python.pdf",
+            "m_short_id": "thvz",
+            "m_size": 3192546,
+            "m_slug": "gray-hat-pythonpdf",
+            "m_slugpath": "/cool/gray-hat-pythonpdf"
+        },
+        "parent": "vnhv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "cdkw",
+        "content_hash_latest_timestamp": [
+            "2ab14abcf977b68468f532a46a5122042a5fd010",
+            1370518065.888001
+        ],
+        "doc": {
+            "m_creation_time": 1369663034.301328,
+            "m_data_id": "crypto_doc_b21048b2bc5448e4945653b645a16859",
+            "m_date": 1369663034.301089,
+            "m_date_human": "27/05/13 15:57",
+            "m_date_time": 1369663034301.089,
+            "m_mime": "application/pdf",
+            "m_name": "node-webkit.pdf",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "vnhv",
+            "m_path": "/Cool/node-webkit.pdf",
+            "m_short_id": "cdkw",
+            "m_size": 6829326,
+            "m_slug": "node-webkitpdf",
+            "m_slugpath": "/cool/node-webkitpdf"
+        },
+        "parent": "vnhv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "vzpt",
+        "content_hash_latest_timestamp": [
+            "cc2760847697022ca0d12f1c81f1a58ca50aa34e",
+            1370518073.813844
+        ],
+        "doc": {
+            "m_creation_time": 1369663085.942351,
+            "m_data_id": "crypto_doc_9facca889566432e8aa0a179174e9e5e",
+            "m_date": 1369663085.942133,
+            "m_date_human": "27/05/13 15:58",
+            "m_date_time": 1369663085942.133,
+            "m_mime": "application/pdf",
+            "m_name": "OReilly.Twisted.Network.Programming.Essentials.2nd.Edition.2013.RETAIL.eBook-ELOHiM.pdf",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "vnhv",
+            "m_path": "/Cool/OReilly.Twisted.Network.Programming.Essentials.2nd.Edition.2013.RETAIL.eBook-ELOHiM.pdf",
+            "m_short_id": "vzpt",
+            "m_size": 6440912,
+            "m_slug": "oreillytwistednetworkprogrammingessentials2ndedition2013retailebook-elohimpdf",
+            "m_slugpath": "/cool/oreillytwistednetworkprogrammingessentials2ndedition2013retailebook-elohimpdf"
+        },
+        "parent": "vnhv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "gtjc",
+        "content_hash_latest_timestamp": [
+            "1d6c852fc63e8d24f2b18b4f0028f5b3ea9d5376",
+            1370518114.683387
+        ],
+        "doc": {
+            "m_creation_time": 1369663133.030015,
+            "m_data_id": "crypto_doc_93bac22ae15f439aabbd59e6ed3f6fb5",
+            "m_date": 1369663133.029801,
+            "m_date_human": "27/05/13 15:58",
+            "m_date_time": 1369663133029.8008,
+            "m_mime": "application/pdf",
+            "m_name": "Violent Python - A Cookbook for Hackers, Forensic Analysts, Penetration Testers and Security Engineers.pdf",
+            "m_nodetype": "file",
+            "m_order": 3,
+            "m_parent": "vnhv",
+            "m_path": "/Cool/Violent Python - A Cookbook for Hackers, Forensic Analysts, Penetration Testers and Security Engineers.pdf",
+            "m_short_id": "gtjc",
+            "m_size": 8211835,
+            "m_slug": "violent-python-a-cookbook-for-hackers-forensic-analysts-penetration-testers-and-security-engineerspdf",
+            "m_slugpath": "/cool/violent-python-a-cookbook-for-hackers-forensic-analysts-penetration-testers-and-security-engineerspdf"
+        },
+        "parent": "vnhv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "kfqg",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1369663150.642243,
+            "m_data_id": "",
+            "m_date": 1369663150.642019,
+            "m_date_human": "27/05/13 15:59",
+            "m_date_time": 1369663150642.019,
+            "m_mime": "folder",
+            "m_name": "presentations",
+            "m_nodetype": "folder",
+            "m_order": 4,
+            "m_parent": "vnhv",
+            "m_path": "/Cool/presentations",
+            "m_short_id": "kfqg",
+            "m_size": 8114774,
+            "m_slug": "presentations",
+            "m_slugpath": "/cool/presentations"
+        },
+        "parent": "vnhv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "znjj",
+        "content_hash_latest_timestamp": [
+            "d2e8e6106cd60afb30111e409ba1c0b5ae7847fd",
+            1370518085.914615
+        ],
+        "doc": {
+            "m_creation_time": 1369663150.645872,
+            "m_data_id": "crypto_doc_e9058e832a3d4c76ba78e57e082d68db",
+            "m_date": 1369663150.645672,
+            "m_date_human": "27/05/13 15:59",
+            "m_date_time": 1369663150645.672,
+            "m_mime": "application/pdf",
+            "m_name": "bigcouch-oreilly-101025095147-phpapp02.pdf",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "kfqg",
+            "m_path": "/Cool/presentations/bigcouch-oreilly-101025095147-phpapp02.pdf",
+            "m_short_id": "znjj",
+            "m_size": 1839075,
+            "m_slug": "bigcouch-oreilly-101025095147-phpapp02pdf",
+            "m_slugpath": "/cool/presentations/bigcouch-oreilly-101025095147-phpapp02pdf"
+        },
+        "parent": "kfqg",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "nppz",
+        "content_hash_latest_timestamp": [
+            "ca9f642c48c5cb74e872e0dd3a4d035e78ed4313",
+            1370518054.818436
+        ],
+        "doc": {
+            "m_creation_time": 1369663169.637346,
+            "m_data_id": "crypto_doc_593de412bd184059a3c5f68de621374b",
+            "m_date": 1369663169.637133,
+            "m_date_human": "27/05/13 15:59",
+            "m_date_time": 1369663169637.1328,
+            "m_mime": "application/pdf",
+            "m_name": "codemotion2012-120325101104-phpapp02.pdf",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "kfqg",
+            "m_path": "/Cool/presentations/codemotion2012-120325101104-phpapp02.pdf",
+            "m_short_id": "nppz",
+            "m_size": 2277219,
+            "m_slug": "codemotion2012-120325101104-phpapp02pdf",
+            "m_slugpath": "/cool/presentations/codemotion2012-120325101104-phpapp02pdf"
+        },
+        "parent": "kfqg",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "wpcm",
+        "content_hash_latest_timestamp": [
+            "786212bcebd6938423a27afdd28751652dacd81f",
+            1370518114.98028
+        ],
+        "doc": {
+            "m_creation_time": 1369663202.355565,
+            "m_data_id": "crypto_doc_97638a1faae847e4aad5aa65bd888bd1",
+            "m_date": 1369663202.355334,
+            "m_date_human": "27/05/13 16:00",
+            "m_date_time": 1369663202355.334,
+            "m_mime": "application/pdf",
+            "m_name": "whatstevesaid-130519104415-phpapp01.pdf",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "kfqg",
+            "m_path": "/Cool/presentations/whatstevesaid-130519104415-phpapp01.pdf",
+            "m_short_id": "wpcm",
+            "m_size": 1833568,
+            "m_slug": "whatstevesaid-130519104415-phpapp01pdf",
+            "m_slugpath": "/cool/presentations/whatstevesaid-130519104415-phpapp01pdf"
+        },
+        "parent": "kfqg",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "sccm",
+        "content_hash_latest_timestamp": [
+            "7e87686ef12feff674078e366b6f788765b26ca6",
+            1370518191.142592
+        ],
+        "doc": {
+            "m_creation_time": 1369663538.15428,
+            "m_data_id": "crypto_doc_a14903fe806d437caba335e82e0c418a",
+            "m_date": 1369663538.154061,
+            "m_date_human": "27/05/13 16:05",
+            "m_date_time": 1369663538154.061,
+            "m_mime": "application/pdf",
+            "m_name": "node-js-bestpractices-111202033526-phpapp02.pdf",
+            "m_nodetype": "file",
+            "m_order": 3,
+            "m_parent": "kfqg",
+            "m_path": "/Cool/presentations/node-js-bestpractices-111202033526-phpapp02.pdf",
+            "m_short_id": "sccm",
+            "m_size": 2164912,
+            "m_slug": "node-js-bestpractices-111202033526-phpapp02pdf",
+            "m_slugpath": "/cool/presentations/node-js-bestpractices-111202033526-phpapp02pdf"
+        },
+        "parent": "kfqg",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "jbvf",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010755.272945,
+            "m_data_id": "",
+            "m_date": 1370010755.272813,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010755272.813,
+            "m_mime": "folder",
+            "m_name": "test",
+            "m_nodetype": "folder",
+            "m_order": 5,
+            "m_parent": "vnhv",
+            "m_path": "/Cool/test",
+            "m_short_id": "jbvf",
+            "m_size": 13784409,
+            "m_slug": "test",
+            "m_slugpath": "/cool/test"
+        },
+        "parent": "vnhv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "kmtb",
+        "content_hash_latest_timestamp": [
+            "2db35d4dfd012d8154f86647ccf24a6be168c19e",
+            1370518116.908735
+        ],
+        "doc": {
+            "m_creation_time": 1370010755.286483,
+            "m_data_id": "crypto_doc_18e5f418729b45c6aa98e1d9768bbd29",
+            "m_date": 1370010755.286301,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010755286.3008,
+            "m_mime": null,
+            "m_name": ".DS_Store",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "jbvf",
+            "m_path": "/Cool/test/.DS_Store",
+            "m_short_id": "kmtb",
+            "m_size": 6148,
+            "m_slug": "ds_store",
+            "m_slugpath": "/cool/test/ds_store"
+        },
+        "parent": "jbvf",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "sfqb",
+        "content_hash_latest_timestamp": [
+            "847a7c0dff5e427c46d84b61da24b12abcc78e41",
+            1370518050.528443
+        ],
+        "doc": {
+            "m_creation_time": 1370010759.27723,
+            "m_data_id": "crypto_doc_9f13a102136c4dcd9eeaf3ed5277b6ef",
+            "m_date": 1370010759.277086,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010759277.086,
+            "m_mime": null,
+            "m_name": "Game.of.Thrones.S03E08.720p.HDTV.x264-EVOLVE 2.srt",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "jbvf",
+            "m_path": "/Cool/test/Game.of.Thrones.S03E08.720p.HDTV.x264-EVOLVE 2.srt",
+            "m_short_id": "sfqb",
+            "m_size": 42788,
+            "m_slug": "gameofthroness03e08720phdtvx264-evolve-2srt",
+            "m_slugpath": "/cool/test/gameofthroness03e08720phdtvx264-evolve-2srt"
+        },
+        "parent": "jbvf",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "nfhx",
+        "content_hash_latest_timestamp": [
+            "699ee59f15b0c3ebe1938d8cad066ed64dd31d6f",
+            1370518222.738113
+        ],
+        "doc": {
+            "m_creation_time": 1370010764.116519,
+            "m_data_id": "crypto_doc_66ee26c9b6c24927a7f6098335f40f78",
+            "m_date": 1370010764.116381,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010764116.3809,
+            "m_mime": "text/plain",
+            "m_name": "test.txt",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "jbvf",
+            "m_path": "/Cool/test/test.txt",
+            "m_short_id": "nfhx",
+            "m_size": 90,
+            "m_slug": "testtxt",
+            "m_slugpath": "/cool/test/testtxt"
+        },
+        "parent": "jbvf",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "kprd",
+        "content_hash_latest_timestamp": [
+            "786212bcebd6938423a27afdd28751652dacd81f",
+            1370518253.734092
+        ],
+        "doc": {
+            "m_creation_time": 1370010771.113983,
+            "m_data_id": "crypto_doc_85bd1c33377c4368a9bf82b0d7ec32d4",
+            "m_date": 1370010771.113846,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010771113.846,
+            "m_mime": "application/pdf",
+            "m_name": "whatstevesaid-130519104415-phpapp01.pdf",
+            "m_nodetype": "file",
+            "m_order": 3,
+            "m_parent": "jbvf",
+            "m_path": "/Cool/test/whatstevesaid-130519104415-phpapp01.pdf",
+            "m_short_id": "kprd",
+            "m_size": 1833568,
+            "m_slug": "whatstevesaid-130519104415-phpapp01pdf",
+            "m_slugpath": "/cool/test/whatstevesaid-130519104415-phpapp01pdf"
+        },
+        "parent": "jbvf",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "vncn",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010775.22938,
+            "m_data_id": "",
+            "m_date": 1370010775.229243,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010775229.243,
+            "m_mime": "folder",
+            "m_name": ".cryptobox",
+            "m_nodetype": "folder",
+            "m_order": 4,
+            "m_parent": "jbvf",
+            "m_path": "/Cool/test/.cryptobox",
+            "m_short_id": "vncn",
+            "m_size": 6892934,
+            "m_slug": "cryptobox",
+            "m_slugpath": "/cool/test/cryptobox"
+        },
+        "parent": "jbvf",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "gvzh",
+        "content_hash_latest_timestamp": [
+            "7f5880c2a7629c04301aca778a8256a34c874404",
+            1370518200.593484
+        ],
+        "doc": {
+            "m_creation_time": 1370010775.231981,
+            "m_data_id": "crypto_doc_1fb1dbe89ab6408d9ca2eacf95e17cf1",
+            "m_date": 1370010775.231858,
+            "m_date_human": "31/05/13 16:32",
+            "m_date_time": 1370010775231.858,
+            "m_mime": "application/json",
+            "m_name": "cryptobox_index.json",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "vncn",
+            "m_path": "/Cool/test/.cryptobox/cryptobox_index.json",
+            "m_short_id": "gvzh",
+            "m_size": 2764,
+            "m_slug": "cryptobox_indexjson",
+            "m_slugpath": "/cool/test/cryptobox/cryptobox_indexjson"
+        },
+        "parent": "vncn",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "psdf",
+        "content_hash_latest_timestamp": [
+            "ff85fa4468b031ef5039fa9d83bda8d7cf149936",
+            1370518200.955706
+        ],
+        "doc": {
+            "m_creation_time": 1370010780.090208,
+            "m_data_id": "crypto_doc_b6e4dc8e259c4c598160db475889ef5e",
+            "m_date": 1370010780.090032,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010780090.032,
+            "m_mime": null,
+            "m_name": "cryptobox_index.pickle",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "vncn",
+            "m_path": "/Cool/test/.cryptobox/cryptobox_index.pickle",
+            "m_short_id": "psdf",
+            "m_size": 1788,
+            "m_slug": "cryptobox_indexpickle",
+            "m_slugpath": "/cool/test/cryptobox/cryptobox_indexpickle"
+        },
+        "parent": "vncn",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "qsnh",
+        "content_hash_latest_timestamp": [
+            "96e2c7a954a25c077fd8452ce1faf3d2fb1b9d72",
+            1370518127.540623
+        ],
+        "doc": {
+            "m_creation_time": 1370010784.3327,
+            "m_data_id": "crypto_doc_19ed64fa5c664375aa9af73d5ca29ee9",
+            "m_date": 1370010784.332405,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010784332.405,
+            "m_mime": null,
+            "m_name": "cryptobox_index.pickle.backup",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "vncn",
+            "m_path": "/Cool/test/.cryptobox/cryptobox_index.pickle.backup",
+            "m_short_id": "qsnh",
+            "m_size": 1788,
+            "m_slug": "cryptobox_indexpicklebackup",
+            "m_slugpath": "/cool/test/cryptobox/cryptobox_indexpicklebackup"
+        },
+        "parent": "vncn",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "nssh",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010811.035385,
+            "m_data_id": "",
+            "m_date": 1370010811.035217,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010811035.217,
+            "m_mime": "folder",
+            "m_name": "blobs",
+            "m_nodetype": "folder",
+            "m_order": 3,
+            "m_parent": "vncn",
+            "m_path": "/Cool/test/.cryptobox/blobs",
+            "m_short_id": "nssh",
+            "m_size": 6886594,
+            "m_slug": "blobs",
+            "m_slugpath": "/cool/test/cryptobox/blobs"
+        },
+        "parent": "vncn",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "dswn",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010811.039572,
+            "m_data_id": "",
+            "m_date": 1370010811.039429,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010811039.429,
+            "m_mime": "folder",
+            "m_name": "0b",
+            "m_nodetype": "folder",
+            "m_order": 0,
+            "m_parent": "nssh",
+            "m_path": "/Cool/test/.cryptobox/blobs/0b",
+            "m_short_id": "dswn",
+            "m_size": 3411070,
+            "m_slug": "0b",
+            "m_slugpath": "/cool/test/cryptobox/blobs/0b"
+        },
+        "parent": "nssh",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "fgwd",
+        "content_hash_latest_timestamp": [
+            "6f8d71b4627859c386400b304b3df09844b279c0",
+            1370518088.146743
+        ],
+        "doc": {
+            "m_creation_time": 1370010811.043385,
+            "m_data_id": "crypto_doc_5451d6af328e4d85a5a318f6da8e57a1",
+            "m_date": 1370010811.043247,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010811043.247,
+            "m_mime": null,
+            "m_name": "a231d240501b744357ad07ae0811eaf6bfe584",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "dswn",
+            "m_path": "/Cool/test/.cryptobox/blobs/0b/a231d240501b744357ad07ae0811eaf6bfe584",
+            "m_short_id": "fgwd",
+            "m_size": 3411070,
+            "m_slug": "a231d240501b744357ad07ae0811eaf6bfe584",
+            "m_slugpath": "/cool/test/cryptobox/blobs/0b/a231d240501b744357ad07ae0811eaf6bfe584"
+        },
+        "parent": "dswn",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "fkwv",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010815.368837,
+            "m_data_id": "",
+            "m_date": 1370010815.368688,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010815368.688,
+            "m_mime": "folder",
+            "m_name": "69",
+            "m_nodetype": "folder",
+            "m_order": 1,
+            "m_parent": "nssh",
+            "m_path": "/Cool/test/.cryptobox/blobs/69",
+            "m_short_id": "fkwv",
+            "m_size": 341,
+            "m_slug": "69",
+            "m_slugpath": "/cool/test/cryptobox/blobs/69"
+        },
+        "parent": "nssh",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "mmjq",
+        "content_hash_latest_timestamp": [
+            "0ba8f0bdd289cada5f5693f743c6b9f96a65c253",
+            1370518233.560614
+        ],
+        "doc": {
+            "m_creation_time": 1370010815.373373,
+            "m_data_id": "crypto_doc_93f47f8d59874704880ea5ff52c0458f",
+            "m_date": 1370010815.373227,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010815373.2268,
+            "m_mime": null,
+            "m_name": "9ee59f15b0c3ebe1938d8cad066ed64dd31d6f",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "fkwv",
+            "m_path": "/Cool/test/.cryptobox/blobs/69/9ee59f15b0c3ebe1938d8cad066ed64dd31d6f",
+            "m_short_id": "mmjq",
+            "m_size": 341,
+            "m_slug": "9ee59f15b0c3ebe1938d8cad066ed64dd31d6f",
+            "m_slugpath": "/cool/test/cryptobox/blobs/69/9ee59f15b0c3ebe1938d8cad066ed64dd31d6f"
+        },
+        "parent": "fkwv",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "sqzx",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010820.442013,
+            "m_data_id": "",
+            "m_date": 1370010820.441814,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010820441.814,
+            "m_mime": "folder",
+            "m_name": "78",
+            "m_nodetype": "folder",
+            "m_order": 2,
+            "m_parent": "nssh",
+            "m_path": "/Cool/test/.cryptobox/blobs/78",
+            "m_short_id": "sqzx",
+            "m_size": 1833822,
+            "m_slug": "78",
+            "m_slugpath": "/cool/test/cryptobox/blobs/78"
+        },
+        "parent": "nssh",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "kpjj",
+        "content_hash_latest_timestamp": [
+            "59154ba6ddadc5de9ec3454099ff3ca003c3924c",
+            1370518116.437553
+        ],
+        "doc": {
+            "m_creation_time": 1370010820.446796,
+            "m_data_id": "crypto_doc_511bf898ed9b492eb2fb653d6fd89a37",
+            "m_date": 1370010820.446649,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010820446.6492,
+            "m_mime": null,
+            "m_name": "6212bcebd6938423a27afdd28751652dacd81f",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "sqzx",
+            "m_path": "/Cool/test/.cryptobox/blobs/78/6212bcebd6938423a27afdd28751652dacd81f",
+            "m_short_id": "kpjj",
+            "m_size": 1833822,
+            "m_slug": "6212bcebd6938423a27afdd28751652dacd81f",
+            "m_slugpath": "/cool/test/cryptobox/blobs/78/6212bcebd6938423a27afdd28751652dacd81f"
+        },
+        "parent": "sqzx",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "wgsb",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010824.724995,
+            "m_data_id": "",
+            "m_date": 1370010824.724838,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010824724.8381,
+            "m_mime": "folder",
+            "m_name": "84",
+            "m_nodetype": "folder",
+            "m_order": 3,
+            "m_parent": "nssh",
+            "m_path": "/Cool/test/.cryptobox/blobs/84",
+            "m_short_id": "wgsb",
+            "m_size": 43042,
+            "m_slug": "84",
+            "m_slugpath": "/cool/test/cryptobox/blobs/84"
+        },
+        "parent": "nssh",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "sqmf",
+        "content_hash_latest_timestamp": [
+            "5b8e5dd4b34ef3c89e0936c89e4c0262885b1908",
+            1370518137.76992
+        ],
+        "doc": {
+            "m_creation_time": 1370010824.730167,
+            "m_data_id": "crypto_doc_b835561e80704d48960963dedf5c0366",
+            "m_date": 1370010824.730023,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010824730.023,
+            "m_mime": null,
+            "m_name": "7a7c0dff5e427c46d84b61da24b12abcc78e41",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "wgsb",
+            "m_path": "/Cool/test/.cryptobox/blobs/84/7a7c0dff5e427c46d84b61da24b12abcc78e41",
+            "m_short_id": "sqmf",
+            "m_size": 43042,
+            "m_slug": "7a7c0dff5e427c46d84b61da24b12abcc78e41",
+            "m_slugpath": "/cool/test/cryptobox/blobs/84/7a7c0dff5e427c46d84b61da24b12abcc78e41"
+        },
+        "parent": "wgsb",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "tbcp",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010829.668326,
+            "m_data_id": "",
+            "m_date": 1370010829.668157,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010829668.157,
+            "m_mime": "folder",
+            "m_name": "e8",
+            "m_nodetype": "folder",
+            "m_order": 4,
+            "m_parent": "nssh",
+            "m_path": "/Cool/test/.cryptobox/blobs/e8",
+            "m_short_id": "tbcp",
+            "m_size": 1598319,
+            "m_slug": "e8",
+            "m_slugpath": "/cool/test/cryptobox/blobs/e8"
+        },
+        "parent": "nssh",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "gqtd",
+        "content_hash_latest_timestamp": [
+            "241414fb34b7749ed084430160e2ad9410310943",
+            1370518129.072212
+        ],
+        "doc": {
+            "m_creation_time": 1370010829.672177,
+            "m_data_id": "crypto_doc_904855647ae441bda49ab6146f3569a2",
+            "m_date": 1370010829.672055,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010829672.055,
+            "m_mime": null,
+            "m_name": "67420905e609f1b137a436a8ea8014e2160848",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "tbcp",
+            "m_path": "/Cool/test/.cryptobox/blobs/e8/67420905e609f1b137a436a8ea8014e2160848",
+            "m_short_id": "gqtd",
+            "m_size": 1598319,
+            "m_slug": "67420905e609f1b137a436a8ea8014e2160848",
+            "m_slugpath": "/cool/test/cryptobox/blobs/e8/67420905e609f1b137a436a8ea8014e2160848"
+        },
+        "parent": "tbcp",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "vnhr",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370010794.336288,
+            "m_data_id": "",
+            "m_date": 1370010794.336129,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010794336.129,
+            "m_mime": "folder",
+            "m_name": "braun",
+            "m_nodetype": "folder",
+            "m_order": 5,
+            "m_parent": "jbvf",
+            "m_path": "/Cool/test/braun",
+            "m_short_id": "vnhr",
+            "m_size": 5008881,
+            "m_slug": "braun",
+            "m_slugpath": "/cool/test/braun"
+        },
+        "parent": "jbvf",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "cvvm",
+        "content_hash_latest_timestamp": [
+            "0ba231d240501b744357ad07ae0811eaf6bfe584",
+            1370518070.21158
+        ],
+        "doc": {
+            "m_creation_time": 1370010794.338738,
+            "m_data_id": "crypto_doc_ebcaa46cf21b47a58c996a420d9e04af",
+            "m_date": 1370010794.338634,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010794338.634,
+            "m_mime": "application/pdf",
+            "m_name": "precisie-trimmer.pdf",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "vnhr",
+            "m_path": "/Cool/test/braun/precisie-trimmer.pdf",
+            "m_short_id": "cvvm",
+            "m_size": 3410816,
+            "m_slug": "precisie-trimmerpdf",
+            "m_slugpath": "/cool/test/braun/precisie-trimmerpdf"
+        },
+        "parent": "vnhr",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "rqcx",
+        "content_hash_latest_timestamp": [
+            "e867420905e609f1b137a436a8ea8014e2160848",
+            1370518239.744252
+        ],
+        "doc": {
+            "m_creation_time": 1370010804.442437,
+            "m_data_id": "crypto_doc_cc23a458dd604535ac326ce8e8651200",
+            "m_date": 1370010804.442269,
+            "m_date_human": "31/05/13 16:33",
+            "m_date_time": 1370010804442.269,
+            "m_mime": "application/pdf",
+            "m_name": "silk-epil.pdf",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "vnhr",
+            "m_path": "/Cool/test/braun/silk-epil.pdf",
+            "m_short_id": "rqcx",
+            "m_size": 1598065,
+            "m_slug": "silk-epilpdf",
+            "m_slugpath": "/cool/test/braun/silk-epilpdf"
+        },
+        "parent": "vnhr",
+        "rootparent": "vnhv"
+    },
+    {
+        "_id": "dsmk",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370258135.66281,
+            "m_data_id": "",
+            "m_date": 1370258135.662569,
+            "m_date_human": "03/06/13 13:15",
+            "m_date_time": 1370258135662.569,
+            "m_mime": "folder",
+            "m_name": "Nighttown",
+            "m_nodetype": "folder",
+            "m_order": 2,
+            "m_parent": "hqqk",
+            "m_path": "/Nighttown",
+            "m_short_id": "dsmk",
+            "m_size": 343227809,
+            "m_slug": "nighttown",
+            "m_slugpath": "/nighttown"
+        },
+        "parent": "hqqk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "djsj",
+        "content_hash_latest_timestamp": [
+            "3cd715e9df0152a80d2ef0935dfbae46e33a5b79",
+            1370518061.607133
+        ],
+        "doc": {
+            "m_creation_time": 1370258135.671875,
+            "m_data_id": "crypto_doc_ac601c115c78406fa9c8a1c7958332cd",
+            "m_date": 1370258135.671696,
+            "m_date_human": "03/06/13 13:15",
+            "m_date_time": 1370258135671.696,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 02 Opening and Early Years pt 1.mp4",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 02 Opening and Early Years pt 1.mp4",
+            "m_short_id": "djsj",
+            "m_size": 14928743,
+            "m_slug": "nighttown-scene-02-opening-and-early-years-pt-1mp4",
+            "m_slugpath": "/nighttown/nighttown-scene-02-opening-and-early-years-pt-1mp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "znbh",
+        "content_hash_latest_timestamp": [
+            "854f5786987504d6f5e9f5e6f44dfae1400b346b",
+            1370518232.035742
+        ],
+        "doc": {
+            "m_creation_time": 1370258151.061073,
+            "m_data_id": "crypto_doc_a4b127cebef9497f851a84e808813457",
+            "m_date": 1370258151.060869,
+            "m_date_human": "03/06/13 13:15",
+            "m_date_time": 1370258151060.869,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 01 Intro & History.mp4",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 01 Intro & History.mp4",
+            "m_short_id": "znbh",
+            "m_size": 21869483,
+            "m_slug": "nighttown-scene-01-intro-historymp4",
+            "m_slugpath": "/nighttown/nighttown-scene-01-intro-historymp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "zcnd",
+        "content_hash_latest_timestamp": [
+            "4986438d6385140ff5d34aacc0f4279165db8966",
+            1370518170.999448
+        ],
+        "doc": {
+            "m_creation_time": 1370258171.003852,
+            "m_data_id": "crypto_doc_a3a40568623d4b9aa0bb1b5ec951f273",
+            "m_date": 1370258171.003656,
+            "m_date_human": "03/06/13 13:16",
+            "m_date_time": 1370258171003.656,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 03 The Early Years pt 2.mp4",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 03 The Early Years pt 2.mp4",
+            "m_short_id": "zcnd",
+            "m_size": 26633885,
+            "m_slug": "nighttown-scene-03-the-early-years-pt-2mp4",
+            "m_slugpath": "/nighttown/nighttown-scene-03-the-early-years-pt-2mp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "tbwk",
+        "content_hash_latest_timestamp": [
+            "e1aca313940d3bf9c59f1a3b5225325cf0554f00",
+            1370518252.70585
+        ],
+        "doc": {
+            "m_creation_time": 1370258194.493802,
+            "m_data_id": "crypto_doc_7ca2eb3e163448ebb63fcaec938e922d",
+            "m_date": 1370258194.493566,
+            "m_date_human": "03/06/13 13:16",
+            "m_date_time": 1370258194493.566,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 04 The Pioneers of Dance.mp4",
+            "m_nodetype": "file",
+            "m_order": 3,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 04 The Pioneers of Dance.mp4",
+            "m_short_id": "tbwk",
+            "m_size": 33799678,
+            "m_slug": "nighttown-scene-04-the-pioneers-of-dancemp4",
+            "m_slugpath": "/nighttown/nighttown-scene-04-the-pioneers-of-dancemp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "bqzp",
+        "content_hash_latest_timestamp": [
+            "496849764b179584fc9681cf11c640d729609f53",
+            1370518050.129946
+        ],
+        "doc": {
+            "m_creation_time": 1370258211.041864,
+            "m_data_id": "crypto_doc_677cfc5126f04818a8ffb14b610da69e",
+            "m_date": 1370258211.041642,
+            "m_date_human": "03/06/13 13:16",
+            "m_date_time": 1370258211041.6418,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 05 Rock vs Dance.mp4",
+            "m_nodetype": "file",
+            "m_order": 4,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 05 Rock vs Dance.mp4",
+            "m_short_id": "bqzp",
+            "m_size": 21616786,
+            "m_slug": "nighttown-scene-05-rock-vs-dancemp4",
+            "m_slugpath": "/nighttown/nighttown-scene-05-rock-vs-dancemp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "hzsq",
+        "content_hash_latest_timestamp": [
+            "5e6b7b25b0c4e727185b1e886bc0d14ba028294b",
+            1370518238.131334
+        ],
+        "doc": {
+            "m_creation_time": 1370258222.155469,
+            "m_data_id": "crypto_doc_b2dd8417e91d47a5a923958ace1f758a",
+            "m_date": 1370258222.155247,
+            "m_date_human": "03/06/13 13:17",
+            "m_date_time": 1370258222155.247,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 06 Nirvana.mp4",
+            "m_nodetype": "file",
+            "m_order": 5,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 06 Nirvana.mp4",
+            "m_short_id": "hzsq",
+            "m_size": 11666251,
+            "m_slug": "nighttown-scene-06-nirvanamp4",
+            "m_slugpath": "/nighttown/nighttown-scene-06-nirvanamp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "gbjj",
+        "content_hash_latest_timestamp": [
+            "c42bbbbf4b1c0a558bf698cb98e0bcaaf025e544",
+            1370518084.124044
+        ],
+        "doc": {
+            "m_creation_time": 1370258237.447132,
+            "m_data_id": "crypto_doc_27f18cb07251457f9b1e4234c5355b90",
+            "m_date": 1370258237.446953,
+            "m_date_human": "03/06/13 13:17",
+            "m_date_time": 1370258237446.9531,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 07 Live Performances.mp4",
+            "m_nodetype": "file",
+            "m_order": 6,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 07 Live Performances.mp4",
+            "m_short_id": "gbjj",
+            "m_size": 18343498,
+            "m_slug": "nighttown-scene-07-live-performancesmp4",
+            "m_slugpath": "/nighttown/nighttown-scene-07-live-performancesmp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "xtrq",
+        "content_hash_latest_timestamp": [
+            "a0a32eafd92853abf2d5884bcc6cc6c84795d576",
+            1370518100.293926
+        ],
+        "doc": {
+            "m_creation_time": 1370258253.212662,
+            "m_data_id": "crypto_doc_12e8b40f31b14c8597eb596e142dd381",
+            "m_date": 1370258253.212472,
+            "m_date_human": "03/06/13 13:17",
+            "m_date_time": 1370258253212.472,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 08 The Building and its Location.mp4",
+            "m_nodetype": "file",
+            "m_order": 7,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 08 The Building and its Location.mp4",
+            "m_short_id": "xtrq",
+            "m_size": 20098815,
+            "m_slug": "nighttown-scene-08-the-building-and-its-locationmp4",
+            "m_slugpath": "/nighttown/nighttown-scene-08-the-building-and-its-locationmp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "qwqq",
+        "content_hash_latest_timestamp": [
+            "3301746ceffc7ca3c717f48ecce74f75001b5934",
+            1370518148.634759
+        ],
+        "doc": {
+            "m_creation_time": 1370258275.772229,
+            "m_data_id": "crypto_doc_d9db6aeb7f1d4b6f9ed1bc684a78e574",
+            "m_date": 1370258275.770425,
+            "m_date_human": "03/06/13 13:17",
+            "m_date_time": 1370258275770.425,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 09 Special Events.mp4",
+            "m_nodetype": "file",
+            "m_order": 8,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 09 Special Events.mp4",
+            "m_short_id": "qwqq",
+            "m_size": 28454156,
+            "m_slug": "nighttown-scene-09-special-eventsmp4",
+            "m_slugpath": "/nighttown/nighttown-scene-09-special-eventsmp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "tjkj",
+        "content_hash_latest_timestamp": [
+            "70b6e250245a27bc4f6cc9bd53661e087e91ddbb",
+            1370518205.99736
+        ],
+        "doc": {
+            "m_creation_time": 1370258293.70038,
+            "m_data_id": "crypto_doc_0847a5cd207c46608ac4618d2ffc8dd2",
+            "m_date": 1370258293.700166,
+            "m_date_human": "03/06/13 13:18",
+            "m_date_time": 1370258293700.166,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 10 Reggae.mp4",
+            "m_nodetype": "file",
+            "m_order": 9,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 10 Reggae.mp4",
+            "m_short_id": "tjkj",
+            "m_size": 12554303,
+            "m_slug": "nighttown-scene-10-reggaemp4",
+            "m_slugpath": "/nighttown/nighttown-scene-10-reggaemp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "nvjm",
+        "content_hash_latest_timestamp": [
+            "e05b2f842191ba8538d1a4c4bae93527a794f95f",
+            1370518180.309843
+        ],
+        "doc": {
+            "m_creation_time": 1370258314.079974,
+            "m_data_id": "crypto_doc_7755eb5f60a74aa09e7642995a430661",
+            "m_date": 1370258314.079705,
+            "m_date_human": "03/06/13 13:18",
+            "m_date_time": 1370258314079.705,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 11 Sub Culture pt1.mp4",
+            "m_nodetype": "file",
+            "m_order": 10,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 11 Sub Culture pt1.mp4",
+            "m_short_id": "nvjm",
+            "m_size": 23932237,
+            "m_slug": "nighttown-scene-11-sub-culture-pt1mp4",
+            "m_slugpath": "/nighttown/nighttown-scene-11-sub-culture-pt1mp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "wzng",
+        "content_hash_latest_timestamp": [
+            "b04a691bf632bcde92de57368a1d64298f022bac",
+            1370518153.656947
+        ],
+        "doc": {
+            "m_creation_time": 1370258326.681651,
+            "m_data_id": "crypto_doc_23e1d169858f47a387e842fe571647c5",
+            "m_date": 1370258326.681502,
+            "m_date_human": "03/06/13 13:18",
+            "m_date_time": 1370258326681.5022,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 12 Sub,- and Youth Culture pt2.mp4",
+            "m_nodetype": "file",
+            "m_order": 11,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 12 Sub,- and Youth Culture pt2.mp4",
+            "m_short_id": "wzng",
+            "m_size": 12953157,
+            "m_slug": "nighttown-scene-12-sub-and-youth-culture-pt2mp4",
+            "m_slugpath": "/nighttown/nighttown-scene-12-sub-and-youth-culture-pt2mp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "hcdt",
+        "content_hash_latest_timestamp": [
+            "de51c491740fb6d06c537fa125dc889c1a478e7a",
+            1370518137.43249
+        ],
+        "doc": {
+            "m_creation_time": 1370258345.516346,
+            "m_data_id": "crypto_doc_776008da673e4892a688625ece2b9bff",
+            "m_date": 1370258345.516162,
+            "m_date_human": "03/06/13 13:19",
+            "m_date_time": 1370258345516.1619,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 13 TV & 10 yrs celebration.mp4",
+            "m_nodetype": "file",
+            "m_order": 12,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 13 TV & 10 yrs celebration.mp4",
+            "m_short_id": "hcdt",
+            "m_size": 22880083,
+            "m_slug": "nighttown-scene-13-tv-10-yrs-celebrationmp4",
+            "m_slugpath": "/nighttown/nighttown-scene-13-tv-10-yrs-celebrationmp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "xsdw",
+        "content_hash_latest_timestamp": [
+            "54e6778b285c331f287372c6518c05842bb70f02",
+            1370518222.335048
+        ],
+        "doc": {
+            "m_creation_time": 1370258379.924235,
+            "m_data_id": "crypto_doc_91102baad93e40229d85a496a7d8e1e1",
+            "m_date": 1370258379.92403,
+            "m_date_human": "03/06/13 13:19",
+            "m_date_time": 1370258379924.03,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 14 The Final Chapter.mp4",
+            "m_nodetype": "file",
+            "m_order": 13,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 14 The Final Chapter.mp4",
+            "m_short_id": "xsdw",
+            "m_size": 44324698,
+            "m_slug": "nighttown-scene-14-the-final-chaptermp4",
+            "m_slugpath": "/nighttown/nighttown-scene-14-the-final-chaptermp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "zcxg",
+        "content_hash_latest_timestamp": [
+            "972c430c30eb1b023c0e064775c510d6b96a3063",
+            1370518159.443056
+        ],
+        "doc": {
+            "m_creation_time": 1370258394.176609,
+            "m_data_id": "crypto_doc_c4ecaff006394eda948083ac494e0003",
+            "m_date": 1370258394.176398,
+            "m_date_human": "03/06/13 13:19",
+            "m_date_time": 1370258394176.398,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown scene 15 Credits.mp4",
+            "m_nodetype": "file",
+            "m_order": 14,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown scene 15 Credits.mp4",
+            "m_short_id": "zcxg",
+            "m_size": 15672524,
+            "m_slug": "nighttown-scene-15-creditsmp4",
+            "m_slugpath": "/nighttown/nighttown-scene-15-creditsmp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "zgzz",
+        "content_hash_latest_timestamp": [
+            "735b75c62472d5feb205e63f88523d3451a242e6",
+            1370518199.902451
+        ],
+        "doc": {
+            "m_creation_time": 1370258411.746234,
+            "m_data_id": "crypto_doc_05fa42f28c0c4c49aced75d86b748879",
+            "m_date": 1370258411.745923,
+            "m_date_human": "03/06/13 13:20",
+            "m_date_time": 1370258411745.923,
+            "m_mime": "video/mp4",
+            "m_name": "Nighttown Trailer.mp4",
+            "m_nodetype": "file",
+            "m_order": 15,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/Nighttown Trailer.mp4",
+            "m_short_id": "zgzz",
+            "m_size": 10074724,
+            "m_slug": "nighttown-trailermp4",
+            "m_slugpath": "/nighttown/nighttown-trailermp4"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "qtwq",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370525358.989358,
+            "m_data_id": "",
+            "m_date": 1370525358.98914,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525358989.1401,
+            "m_mime": "folder",
+            "m_name": "all_types",
+            "m_nodetype": "folder",
+            "m_order": 16,
+            "m_parent": "dsmk",
+            "m_path": "/Nighttown/all_types",
+            "m_short_id": "qtwq",
+            "m_size": 3424788,
+            "m_slug": "all_types",
+            "m_slugpath": "/nighttown/all_types"
+        },
+        "parent": "dsmk",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "vkwt",
+        "content_hash_latest_timestamp": [
+            "2efc9352d2d9db20a9fc94fd063f039abcb939dd",
+            1370525354.10391
+        ],
+        "doc": {
+            "m_creation_time": 1370525359.174759,
+            "m_data_id": "crypto_doc_260d77d056f74d1eb4ce797b7d79c4ad",
+            "m_date": 1370525359.174336,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525359174.336,
+            "m_mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "m_name": "excel.xlsx",
+            "m_nodetype": "file",
+            "m_order": 0,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/excel.xlsx",
+            "m_short_id": "vkwt",
+            "m_size": 27038,
+            "m_slug": "excelxlsx",
+            "m_slugpath": "/nighttown/all_types/excelxlsx"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "xfzh",
+        "content_hash_latest_timestamp": [
+            "66128a4669776c3cb35107c7f614e7adc0c04851",
+            1370525359.253458
+        ],
+        "doc": {
+            "m_creation_time": 1370525364.172932,
+            "m_data_id": "crypto_doc_5ff5242a98b54e6491e419b8c3454a96",
+            "m_date": 1370525364.172727,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525364172.727,
+            "m_mime": "image/gif",
+            "m_name": "gtest.gif",
+            "m_nodetype": "file",
+            "m_order": 1,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/gtest.gif",
+            "m_short_id": "xfzh",
+            "m_size": 51099,
+            "m_slug": "gtestgif",
+            "m_slugpath": "/nighttown/all_types/gtestgif"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "cgzr",
+        "content_hash_latest_timestamp": [
+            "d4364514e16baa1fc08151a56da0305a5a76db29",
+            1370525363.516665
+        ],
+        "doc": {
+            "m_creation_time": 1370525368.426532,
+            "m_data_id": "crypto_doc_2d43fb4a7b5b43bcaec79560d940d0d4",
+            "m_date": 1370525368.42634,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525368426.34,
+            "m_mime": "application/vnd.ms-excel",
+            "m_name": "excel_old.xls",
+            "m_nodetype": "file",
+            "m_order": 2,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/excel_old.xls",
+            "m_short_id": "cgzr",
+            "m_size": 23552,
+            "m_slug": "excel_oldxls",
+            "m_slugpath": "/nighttown/all_types/excel_oldxls"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "gvqw",
+        "content_hash_latest_timestamp": [
+            "0373621c6562ff6d07d496c90bb506dfdeec5c7d",
+            1370525369.507787
+        ],
+        "doc": {
+            "m_creation_time": 1370525372.851571,
+            "m_data_id": "crypto_doc_7710d2899e33480f918660dbf573c929",
+            "m_date": 1370525372.850185,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525372850.1848,
+            "m_mime": "application/zip",
+            "m_name": "icons.zip",
+            "m_nodetype": "file",
+            "m_order": 3,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/icons.zip",
+            "m_short_id": "gvqw",
+            "m_size": 733119,
+            "m_slug": "iconszip",
+            "m_slugpath": "/nighttown/all_types/iconszip"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "jcds",
+        "content_hash_latest_timestamp": [
+            "c6ff9bee6755b8e3c4d8f5b2e022fffb9d51c327",
+            1370525373.307458
+        ],
+        "doc": {
+            "m_creation_time": 1370525375.927279,
+            "m_data_id": "crypto_doc_bf6b357aeebf4499ad1c300439d63674",
+            "m_date": 1370525375.927115,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525375927.115,
+            "m_mime": "application/postscript",
+            "m_name": "logo-active8.ai",
+            "m_nodetype": "file",
+            "m_order": 4,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/logo-active8.ai",
+            "m_short_id": "jcds",
+            "m_size": 122539,
+            "m_slug": "logo-active8ai",
+            "m_slugpath": "/nighttown/all_types/logo-active8ai"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "kscg",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525376.447703
+        ],
+        "doc": {
+            "m_creation_time": 1370525378.706383,
+            "m_data_id": "crypto_doc_53f519e1d6aa4147a37e5876426b4e1f",
+            "m_date": 1370525378.706195,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525378706.195,
+            "m_mime": null,
+            "m_name": "test.as",
+            "m_nodetype": "file",
+            "m_order": 5,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.as",
+            "m_short_id": "kscg",
+            "m_size": 4,
+            "m_slug": "testas",
+            "m_slugpath": "/nighttown/all_types/testas"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "pgxc",
+        "content_hash_latest_timestamp": [
+            "95d09f2b10159347eece71399a7e2e907ea3df4f",
+            1370525378.912562
+        ],
+        "doc": {
+            "m_creation_time": 1370525380.742045,
+            "m_data_id": "crypto_doc_5b3c199c3a36471d9b0ba737a57607be",
+            "m_date": 1370525380.741858,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525380741.858,
+            "m_mime": "text/plain",
+            "m_name": "test.txt",
+            "m_nodetype": "file",
+            "m_order": 6,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.txt",
+            "m_short_id": "pgxc",
+            "m_size": 11,
+            "m_slug": "testtxt",
+            "m_slugpath": "/nighttown/all_types/testtxt"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "rzmw",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525380.919217
+        ],
+        "doc": {
+            "m_creation_time": 1370525382.717216,
+            "m_data_id": "crypto_doc_ce157a742a4f40dfa243dadd3248d5e5",
+            "m_date": 1370525382.717091,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525382717.091,
+            "m_mime": null,
+            "m_name": "test.cs",
+            "m_nodetype": "file",
+            "m_order": 7,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.cs",
+            "m_short_id": "rzmw",
+            "m_size": 4,
+            "m_slug": "testcs",
+            "m_slugpath": "/nighttown/all_types/testcs"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "kbbv",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525383.075304
+        ],
+        "doc": {
+            "m_creation_time": 1370525385.055598,
+            "m_data_id": "crypto_doc_a29d3723be634b17ab786bf982cad9b2",
+            "m_date": 1370525385.05542,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525385055.42,
+            "m_mime": null,
+            "m_name": "test.rb",
+            "m_nodetype": "file",
+            "m_order": 8,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.rb",
+            "m_short_id": "kbbv",
+            "m_size": 4,
+            "m_slug": "testrb",
+            "m_slugpath": "/nighttown/all_types/testrb"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "gqmz",
+        "content_hash_latest_timestamp": [
+            "db82242917d46f337f201a6308f138a8c446e698",
+            1370525385.285267
+        ],
+        "doc": {
+            "m_creation_time": 1370525387.018162,
+            "m_data_id": "crypto_doc_5ef22a956c6b47e2b7291da745fe0ac0",
+            "m_date": 1370525387.017971,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525387017.971,
+            "m_mime": "image/png",
+            "m_name": "ptest.png",
+            "m_nodetype": "file",
+            "m_order": 9,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/ptest.png",
+            "m_short_id": "gqmz",
+            "m_size": 61708,
+            "m_slug": "ptestpng",
+            "m_slugpath": "/nighttown/all_types/ptestpng"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "dvxn",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525387.184632
+        ],
+        "doc": {
+            "m_creation_time": 1370525389.275434,
+            "m_data_id": "crypto_doc_dcf795e2ca854397a9d5839d1ea6360d",
+            "m_date": 1370525389.275247,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525389275.247,
+            "m_mime": null,
+            "m_name": "test.php",
+            "m_nodetype": "file",
+            "m_order": 10,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.php",
+            "m_short_id": "dvxn",
+            "m_size": 4,
+            "m_slug": "testphp",
+            "m_slugpath": "/nighttown/all_types/testphp"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "jnsn",
+        "content_hash_latest_timestamp": [
+            "411f4d9742d8946d98d27d30d5ccd9ebfc07da79",
+            1370525389.512021
+        ],
+        "doc": {
+            "m_creation_time": 1370525391.111513,
+            "m_data_id": "crypto_doc_974c1838412c41cd851cf56fbdbe69c6",
+            "m_date": 1370525391.111328,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525391111.328,
+            "m_mime": "application/vnd.ms-powerpoint",
+            "m_name": "pres_old.ppt",
+            "m_nodetype": "file",
+            "m_order": 11,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/pres_old.ppt",
+            "m_short_id": "jnsn",
+            "m_size": 46080,
+            "m_slug": "pres_oldppt",
+            "m_slugpath": "/nighttown/all_types/pres_oldppt"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "zgvb",
+        "content_hash_latest_timestamp": [
+            "bf5acebd990ecc9e8effdf6dd18b3c8d846bf230",
+            1370525391.288287
+        ],
+        "doc": {
+            "m_creation_time": 1370525392.853423,
+            "m_data_id": "crypto_doc_b09bb5a8995b405ab3858c989a567a58",
+            "m_date": 1370525392.853283,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525392853.283,
+            "m_mime": "application/rtf",
+            "m_name": "rich.rtf",
+            "m_nodetype": "file",
+            "m_order": 12,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/rich.rtf",
+            "m_short_id": "zgvb",
+            "m_size": 32028,
+            "m_slug": "richrtf",
+            "m_slugpath": "/nighttown/all_types/richrtf"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "xsbt",
+        "content_hash_latest_timestamp": [
+            "d05799731e557819d9ab5580a803019ed580d2ee",
+            1370525393.786387
+        ],
+        "doc": {
+            "m_creation_time": 1370525395.228122,
+            "m_data_id": "crypto_doc_bcbfe9bad50045f2988b5fcce389f790",
+            "m_date": 1370525395.228005,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525395228.005,
+            "m_mime": "image/bmp",
+            "m_name": "bmptest.bmp",
+            "m_nodetype": "file",
+            "m_order": 13,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/bmptest.bmp",
+            "m_short_id": "xsbt",
+            "m_size": 2152806,
+            "m_slug": "bmptestbmp",
+            "m_slugpath": "/nighttown/all_types/bmptestbmp"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "rvch",
+        "content_hash_latest_timestamp": [
+            "08ddfadb193e833641fbb8e3eaf941add21db774",
+            1370525395.553365
+        ],
+        "doc": {
+            "m_creation_time": 1370525397.106574,
+            "m_data_id": "crypto_doc_e0c27a7851c546f88a5f8a1ce686d82b",
+            "m_date": 1370525397.106443,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525397106.4429,
+            "m_mime": "application/javascript",
+            "m_name": "test.js",
+            "m_nodetype": "file",
+            "m_order": 14,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.js",
+            "m_short_id": "rvch",
+            "m_size": 995,
+            "m_slug": "testjs",
+            "m_slugpath": "/nighttown/all_types/testjs"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "qtnv",
+        "content_hash_latest_timestamp": [
+            "85a3c80cd17d403725efe26953c0c832a667f9b4",
+            1370525397.444614
+        ],
+        "doc": {
+            "m_creation_time": 1370525399.384718,
+            "m_data_id": "crypto_doc_dc4fbf0910aa467ba7df7937cb53d314",
+            "m_date": 1370525399.384524,
+            "m_date_human": "06/06/13 15:29",
+            "m_date_time": 1370525399384.5242,
+            "m_mime": "text/plain",
+            "m_name": "test.fdsfs.txt",
+            "m_nodetype": "file",
+            "m_order": 15,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.fdsfs.txt",
+            "m_short_id": "qtnv",
+            "m_size": 22,
+            "m_slug": "testfdsfstxt",
+            "m_slugpath": "/nighttown/all_types/testfdsfstxt"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "wnnt",
+        "content_hash_latest_timestamp": [
+            "e42200737bb31cb309b423b0ae97f489d063b408",
+            1370525399.59534
+        ],
+        "doc": {
+            "m_creation_time": 1370525401.244841,
+            "m_data_id": "crypto_doc_56c48d25052345d0927a56f53aed84ec",
+            "m_date": 1370525401.244678,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525401244.678,
+            "m_mime": "image/vnd.adobe.photoshop",
+            "m_name": "icons_18x18_A_01.psd",
+            "m_nodetype": "file",
+            "m_order": 16,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/icons_18x18_A_01.psd",
+            "m_short_id": "wnnt",
+            "m_size": 41453,
+            "m_slug": "icons_18x18_a_01psd",
+            "m_slugpath": "/nighttown/all_types/icons_18x18_a_01psd"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "hftr",
+        "content_hash_latest_timestamp": [
+            "5cfb492828c19ea3d2d642d851b5ce671979b07e",
+            1370525411.190233
+        ],
+        "doc": {
+            "m_creation_time": 1370525413.456741,
+            "m_data_id": "crypto_doc_f49717b8863846ac80b095148e2a06b0",
+            "m_date": 1370525413.456496,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525413456.496,
+            "m_mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "m_name": "word.docx",
+            "m_nodetype": "file",
+            "m_order": 17,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/word.docx",
+            "m_short_id": "hftr",
+            "m_size": 26232,
+            "m_slug": "worddocx",
+            "m_slugpath": "/nighttown/all_types/worddocx"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "sfsj",
+        "content_hash_latest_timestamp": [
+            "14184d7e8952244d2a2be3f5c4089bd1835b1958",
+            1370525413.920407
+        ],
+        "doc": {
+            "m_creation_time": 1370525416.847261,
+            "m_data_id": "crypto_doc_1b68c6a52c584cd29c714395705b57e1",
+            "m_date": 1370525416.847062,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525416847.062,
+            "m_mime": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "m_name": "pres_new.pptx",
+            "m_nodetype": "file",
+            "m_order": 18,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/pres_new.pptx",
+            "m_short_id": "sfsj",
+            "m_size": 35673,
+            "m_slug": "pres_newpptx",
+            "m_slugpath": "/nighttown/all_types/pres_newpptx"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "zjrn",
+        "content_hash_latest_timestamp": [
+            "97ecf2184384211976195aea761a6bf9374df7dd",
+            1370525428.946115
+        ],
+        "doc": {
+            "m_creation_time": 1370525431.214058,
+            "m_data_id": "crypto_doc_4be7aee254044a5dbc0a2c2593504cd3",
+            "m_date": 1370525431.21355,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525431213.55,
+            "m_mime": "application/pdf",
+            "m_name": "document.pdf",
+            "m_nodetype": "file",
+            "m_order": 19,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/document.pdf",
+            "m_short_id": "zjrn",
+            "m_size": 48389,
+            "m_slug": "documentpdf",
+            "m_slugpath": "/nighttown/all_types/documentpdf"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "wzgd",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525431.455255
+        ],
+        "doc": {
+            "m_creation_time": 1370525434.462353,
+            "m_data_id": "crypto_doc_89ff06ab3e1949a39c1706dece2fdc87",
+            "m_date": 1370525434.462131,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525434462.131,
+            "m_mime": "text/x-c",
+            "m_name": "test.c",
+            "m_nodetype": "file",
+            "m_order": 20,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.c",
+            "m_short_id": "wzgd",
+            "m_size": 4,
+            "m_slug": "testc",
+            "m_slugpath": "/nighttown/all_types/testc"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "jwwq",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525434.930293
+        ],
+        "doc": {
+            "m_creation_time": 1370525437.057189,
+            "m_data_id": "crypto_doc_c0a86b0a14014fdcafdbcd01a3cd3d95",
+            "m_date": 1370525437.056997,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525437056.997,
+            "m_mime": "text/x-java-source",
+            "m_name": "test.java",
+            "m_nodetype": "file",
+            "m_order": 21,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.java",
+            "m_short_id": "jwwq",
+            "m_size": 4,
+            "m_slug": "testjava",
+            "m_slugpath": "/nighttown/all_types/testjava"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "kxpt",
+        "content_hash_latest_timestamp": [
+            "30d74d258442c7c65512eafab474568dd706c430",
+            1370525437.584596
+        ],
+        "doc": {
+            "m_creation_time": 1370525439.67699,
+            "m_data_id": "crypto_doc_604895adb4064e2792c68de8c61dacb4",
+            "m_date": 1370525439.676813,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525439676.813,
+            "m_mime": "text/x-c",
+            "m_name": "test.cpp",
+            "m_nodetype": "file",
+            "m_order": 22,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/test.cpp",
+            "m_short_id": "kxpt",
+            "m_size": 4,
+            "m_slug": "testcpp",
+            "m_slugpath": "/nighttown/all_types/testcpp"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "hhnv",
+        "content_hash_latest_timestamp": [
+            "f1fb2b99b8a72a681cbd238afcea22045825046b",
+            1370525449.806486
+        ],
+        "doc": {
+            "m_creation_time": 1370525452.012563,
+            "m_data_id": "crypto_doc_913c92eca28f4bbb9a6f91e9cf532ac6",
+            "m_date": 1370525452.012324,
+            "m_date_human": "06/06/13 15:30",
+            "m_date_time": 1370525452012.324,
+            "m_mime": "application/msword",
+            "m_name": "word_old.doc",
+            "m_nodetype": "file",
+            "m_order": 23,
+            "m_parent": "qtwq",
+            "m_path": "/Nighttown/all_types/word_old.doc",
+            "m_short_id": "hhnv",
+            "m_size": 22016,
+            "m_slug": "word_olddoc",
+            "m_slugpath": "/nighttown/all_types/word_olddoc"
+        },
+        "parent": "qtwq",
+        "rootparent": "dsmk"
+    },
+    {
+        "_id": "ztqq",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370776074.000512,
+            "m_data_id": "",
+            "m_date": 1370776074.000319,
+            "m_date_human": "09/06/13 13:07",
+            "m_date_time": 1370776074000.319,
+            "m_mime": "folder",
+            "m_name": "aaa",
+            "m_nodetype": "folder",
+            "m_order": 3,
+            "m_parent": "hqqk",
+            "m_path": "/aaa",
+            "m_short_id": "ztqq",
+            "m_size": 0,
+            "m_slug": "aaa",
+            "m_slugpath": "/aaa"
+        },
+        "parent": "hqqk",
+        "rootparent": "ztqq"
+    },
+    {
+        "_id": "rcwv",
+        "content_hash_latest_timestamp": null,
+        "doc": {
+            "m_creation_time": 1370776082.454934,
+            "m_data_id": "",
+            "m_date": 1370776082.454727,
+            "m_date_human": "09/06/13 13:08",
+            "m_date_time": 1370776082454.727,
+            "m_mime": "folder",
+            "m_name": "zz",
+            "m_nodetype": "folder",
+            "m_order": 4,
+            "m_parent": "hqqk",
+            "m_path": "/zz",
+            "m_short_id": "rcwv",
+            "m_size": 0,
+            "m_slug": "zz",
+            "m_slugpath": "/zz"
+        },
+        "parent": "hqqk",
+        "rootparent": "rcwv"
+    }
+]
