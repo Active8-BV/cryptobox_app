@@ -22,13 +22,14 @@ import multiprocessing
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512, HMAC
 from Crypto.Cipher import AES
+from Crypto.Cipher import Blowfish
 from Crypto.Protocol.KDF import PBKDF2
 
 g_lock = multiprocessing.Lock()
 
 SERVER = "http://127.0.0.1:8000/"
 #SERVER = "https://www.cryptobox.nl/"
-
+DEBUG = True
 
 def warning(*arg):
     sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + "\033[0m\n")
@@ -219,7 +220,7 @@ def make_hash_str(data, secret):
     return hmac.hexdigest()
 
 
-def pasword_derivation(key, salt, size=32):
+def pasword_derivation(key, salt):
     """
     @param key:
     @type key: str
@@ -228,6 +229,7 @@ def pasword_derivation(key, salt, size=32):
     @return:
     @rtype: str
     """
+    size = 32 # 16, 24 or 32 bytes long (for AES-128, AES-196 and AES-256, respectively)
     return PBKDF2(key, salt, size)
 
 
@@ -246,11 +248,15 @@ def encrypt(salt, secret, data):
     # used to ensure that your value is always a multiple of block_size
     # enhance secret
     Random.atfork()
+
     initialization_vector = Random.new().read(AES.block_size)
-    cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    initialization_vector = Random.new().read(Blowfish.block_size)
+    cipher = Blowfish.new(secret, Blowfish.MODE_CBC, initialization_vector)
+    #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     # encode the list or string
+    pad = lambda s: s + (8 - len(s) % 8) * "{"
     data_hash = make_hash_str(data, secret)
-    encoded_data = cipher.encrypt(data)
+    encoded_data = cipher.encrypt(pad(data))
 
     encoded_hash = make_hash_str(encoded_data, secret)
     encrypted_data_dict = {
@@ -291,8 +297,10 @@ def decrypt(secret, encrypted_data_dict, hashcheck=True):
     if 16 != len(encrypted_data_dict["initialization_vector"]):
         raise Exception("initialization_vector len is not 16")
 
-    cipher = AES.new(secret, AES.MODE_CFB, IV=encrypted_data_dict["initialization_vector"])
+    #cipher = AES.new(secret, AES.MODE_CFB, IV=encrypted_data_dict["initialization_vector"])
+    cipher = Blowfish.new(secret, Blowfish.MODE_CBC, encrypted_data_dict["initialization_vector"])
     decoded = cipher.decrypt(encrypted_data_dict["encoded_data"])
+
     data_hash = make_hash_str(decoded, secret)
 
     if "hash" in encrypted_data_dict and hashcheck:
@@ -340,21 +348,16 @@ last_update_string_len = 0
 
 
 def update_progress(curr, total, msg):
-    global g_lock
     global last_update_string_len
-    g_lock.acquire()
-    try:
-        if total == 0:
-            return
-        progress = int(math.ceil(float(curr) / (float(total) / 100)))
-        msg = msg + " " + str(curr) + "/" + str(total)
-        update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
-        if len(update_string) < last_update_string_len:
-            sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
-        sys.stderr.write(update_string)
-        last_update_string_len = len(update_string)
-    finally:
-        g_lock.release()
+    if total == 0:
+        return
+    progress = int(math.ceil(float(curr) / (float(total) / 100)))
+    msg = msg + " " + str(curr) + "/" + str(total)
+    update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
+    if len(update_string) < last_update_string_len:
+        sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
+    sys.stderr.write(update_string)
+    last_update_string_len = len(update_string)
 
 
 def index_files_visit(arg, dirname, names):
@@ -396,11 +399,15 @@ def make_cryptogit_hash(fpath, datadir, cryptobox_index):
     return filedata
 
 
+def pickle_object(path, targetobject):
+    cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
+
+
 def read_and_encrypt_file(fpath, blobpath, salt, secret):
     try:
         file_dict = read_file_to_fdict(fpath)
         encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
-        cPickle.dump(encrypted_file_dict, open(blobpath, "wb"), cPickle.HIGHEST_PROTOCOL)
+        pickle_object(blobpath, encrypted_file_dict)
         return None
     except Exception, e:
         handle_exception(e)
@@ -1038,8 +1045,13 @@ def main():
 
     if not options.dir:
         exit_app_warning("Need DIR (-f or --dir) to continue")
+    if not options.cryptobox:
+        exit_app_warning("No cryptobox given (-b or --cryptobox)")
 
-    datadir = os.path.join(options.dir, ".cryptobox")
+    options.dir = os.path.join(options.dir, options.cryptobox)
+    ensure_directory(options.dir)
+
+    datadir = get_data_dir(options)
     memory = Memory()
     memory.load(datadir)
 
@@ -1063,8 +1075,6 @@ def main():
             exit_app_warning("No username given (-u or --username)")
         if not options.password:
             exit_app_warning("No password given (-p or --password)")
-        if not options.cryptobox:
-            exit_app_warning("No cryptobox given (-b or --cryptobox)")
 
     if options.password and options.username and options.cryptobox:
         if authorize_user(options):
