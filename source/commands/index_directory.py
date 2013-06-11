@@ -439,26 +439,6 @@ def update_progress(curr, total, msg):
     last_update_string_len = len(update_string)
 
 
-def index_files_visit(arg, dir_name, names):
-    """
-    @type arg: dict
-    @type dir_name: str or unicode
-    @type names: list
-    """
-    dir_name = dir_name.replace(sep, "/")
-    filenames = [basename(x) for x in filter(lambda x: not isdir(x), [join(dir_name, x) for x in names])]
-    dirname_hash = make_sha1_hash(dir_name)
-    nameshash = make_sha1_hash("".join(names))
-    folder = {}
-    folder["dirname"] = dir_name
-    folder["dirnamehash"] = dirname_hash
-    folder["filenames"] = [{'name': x} for x in filenames]
-    folder["nameshash"] = nameshash
-
-    arg["folders"]["dirnames"][dirname_hash] = folder
-    arg["numfiles"] += len(filenames)
-
-
 def ensure_directory(path):
     """
     @type path: str or unicode or unicode
@@ -560,20 +540,151 @@ def get_blob_dir(options):
     return join(datadir, "blobs")
 
 
-def get_cryptobox_index_path(options):
-    datadir = get_data_dir(options)
-    return join(datadir, "cryptobox_index.pickle")
+class MemoryNoKey(Exception):
+    pass
 
 
-def get_cryptobox_index(options):
-    cryptobox_index_path = get_cryptobox_index_path(options)
-    if exists(cryptobox_index_path):
-        return unpickle_object(cryptobox_index_path)
-    return None
+class MemoryExpired(Exception):
+    pass
+
+
+class ListNameClash(Exception):
+    pass
+
+
+class ListDoesNotExist(Exception):
+    pass
+
+
+class MemoryCorruption(Exception):
+    pass
+
+
+class Memory(object):
+    _instance = None
+    data = {}
+    timestamps = {}
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            # noinspection PyArgumentList
+            cls._instance = super(Memory, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def set(self, key, value, timeout_seconds=None, timeout_minute=None):
+        if key in self.data:
+            raise MemoryCorruption("overwrite of " + str(key))
+        self.data[key] = value
+        if timeout_minute:
+            timeout_seconds = timeout_minute * 60
+        if timeout_seconds:
+            self.timestamps[key] = (time.time(), timeout_seconds)
+
+    def get(self, key):
+        if self.has(key):
+            if key in self.timestamps:
+                self.timestamps[key] = (time.time(), self.timestamps[key][1])
+            return self.data[key]
+        else:
+            raise MemoryNoKey(str(key))
+
+    def delete(self, key):
+        if self.has(key):
+            del self.data[key]
+            if key in self.timestamps:
+                del self.timestamps[key]
+        else:
+            raise MemoryNoKey(str(key))
+
+    def has(self, key):
+        if key in self.timestamps:
+            if int(time.time() - self.timestamps[key][0]) > self.timestamps[key][1]:
+                timestamp = self.timestamps[key][0]
+                timeout = self.timestamps[key][1]
+                del self.data[key]
+                if key in self.timestamps:
+                    del self.timestamps[key]
+                raise MemoryExpired(key + ", " + str(int(time.time() - timestamp) - timeout) + " seconds")
+        return key in self.data
+
+    def replace(self, key, value, timeout_seconds=None, timeout_minute=None):
+        if self.has(key):
+            self.delete(key)
+        self.set(key, value, timeout_seconds=None, timeout_minute=None)
+
+    def ttl(self, key, show_seconds=False):
+        if key in self.timestamps:
+            timestamp = self.timestamps[key][0]
+            timeout = self.timestamps[key][1]
+            seconds = timeout - int(time.time() - timestamp)
+            if show_seconds:
+                return seconds
+            else:
+                return int(math.ceil(float(seconds) / 60))
+        return None
+
+    def size(self):
+        return len(self.data)
+
+    def save(self, datadir):
+        if exists(datadir):
+            mempath = join(datadir, "memory.pickle")
+            data = (self.data, self.timestamps)
+            pickle_object(mempath, data, json_pickle=False)
+
+    def load(self, datadir):
+        mempath = join(datadir, "memory.pickle")
+        if exists(mempath):
+            data = unpickle_object(mempath)
+            self.data = data[0]
+            self.timestamps = data[1]
+            for k in self.data.copy():
+                try:
+                    self.has(k)
+                except MemoryExpired:
+                    pass
+
+    def set_add(self, list_name, value):
+        if not self.has(list_name):
+            self.set(list_name, set())
+        collection = self.get(list_name)
+        if not isinstance(collection, set):
+            raise ListNameClash(collection + " is not a list")
+        collection.add(value)
+
+    def set_have(self, list_name, value):
+        if not self.has(list_name):
+            raise ListDoesNotExist(list_name)
+        collection = self.get(list_name)
+        return value in collection
+
+
+def get_cryptobox_index():
+    memory = Memory()
+    if memory.has("cryptobox_index"):
+        return memory.get("cryptobox_index")
+    else:
+        return dict()
+
+
+class NoLocalIndex(Exception):
+    pass
+
+
+def get_local_index():
+    memory = Memory()
+    if not memory.has("localindex"):
+        raise NoLocalIndex("there is no localindex yet")
+    return memory.get("localindex")
+
+
+def store_cryptobox_index(index):
+    memory = Memory()
+    memory.replace("cryptobox_index", index)
 
 
 def cryptobox_locked(options):
-    current_cryptobox_index = get_cryptobox_index(options)
+    current_cryptobox_index = get_cryptobox_index()
     if current_cryptobox_index:
         if current_cryptobox_index["locked"] is True:
             return True
@@ -582,7 +693,7 @@ def cryptobox_locked(options):
 
 def get_secret(options):
     password = options.password
-    current_cryptobox_index = get_cryptobox_index(options)
+    current_cryptobox_index = get_cryptobox_index()
     if current_cryptobox_index:
         salt = base64.decodestring(current_cryptobox_index["salt_b64"])
     else:
@@ -607,29 +718,56 @@ def get_uuid(size):
     return output[0:size]
 
 
-def index_and_encrypt(options):
+def index_files_visit(arg, dir_name, names):
+    """
+    @type arg: dict
+    @type dir_name: str or unicode
+    @type names: list
+    """
+    filenames = [basename(x) for x in filter(lambda x: not isdir(x), [join(dir_name, x) for x in names])]
+    dirname_hash = make_sha1_hash(dir_name.replace(arg["DIR"], "").replace(sep, "/"))
+    nameshash = make_sha1_hash("".join(names))
+    folder = {}
+    folder["dirname"] = dir_name
+    folder["dirnamehash"] = dirname_hash
+    folder["filenames"] = [{'name': x} for x in filenames]
+    folder["nameshash"] = nameshash
+
+    arg["folders"]["dirnames"][dirname_hash] = folder
+    arg["numfiles"] += len(filenames)
+
+
+def make_local_index(options):
     datadir = get_data_dir(options)
-    current_cryptobox_index = get_cryptobox_index(options)
-    if current_cryptobox_index:
-        if cryptobox_locked(options):
-            warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
-            return
-
-    salt, secret = get_secret(options)
-
     args = {}
     args["DIR"] = options.dir
     args["folders"] = {"dirnames": {}, "filestats": {}}
     args["numfiles"] = 0
     walk(options.dir, index_files_visit, args)
-
     for dir_name in args["folders"]["dirnames"].copy():
         if datadir in args["folders"]["dirnames"][dir_name]["dirname"]:
             del args["folders"]["dirnames"][dir_name]
+    cryptobox_index = args["folders"]
+    return cryptobox_index
+
+
+def index_and_encrypt(options):
+    datadir = get_data_dir(options)
+
+    if cryptobox_locked(options):
+        warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+        return None, None
+
+    salt, secret = get_secret(options)
+
+    cryptobox_index = get_local_index()
 
     ensure_directory(datadir)
-    cryptobox_index = args["folders"]
-    numfiles = reduce(lambda x, y: x + y, [len(args["folders"]["dirnames"][x]["filenames"]) for x in args["folders"]["dirnames"]])
+
+    if len(cryptobox_index["dirnames"]) > 0:
+        numfiles = reduce(lambda x, y: x + y, [len(cryptobox_index["dirnames"][x]["filenames"]) for x in cryptobox_index["dirnames"]])
+    else:
+        numfiles = 0
     new_blobs = {}
     file_cnt = 0
     new_objects = 0
@@ -655,15 +793,13 @@ def index_and_encrypt(options):
         if len(new_blobs) > 0:
             encrypt_new_blobs(salt, secret, new_blobs)
 
-    cryptobox_index_path = join(datadir, "cryptobox_index.pickle")
-
     if options.remove:
         cryptobox_index["locked"] = True
     else:
         cryptobox_index["locked"] = False
     cryptobox_index["salt_b64"] = base64.encodestring(salt)
 
-    pickle_object(cryptobox_index_path, cryptobox_index)
+    store_cryptobox_index(cryptobox_index)
 
     if options.remove:
         ld = os.listdir(options.dir)
@@ -750,8 +886,8 @@ def decrypt_and_build_filetree(options):
         warning("nothing to decrypt", datadir, "does not exists")
         return
     blobdir = join(datadir, "blobs")
-    cryptobox_index_path = get_cryptobox_index_path(options)
-    cryptobox_index = get_cryptobox_index(options)
+
+    cryptobox_index = get_cryptobox_index()
     if cryptobox_index:
         if not cryptobox_locked(options):
             return
@@ -792,95 +928,9 @@ def decrypt_and_build_filetree(options):
             successfull_decryption = False
     if successfull_decryption:
         cryptobox_index["locked"] = False
-        pickle_object(cryptobox_index_path, cryptobox_index)
+    store_cryptobox_index(cryptobox_index)
     if len(hashes) > 0:
         print
-
-
-class MemoryNoKey(Exception):
-    pass
-
-
-class MemoryExpired(Exception):
-    pass
-
-
-class Memory(object):
-    _instance = None
-    data = {}
-    timestamps = {}
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            # noinspection PyArgumentList
-            cls._instance = super(Memory, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
-    def set(self, key, value, timeout_seconds=None, timeout_minute=None):
-        self.data[key] = value
-        if timeout_minute:
-            timeout_seconds = timeout_minute * 60
-        if timeout_seconds:
-            self.timestamps[key] = (time.time(), timeout_seconds)
-
-    def has(self, key):
-        if key in self.timestamps:
-            if int(time.time() - self.timestamps[key][0]) > self.timestamps[key][1]:
-                timestamp = self.timestamps[key][0]
-                timeout = self.timestamps[key][1]
-                del self.data[key]
-                if key in self.timestamps:
-                    del self.timestamps[key]
-                raise MemoryExpired(key + ", " + str(int(time.time() - timestamp) - timeout) + " seconds")
-        return key in self.data
-
-    def ttl(self, key, show_seconds=False):
-        if key in self.timestamps:
-            timestamp = self.timestamps[key][0]
-            timeout = self.timestamps[key][1]
-            seconds = timeout - int(time.time() - timestamp)
-            if show_seconds:
-                return seconds
-            else:
-                return int(math.ceil(float(seconds) / 60))
-        return None
-
-    def get(self, key):
-        if self.has(key):
-            if key in self.timestamps:
-                self.timestamps[key] = (time.time(), self.timestamps[key][1])
-            return self.data[key]
-        else:
-            raise MemoryNoKey(str(key))
-
-    def delete(self, key):
-        if self.has(key):
-            del self.data[key]
-            if key in self.timestamps:
-                del self.timestamps[key]
-        else:
-            raise MemoryNoKey(str(key))
-
-    def size(self):
-        return len(self.data)
-
-    def save(self, datadir):
-        if exists(datadir):
-            mempath = join(datadir, "memory.pickle")
-            data = (self.data, self.timestamps)
-            pickle_object(mempath, data)
-
-    def load(self, datadir):
-        mempath = join(datadir, "memory.pickle")
-        if exists(mempath):
-            data = unpickle_object(mempath)
-            self.data = data[0]
-            self.timestamps = data[1]
-            for k in self.data.copy():
-                try:
-                    self.has(k)
-                except MemoryExpired:
-                    pass
 
 
 def get_b64mstyle():
@@ -1187,6 +1237,7 @@ def sync_server(options):
 
     memory = Memory()
     cryptobox = options.cryptobox
+    localindex = get_local_index()
     try:
         result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     except ServerForbidden:
@@ -1197,23 +1248,60 @@ def sync_server(options):
         result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     if not result[0]:
         raise TreeLoadError()
+    serverindex = result[1]
 
     unique_content = {}
     unique_dirs = set()
     files = []
-    json_object(join(options.dir, "servertree"), result[1])
-    for node in result[1]["doclist"]:
+    #json_object(join(options.dir, "localindex"), localindex)
+    #json_object(join(options.dir, "serverindex"), serverindex)
+
+    checked_dirnames = []
+    dirname_hashes_server = {}
+    for node in serverindex["doclist"]:
         if node["doc"]["m_nodetype"] == "folder":
             dirname_of_path = node["doc"]["m_path"]
         else:
             dirname_of_path = dirname(node["doc"]["m_path"])
+        node["dirname_of_path"] = dirname_of_path
         unique_dirs.add(dirname_of_path)
         if node["content_hash_latest_timestamp"]:
             unique_content[node["content_hash_latest_timestamp"][0]] = node
             files.append(node)
 
-    ensure_directories_sync(options, unique_dirs)
-    get_unique_content(options, unique_content, files)
+        if dirname_of_path not in checked_dirnames:
+            dirname_hash = make_sha1_hash(dirname_of_path.replace(sep, "/"))
+            memory.set_add("serverhash_history", dirname_hash)
+            dirname_hashes_server[dirname_hash] = node
+        checked_dirnames.append(dirname_of_path)
+
+    local_dirs_not_on_server = []
+
+    for dirhashlocal in localindex["dirnames"]:
+        found = False
+        for dirhashserver in dirname_hashes_server:
+            #print dirhashserver, localindex["dirnames"][dirhashlocal]["dirname"]
+            if strcmp(dirhashserver, localindex["dirnames"][dirhashlocal]["dirnamehash"]):
+                found = True
+        if not found:
+            if localindex["dirnames"][dirhashlocal]["dirname"] != options.dir:
+                local_dirs_not_on_server.append(localindex["dirnames"][dirhashlocal])
+
+    dirs_to_make_on_server = []
+    dirs_to_remove_locally = []
+    for node in local_dirs_not_on_server:
+        if float(os.stat(node["dirname"]).st_mtime) >= float(serverindex["tree_timestamp"]):
+            dirs_to_make_on_server.append(node)
+        elif memory.set_have("serverhash_history", node["dirnamehash"]):
+            dirs_to_remove_locally.append(node)
+        else:
+            dirs_to_make_on_server.append(node)
+
+    for node in dirs_to_make_on_server:
+        print "add server", node["dirname"]
+
+    for node in dirs_to_remove_locally:
+        print "remove local", node["dirname"]
 
 
 def restore_hidden_config(options):
@@ -1262,10 +1350,6 @@ def restore_hidden_config(options):
         if exists(mempath + ".enc"):
             decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
             os.remove(mempath + ".enc")
-        cryptobox_index_path = get_cryptobox_index_path(options)
-        if exists(cryptobox_index_path + ".enc"):
-            decrypt_file_and_write(cryptobox_index_path + ".enc", cryptobox_index_path, secret=secret)
-            os.remove(cryptobox_index_path + ".enc")
 
 
 def hide_config(options, salt, secret):
@@ -1274,9 +1358,6 @@ def hide_config(options, salt, secret):
         mempath = join(datadir, "memory.pickle")
         read_and_encrypt_file(mempath, mempath + ".enc", salt, secret)
         os.remove(mempath)
-        cryptobox_index_path = get_cryptobox_index_path(options)
-        read_and_encrypt_file(cryptobox_index_path, cryptobox_index_path + ".enc", salt, secret)
-        os.remove(cryptobox_index_path)
 
         hidden_name = get_uuid(3)
         while hidden_name in os.listdir(options.dir):
@@ -1329,11 +1410,19 @@ def main():
         if not options.password:
             exit_app_warning("No password given (-p or --password)")
 
+    if not cryptobox_locked(options):
+        localindex = make_local_index(options)
+        memory.replace("localindex", localindex)
+
     if options.password and options.username and options.cryptobox:
         if authorize_user(options):
             if options.sync:
                 if not options.encrypt:
                     exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+
+                if cryptobox_locked(options):
+                    exit_app_warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+
                 ensure_directory(options.dir)
                 sync_server(options)
 
@@ -1343,6 +1432,8 @@ def main():
         salt, secret = index_and_encrypt(options)
 
     if options.decrypt:
+        if options.remove:
+            exit_app_warning("option remove (-r) cannot be used together with decrypt (dataloss)")
         if not options.clear:
             decrypt_and_build_filetree(options)
 
