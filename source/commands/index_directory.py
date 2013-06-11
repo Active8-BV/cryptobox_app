@@ -431,6 +431,8 @@ def update_progress(curr, total, msg):
     if total == 0:
         return
     progress = int(math.ceil(float(curr) / (float(total) / 100)))
+    if progress > 100:
+        progress = 100
     msg = msg + " " + str(curr) + "/" + str(total)
     update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
     if len(update_string) < last_update_string_len:
@@ -1132,19 +1134,6 @@ def have_blob(options, blob_hash):
     return exists(blobpath)
 
 
-def ensure_directory_sync(options, node_path):
-    new_dir = join(options.dir, node_path.lstrip("/"))
-    ensure_directory(new_dir)
-    return new_dir
-
-
-def ensure_directories_sync(options, unique_dirs):
-    for udir in unique_dirs:
-        udir = udir.lstrip("/").strip()
-        if len(udir) > 0:
-            ensure_directory_sync(options, udir)
-
-
 def write_blob_to_filepaths(node, options, data):
     """
     @type node: dict
@@ -1280,7 +1269,6 @@ def sync_server(options):
     for dirhashlocal in localindex["dirnames"]:
         found = False
         for dirhashserver in dirname_hashes_server:
-            #print dirhashserver, localindex["dirnames"][dirhashlocal]["dirname"]
             if strcmp(dirhashserver, localindex["dirnames"][dirhashlocal]["dirnamehash"]):
                 found = True
         if not found:
@@ -1303,6 +1291,13 @@ def sync_server(options):
     for node in dirs_to_remove_locally:
         print "remove local", node["dirname"]
 
+    on_server_not_local = [np for np in [join(options.dir, np.lstrip("/")) for np in unique_dirs] if not exists(np)]
+    for dir_name in on_server_not_local:
+        print "add local", dir_name, '#ensure_directory(dir_name)'
+
+
+    # ensure_directories_sync(options, unique_dirs)
+    # get_unique_content(options, unique_content, files)
 
 def restore_hidden_config(options):
     hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
