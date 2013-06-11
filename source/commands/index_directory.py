@@ -1142,8 +1142,7 @@ def write_blob_to_filepaths(node, options, data):
     """
     st_mtime = int(node["content_hash_latest_timestamp"][1])
     dirname_of_path = dirname(node["doc"]["m_path"])
-    new_dir = ensure_directory_sync(options, dirname_of_path)
-    new_path = join(new_dir, node["doc"]["m_name"])
+    new_path = join(options.dir, join(dirname_of_path, node["doc"]["m_name"]))
     write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
 
 
@@ -1242,7 +1241,7 @@ def sync_server(options):
     unique_content = {}
     unique_dirs = set()
     files = []
-    #json_object(join(options.dir, "localindex"), localindex)
+
     #json_object(join(options.dir, "serverindex"), serverindex)
 
     checked_dirnames = []
@@ -1287,13 +1286,22 @@ def sync_server(options):
 
     for node in dirs_to_make_on_server:
         print "add server", node["dirname"]
+        memory = Memory()
+    cryptobox = options.cryptobox
+    payload = {}
+    payload["foldernames"] = [dir_name["dirname"] for dir_name in dirs_to_make_on_server]
+
+    # make_folders_result = on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+    # print make_folders_result
 
     for node in dirs_to_remove_locally:
         print "remove local", node["dirname"]
 
     on_server_not_local = [np for np in [join(options.dir, np.lstrip("/")) for np in unique_dirs] if not exists(np)]
     for dir_name in on_server_not_local:
-        print "add local", dir_name, '#ensure_directory(dir_name)'
+        print "add local", dir_name
+        #ensure_directory(dir_name)
+
 
 
     # ensure_directories_sync(options, unique_dirs)
