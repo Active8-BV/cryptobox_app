@@ -780,15 +780,16 @@ def index_and_encrypt(options):
             file_cnt += 1
             file_dir = cryptobox_index["dirnames"][dirhash]["dirname"]
             file_path = join(file_dir, fname["name"])
-            filedata = make_cryptogit_hash(file_path, datadir, cryptobox_index)
-            fname["hash"] = filedata["filehash"]
-            hash_set_on_disk.add(filedata["filehash"])
-            if not filedata["blob_exists"]:
-                new_blobs[filedata["filehash"]] = filedata
-                new_objects += 1
-            if len(new_blobs) > 1500:
-                encrypt_new_blobs(salt, secret, new_blobs)
-                new_blobs = {}
+            if exists(file_path):
+                filedata = make_cryptogit_hash(file_path, datadir, cryptobox_index)
+                fname["hash"] = filedata["filehash"]
+                hash_set_on_disk.add(filedata["filehash"])
+                if not filedata["blob_exists"]:
+                    new_blobs[filedata["filehash"]] = filedata
+                    new_objects += 1
+                if len(new_blobs) > 1500:
+                    encrypt_new_blobs(salt, secret, new_blobs)
+                    new_blobs = {}
             update_progress(file_cnt, numfiles, "checking")
 
     if len(new_blobs) > 0:
