@@ -1242,8 +1242,6 @@ def sync_server(options):
     unique_dirs = set()
     files = []
 
-    #json_object(join(options.dir, "serverindex"), serverindex)
-
     checked_dirnames = []
     dirname_hashes_server = {}
     for node in serverindex["doclist"]:
@@ -1284,23 +1282,23 @@ def sync_server(options):
         else:
             dirs_to_make_on_server.append(node)
 
-    for node in dirs_to_make_on_server:
-        print "add server", node["dirname"]
-        memory = Memory()
+    memory = Memory()
     cryptobox = options.cryptobox
     payload = {}
-    payload["foldernames"] = [dir_name["dirname"] for dir_name in dirs_to_make_on_server]
-
-    # make_folders_result = on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
-    # print make_folders_result
+    payload["foldernames"] = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_to_make_on_server]
+    for dir_name in payload["foldernames"]:
+        log("add server", dir_name)
+    on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
     for node in dirs_to_remove_locally:
-        print "remove local", node["dirname"]
+        log("remove local", node["dirname"])
+        if exists(node["dirname"]):
+            shutil.rmtree(node["dirname"], True)
 
     on_server_not_local = [np for np in [join(options.dir, np.lstrip("/")) for np in unique_dirs] if not exists(np)]
     for dir_name in on_server_not_local:
-        print "add local", dir_name
-        #ensure_directory(dir_name)
+        log("add local", dir_name)
+        ensure_directory(dir_name)
 
 
 
