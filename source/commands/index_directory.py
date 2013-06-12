@@ -612,7 +612,7 @@ class Memory(object):
     def replace(self, key, value, timeout_seconds=None, timeout_minute=None):
         if self.has(key):
             self.delete(key)
-        self.set(key, value, timeout_seconds=None, timeout_minute=None)
+        self.set(key, value, timeout_seconds=timeout_seconds, timeout_minute=timeout_minute)
 
     def ttl(self, key, show_seconds=False):
         if key in self.timestamps:
@@ -685,7 +685,7 @@ def store_cryptobox_index(index):
     memory.replace("cryptobox_index", index)
 
 
-def cryptobox_locked(options):
+def cryptobox_locked():
     current_cryptobox_index = get_cryptobox_index()
     if current_cryptobox_index:
         if current_cryptobox_index["locked"] is True:
@@ -756,7 +756,7 @@ def make_local_index(options):
 def index_and_encrypt(options):
     datadir = get_data_dir(options)
 
-    if cryptobox_locked(options):
+    if cryptobox_locked():
         warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
         return None, None
 
@@ -891,7 +891,7 @@ def decrypt_and_build_filetree(options):
 
     cryptobox_index = get_cryptobox_index()
     if cryptobox_index:
-        if not cryptobox_locked(options):
+        if not cryptobox_locked():
             return
     else:
         cryptobox_index = None
@@ -1219,7 +1219,7 @@ def sync_server(options):
     @type options: optparse.Values
     @return: @rtype: @raise:
     """
-    if cryptobox_locked(options):
+    if cryptobox_locked():
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
 
@@ -1411,7 +1411,7 @@ def main():
         if not options.password:
             exit_app_warning("No password given (-p or --password)")
 
-    if not cryptobox_locked(options):
+    if not cryptobox_locked():
         localindex = make_local_index(options)
         memory.replace("localindex", localindex)
 
@@ -1421,7 +1421,7 @@ def main():
                 if not options.encrypt:
                     exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
 
-                if cryptobox_locked(options):
+                if cryptobox_locked():
                     exit_app_warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                 ensure_directory(options.dir)
