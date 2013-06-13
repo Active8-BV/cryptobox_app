@@ -77,6 +77,8 @@ def add_options():
                       help="sync with server", metavar="SYNC")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads",
                       help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
+    parser.add_option("-x", "--debug", dest="debug", action='store_true',
+                      help="drop to debug repl", metavar="DEBUG")
 
     return parser.parse_args()
 
@@ -324,7 +326,10 @@ def pickle_object(path, targetobject, json_pickle=False):
     """
     cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
     if json_pickle:
-        json_object(path, targetobject)
+        if isinstance(targetobject, dict):
+            json_object(path, targetobject)
+        else:
+            json_object(path, targetobject)
 
 
 def unpickle_object(path):
@@ -565,7 +570,6 @@ class MemoryCorruption(Exception):
 class Memory(object):
     _instance = None
     data = {}
-    timestamps = {}
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -573,19 +577,13 @@ class Memory(object):
             cls._instance = super(Memory, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
-    def set(self, key, value, timeout_seconds=None, timeout_minute=None):
+    def set(self, key, value):
         if key in self.data:
             raise MemoryCorruption("overwrite of " + str(key))
         self.data[key] = value
-        if timeout_minute:
-            timeout_seconds = timeout_minute * 60
-        if timeout_seconds:
-            self.timestamps[key] = (time.time(), timeout_seconds)
 
     def get(self, key):
         if self.has(key):
-            if key in self.timestamps:
-                self.timestamps[key] = (time.time(), self.timestamps[key][1])
             return self.data[key]
         else:
             raise MemoryNoKey(str(key))
@@ -593,37 +591,16 @@ class Memory(object):
     def delete(self, key):
         if self.has(key):
             del self.data[key]
-            if key in self.timestamps:
-                del self.timestamps[key]
         else:
             raise MemoryNoKey(str(key))
 
     def has(self, key):
-        if key in self.timestamps:
-            if int(time.time() - self.timestamps[key][0]) > self.timestamps[key][1]:
-                timestamp = self.timestamps[key][0]
-                timeout = self.timestamps[key][1]
-                del self.data[key]
-                if key in self.timestamps:
-                    del self.timestamps[key]
-                raise MemoryExpired(key + ", " + str(int(time.time() - timestamp) - timeout) + " seconds")
         return key in self.data
 
-    def replace(self, key, value, timeout_seconds=None, timeout_minute=None):
+    def replace(self, key, value):
         if self.has(key):
             self.delete(key)
-        self.set(key, value, timeout_seconds=timeout_seconds, timeout_minute=timeout_minute)
-
-    def ttl(self, key, show_seconds=False):
-        if key in self.timestamps:
-            timestamp = self.timestamps[key][0]
-            timeout = self.timestamps[key][1]
-            seconds = timeout - int(time.time() - timestamp)
-            if show_seconds:
-                return seconds
-            else:
-                return int(math.ceil(float(seconds) / 60))
-        return None
+        self.set(key, value)
 
     def size(self):
         return len(self.data)
@@ -631,15 +608,13 @@ class Memory(object):
     def save(self, datadir):
         if exists(datadir):
             mempath = join(datadir, "memory.pickle")
-            data = (self.data, self.timestamps)
-            pickle_object(mempath, data, json_pickle=False)
+            pickle_object(mempath, self.data, json_pickle=True)
 
     def load(self, datadir):
         mempath = join(datadir, "memory.pickle")
         if exists(mempath):
-            data = unpickle_object(mempath)
-            self.data = data[0]
-            self.timestamps = data[1]
+            self.data = unpickle_object(mempath)
+
             for k in self.data.copy():
                 try:
                     self.has(k)
@@ -656,9 +631,17 @@ class Memory(object):
 
     def set_have(self, list_name, value):
         if not self.has(list_name):
-            raise ListDoesNotExist(list_name)
+            self.set(list_name, set())
+            return False
         collection = self.get(list_name)
         return value in collection
+
+    def set_delete(self, list_name, value):
+        if not self.has(list_name):
+            return False
+        collection = self.get(list_name)
+        collection.remove(value)
+        return True
 
 
 def get_cryptobox_index():
@@ -726,7 +709,7 @@ def index_files_visit(arg, dir_name, names):
     @type dir_name: str or unicode
     @type names: list
     """
-    filenames = [basename(x) for x in filter(lambda x: not isdir(x), [join(dir_name, x) for x in names])]
+    filenames = [basename(x) for x in filter(lambda x: not isdir(x), [join(dir_name, x.lstrip(sep)) for x in names])]
     dirname_hash = make_sha1_hash(dir_name.replace(arg["DIR"], "").replace(sep, "/"))
     nameshash = make_sha1_hash("".join(names))
     folder = {}
@@ -818,7 +801,7 @@ def index_and_encrypt(options):
     blob_dirs = join(datadir, "blobs")
     ensure_directory(blob_dirs)
     for blob_dir in os.listdir(blob_dirs):
-        blob_store = join(blob_dirs, blob_dir)
+        blob_store = join(blob_dirs, blob_dir.lstrip(sep))
         if isdir(blob_store):
             for blob_file in os.listdir(blob_store):
                 found = False
@@ -1028,7 +1011,7 @@ def parse_http_result(result):
     return result
 
 
-def on_server(method, cryptobox, payload, session):
+def on_server(method, cryptobox, payload, session, files=None):
     """
     @type method: str or unicode
     @type cryptobox: str or unicode
@@ -1041,7 +1024,7 @@ def on_server(method, cryptobox, payload, session):
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
     if not session:
         session = requests
-    result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
+    result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies, files=files)
     return parse_http_result(result)
 
 
@@ -1111,7 +1094,7 @@ def authorize_user(options):
         if memory.has("session"):
             return True
         session, results = authorize(options.username, options.password, options.cryptobox)
-        memory.set("session", session, timeout_minute=30)
+        memory.set("session", session)
         return check_otp(session, results)
     except PasswordException, p:
         warning(p, "not authorized")
@@ -1143,7 +1126,7 @@ def write_blob_to_filepaths(node, options, data):
     """
     st_mtime = int(node["content_hash_latest_timestamp"][1])
     dirname_of_path = dirname(node["doc"]["m_path"])
-    new_path = join(options.dir, join(dirname_of_path, node["doc"]["m_name"]))
+    new_path = join(options.dir, join(dirname_of_path.lstrip(sep), node["doc"]["m_name"]))
     write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
 
 
@@ -1215,6 +1198,99 @@ def get_unique_content(options, all_unique_nodes, files):
     pool.terminate()
 
 
+def sync_directories_with_server(options, serverindex, dirname_hashes_server, unique_dirs):
+    fake = False
+    memory = Memory()
+    localindex = get_local_index()
+    local_dirs_not_on_server = []
+    for dirhashlocal in localindex["dirnames"]:
+        found = False
+        for dirhashserver in dirname_hashes_server:
+            if strcmp(dirhashserver, localindex["dirnames"][dirhashlocal]["dirnamehash"]):
+                found = True
+        if not found:
+            if localindex["dirnames"][dirhashlocal]["dirname"] != options.dir:
+                local_dirs_not_on_server.append(localindex["dirnames"][dirhashlocal])
+    dirs_to_make_on_server = []
+    dirs_to_remove_locally = []
+    for node in local_dirs_not_on_server:
+        if float(os.stat(node["dirname"]).st_mtime) >= float(serverindex["tree_timestamp"]):
+            dirs_to_make_on_server.append(node)
+        elif memory.set_have("serverhash_history", node["dirnamehash"]):
+            dirs_to_remove_locally.append(node)
+        else:
+            dirs_to_make_on_server.append(node)
+    memory = Memory()
+    cryptobox = options.cryptobox
+    payload = {}
+    payload["foldernames"] = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_to_make_on_server]
+    for dir_name in payload["foldernames"]:
+        log("add server", dir_name)
+        dir_hash = make_sha1_hash(dir_name.replace(sep, "/"))
+        if not fake:
+            memory.set_add("serverhash_history", dir_hash)
+    if not fake:
+        on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+    for node in dirs_to_remove_locally:
+        log("remove local", node["dirname"])
+        if exists(node["dirname"]):
+            if not fake:
+                shutil.rmtree(node["dirname"], True)
+    on_server_not_local = [np for np in [join(options.dir, np.lstrip("/")) for np in unique_dirs] if not exists(np)]
+    dir_names_to_delete_on_server = []
+    for dir_name in on_server_not_local:
+        dirname_rel = dir_name.replace(options.dir, "")
+        dir_hash = make_sha1_hash(dirname_rel.replace(sep, "/"))
+        if memory.set_have("serverhash_history", dir_hash):
+            dir_names_to_delete_on_server.append(dirname_rel)
+        else:
+            log("add local:", dir_name)
+            if not fake:
+                ensure_directory(dir_name)
+                memory.set_add("serverhash_history", dir_hash)
+    short_node_ids_to_delete = []
+    shortest_paths = set()
+    for drl1 in dir_names_to_delete_on_server:
+        shortest = ""
+        for drl2 in dir_names_to_delete_on_server:
+            if drl2 in drl1 or drl1 in drl2:
+                if len(drl2) < len(shortest) or len(shortest) == 0:
+                    shortest = drl2
+        shortest_paths.add(shortest)
+    for dir_name_rel in shortest_paths:
+        log("remove server:", dir_name_rel)
+        dir_hash = make_sha1_hash(dir_name_rel.replace(sep, "/"))
+        if not fake:
+            memory.set_delete("serverhash_history", dir_hash)
+        short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
+    if len(short_node_ids_to_delete) > 0:
+        payload = {}
+        payload["tree_item_list"] = short_node_ids_to_delete
+        if not fake:
+            on_server("docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+
+
+def upload_file(options, file_object):
+    try:
+        memory = Memory()
+        if memory.has("session"):
+            return True
+        payload = {}
+        payload
+        url = 'http://httpbin.org/post'
+        >> > files = {'file': open('report.xls', 'rb')}
+
+        >> > r = requests.post(url, files=files)
+        >> > r.text
+        on_server("docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
+        files = {'file': open('report.xls', 'rb')}
+        session, results = authorize(options.username, options.password, options.cryptobox)
+        memory.set("session", session)
+        return check_otp(session, results)
+    except PasswordException, p:
+        warning(p, "not authorized")
+        return False
+
 def sync_server(options):
     """
     @type options: optparse.Values
@@ -1226,7 +1302,7 @@ def sync_server(options):
 
     memory = Memory()
     cryptobox = options.cryptobox
-    localindex = get_local_index()
+
     try:
         result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     except ServerForbidden:
@@ -1238,10 +1314,10 @@ def sync_server(options):
     if not result[0]:
         raise TreeLoadError()
     serverindex = result[1]
-
+    memory.replace("serverindex", serverindex)
     unique_content = {}
     unique_dirs = set()
-    files = []
+    fnodes = []
 
     checked_dirnames = []
     dirname_hashes_server = {}
@@ -1254,57 +1330,37 @@ def sync_server(options):
         unique_dirs.add(dirname_of_path)
         if node["content_hash_latest_timestamp"]:
             unique_content[node["content_hash_latest_timestamp"][0]] = node
-            files.append(node)
+            fnodes.append(node)
 
         if dirname_of_path not in checked_dirnames:
             dirname_hash = make_sha1_hash(dirname_of_path.replace(sep, "/"))
-            memory.set_add("serverhash_history", dirname_hash)
             dirname_hashes_server[dirname_hash] = node
         checked_dirnames.append(dirname_of_path)
 
-    local_dirs_not_on_server = []
+    sync_directories_with_server(options, serverindex, dirname_hashes_server, unique_dirs)
 
-    for dirhashlocal in localindex["dirnames"]:
-        found = False
-        for dirhashserver in dirname_hashes_server:
-            if strcmp(dirhashserver, localindex["dirnames"][dirhashlocal]["dirnamehash"]):
-                found = True
-        if not found:
-            if localindex["dirnames"][dirhashlocal]["dirname"] != options.dir:
-                local_dirs_not_on_server.append(localindex["dirnames"][dirhashlocal])
+    localindex = get_local_index()
 
-    dirs_to_make_on_server = []
-    dirs_to_remove_locally = []
-    for node in local_dirs_not_on_server:
-        if float(os.stat(node["dirname"]).st_mtime) >= float(serverindex["tree_timestamp"]):
-            dirs_to_make_on_server.append(node)
-        elif memory.set_have("serverhash_history", node["dirnamehash"]):
-            dirs_to_remove_locally.append(node)
+    for fnode in fnodes:
+        server_path_to_local = join(options.dir, fnode["doc"]["m_path"].lstrip(sep))
+        fnode_hash = make_sha1_hash(server_path_to_local.replace(sep, "/"))
+        if exists(server_path_to_local):
+            memory.set_add("localpath_history", fnode_hash)
         else:
-            dirs_to_make_on_server.append(node)
+            log("new file on server", server_path_to_local)
 
-    memory = Memory()
-    cryptobox = options.cryptobox
-    payload = {}
-    payload["foldernames"] = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_to_make_on_server]
-    for dir_name in payload["foldernames"]:
-        log("add server", dir_name)
-    on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+    local_filenames = [(localindex["dirnames"][d]["dirname"], localindex["dirnames"][d]["filenames"]) for d in localindex["dirnames"] if len(localindex["dirnames"][d]["filenames"]) > 0]
+    local_filenames_set = set()
+    for ft in local_filenames:
+        for fname in ft[1]:
+            if not str(fname["name"]).startswith("."):
+                local_file = join(ft[0], fname["name"])
+                local_filenames_set.add(local_file)
+    for local_file in local_filenames_set:
+        log("new file on disk", local_file)
 
-    for node in dirs_to_remove_locally:
-        log("remove local", node["dirname"])
-        if exists(node["dirname"]):
-            shutil.rmtree(node["dirname"], True)
+    # get_unique_content(options, all_unique_nodes, new_files)
 
-    on_server_not_local = [np for np in [join(options.dir, np.lstrip("/")) for np in unique_dirs] if not exists(np)]
-    for dir_name in on_server_not_local:
-        log("add local", dir_name)
-        ensure_directory(dir_name)
-
-
-
-    # ensure_directories_sync(options, unique_dirs)
-    # get_unique_content(options, unique_content, files)
 
 def restore_hidden_config(options):
     hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
@@ -1369,6 +1425,17 @@ def hide_config(options, salt, secret):
         os.rename(options.dir, join(dirname(options.dir), hidden_name))
 
 
+
+def interact():
+    import code
+    # noinspection PyUnresolvedReferences
+    import readline
+    myglobals = globals()
+    myglobals["m"] = Memory()
+    myglobals["md"] = myglobals["m"].data
+    code.InteractiveConsole(locals=myglobals).interact()
+
+
 def main():
     (options, args) = add_options()
 
@@ -1390,64 +1457,69 @@ def main():
 
     memory = Memory()
     memory.load(datadir)
+    if options.debug:
+        log("drop to repl")
+        interact()
+        exit_app_warning("done with repl")
 
-    if not exists(options.basedir):
-        exit_app_warning("DIR [", options.dir, "] does not exist")
+    try:
+        if not exists(options.basedir):
+            exit_app_warning("DIR [", options.dir, "] does not exist")
 
-    if not options.encrypt and not options.decrypt:
-        warning("No encrypt or decrypt directive given (-d or -e)")
+        if not options.encrypt and not options.decrypt:
+            warning("No encrypt or decrypt directive given (-d or -e)")
 
-    if not options.password:
-        exit_app_warning("No password given (-p or --password)")
-
-    if options.username or options.cryptobox:
-        if not options.username:
-            exit_app_warning("No username given (-u or --username)")
-        if not options.cryptobox:
-            exit_app_warning("No cryptobox given (-b or --cryptobox)")
-
-    if options.sync:
-        if not options.username:
-            exit_app_warning("No username given (-u or --username)")
         if not options.password:
             exit_app_warning("No password given (-p or --password)")
 
-    if not cryptobox_locked():
-        localindex = make_local_index(options)
-        memory.replace("localindex", localindex)
+        if options.username or options.cryptobox:
+            if not options.username:
+                exit_app_warning("No username given (-u or --username)")
+            if not options.cryptobox:
+                exit_app_warning("No cryptobox given (-b or --cryptobox)")
 
-    if options.password and options.username and options.cryptobox:
-        if authorize_user(options):
-            if options.sync:
-                if not options.encrypt:
-                    exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+        if options.sync:
+            if not options.username:
+                exit_app_warning("No username given (-u or --username)")
+            if not options.password:
+                exit_app_warning("No password given (-p or --password)")
 
-                if cryptobox_locked():
-                    exit_app_warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+        if not cryptobox_locked():
+            localindex = make_local_index(options)
+            memory.replace("localindex", localindex)
 
-                ensure_directory(options.dir)
-                sync_server(options)
+        if options.password and options.username and options.cryptobox:
+            if authorize_user(options):
+                if options.sync:
+                    if not options.encrypt:
+                        exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
 
-    salt = None
-    secret = None
-    if options.encrypt:
-        salt, secret = index_and_encrypt(options)
+                    if cryptobox_locked():
+                        exit_app_warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
-    if options.decrypt:
-        if options.remove:
-            exit_app_warning("option remove (-r) cannot be used together with decrypt (dataloss)")
-        if not options.clear:
-            decrypt_and_build_filetree(options)
+                    ensure_directory(options.dir)
+                    sync_server(options)
 
-    if options.clear:
+        salt = None
+        secret = None
         if options.encrypt:
-            exit_app_warning("clear options cannot be used together with encrypt, possible data loss")
-            return
-        datadir = get_data_dir(options)
-        shutil.rmtree(datadir, True)
-        log("cleared all meta data in ", get_data_dir(options))
+            salt, secret = index_and_encrypt(options)
 
-    memory.save(datadir)
+        if options.decrypt:
+            if options.remove:
+                exit_app_warning("option remove (-r) cannot be used together with decrypt (dataloss)")
+            if not options.clear:
+                decrypt_and_build_filetree(options)
+
+        if options.clear:
+            if options.encrypt:
+                exit_app_warning("clear options cannot be used together with encrypt, possible data loss")
+                return
+            datadir = get_data_dir(options)
+            shutil.rmtree(datadir, True)
+            log("cleared all meta data in ", get_data_dir(options))
+    finally:
+        memory.save(datadir)
 
     hide_config(options, salt, secret)
 
