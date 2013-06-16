@@ -13,6 +13,7 @@ import time
 import cPickle
 import json
 import math
+import uuid
 import requests
 import subprocess
 import socket
@@ -79,6 +80,8 @@ def add_options():
                       help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
     parser.add_option("-x", "--debug", dest="debug", action='store_true',
                       help="drop to debug repl", metavar="DEBUG")
+    parser.add_option("-k", "--fake", dest="fake", action='store_true',
+                      help="fake server run", metavar="FAKE")
 
     return parser.parse_args()
 
@@ -621,7 +624,7 @@ class Memory(object):
                 except MemoryExpired:
                     pass
 
-    def set_add(self, list_name, value):
+    def _set_add_value(self, list_name, value):
         if not self.has(list_name):
             self.set(list_name, set())
         collection = self.get(list_name)
@@ -629,14 +632,14 @@ class Memory(object):
             raise ListNameClash(collection + " is not a list")
         collection.add(value)
 
-    def set_have(self, list_name, value):
+    def _set_have_value(self, list_name, value):
         if not self.has(list_name):
             self.set(list_name, set())
             return False
         collection = self.get(list_name)
         return value in collection
 
-    def set_delete(self, list_name, value):
+    def _set_delete_value(self, list_name, value):
         if not self.has(list_name):
             return False
         collection = self.get(list_name)
@@ -691,8 +694,7 @@ def get_uuid(size):
     make a human readable unique identifier
     @param size:
     """
-    uuid = _uu.uuid4()
-    unique_id = uuid.int
+    unique_id = _uu.uuid4().int
     alphabet = "bcdfghjkmnpqrstvwxz"
     alphabet_length = len(alphabet)
     output = ""
@@ -1022,9 +1024,15 @@ def on_server(method, cryptobox, payload, session, files=None):
     global SERVER
     cookies = dict(c_persist_fingerprint_client_part=fingerprint())
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
+    print SERVICE
     if not session:
         session = requests
-    result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies, files=files)
+    if not payload:
+        result = session.post(SERVICE, cookies=cookies, files=files)
+    elif files:
+        result = session.post(SERVICE, data=payload, cookies=cookies, files=files)
+    else:
+        result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
     return parse_http_result(result)
 
 
@@ -1033,6 +1041,7 @@ def download_server(options, url):
     cookies = dict(c_persist_fingerprint_client_part=fingerprint())
     url = normpath(url)
     URL = SERVER + options.cryptobox + "/" + url
+    log("download server:", URL)
     memory = Memory()
     session = memory.get("session")
     result = session.get(URL, cookies=cookies)
@@ -1118,7 +1127,7 @@ def have_blob(options, blob_hash):
     return exists(blobpath)
 
 
-def write_blob_to_filepaths(node, options, data):
+def write_blob_to_filepath(node, options, data):
     """
     @type node: dict
     @type options: optparse.Values
@@ -1127,10 +1136,11 @@ def write_blob_to_filepaths(node, options, data):
     st_mtime = int(node["content_hash_latest_timestamp"][1])
     dirname_of_path = dirname(node["doc"]["m_path"])
     new_path = join(options.dir, join(dirname_of_path.lstrip(sep), node["doc"]["m_name"]))
+    add_local_file_history(new_path)
     write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
 
 
-def ensure_not_unique_content(options, file_nodes, data, downloaded_fhash):
+def write_blobs_to_filepaths(options, file_nodes, data, downloaded_fhash):
     """
     @type options: optparse.Values
     @type file_nodes: list
@@ -1144,7 +1154,8 @@ def ensure_not_unique_content(options, file_nodes, data, downloaded_fhash):
         if strcmp(fhash, downloaded_fhash):
             files_same_hash.append(sfile)
     for fnode in files_same_hash:
-        write_blob_to_filepaths(fnode, options, data)
+        add_server_file_history(fnode["doc"]["m_path"])
+        write_blob_to_filepath(fnode, options, data)
 
 
 # noinspection PyUnusedLocal
@@ -1169,20 +1180,22 @@ def download_blob(options, node):
         handle_exception(e)
 
 
-def get_unique_content(options, all_unique_nodes, files):
+def get_unique_content(options, all_unique_nodes, local_file_paths):
     """
     @type options: optparse.Values
     @type all_unique_nodes: dict
-    @type files: list
+    @type local_file_paths: list
     """
-    unique_nodes_hashes = filter(lambda fhash: not have_blob(options, fhash), all_unique_nodes)
+    if len(local_file_paths) == 0:
+        return
+    unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     pool = multiprocessing.Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
     # noinspection PyUnusedLocal
     def done_downloading(result):
-        ensure_not_unique_content(options, files, result["content"], result["content_hash"])
+        write_blobs_to_filepaths(options, local_file_paths, result["content"], result["content_hash"])
         downloaded_files.append(result["url"])
         update_progress(len(downloaded_files), len(unique_nodes), "downloading")
 
@@ -1198,9 +1211,58 @@ def get_unique_content(options, all_unique_nodes, files):
     pool.terminate()
 
 
-def sync_directories_with_server(options, serverindex, dirname_hashes_server, unique_dirs):
-    fake = False
+def server_file_history_setup(relative_path_name):
     memory = Memory()
+    relative_path_name = relative_path_name.replace(memory.get("cryptobox_folder"), "")
+    fnode_path_id = relative_path_name.replace(sep, "/")
+    return fnode_path_id, memory
+
+
+def have_serverhash(fnodehash):
+    memory = Memory()
+    return memory._set_have_value("serverhash_history", fnodehash)
+
+
+def in_server_file_history(relative_path_name):
+    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    return have_serverhash(fnode_path_id)
+
+
+def add_server_file_history(relative_path_name):
+    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    memory._set_add_value("serverhash_history", fnode_path_id)
+
+
+def del_serverhash(fnode_hash):
+    memory = Memory()
+    if memory._set_have_value("serverhash_history", fnode_hash):
+        memory._set_delete_value("serverhash_history", fnode_hash)
+
+
+def del_server_file_history(relative_path_name):
+    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    del_serverhash(fnode_path_id)
+
+
+def add_local_file_history(relative_path_name):
+    fnode_hash, memory = server_file_history_setup(relative_path_name)
+    memory._set_add_value("localpath_history", fnode_hash)
+
+
+def in_local_file_history(relative_path_name):
+    fnode_hash, memory = server_file_history_setup(relative_path_name)
+    return memory._set_have_value("localpath_history", fnode_hash)
+
+
+def del_local_file_history(relative_path_name):
+    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    if memory._set_have_value("localpath_history", fnode_path_id):
+        memory._set_delete_value("localpath_history", fnode_path_id)
+
+
+def sync_directories_with_server(options, serverindex, dirname_hashes_server, unique_dirs):
+    fake = options.fake
+
     localindex = get_local_index()
     local_dirs_not_on_server = []
     for dirhashlocal in localindex["dirnames"]:
@@ -1216,7 +1278,7 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
     for node in local_dirs_not_on_server:
         if float(os.stat(node["dirname"]).st_mtime) >= float(serverindex["tree_timestamp"]):
             dirs_to_make_on_server.append(node)
-        elif memory.set_have("serverhash_history", node["dirnamehash"]):
+        elif have_serverhash(node["dirnamehash"]):
             dirs_to_remove_locally.append(node)
         else:
             dirs_to_make_on_server.append(node)
@@ -1226,10 +1288,9 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
     payload["foldernames"] = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_to_make_on_server]
     for dir_name in payload["foldernames"]:
         log("add server", dir_name)
-        dir_hash = make_sha1_hash(dir_name.replace(sep, "/"))
         if not fake:
-            memory.set_add("serverhash_history", dir_hash)
-    if not fake:
+            add_server_file_history(dir_name)
+    if not fake and len(payload["foldernames"]) > 0:
         on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
     for node in dirs_to_remove_locally:
         log("remove local", node["dirname"])
@@ -1240,14 +1301,13 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
     dir_names_to_delete_on_server = []
     for dir_name in on_server_not_local:
         dirname_rel = dir_name.replace(options.dir, "")
-        dir_hash = make_sha1_hash(dirname_rel.replace(sep, "/"))
-        if memory.set_have("serverhash_history", dir_hash):
+        if in_server_file_history(dirname_rel):
             dir_names_to_delete_on_server.append(dirname_rel)
         else:
             log("add local:", dir_name)
             if not fake:
                 ensure_directory(dir_name)
-                memory.set_add("serverhash_history", dir_hash)
+                add_server_file_history(dirname_rel)
     short_node_ids_to_delete = []
     shortest_paths = set()
     for drl1 in dir_names_to_delete_on_server:
@@ -1259,9 +1319,8 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
         shortest_paths.add(shortest)
     for dir_name_rel in shortest_paths:
         log("remove server:", dir_name_rel)
-        dir_hash = make_sha1_hash(dir_name_rel.replace(sep, "/"))
         if not fake:
-            memory.set_delete("serverhash_history", dir_hash)
+            del_serverhash(dir_name_rel)
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
     if len(short_node_ids_to_delete) > 0:
         payload = {}
@@ -1270,32 +1329,49 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
             on_server("docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
 
-def upload_file(options, file_object):
-    try:
-        memory = Memory()
-        if memory.has("session"):
-            return True
-        payload = {}
-        payload
-        url = 'http://httpbin.org/post'
-        >> > files = {'file': open('report.xls', 'rb')}
+def upload_file(options, file_object, parent):
+    memory = Memory()
+    if not memory.has("session"):
+        raise NotAuthorized("trying to upload without a session")
+    payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
+    files = {'file': file_object}
+    on_server("docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session"), files=files)
 
-        >> > r = requests.post(url, files=files)
-        >> > r.text
-        on_server("docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
-        files = {'file': open('report.xls', 'rb')}
-        session, results = authorize(options.username, options.password, options.cryptobox)
-        memory.set("session", session)
-        return check_otp(session, results)
-    except PasswordException, p:
-        warning(p, "not authorized")
-        return False
+
+def save_encode_b64(s):
+    s = urllib.quote(s)
+    s = base64.encodestring(s)
+    s = s.replace("=", "-")
+    return s
+
+
+class MultipleGuidsForPath(Exception):
+    pass
+
+
+class NoParentFound(Exception):
+    pass
+
+
+def path_to_server_parent_guid(options, path):
+    memory = Memory()
+    path = path.replace(options.dir, "")
+    path = dirname(path)
+    result = [x["doc"]["m_short_id"] for x in memory.get("serverindex")["doclist"] if strcmp(x["doc"]["m_path"], path)]
+    if len(result) == 0:
+        raise NoParentFound(path)
+    elif len(result) == 1:
+        return result[0]
+    else:
+        raise MultipleGuidsForPath(path)
+
 
 def sync_server(options):
     """
     @type options: optparse.Values
     @return: @rtype: @raise:
     """
+    fake = options.fake
     if cryptobox_locked():
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
@@ -1341,13 +1417,19 @@ def sync_server(options):
 
     localindex = get_local_index()
 
+    local_paths_to_delete_on_server = []
+    new_server_files_to_local_paths = []
     for fnode in fnodes:
         server_path_to_local = join(options.dir, fnode["doc"]["m_path"].lstrip(sep))
-        fnode_hash = make_sha1_hash(server_path_to_local.replace(sep, "/"))
+
         if exists(server_path_to_local):
-            memory.set_add("localpath_history", fnode_hash)
+            add_local_file_history(server_path_to_local)
         else:
-            log("new file on server", server_path_to_local)
+            if in_local_file_history(server_path_to_local):
+                local_paths_to_delete_on_server.append(server_path_to_local)
+            else:
+                log("new file on server", server_path_to_local)
+                new_server_files_to_local_paths.append(fnode)
 
     local_filenames = [(localindex["dirnames"][d]["dirname"], localindex["dirnames"][d]["filenames"]) for d in localindex["dirnames"] if len(localindex["dirnames"][d]["filenames"]) > 0]
     local_filenames_set = set()
@@ -1356,10 +1438,33 @@ def sync_server(options):
             if not str(fname["name"]).startswith("."):
                 local_file = join(ft[0], fname["name"])
                 local_filenames_set.add(local_file)
-    for local_file in local_filenames_set:
-        log("new file on disk", local_file)
+    for local_file_path in local_filenames_set:
+        if exists(local_file_path):
+            print local_file_path
+            if not in_local_file_history(local_file_path):
+                parent = path_to_server_parent_guid(options, local_file_path)
+                if parent:
+                    log("new file on disk", local_file_path, parent)
+                    upload_file(options, open(local_file_path, "rb"), parent)
 
-    # get_unique_content(options, all_unique_nodes, new_files)
+    get_unique_content(options, unique_content, new_server_files_to_local_paths)
+
+    delete_file_guids = []
+    for fpath in local_paths_to_delete_on_server:
+        relpath = fpath.replace(options.dir, "")
+        guids = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if x["doc"]["m_path"] == relpath]
+
+        if len(guids) == 1:
+            log("delete file from server", fpath)
+            delete_file_guids.append(guids[0])
+    if len(delete_file_guids) > 0:
+        payload = {}
+        payload["tree_item_list"] = delete_file_guids
+        if not fake:
+            on_server("docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+    for fpath in local_paths_to_delete_on_server:
+        del_server_file_history(fpath)
+        del_local_file_history(fpath)
 
 
 def restore_hidden_config(options):
@@ -1425,7 +1530,6 @@ def hide_config(options, salt, secret):
         os.rename(options.dir, join(dirname(options.dir), hidden_name))
 
 
-
 def interact():
     import code
     # noinspection PyUnresolvedReferences
@@ -1438,7 +1542,8 @@ def interact():
 
 def main():
     (options, args) = add_options()
-
+    if options.fake:
+        log("doing fake server operations")
     if not options.numdownloadthreads:
         options.numdownloadthreads = multiprocessing.cpu_count() * 2
     else:
@@ -1451,12 +1556,15 @@ def main():
 
     options.basedir = options.dir
     options.dir = join(options.dir, options.cryptobox)
+
     datadir = get_data_dir(options)
 
     restore_hidden_config(options)
 
     memory = Memory()
     memory.load(datadir)
+    memory.replace("cryptobox_folder", options.dir)
+
     if options.debug:
         log("drop to repl")
         interact()
