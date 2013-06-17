@@ -1133,7 +1133,11 @@ def write_blob_to_filepath(node, options, data):
     @type options: optparse.Values
     @type data: str or unicode
     """
-    st_mtime = int(node["content_hash_latest_timestamp"][1])
+    print node["content_hash_latest_timestamp"][1]
+    if node["content_hash_latest_timestamp"][1]:
+        st_mtime = int(node["content_hash_latest_timestamp"][1])
+    else:
+        st_mtime = time.time()
     dirname_of_path = dirname(node["doc"]["m_path"])
     new_path = join(options.dir, join(dirname_of_path.lstrip(sep), node["doc"]["m_name"]))
     add_local_file_history(new_path)
