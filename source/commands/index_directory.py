@@ -1041,7 +1041,7 @@ def download_server(options, url):
     cookies = dict(c_persist_fingerprint_client_part=fingerprint())
     url = normpath(url)
     URL = SERVER + options.cryptobox + "/" + url
-    log("download server:", URL)
+    #log("download server:", URL)
     memory = Memory()
     session = memory.get("session")
     result = session.get(URL, cookies=cookies)
@@ -1127,17 +1127,20 @@ def have_blob(options, blob_hash):
     return exists(blobpath)
 
 
+class NoTimeStamp(Exception):
+    pass
+
+
 def write_blob_to_filepath(node, options, data):
     """
     @type node: dict
     @type options: optparse.Values
     @type data: str or unicode
     """
-    print node["content_hash_latest_timestamp"][1]
-    if node["content_hash_latest_timestamp"][1]:
-        st_mtime = int(node["content_hash_latest_timestamp"][1])
-    else:
-        st_mtime = time.time()
+
+    if not node["content_hash_latest_timestamp"][1]:
+        raise NoTimeStamp(str(node))
+    st_mtime = int(node["content_hash_latest_timestamp"][1])
     dirname_of_path = dirname(node["doc"]["m_path"])
     new_path = join(options.dir, join(dirname_of_path.lstrip(sep), node["doc"]["m_name"]))
     add_local_file_history(new_path)
@@ -1204,6 +1207,8 @@ def get_unique_content(options, all_unique_nodes, local_file_paths):
         update_progress(len(downloaded_files), len(unique_nodes), "downloading")
 
     download_results = []
+
+    unique_nodes = [node for node in unique_nodes if not exists(join(options.dir, node["doc"]["m_path"].lstrip(sep)))]
     for node in unique_nodes:
         result = pool.apply_async(download_blob, (options, node), callback=done_downloading)
         download_results.append(result)
