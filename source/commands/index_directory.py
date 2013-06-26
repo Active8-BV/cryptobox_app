@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7.apple
+#!/usr/bin/python
 # coding=utf-8
 import sys
 reload(sys)
