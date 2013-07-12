@@ -986,11 +986,6 @@ def request_error(result):
     return
 
 
-def fingerprint():
-    fp = str(socket.gethostname())
-    fph = make_hash(fp)
-    return fph
-
 
 class ServerForbidden(Exception):
     pass
@@ -1022,7 +1017,7 @@ def on_server(method, cryptobox, payload, session, files=None):
     @return: @rtype:
     """
     global SERVER
-    cookies = dict(c_persist_fingerprint_client_part=fingerprint())
+
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
     print SERVICE
     if not session:
@@ -1038,7 +1033,7 @@ def on_server(method, cryptobox, payload, session, files=None):
 
 def download_server(options, url):
     global SERVER
-    cookies = dict(c_persist_fingerprint_client_part=fingerprint())
+    cookies = {}
     url = normpath(url)
     URL = SERVER + options.cryptobox + "/" + url
     #log("download server:", URL)
