@@ -1334,6 +1334,13 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
 
 
 def upload_file(options, file_object, parent):
+    """
+
+    @param options:
+    @param file_object:
+    @param parent:
+    @raise NotAuthorized:
+    """
     memory = Memory()
     if not memory.has("session"):
         raise NotAuthorized("trying to upload without a session")
@@ -1343,6 +1350,11 @@ def upload_file(options, file_object, parent):
 
 
 def save_encode_b64(s):
+    """
+
+    @param s:
+    @return: @rtype:
+    """
     s = urllib.quote(s)
     s = base64.encodestring(s)
     s = s.replace("=", "-")
@@ -1358,6 +1370,12 @@ class NoParentFound(Exception):
 
 
 def path_to_server_parent_guid(options, path):
+    """
+
+    @param options:
+    @param path:
+    @return: @rtype: @raise MultipleGuidsForPath:
+    """
     memory = Memory()
     path = path.replace(options.dir, "")
     path = dirname(path)
@@ -1472,11 +1490,19 @@ def sync_server(options):
 
 
 def restore_hidden_config(options):
+    """
+
+    @param options:
+    """
     hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
     hidden_configs_dict = {}
     dsecret = {}
 
     def return_secret(s):
+        """
+
+        @param s:
+        """
         dsecret[s] = s
 
     for config in hidden_configs:
@@ -1520,6 +1546,12 @@ def restore_hidden_config(options):
 
 
 def hide_config(options, salt, secret):
+    """
+
+    @param options:
+    @param salt:
+    @param secret:
+    """
     if options.encrypt and options.remove and salt and secret:
         datadir = get_data_dir(options)
         mempath = join(datadir, "memory.pickle")
@@ -1535,6 +1567,10 @@ def hide_config(options, salt, secret):
 
 
 def interact():
+    """
+
+
+    """
     import code
     # noinspection PyUnresolvedReferences
     import readline
@@ -1545,6 +1581,11 @@ def interact():
 
 
 def main():
+    """
+
+
+    @return: @rtype:
+    """
     (options, args) = add_options()
     if options.fake:
         log("doing fake server operations")
