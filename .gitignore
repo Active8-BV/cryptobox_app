@@ -1,9 +1,8 @@
-*.lnk
-*.dict
-build/
-app.running
+server/.idea/workspace.xml
+app/img/cblogo
+server/.idea/workspace.xml
 server/.idea/
-.idea/
+
 /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/app/img/cblogo/
 cblogo/
 *.idea
@@ -11,7 +10,8 @@ cblogo/
 *.pyo
 *.pyc
 *.dump
-Cryptobox/packages/
-Cryptobox/dist/ 
-./Cryptobox/packages/
-./Cryptobox/dist/
+*.lock
+create_*.sh
+
+
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch create_*.sh' --prune-empty --tag-name-filter cat -- --all
