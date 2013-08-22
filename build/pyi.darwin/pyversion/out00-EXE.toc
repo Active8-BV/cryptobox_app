@@ -1,0 +1,10 @@
+('/Users/rabshakeh/workspace/cryptobox/cryptobox_app/dist/pyversion',
+ True,
+ False,
+ None,
+ None,
+ [],
+ None,
+ False,
+ 0,
+ 1377144141)
