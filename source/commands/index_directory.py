@@ -1017,7 +1017,7 @@ def on_server(method, cryptobox, payload, session, files=None):
     @return: @rtype:
     """
     global SERVER
-
+    cookies = {}
     SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
     print SERVICE
     if not session:
