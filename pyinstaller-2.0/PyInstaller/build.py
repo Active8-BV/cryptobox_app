@@ -1330,12 +1330,6 @@ class BUNDLE(Target):
 
 
 class TOC(UserList.UserList):
-    """
-
-    @param initlist:
-    @type initlist:
-    """
-
     def __init__(self, initlist=None):
         UserList.UserList.__init__(self)
         self.fltr = {}
@@ -1344,11 +1338,6 @@ class TOC(UserList.UserList):
                 self.append(tpl)
 
     def append(self, tpl):
-        """
-
-        @param tpl:
-        @raise:
-        """
         try:
             fn = tpl[0]
             if tpl[2] == "BINARY":
@@ -1365,11 +1354,6 @@ class TOC(UserList.UserList):
             raise
 
     def insert(self, pos, tpl):
-        """
-
-        @param pos:
-        @param tpl:
-        """
         fn = tpl[0]
         if tpl[2] == "BINARY":
             fn = os.path.normcase(fn)
@@ -1388,10 +1372,6 @@ class TOC(UserList.UserList):
         return rslt
 
     def extend(self, other):
-        """
-
-        @param other:
-        """
         for tpl in other:
             self.append(tpl)
 
@@ -1413,11 +1393,6 @@ class TOC(UserList.UserList):
         return rslt.__sub__(self)
 
     def intersect(self, other):
-        """
-
-        @param other:
-        @return: @rtype:
-        """
         rslt = TOC()
         for tpl in other:
             if self.fltr.get(tpl[0], 0):
@@ -1426,16 +1401,6 @@ class TOC(UserList.UserList):
 
 
 class Tree(Target, TOC):
-    """
-
-    @param root:
-    @type root:
-    @param prefix:
-    @type prefix:
-    @param excludes:
-    @type excludes:
-    """
-
     def __init__(self, root=None, prefix=None, excludes=None):
         Target.__init__(self)
         TOC.__init__(self)
@@ -1453,11 +1418,6 @@ class Tree(Target, TOC):
             )
 
     def check_guts(self, last_build):
-        """
-
-        @param last_build:
-        @return: @rtype:
-        """
         data = Target.get_guts(self, last_build)
         if not data:
             return True
@@ -1477,11 +1437,6 @@ class Tree(Target, TOC):
         return False
 
     def assemble(self):
-        """
-
-
-        @return: @rtype:
-        """
         logger.info("building Tree %s", os.path.basename(self.out))
         stack = [(self.root, self.prefix)]
         excludes = {}
@@ -1592,33 +1547,18 @@ class MERGE(object):
 
 
 def TkTree():
-    """
-
-
-    @raise SystemExit:
-    """
     raise SystemExit('TkTree has been removed in PyInstaller 2.0. '
                      'Please update your spec-file. See '
                      'http://www.pyinstaller.org/wiki/MigrateTo2.0 for details')
 
 
 def TkPKG():
-    """
-
-
-    @raise SystemExit:
-    """
     raise SystemExit('TkPKG has been removed in PyInstaller 2.0. '
                      'Please update your spec-file. See '
                      'http://www.pyinstaller.org/wiki/MigrateTo2.0 for details')
 
 
 def build(spec, buildpath):
-    """
-
-    @param spec:
-    @param buildpath:
-    """
     global SPECPATH, BUILDPATH, WARNFILE, rthooks, SPEC, specnm
     rthooks = _load_data(os.path.join(HOMEPATH, 'support', 'rthooks.dat'))
     SPEC = spec
@@ -1657,14 +1597,6 @@ def __add_options(parser):
 
 
 def main(specfile, buildpath, noconfirm, ascii=False, **kw):
-    """
-
-    @param specfile:
-    @param buildpath:
-    @param noconfirm:
-    @param ascii:
-    @param kw:
-    """
     global config
     global icon, versioninfo, winresource, winmanifest, pyasm
     global HIDDENIMPORTS, NOCONFIRM

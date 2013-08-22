@@ -187,9 +187,9 @@ class Test_TestLoader(unittest2.TestCase):
         self.assertIsInstance(suite, unittest2.TestSuite)
         self.assertEqual(suite.countTestCases(), 1)
         test = list(suite)[0]
-
+        
         self.assertRaisesRegexp(TypeError, "some failure", test.m)
-
+        
 
     ################################################################
     ### /Tests for TestLoader.loadTestsFromModule()
@@ -1266,32 +1266,11 @@ class Test_TestLoader(unittest2.TestCase):
     # It is implicit in the documentation for TestLoader.suiteClass that
     # all TestLoader.loadTestsFrom* methods respect it. Let's make sure
     def test_suiteClass__loadTestsFromNames(self):
-        """
-
-
-        """
         m = types.ModuleType('m')
         class Foo(unittest2.TestCase):
-            def test_1(self):
-                """
-
-
-                """
-                pass
-
-            def test_2(self):
-                """
-
-
-                """
-                pass
-
-            def foo_bar(self):
-                """
-
-
-                """
-                pass
+            def test_1(self): pass
+            def test_2(self): pass
+            def foo_bar(self): pass
         m.Foo = Foo
 
         tests = [[Foo('test_1'), Foo('test_2')]]
@@ -1302,10 +1281,6 @@ class Test_TestLoader(unittest2.TestCase):
 
     # "The default value is the TestSuite class"
     def test_suiteClass__default_value(self):
-        """
-
-
-        """
         loader = unittest2.TestLoader()
         self.assertTrue(loader.suiteClass is unittest2.TestSuite)
 

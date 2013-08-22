@@ -1,4 +1,4 @@
-
+mkdir ./dist
 rm ./build/$1/*.pyz
 rm ./dist/$1
 rm ./Cryptobox/Resources/$1
