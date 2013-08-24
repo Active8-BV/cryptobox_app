@@ -7,8 +7,24 @@ import multiprocessing
 from cba_utils import handle_exception, strcmp
 from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file
 from cba_feedback import update_progress
-from cba_index import get_blob_dir
 from cba_memory import add_local_file_history, add_server_file_history
+
+
+def get_data_dir(options):
+    """
+    get_data_dir
+    @type options: instance
+    """
+    return os.path.join(options.dir, ".cryptobox")
+
+
+def get_blob_dir(options):
+    """
+    get_blob_dir
+    @type options: instance
+    """
+    datadir = get_data_dir(options)
+    return os.path.join(datadir, "blobs")
 
 
 def encrypt_new_blobs(salt, secret, new_blobs):

@@ -6,11 +6,11 @@ import os
 import base64
 import multiprocessing
 from cba_utils import cba_warning
-from cba_index import get_data_dir, get_cryptobox_index, cryptobox_locked, store_cryptobox_index
+from cba_index import get_cryptobox_index, cryptobox_locked, store_cryptobox_index
 from cba_file import ensure_directory
 from cba_feedback import update_progress
 from cba_crypto import password_derivation
-from cba_blobs import decrypt_blob_to_filepaths
+from cba_blobs import decrypt_blob_to_filepaths, get_data_dir
 
 
 def decrypt_and_build_filetree(options):
@@ -57,7 +57,7 @@ def decrypt_and_build_filetree(options):
     def done_decrypting(e):
         """
         @param e: event
-        @type e: 
+        @type e:
         """
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting")

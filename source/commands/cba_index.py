@@ -8,9 +8,9 @@ import base64
 from Crypto import Random
 from cba_utils import cba_warning, strcmp, get_uuid
 from cba_memory import Memory
-from cba_crypto import password_derivation, make_sha1_hash, make_cryptogit_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
+from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
 from cba_blobs import encrypt_new_blobs
-from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file
+from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
 from cba_feedback import update_progress
 
 
@@ -19,23 +19,6 @@ class TreeLoadError(Exception):
     TreeLoadError
     """
     pass
-
-
-def get_data_dir(options):
-    """
-    get_data_dir
-    @type options: instance
-    """
-    return os.path.join(options.dir, ".cryptobox")
-
-
-def get_blob_dir(options):
-    """
-    get_blob_dir
-    @type options: instance
-    """
-    datadir = get_data_dir(options)
-    return os.path.join(datadir, "blobs")
 
 
 def get_cryptobox_index():
@@ -246,7 +229,7 @@ def index_and_encrypt(options):
                 shutil.rmtree(blob_dir, True)
 
     if numfiles > 0:
-        print "cba_index.py:251"
+        print "cba_index.py:234"
     return salt, secret
 
 

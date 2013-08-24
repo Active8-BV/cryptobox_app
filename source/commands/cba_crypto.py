@@ -12,9 +12,7 @@ from Crypto import Random
 from Crypto.Hash import SHA, SHA512, HMAC
 from Crypto.Cipher import Blowfish
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import strcmp
-from cba_file import read_file_to_fdict
-from cba_utils import DEBUG
+from cba_utils import strcmp, DEBUG
 
 
 def make_sha1_hash(data):
@@ -78,8 +76,6 @@ def password_derivation(key, salt):
     # 16, 24 or 32 bytes long (for AES-128, AES-196 and AES-256, respectively)
     size = 32
     return PBKDF2(key, salt, size)
-
-#noinspection PyArgumentEqualDefault
 
 
 def encrypt(salt, secret, data):
@@ -209,25 +205,3 @@ def decrypt_object(secret, obj_string, key=None, give_secret_cb=None):
             give_secret_cb(secret)
 
     return cPickle.loads(decrypt(secret, data, hashcheck=False))
-
-
-def make_cryptogit_hash(fpath, datadir, cryptobox_index):
-    """
-    @type fpath: str or unicode
-    @type datadir: str or unicode
-    @type cryptobox_index: dict
-    @return: @rtype:
-    """
-    file_dict = read_file_to_fdict(fpath)
-    filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
-    blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
-    blobpath = os.path.join(blobdir, filehash[2:])
-    filedata = {"filehash": filehash,
-                "fpath": fpath,
-                "blobpath": blobpath,
-                "blobdir": blobdir,
-                "blob_exists": os.path.exists(blobpath)}
-
-    del file_dict["data"]
-    cryptobox_index["filestats"][fpath] = file_dict
-    return filedata
