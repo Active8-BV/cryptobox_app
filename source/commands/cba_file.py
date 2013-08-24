@@ -112,13 +112,13 @@ def decrypt_file_and_write(fpath, unenc_path, secret):
 def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     """
     @param cryptobox_index: dict
-    @type cryptobox_index: 
+    @type cryptobox_index:
     @param fdir: str or unicode
-    @type fdir: 
+    @type fdir:
     @param fhash: str or unicode
-    @type fhash: 
+    @type fhash:
     @param secret: str or unicode
-    @type secret: 
+    @type secret:
     """
     blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
     file_blob = {"data": decrypt(secret, blob_enc)}
@@ -136,3 +136,25 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
                     file_blob["st_uid"] = int(ft["st_uid"])
                     file_blob["st_gid"] = int(ft["st_gid"])
                     write_fdict_to_file(file_blob, fpath)
+
+
+def make_cryptogit_hash(fpath, datadir, cryptobox_index):
+    """
+    @type fpath: str or unicode
+    @type datadir: str or unicode
+    @type cryptobox_index: dict
+    @return: @rtype:
+    """
+    file_dict = read_file_to_fdict(fpath)
+    filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
+    blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
+    blobpath = os.path.join(blobdir, filehash[2:])
+    filedata = {"filehash": filehash,
+                "fpath": fpath,
+                "blobpath": blobpath,
+                "blobdir": blobdir,
+                "blob_exists": os.path.exists(blobpath)}
+
+    del file_dict["data"]
+    cryptobox_index["filestats"][fpath] = file_dict
+    return filedata
