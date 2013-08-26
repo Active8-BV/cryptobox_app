@@ -5,8 +5,6 @@ import operator
 import struct
 import shutil
 
-#from modulegraph.util import *
-
 from macholib import mach_o
 
 MAGIC = [
@@ -16,11 +14,6 @@ MAGIC = [
 FAT_MAGIC_BYTES = struct.pack('!L', mach_o.FAT_MAGIC)
 MAGIC_LEN = 4
 STRIPCMD = ['/usr/bin/strip', '-x', '-S', '-']
-
-try:
-    unicode
-except NameError:
-    unicode = str
 
 
 def fsencoding(s, encoding=sys.getfilesystemencoding()):
@@ -96,8 +89,7 @@ class fileview(object):
         self._fileobj.write(bytes)
 
     def read(self, size=sys.maxsize):
-        if size < 0:
-            raise ValueError("Invalid size %s while reading from %s", size, self._fileobj)
+        assert size >= 0
         here = self._fileobj.tell()
         self._checkwindow(here, 'read')
         bytes = min(size, self._end - here)
