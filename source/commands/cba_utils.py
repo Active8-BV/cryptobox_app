@@ -50,7 +50,7 @@ def exit_app_warning(*arg):
     @type arg:
     """
     cba_warning("cba_utils.py:40", *arg)
-    exit(1)
+    sys.exit(1)
 
 
 def timestamp_to_string(ts, short=False):
