@@ -10,7 +10,7 @@ from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
-
+from cba_blobs import get_blob_dir
 
 def options():
     """
@@ -34,6 +34,16 @@ def options():
     return parser.parse_args()
 
 
+def count_files_dir(fpath):
+    """
+    count_files_dir
+    """
+    s = set()
+    for path, dirs, files in os.walk(fpath):
+        for f in files:
+            s.add(f)
+    return len(s)
+
 class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -55,21 +65,24 @@ class CryptoboxAppTest(unittest.TestCase):
                           "fake": False,
                           "numdownloadthreads": 2}
 
-        self.no_box_given = self.options_d.copy()
-        del self.no_box_given["cryptobox"]
         self.cboptions = dict2obj_new(self.options_d)
-        self.no_box_given = dict2obj_new(self.no_box_given)
+
 
     def tearDown(self):
         """
         tearDown
         """
+
         #os.system("rm -Rf testdata/testmap")
 
     def test_index_no_box_given(self):
         """
         test_index
         """
+        self.no_box_given = self.options_d.copy()
+        self.no_box_given = dict2obj_new(self.no_box_given)
+        del self.no_box_given["cryptobox"]
+
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
             run_app_command(self.no_box_given)
 
@@ -80,16 +93,18 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions.sync = False
         localindex_check = pickle.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
-
         self.assertTrue(localindex_check == localindex)
 
     def test_index_and_encrypt(self):
         """
+        test_index_and_encrypt
         """
         memory = Memory()
         localindex = make_local_index(self.cboptions)
         memory.replace("localindex", localindex)
         index_and_encrypt(self.cboptions)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 20)
+
 
 if __name__ == '__main__':
     unittest.main()

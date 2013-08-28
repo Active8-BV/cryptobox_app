@@ -9,12 +9,7 @@ import multiprocessing
 from optparse import OptionParser
 from cba_memory import Memory
 from cba_utils import log, exit_app_warning, cba_warning, strcmp
-from cba_index import restore_hidden_config, \
-    make_local_index, \
-    cryptobox_locked, \
-    ensure_directory, \
-    hide_config, \
-    index_and_encrypt
+from cba_index import restore_hidden_config, make_local_index, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt
 from cba_tree import decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server
@@ -26,43 +21,18 @@ def add_options():
     options for the command line tool
     """
     parser = OptionParser()
-    parser.add_option("-f", "--dir", dest="dir",
-                      help="index this DIR", metavar="DIR")
-
-    parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true',
-                      help="index and possible decrypt files)", metavar="ENCRYPT")
-
-    parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true',
-                      help="decrypt and correct the directory", metavar="DECRYPT")
-
-    parser.add_option("-r", "--remove", dest="remove", action='store_true',
-                      help="remove the unencrypted files", metavar="DECRYPT")
-
-    parser.add_option("-c", "--clear", dest="clear", action='store_true',
-                      help="clear all cryptobox data", metavar="DECRYPT")
-
-    parser.add_option("-u", "--username", dest="username",
-                      help="cryptobox username", metavar="USERNAME")
-
-    parser.add_option("-p", "--password", dest="password",
-
-                      help="password used for encryption", metavar="PASSWORD")
-
-    parser.add_option("-b", "--cryptobox", dest="cryptobox",
-                      help="cryptobox slug", metavar="CRYPTOBOX")
-
-    parser.add_option("-s", "--sync", dest="sync", action='store_true',
-                      help="sync with server", metavar="SYNC")
-
-    parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads",
-                      help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
-
-    parser.add_option("-x", "--debug", dest="debug", action='store_true',
-                      help="drop to debug repl", metavar="DEBUG")
-
-    parser.add_option("-k", "--fake", dest="fake", action='store_true',
-                      help="fake server run", metavar="FAKE")
-
+    parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
+    parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files)", metavar="ENCRYPT")
+    parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
+    parser.add_option("-r", "--remove", dest="remove", action='store_true', help="remove the unencrypted files", metavar="DECRYPT")
+    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="DECRYPT")
+    parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
+    parser.add_option("-p", "--password", dest="password", help="password used encryption", metavar="PASSWORD")
+    parser.add_option("-b", "--cryptobox", dest="cryptobox", help="cryptobox slug", metavar="CRYPTOBOX")
+    parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
+    parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
+    parser.add_option("-x", "--debug", dest="debug", action='store_true', help="drop to debug repl", metavar="DEBUG")
+    parser.add_option("-k", "--fake", dest="fake", action='store_true', help="fake server run", metavar="FAKE")
     return parser.parse_args()
 
 
