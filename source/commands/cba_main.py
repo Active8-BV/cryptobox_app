@@ -81,6 +81,13 @@ def interact():
     code.InteractiveConsole(locals=myglobals).interact()
 
 
+class ExitAppWarning(Exception):
+    """
+    ExitAppWarning
+    """
+    pass
+
+
 def run_app_command(options):
     """
     @param options: dictionary with options
@@ -97,10 +104,10 @@ def run_app_command(options):
         options.numdownloadthreads = int(options.numdownloadthreads)
 
     if not options.dir:
-        exit_app_warning("Need DIR (-f or --dir) to continue")
+        raise ExitAppWarning("Need DIR -f or --dir to continue")
 
     if not options.cryptobox:
-        exit_app_warning("No cryptobox given (-b or --cryptobox)")
+        raise ExitAppWarning("No cryptobox given -b or --cryptobox")
 
     options.basedir = options.dir
     options.dir = os.path.join(options.dir, options.cryptobox)
@@ -113,30 +120,32 @@ def run_app_command(options):
     if options.debug:
         log("drop to repl")
         interact()
-        exit_app_warning("done with repl")
+
+        raise ExitAppWarning("done with repl")
+
     try:
         if not os.path.exists(options.basedir):
-            exit_app_warning("DIR [", options.dir, "] does not exist")
+            raise ExitAppWarning("DIR [", options.dir, "] does not exist")
 
         if not options.encrypt and not options.decrypt:
             cba_warning("No encrypt or decrypt directive given (-d or -e)")
 
         if not options.password:
-            exit_app_warning("No password given (-p or --password)")
+            raise ExitAppWarning("No password given (-p or --password)")
 
         if options.username or options.cryptobox:
             if not options.username:
-                exit_app_warning("No username given (-u or --username)")
+                raise ExitAppWarning("No username given (-u or --username)")
 
             if not options.cryptobox:
-                exit_app_warning("No cryptobox given (-b or --cryptobox)")
+                raise ExitAppWarning("No cryptobox given (-b or --cryptobox)")
 
         if options.sync:
             if not options.username:
-                exit_app_warning("No username given (-u or --username)")
+                raise ExitAppWarning("No username given (-u or --username)")
 
             if not options.password:
-                exit_app_warning("No password given (-p or --password)")
+                raise ExitAppWarning("No password given (-p or --password)")
 
         if not cryptobox_locked():
             localindex = make_local_index(options)
@@ -146,10 +155,10 @@ def run_app_command(options):
             if authorize_user(options):
                 if options.sync:
                     if not options.encrypt:
-                        exit_app_warning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+                        raise ExitAppWarning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
 
                     if cryptobox_locked():
-                        exit_app_warning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                     ensure_directory(options.dir)
                     sync_server(options)
@@ -162,15 +171,14 @@ def run_app_command(options):
 
         if options.decrypt:
             if options.remove:
-                exit_app_warning("option remove (-r) cannot be used together with decrypt (dataloss)")
+                raise ExitAppWarning("option remove (-r) cannot be used together with decrypt (dataloss)")
 
             if not options.clear:
                 decrypt_and_build_filetree(options)
 
         if options.clear:
             if options.encrypt:
-                exit_app_warning("clear options cannot be used together with encrypt, possible data loss")
-                return
+                raise ExitAppWarning("clear options cannot be used together with encrypt, possible data loss")
 
             datadir = get_data_dir(options)
             shutil.rmtree(datadir, True)
@@ -187,7 +195,11 @@ def main():
     @return: @rtype:
     """
     (options, args) = add_options()
-    run_app_command(options)
+
+    try:
+        run_app_command(options)
+    except ExitAppWarning, ex:
+        exit_app_warning(str(ex))
 
 
 if strcmp(__name__, '__main__'):

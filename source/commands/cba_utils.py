@@ -10,6 +10,34 @@ g_lock = multiprocessing.Lock()
 DEBUG = True
 
 
+class dict2obj_new(dict):
+    """
+    dict2obj_new
+    """
+
+    def __init__(self, dict_):
+        super(dict2obj_new, self).__init__(dict_)
+
+        for key in self:
+            item = self[key]
+
+            if isinstance(item, list):
+                for idx, it in enumerate(item):
+                    if isinstance(it, dict):
+                        item[idx] = dict2obj_new(it)
+
+            elif isinstance(item, dict):
+                self[key] = dict2obj_new(item)
+
+    def __getattr__(self, key):
+
+        # Enhanced to handle key not found.
+        if key in self:
+            return self[key]
+        else:
+            return None
+
+
 def cba_warning(*arg):
     """
     cba_warning
@@ -179,8 +207,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:184", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:185", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:212", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:213", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
