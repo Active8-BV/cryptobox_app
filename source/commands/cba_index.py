@@ -9,7 +9,7 @@ from Crypto import Random
 from cba_utils import cba_warning, strcmp, get_uuid
 from cba_memory import Memory
 from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
-from cba_blobs import encrypt_new_blobs
+from cba_blobs import encrypt_new_blobs, get_data_dir
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
 from cba_feedback import update_progress
 

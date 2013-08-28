@@ -2,7 +2,6 @@
 """
 crypto routines for the commandline tool
 """
-import os
 import re
 import json
 import base64
