@@ -129,7 +129,7 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
             add_server_file_history(dir_name)
 
     if not fake and len(payload["foldernames"]) > 0:
-        on_server("docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+        on_server(options.server, "docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
     for node in dirs_to_remove_locally:
         log("remove local", node["dirname"])
@@ -178,7 +178,7 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
         payload = {"tree_item_list": short_node_ids_to_delete}
 
         if not fake:
-            on_server("docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+            on_server(options.server, "docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
 
 def upload_file(options, file_object, parent):
@@ -199,7 +199,7 @@ def upload_file(options, file_object, parent):
 
     payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     files = {'file': file_object}
-    on_server("docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session"), files=files)
+    on_server(options.server, "docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session"), files=files)
 
 
 def save_encode_b64(s):
@@ -268,7 +268,7 @@ def sync_server(options):
     cryptobox = options.cryptobox
 
     try:
-        result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+        result = on_server(options.server, "tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     except ServerForbidden:
         log("unauthorized try again")
 
@@ -276,7 +276,7 @@ def sync_server(options):
             memory.delete("session")
 
         authorize_user(options)
-        result = on_server("tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+        result = on_server(options.server, "tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
 
     if not result[0]:
         raise TreeLoadError()
@@ -360,7 +360,7 @@ def sync_server(options):
         payload = {"tree_item_list": delete_file_guids}
 
         if not fake:
-            on_server("docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+            on_server(options.server, "docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
     for fpath in local_paths_to_delete_on_server:
         del_server_file_history(fpath)
