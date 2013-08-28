@@ -3,8 +3,9 @@
 unit test for app commands
 """
 __author__ = 'rabshakeh'
+import os
 import unittest
-from __init__ import *
+
 
 class CryptoboxAppTest(unittest.TestCase):
     """
@@ -15,15 +16,18 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         setUp
         """
+        os.system("rm -Rf testmap")
+        os.system("unzip testmap.zip > /dev/null")
 
     def tearDown(self):
         """
         tearDown
         """
+        os.system("rm -Rf testmap")
 
     def test_index(self):
         """
-        test_task
+        test_index
         """
 
 
