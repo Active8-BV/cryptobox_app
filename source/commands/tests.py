@@ -5,6 +5,8 @@ unit test for app commands
 __author__ = 'rabshakeh'
 import os
 import unittest
+from cba_main import run_app_command
+from collections import namedtuple
 
 
 def options():
@@ -12,6 +14,7 @@ def options():
     options for the command line tool
     """
     from optparse import OptionParser
+
     parser = OptionParser()
     parser.add_option("-f", "--dir", dest="dir",
                       help="index this DIR", metavar="DIR")
@@ -32,6 +35,7 @@ def options():
                       help="cryptobox username", metavar="USERNAME")
 
     parser.add_option("-p", "--password", dest="password",
+
                       help="password used for encryption", metavar="PASSWORD")
 
     parser.add_option("-b", "--cryptobox", dest="cryptobox",
@@ -69,8 +73,11 @@ class CryptoboxAppTest(unittest.TestCase):
                              "password": "kjhfsd98",
                              "cryptobox": "test",
                              "sync": True,
+                             "numdownloadthreads": 2}
 
-                             }
+        self.no_box_given = self.index_option.copy()
+        del self.no_box_given["cryptobox"]
+        self.index_option = namedtuple("options", self.index_option)
 
     def tearDown(self):
         """
@@ -78,13 +85,11 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         os.system("rm -Rf testmap")
 
-    def test_index(self):
+    def test_index_no_box_given(self):
         """
         test_index
         """
-
-
-
+        run_app_command(self.no_box_given)
 
 
 if __name__ == '__main__':
