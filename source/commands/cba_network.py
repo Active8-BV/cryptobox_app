@@ -11,9 +11,6 @@ import subprocess
 import json
 from cba_utils import cba_warning
 from cba_memory import Memory
-SERVER = "http://127.0.0.1:8000/"
-
-#SERVER = "https://www.cryptobox.nl/"
 
 
 def get_b64mstyle():
@@ -159,8 +156,9 @@ def parse_http_result(result):
     return result
 
 
-def on_server(method, cryptobox, payload, session, files=None):
+def on_server(server, method, cryptobox, payload, session, files=None):
     """
+    @type server: str or unicode
     @type method: str or unicode
     @type cryptobox: str or unicode
     @type payload: dict or None
@@ -169,8 +167,8 @@ def on_server(method, cryptobox, payload, session, files=None):
     @return: @rtype:
     """
     cookies = {}
-    SERVICE = SERVER + cryptobox + "/" + method + "/" + str(time.time())
-    print "cba_network.py:175", SERVICE
+    SERVICE = server + cryptobox + "/" + method + "/" + str(time.time())
+
     if not session:
         session = requests
 
@@ -190,10 +188,9 @@ def download_server(options, url):
     @type options: instance
     @type url: str, unicode
     """
-    global SERVER
     cookies = {}
     url = os.path.normpath(url)
-    URL = SERVER + options.cryptobox + "/" + url
+    URL = options.server + options.cryptobox + "/" + url
 
     #log("download server:", URL)
     memory = Memory()
@@ -202,12 +199,13 @@ def download_server(options, url):
     return parse_http_result(result)
 
 
-def server_time(cryptobox):
+def server_time(server, cryptobox):
     """
     server_time
+    @type server: str, unicode
     @type cryptobox: str, unicode
     """
-    return float(on_server("clock", cryptobox, payload=None, session=None)[0])
+    return float(on_server(server, "clock", cryptobox, payload=None, session=None)[0])
 
 
 class PasswordException(Exception):
@@ -217,19 +215,18 @@ class PasswordException(Exception):
     pass
 
 
-def authorize(username, password, cryptobox):
+def authorize(server, cryptobox, username, password):
     """
+    @type server: str, unicode
+    @type cryptobox: str or unicode
     @type username: str or unicode
     @type password: str or unicode
-    @type cryptobox: str or unicode
-    @return: @rtype: @raise:
-
     """
     session = requests.Session()
     payload = {"username": username,
-               "password": password}
+               "password": password, "trust_computer": True}
 
-    result = on_server("authorize", cryptobox=cryptobox, payload=payload, session=session)
+    result = on_server(server, "authorize", cryptobox=cryptobox, payload=payload, session=session)
     payload["trust_computer"] = True
     payload["trused_location_name"] = "Cryptobox"
     results = result.json()
@@ -243,11 +240,11 @@ def authorize(username, password, cryptobox):
         raise PasswordException(username)
 
 
-def check_otp(session, results):
+def check_otp(server, session, results):
     """
+    @type server: str, unicode
     @type session: requests.sessions.Session
     @type results: dict
-    @return: @rtype:
     """
     if not "otp" in results:
         return True
@@ -255,7 +252,7 @@ def check_otp(session, results):
         payload = results["payload"]
         cryptobox = results["cryptobox"]
         payload["otp"] = results["otp"]
-        results = on_server("checkotp", cryptobox=cryptobox, payload=payload, session=session)
+        results = on_server(server, "checkotp", cryptobox=cryptobox, payload=payload, session=session)
         results = results.json()
         return results
 
@@ -272,9 +269,9 @@ def authorize_user(options):
         if memory.has("session"):
             return True
 
-        session, results = authorize(options.username, options.password, options.cryptobox)
+        session, results = authorize(options.server, options.cryptobox, options.username, options.password)
         memory.set("session", session)
-        return check_otp(session, results)
+        return check_otp(session, results, options.server)
     except PasswordException, p:
         cba_warning(p, "not authorized")
         return False
@@ -286,6 +283,10 @@ def authorized(options):
     @type options: instance
     """
     memory = Memory()
+
+    if not memory.has("session"):
+        return False
+
     cryptobox = options.cryptobox
-    result = on_server("authorized", cryptobox=cryptobox, payload=None, session=memory.get("session")).json()
+    result = on_server(options.server, "authorized", cryptobox=cryptobox, payload=None, session=memory.get("session")).json()
     return result[0]

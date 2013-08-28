@@ -11,6 +11,8 @@ from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
 from cba_blobs import get_blob_dir
+from cba_network import authorize_user, authorized
+
 
 def options():
     """
@@ -37,12 +39,16 @@ def options():
 def count_files_dir(fpath):
     """
     count_files_dir
+    @type fpath: str, unicode
     """
     s = set()
+
     for path, dirs, files in os.walk(fpath):
         for f in files:
             s.add(f)
+
     return len(s)
+
 
 class CryptoboxAppTest(unittest.TestCase):
     """
@@ -53,6 +59,8 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         setUp
         """
+
+        #SERVER = "https://www.cryptobox.nl/"
         os.system("rm -Rf testdata/testmap")
         os.system("cd testdata; unzip -o testmap.zip > /dev/null")
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
@@ -63,10 +71,10 @@ class CryptoboxAppTest(unittest.TestCase):
                           "clear": False,
                           "sync": False,
                           "fake": False,
+                          "server": "http://127.0.0.1:8000/",
                           "numdownloadthreads": 2}
 
         self.cboptions = dict2obj_new(self.options_d)
-
 
     def tearDown(self):
         """
@@ -74,6 +82,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         os.system("rm -Rf testdata/testmap")
 
+    @unittest.skip("skip test_index_no_box_given")
     def test_index_no_box_given(self):
         """
         test_index
@@ -85,6 +94,7 @@ class CryptoboxAppTest(unittest.TestCase):
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
             run_app_command(self.no_box_given)
 
+    @unittest.skip("skip test_index_directory")
     def test_index_directory(self):
         """
         test_index
@@ -94,6 +104,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex = make_local_index(self.cboptions)
         self.assertTrue(localindex_check == localindex)
 
+    @unittest.skip("skip test_index_and_encrypt")
     def test_index_and_encrypt(self):
         """
         test_index_and_encrypt
@@ -103,6 +114,15 @@ class CryptoboxAppTest(unittest.TestCase):
         memory.replace("localindex", localindex)
         index_and_encrypt(self.cboptions)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 20)
+
+    @unittest.skip("skip test_connection")
+    def test_connection(self):
+        """
+        test_connection
+        """
+        self.assertFalse(authorized(self.cboptions))
+        self.assertTrue(authorize_user(self.cboptions))
+        self.assertTrue(authorized(self.cboptions))
 
 
 if __name__ == '__main__':
