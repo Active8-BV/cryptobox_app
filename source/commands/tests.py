@@ -72,8 +72,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         tearDown
         """
-
-        #os.system("rm -Rf testdata/testmap")
+        os.system("rm -Rf testdata/testmap")
 
     def test_index_no_box_given(self):
         """
