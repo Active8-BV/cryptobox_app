@@ -14,7 +14,7 @@ S'b41d4f2140f778039b9fe7cfec2148bd44d6dc88'
 p8
 sS'dirname'
 p9
-S'/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testmap/all_types'
+S'/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap/all_types'
 p10
 sS'filenames'
 p11
@@ -130,7 +130,7 @@ g7
 S'0e3364d2a6dfc3fc05122696b0757a70d8a29ecf'
 p67
 sg9
-S'/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testmap'
+S'/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap'
 p68
 sg11
 (lp69
@@ -147,7 +147,7 @@ g7
 S'604f853094818c6be0ff938aa438bbfaaa529067'
 p74
 sg9
-S'/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testmap/smalltest'
+S'/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap/smalltest'
 p75
 sg11
 (lp76

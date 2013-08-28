@@ -8,7 +8,8 @@ import pickle
 import unittest
 from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
-from cba_index import make_local_index
+from cba_index import make_local_index, index_and_encrypt
+from cba_memory import Memory
 
 
 def options():
@@ -43,8 +44,8 @@ class CryptoboxAppTest(unittest.TestCase):
         setUp
         """
         os.system("rm -Rf testdata/testmap")
-        os.system("unzip testdata/testmap.zip > /dev/null")
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testmap",
+        os.system("cd testdata; unzip -o testmap.zip > /dev/null")
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
                           "encrypt": True,
                           "username": "rabshakeh",
                           "password": "kjhfsd98",
@@ -63,7 +64,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         tearDown
         """
-        os.system("rm -Rf testmap")
+        #os.system("rm -Rf testdata/testmap")
 
     def test_index_no_box_given(self):
         """
@@ -77,11 +78,18 @@ class CryptoboxAppTest(unittest.TestCase):
         test_index
         """
         self.cboptions.sync = False
-
+        localindex_check = pickle.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
-        self.assertEqual(len(localindex["dirnames"]["dc400944b099e8b3ca1d421e482663382cc883c9"]["filenames"]), 25)
-        pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
 
+        self.assertTrue(localindex_check == localindex)
+
+    def test_index_and_encrypt(self):
+        """
+        """
+        memory = Memory()
+        localindex = make_local_index(self.cboptions)
+        memory.replace("localindex", localindex)
+        index_and_encrypt(self.cboptions)
 
 if __name__ == '__main__':
     unittest.main()
