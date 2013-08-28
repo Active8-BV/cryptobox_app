@@ -81,12 +81,13 @@ def interact():
     code.InteractiveConsole(locals=myglobals).interact()
 
 
-def main():
+def run_app_command(options):
     """
-    @return: @rtype:
+    @param options: dictionary with options
+    @type options: namedtuple, Values
+    @return: succes indicator
+    @rtype: bool
     """
-    (options, args) = add_options()
-
     if options.fake:
         log("doing fake server operations")
 
@@ -178,6 +179,15 @@ def main():
         memory.save(datadir)
 
     hide_config(options, salt, secret)
+    return True
+
+
+def main():
+    """
+    @return: @rtype:
+    """
+    (options, args) = add_options()
+    run_app_command(options)
 
 
 if strcmp(__name__, '__main__'):
