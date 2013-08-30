@@ -4,7 +4,6 @@ unit test for app commands
 """
 __author__ = 'rabshakeh'
 import os
-import time
 import pickle
 import unittest
 import requests
@@ -15,7 +14,7 @@ from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
-from cba_sync import get_server_index, parse_serverindex, parse_made_local, parse_removed_local
+from cba_sync import get_server_index, parse_serverindex, parse_made_local, parse_removed_local, make_directories_local
 from cba_file import ensure_directory
 
 
@@ -215,8 +214,13 @@ class CryptoboxAppTestServer(unittest.TestCase):
         dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(self.memory, self.cboptions, dirname_hashes_server, serverindex)
         self.assertEqual(len(dirs_to_make_on_server), 0)
         self.assertEqual(len(dirs_to_remove_locally), 0)
-        dir_names_to_delete_on_server, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
+        dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 0)
+        self.assertEqual(len(dir_names_to_make_locally), 3)
+        make_directories_local(self.memory, dir_names_to_make_locally)
+        dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
+        self.assertEqual(len(dir_names_to_delete_on_server), 0)
+        self.assertEqual(len(dir_names_to_make_locally), 0)
 
 
 if __name__ == '__main__':

@@ -219,39 +219,45 @@ def del_serverhash(fnode_hash):
         memory.set_delete_value("serverhash_history", fnode_hash)
 
 
-def del_server_file_history(relative_path_name):
+def del_server_file_history(memory, relative_path_name):
     """
+    @type memory: Memory
     del_server_file_history
     @type relative_path_name: str, unicode
     """
-    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
     del_serverhash(fnode_path_id)
+    return memory
 
 
-def add_local_file_history(relative_path_name):
+def add_local_file_history(memory, relative_path_name):
     """
+    @type memory: Memory
     add_local_file_history
     @type relative_path_name: str, unicode
     """
-    fnode_hash, memory = server_file_history_setup(relative_path_name)
+    fnode_hash, memory = server_file_history_setup(memory, relative_path_name)
     memory.set_add_value("localpath_history", fnode_hash)
+    return memory
 
-
-def in_local_file_history(relative_path_name):
+def in_local_file_history(memory, relative_path_name):
     """
+    @type memory: Memory
     in_local_file_history
     @type relative_path_name: str, unicode
     """
-    fnode_hash, memory = server_file_history_setup(relative_path_name)
-    return memory.set_have_value("localpath_history", fnode_hash)
+    fnode_hash, memory = server_file_history_setup(memory, relative_path_name)
+    return memory.set_have_value("localpath_history", fnode_hash), memory
 
 
-def del_local_file_history(relative_path_name):
+def del_local_file_history(memory, relative_path_name):
     """
+    @type memory: Memory
     del_local_file_history
     @type relative_path_name: str, unicode
     """
-    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
 
     if memory.set_have_value("localpath_history", fnode_path_id):
         memory.set_delete_value("localpath_history", fnode_path_id)
+    return memory

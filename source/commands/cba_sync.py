@@ -8,6 +8,7 @@ import base64
 import urllib
 import shutil
 import multiprocessing
+from collections import namedtuple
 from cba_index import get_local_index, cryptobox_locked, TreeLoadError
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
@@ -26,6 +27,7 @@ from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
 
+
 def download_blob(options, node):
     """
     download_blob
@@ -41,8 +43,9 @@ def download_blob(options, node):
         handle_exception(e)
 
 
-def get_unique_content(options, all_unique_nodes, local_file_paths):
+def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     """
+    @type memory: Memory
     @type options: optparse.Values
     @type all_unique_nodes: dict
     @type local_file_paths: list
@@ -62,8 +65,7 @@ def get_unique_content(options, all_unique_nodes, local_file_paths):
         done_downloading
         @type result: dict
         """
-        write_blobs_to_filepaths(options, local_file_paths, result["content"], result["content_hash"])
-        downloaded_files.append(result["url"])
+        downloaded_files.append(result)
         update_progress(len(downloaded_files), len(unique_nodes), "downloading")
 
     download_results = []
@@ -82,6 +84,11 @@ def get_unique_content(options, all_unique_nodes, local_file_paths):
 
     pool.terminate()
 
+    for result in downloaded_files:
+        memory = write_blobs_to_filepaths(memory, options, local_file_paths, result["content"], result["content_hash"])
+        update_progress(len(downloaded_files), len(unique_nodes), "writing")
+
+    return memory
 
 def parse_made_local(memory, options, dirname_hashes_server, serverindex):
     """
@@ -152,15 +159,27 @@ def remove_local_folders(dirs_to_remove_locally):
             shutil.rmtree(node["dirname"], True)
 
 
+def make_directories_local(memory, folders):
+    """
+    @type memory: Memory
+    @type folders: list
+    """
+    for f in folders:
+        ensure_directory(f.name)
+        memory = add_server_file_history(memory, f.relname)
+    return memory
+
+
 def parse_removed_local(memory, options, unique_dirs):
     """
     @type memory: Memory
     @type options: instance
-    @type unique_dirs: list
+    @type unique_dirs: set
     @rtype: list, Memory
     """
     on_server_not_local = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs] if not os.path.exists(np)]
     dir_names_to_delete_on_server = []
+    dir_names_to_make_locally = []
 
     for dir_name in on_server_not_local:
         dirname_rel = dir_name.replace(options.dir, "")
@@ -169,11 +188,12 @@ def parse_removed_local(memory, options, unique_dirs):
         if have_on_server:
             dir_names_to_delete_on_server.append(dirname_rel)
         else:
-            log("add local:", dir_name)
-            ensure_directory(dir_name)
-            memory = add_server_file_history(memory, dirname_rel)
+            folder = namedtuple("folder", ["name", "relname"])
+            folder.name = dir_name
+            folder.relname = dirname_rel
+            dir_names_to_make_locally.append(folder)
 
-    return dir_names_to_delete_on_server, memory
+    return dir_names_to_delete_on_server, dir_names_to_make_locally, memory
 
 
 def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server):
@@ -226,7 +246,7 @@ def sync_directories_with_server(memory, options, serverindex, dirname_hashes_se
     remove_local_folders(dirs_to_remove_locally)
 
     # find new folders on server and determine local creation or server removal
-    dir_names_to_delete_on_server, memory = parse_removed_local(memory, options, unique_dirs)
+    dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(memory, options, unique_dirs)
     instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server)
     return memory
 
@@ -383,7 +403,7 @@ def sync_server(memory, options):
     memory.replace("serverindex", serverindex)
     dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     memory = sync_directories_with_server(memory, options, serverindex, dirname_hashes_server, unique_dirs)
-    localindex = get_local_index()
+    localindex = get_local_index(memory)
     local_paths_to_delete_on_server = []
     new_server_files_to_local_paths = []
 
@@ -391,9 +411,10 @@ def sync_server(memory, options):
         server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
 
         if os.path.exists(server_path_to_local):
-            add_local_file_history(server_path_to_local)
+            memory = add_local_file_history(memory, server_path_to_local)
         else:
-            if in_local_file_history(server_path_to_local):
+            seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
+            if seen_local_file_before:
                 local_paths_to_delete_on_server.append(server_path_to_local)
             else:
                 log("new file on server", server_path_to_local)
@@ -410,15 +431,16 @@ def sync_server(memory, options):
 
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
-            print "cba_sync.py:415", local_file_path
-            if not in_local_file_history(local_file_path):
+            seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
+
+            if not seen_local_file_before:
                 parent = path_to_server_parent_guid(options, local_file_path)
 
                 if parent:
                     log("new file on disk", local_file_path, parent)
                     upload_file(options, open(local_file_path, "rb"), parent)
 
-    get_unique_content(options, unique_content, new_server_files_to_local_paths)
+    memory, get_unique_content(memory, options, unique_content, new_server_files_to_local_paths)
     delete_file_guids = []
 
     for fpath in local_paths_to_delete_on_server:
@@ -437,5 +459,6 @@ def sync_server(memory, options):
             on_server(options.server, "docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
     for fpath in local_paths_to_delete_on_server:
-        del_server_file_history(fpath)
-        del_local_file_history(fpath)
+        memory = del_server_file_history(memory, fpath)
+        memory = del_local_file_history(memory, fpath)
+    return memory
