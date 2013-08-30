@@ -178,13 +178,13 @@ def server_file_history_setup(memory, relative_path_name):
     return fnode_path_id, memory
 
 
-def have_serverhash(fnodehash):
+def have_serverhash(memory, fnodehash):
     """
     have_serverhash
+    @type memory: Memory
     @type fnodehash: str, unicode
     """
-    memory = Memory()
-    return memory.set_have_value("serverhash_history", fnodehash)
+    return memory.set_have_value("serverhash_history", fnodehash), memory
 
 
 def in_server_file_history(memory, relative_path_name):
@@ -194,7 +194,8 @@ def in_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    return have_serverhash(fnode_path_id), memory
+    has_server_hash, memory = have_serverhash(memory, fnode_path_id)
+    return has_server_hash, memory
 
 
 def add_server_file_history(memory, relative_path_name):
@@ -208,15 +209,15 @@ def add_server_file_history(memory, relative_path_name):
     return memory
 
 
-def del_serverhash(fnode_hash):
+def del_serverhash(memory, fnode_hash):
     """
     del_serverhash
+    @type memory: Memory
     @type fnode_hash: str, unicode
     """
-    memory = Memory()
-
     if memory.set_have_value("serverhash_history", fnode_hash):
         memory.set_delete_value("serverhash_history", fnode_hash)
+    return memory
 
 
 def del_server_file_history(memory, relative_path_name):
@@ -226,7 +227,7 @@ def del_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    del_serverhash(fnode_path_id)
+    memory = del_serverhash(memory, fnode_path_id)
     return memory
 
 
@@ -239,6 +240,7 @@ def add_local_file_history(memory, relative_path_name):
     fnode_hash, memory = server_file_history_setup(memory, relative_path_name)
     memory.set_add_value("localpath_history", fnode_hash)
     return memory
+
 
 def in_local_file_history(memory, relative_path_name):
     """

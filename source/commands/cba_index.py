@@ -21,12 +21,11 @@ class TreeLoadError(Exception):
     pass
 
 
-def get_cryptobox_index():
+def get_cryptobox_index(memory):
     """
+    @type memory: Memory
     get_cryptobox_index
     """
-    memory = Memory()
-
     if memory.has("cryptobox_index"):
         return memory.get("cryptobox_index")
     else:
@@ -40,20 +39,22 @@ class NoLocalIndex(Exception):
     pass
 
 
-def store_cryptobox_index(index):
+def store_cryptobox_index(memory, index):
     """
     store_cryptobox_index
+    @type memory: Memory
     @type index: dict
     """
-    memory = Memory()
     memory.replace("cryptobox_index", index)
+    return memory
 
 
-def cryptobox_locked():
+def cryptobox_locked(memory):
     """
     cryptobox_locked
+    @type memory: Memory
     """
-    current_cryptobox_index = get_cryptobox_index()
+    current_cryptobox_index = get_cryptobox_index(memory)
 
     if current_cryptobox_index:
         if current_cryptobox_index["locked"] is True:
@@ -61,13 +62,14 @@ def cryptobox_locked():
     return False
 
 
-def get_secret(options):
+def get_secret(memory, options):
     """
     get_secret
+    @type memory: Memory
     @type options: instance
     """
     password = options.password
-    current_cryptobox_index = get_cryptobox_index()
+    current_cryptobox_index = get_cryptobox_index(memory)
 
     if current_cryptobox_index:
         salt = base64.decodestring(current_cryptobox_index["salt_b64"])
@@ -120,18 +122,19 @@ def make_local_index(options):
     return cryptobox_index
 
 
-def index_and_encrypt(options):
+def index_and_encrypt(memory, options):
     """
     index_and_encrypt
+    @type memory: Memory
     @type options: instance
     """
     datadir = get_data_dir(options)
 
-    if cryptobox_locked():
+    if cryptobox_locked(memory):
         cba_warning("cba_index.py:140", "cryptobox is locked, nothing can be added now first decrypt (-d)")
         return None, None
 
-    salt, secret = get_secret(options)
+    salt, secret = get_secret(memory, options)
     cryptobox_index = make_local_index(options)
     ensure_directory(datadir)
 
@@ -175,7 +178,7 @@ def index_and_encrypt(options):
     else:
         cryptobox_index["locked"] = False
     cryptobox_index["salt_b64"] = base64.encodestring(salt)
-    store_cryptobox_index(cryptobox_index)
+    memory = store_cryptobox_index(memory, cryptobox_index)
 
     if options.remove:
         ld = os.listdir(options.dir)
@@ -218,7 +221,7 @@ def index_and_encrypt(options):
             if len(blob_entries) == 0:
                 shutil.rmtree(blob_dir, True)
 
-    return salt, secret
+    return salt, secret, memory
 
 
 def restore_hidden_config(options):

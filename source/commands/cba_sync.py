@@ -27,17 +27,17 @@ from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
 
-
-def download_blob(options, node):
+def download_blob(memory, options, node):
     """
     download_blob
+    @type memory: Memory
     @type options: instance
     @type node: dict
     """
 
     try:
         url = "download/" + node["doc"]["m_short_id"]
-        result = download_server(options, url)
+        result, memory = download_server(memory, options, url)
         return {"url": result.url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result.content}
     except Exception, e:
         handle_exception(e)
@@ -90,6 +90,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     return memory
 
+
 def parse_made_local(memory, options, dirname_hashes_server, serverindex):
     """
     @type memory: Memory
@@ -122,7 +123,9 @@ def parse_made_local(memory, options, dirname_hashes_server, serverindex):
         if float(os.stat(node["dirname"]).st_mtime) >= float(serverindex["tree_timestamp"]):
             dirs_to_make_on_server.append(node)
 
-        elif have_serverhash(node["dirnamehash"]):
+        have_hash_on_server, memory = have_serverhash(memory, node["dirnamehash"])
+
+        if have_hash_on_server:
             dirs_to_remove_locally.append(node)
         else:
             dirs_to_make_on_server.append(node)
@@ -167,6 +170,7 @@ def make_directories_local(memory, folders):
     for f in folders:
         ensure_directory(f.name)
         memory = add_server_file_history(memory, f.relname)
+
     return memory
 
 
@@ -220,7 +224,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to
 
     for dir_name_rel in shortest_paths:
         log("remove server:", dir_name_rel)
-        del_serverhash(dir_name_rel)
+        memory = del_serverhash(memory, dir_name_rel)
 
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
@@ -251,8 +255,9 @@ def sync_directories_with_server(memory, options, serverindex, dirname_hashes_se
     return memory
 
 
-def upload_file(options, file_object, parent):
+def upload_file(memory, options, file_object, parent):
     """
+    @type memory: Memory
     @param options:
     @type options:
     @param file_object:
@@ -262,14 +267,13 @@ def upload_file(options, file_object, parent):
     @raise NotAuthorized:
 
     """
-    memory = Memory()
-
     if not memory.has("session"):
         raise NotAuthorized("trying to upload without a session")
 
     payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     files = {'file': file_object}
     on_server(options.server, "docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session"), files=files)
+    return memory
 
 
 def save_encode_b64(s):
@@ -298,8 +302,9 @@ class NoParentFound(Exception):
     pass
 
 
-def path_to_server_parent_guid(options, path):
+def path_to_server_parent_guid(memory, options, path):
     """
+    @type memory: Memory
     @param options:
     @type options:
     @param path:
@@ -307,7 +312,6 @@ def path_to_server_parent_guid(options, path):
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
-    memory = Memory()
     path = path.replace(options.dir, "")
     path = os.path.dirname(path)
 
@@ -317,7 +321,7 @@ def path_to_server_parent_guid(options, path):
         raise NoParentFound(path)
 
     elif len(result) == 1:
-        return result[0]
+        return result[0], memory
     else:
         raise MultipleGuidsForPath(path)
 
@@ -393,7 +397,7 @@ def sync_server(memory, options):
     """
     fake = options.fake
 
-    if cryptobox_locked():
+    if cryptobox_locked(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
 
@@ -414,6 +418,7 @@ def sync_server(memory, options):
             memory = add_local_file_history(memory, server_path_to_local)
         else:
             seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
+
             if seen_local_file_before:
                 local_paths_to_delete_on_server.append(server_path_to_local)
             else:
@@ -434,11 +439,11 @@ def sync_server(memory, options):
             seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
 
             if not seen_local_file_before:
-                parent = path_to_server_parent_guid(options, local_file_path)
+                parent, memory = path_to_server_parent_guid(memory, options, local_file_path)
 
                 if parent:
                     log("new file on disk", local_file_path, parent)
-                    upload_file(options, open(local_file_path, "rb"), parent)
+                    memory = upload_file(memory, options, open(local_file_path, "rb"), parent)
 
     memory, get_unique_content(memory, options, unique_content, new_server_files_to_local_paths)
     delete_file_guids = []

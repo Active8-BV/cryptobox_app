@@ -13,9 +13,10 @@ from cba_crypto import password_derivation
 from cba_blobs import decrypt_blob_to_filepaths, get_data_dir
 
 
-def decrypt_and_build_filetree(options):
+def decrypt_and_build_filetree(memory, options):
     """
     decrypt_and_build_filetree
+    @type memory: Memory
     @type options: instance
     """
     password = options.password
@@ -26,10 +27,12 @@ def decrypt_and_build_filetree(options):
         return
 
     blobdir = os.path.join(datadir, "blobs")
-    cryptobox_index = get_cryptobox_index()
+    cryptobox_index, memory = get_cryptobox_index(memory)
 
     if cryptobox_index:
-        if not cryptobox_locked():
+        cb_locked = cryptobox_locked(memory)
+
+        if not cb_locked:
             return
     else:
         cryptobox_index = None
@@ -81,7 +84,8 @@ def decrypt_and_build_filetree(options):
     if successfull_decryption:
         cryptobox_index["locked"] = False
 
-    store_cryptobox_index(cryptobox_index)
+    memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_tree.py:89"
+        print "cba_tree.py:92"
+    return memory
