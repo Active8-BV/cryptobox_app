@@ -9,7 +9,7 @@ import urllib
 import shutil
 import multiprocessing
 from collections import namedtuple
-from cba_index import get_local_index, cryptobox_locked, TreeLoadError
+from cba_index import get_local_index, cryptobox_locked, TreeLoadError, index_files_visit
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, ServerForbidden, authorize_user
@@ -162,15 +162,23 @@ def remove_local_folders(dirs_to_remove_locally):
             shutil.rmtree(node["dirname"], True)
 
 
-def make_directories_local(memory, folders):
+def make_directories_local(memory, options, folders):
     """
     @type memory: Memory
+    @type options: instance
     @type folders: list
     """
+
     for f in folders:
         ensure_directory(f.name)
         memory = add_server_file_history(memory, f.relname)
-
+        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
+        index_files_visit(arg, f.name, [])
+        for k in arg["folders"]["dirnames"]:
+            localindex = memory.get("localindex")
+            localindex["dirnames"][k] = arg["folders"]["dirnames"][k]
+            memory.replace("localindex", localindex)
+        arg = arg
     return memory
 
 
@@ -181,11 +189,11 @@ def parse_removed_local(memory, options, unique_dirs):
     @type unique_dirs: set
     @rtype: list, Memory
     """
-    on_server_not_local = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs] if not os.path.exists(np)]
+    local_folders = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs] if not os.path.exists(np)]
     dir_names_to_delete_on_server = []
     dir_names_to_make_locally = []
 
-    for dir_name in on_server_not_local:
+    for dir_name in local_folders:
         dirname_rel = dir_name.replace(options.dir, "")
         have_on_server, memory = in_server_file_history(memory, dirname_rel)
 
@@ -231,7 +239,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
         on_server(options.server, "docs/delete", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
-
+    return memory
 
 def sync_directories_with_server(memory, options, serverindex, dirname_hashes_server, unique_dirs):
     """
@@ -251,7 +259,7 @@ def sync_directories_with_server(memory, options, serverindex, dirname_hashes_se
 
     # find new folders on server and determine local creation or server removal
     dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(memory, options, unique_dirs)
-    instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server)
+    memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server)
     return memory
 
 
@@ -351,8 +359,8 @@ def get_server_index(memory, options):
         raise TreeLoadError()
 
     serverindex = result[1]
-    memory.set("serverindex", serverindex)
-    return memory
+    memory.replace("serverindex", serverindex)
+    return serverindex, memory
 
 
 def parse_serverindex(serverindex):

@@ -14,7 +14,7 @@ from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
-from cba_sync import get_server_index, parse_serverindex, parse_made_local, parse_removed_local, make_directories_local
+from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, parse_removed_local, make_directories_local
 from cba_file import ensure_directory
 
 
@@ -176,7 +176,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
 
         os.system("rm -Rf testdata/testmap")
 
-
     def test_connection(self):
         """
         test_connection
@@ -201,41 +200,45 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(serverindex, serverindex_test)
 
-    def test_compare_server_with_local_tree(self):
+    def test_compare_server_tree_with_local_tree(self):
         """
         test_compare_server_with_local_tree
         """
+        self.memory.set("localindex", make_local_index(self.cboptions))
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
-
-        self.memory = get_server_index(self.memory, self.cboptions)
-        serverindex = self.memory.get("serverindex")
+        serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         self.assertEqual(len(dirname_hashes_server), 4)
         self.assertEqual(len(fnodes), 9)
         self.assertEqual(len(unique_content), 4)
-        self.memory.set("localindex", make_local_index(self.cboptions))
 
-        dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(self.memory, self.cboptions, dirname_hashes_server, serverindex)
-        self.assertEqual(len(dirs_to_make_on_server), 0)
-        self.assertEqual(len(dirs_to_remove_locally), 0)
-
+        # mirror the server structure to local
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 0)
         self.assertEqual(len(dir_names_to_make_locally), 3)
-        self.memory = make_directories_local(self.memory, dir_names_to_make_locally)
+
+        #make dirs
+        self.memory = make_directories_local(self.memory, self.cboptions, dir_names_to_make_locally)
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 0)
         self.assertEqual(len(dir_names_to_make_locally), 0)
 
-        # remove a local directory
+        # mirror the local structure to server, remove a local directory
         os.system("rm -Rf testdata/testmap/map1")
-        self.memory.replace("localindex", make_local_index(self.cboptions))
 
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 2)
         self.assertEqual(len(dir_names_to_make_locally), 0)
-        self.memory = memory
+        self.memory.save(get_data_dir(self.cboptions))
+        self.memory = instruct_server_to_delete_folders(self.memory, self.cboptions, serverindex, dir_names_to_delete_on_server)
+
+        # check if we are the same now
+        serverindex, self.memory = get_server_index(self.memory, self.cboptions)
+        dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+        dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
+        self.assertEqual(len(dir_names_to_delete_on_server), 0)
+        self.assertEqual(len(dir_names_to_make_locally), 0)
 
 
 if __name__ == '__main__':
