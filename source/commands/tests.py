@@ -10,30 +10,8 @@ from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
-from cba_blobs import get_blob_dir
+from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
-
-
-def options():
-    """
-    options for the command line tool
-    """
-    from optparse import OptionParser
-
-    parser = OptionParser()
-    parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
-    parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files)", metavar="ENCRYPT")
-    parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
-    parser.add_option("-r", "--remove", dest="remove", action='store_true', help="remove the unencrypted files", metavar="DECRYPT")
-    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="DECRYPT")
-    parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
-    parser.add_option("-p", "--password", dest="password", help="password used at encryption", metavar="PASSWORD")
-    parser.add_option("-b", "--cryptobox", dest="cryptobox", help="cryptobox slug", metavar="CRYPTOBOX")
-    parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
-    parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
-    parser.add_option("-x", "--debug", dest="debug", action='store_true', help="drop to debug repl", metavar="DEBUG")
-    parser.add_option("-k", "--fake", dest="fake", action='store_true', help="fake server run", metavar="FAKE")
-    return parser.parse_args()
 
 
 def count_files_dir(fpath):
@@ -76,10 +54,15 @@ class CryptoboxAppTest(unittest.TestCase):
 
         self.cboptions = dict2obj_new(self.options_d)
 
+        self.memory = Memory()
+
     def tearDown(self):
         """
         tearDown
         """
+        self.memory.delete("localindex")
+        self.memory.save(get_data_dir(self.cboptions))
+
         os.system("rm -Rf testdata/testmap")
 
     @unittest.skip("skip test_index_no_box_given")
@@ -109,11 +92,21 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index_and_encrypt
         """
-        memory = Memory()
+
         localindex = make_local_index(self.cboptions)
-        memory.replace("localindex", localindex)
+        self.memory.replace("localindex", localindex)
         index_and_encrypt(self.cboptions)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 20)
+
+        # add a new file
+        open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
+        index_and_encrypt(self.cboptions)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
+
+        # same content, blob count should not raise
+        open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
+        index_and_encrypt(self.cboptions)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
 
     @unittest.skip("skip test_connection")
     def test_connection(self):
@@ -124,7 +117,13 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(authorize_user(self.cboptions))
         self.assertTrue(authorized(self.cboptions))
 
-    def test_
+    #@unittest.skip("skip test_index_new_file")
+    def test_index_new_file(self):
+        """
+        test_index_new_file
+        """
+        localindex = make_local_index(self.cboptions)
+
 
 if __name__ == '__main__':
     unittest.main()

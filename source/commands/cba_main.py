@@ -154,6 +154,7 @@ def run_app_command(options):
             shutil.rmtree(datadir, True)
             log("cleared all meta data in ", get_data_dir(options))
     finally:
+        memory.delete("localindex")
         memory.save(datadir)
 
     hide_config(options, salt, secret)
