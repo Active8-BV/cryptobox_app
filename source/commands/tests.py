@@ -124,6 +124,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(authorize_user(self.cboptions))
         self.assertTrue(authorized(self.cboptions))
 
+    def test_
 
 if __name__ == '__main__':
     unittest.main()
