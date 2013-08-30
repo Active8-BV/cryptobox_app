@@ -259,6 +259,7 @@ def get_server_index(memory, options):
     @return: index
     @rtype: dict
     """
+
     try:
         result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
     except ServerForbidden:
@@ -269,8 +270,10 @@ def get_server_index(memory, options):
 
         memory = authorize_user(memory, options)
         result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+
     if not result[0]:
         raise TreeLoadError()
+
     serverindex = result[1]
     memory.set("serverindex", serverindex)
     return memory
@@ -290,7 +293,6 @@ def sync_server(options):
 
     memory = Memory()
     cryptobox = options.cryptobox
-
     serverindex = get_server_index(memory, options)
     memory.replace("serverindex", serverindex)
     unique_content = {}
@@ -346,7 +348,7 @@ def sync_server(options):
 
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
-            print "cba_sync.py:341", local_file_path
+            print "cba_sync.py:353", local_file_path
             if not in_local_file_history(local_file_path):
                 parent = path_to_server_parent_guid(options, local_file_path)
 

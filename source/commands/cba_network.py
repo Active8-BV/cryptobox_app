@@ -263,8 +263,8 @@ def check_otp(server, session, results):
 def authorize_user(memory, options):
     """
     authorize_user
-    @type options: instance
     @type memory: Memory
+    @type options: instance
     """
 
     try:

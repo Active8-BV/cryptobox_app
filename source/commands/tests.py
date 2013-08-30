@@ -188,7 +188,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         self.memory = authorize_user(self.memory, self.cboptions)
         self.assertTrue(self.memory.get("authorized"))
-        serverindex = get_server_index(self.memory, self.cboptions)
+        self.memory = get_server_index(self.memory, self.cboptions)
         pass
 
 
