@@ -40,18 +40,6 @@ class NoLocalIndex(Exception):
     pass
 
 
-def get_local_index():
-    """
-    get_local_index
-    """
-    memory = Memory()
-
-    if not memory.has("localindex"):
-        raise NoLocalIndex("there is no localindex yet")
-
-    return memory.get("localindex")
-
-
 def store_cryptobox_index(index):
     """
     store_cryptobox_index
@@ -98,14 +86,21 @@ def index_files_visit(arg, dir_name, names):
     filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.os.path.isdir(x), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
     dirname_hash = make_sha1_hash(dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/"))
     nameshash = make_sha1_hash("".join(names))
-    folder = {"dirname": dir_name,
-              "dirnamehash": dirname_hash,
 
-              "filenames": [{'name': x} for x in filenames],
-              "nameshash": nameshash}
-
+    folder = {"dirname": dir_name, "dirnamehash": dirname_hash, "filenames": [{'name': x} for x in filenames], "nameshash": nameshash}
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
+
+
+def get_local_index(memory):
+    """
+    get_local_index
+    @type memory: Memory
+    """
+    if not memory.has("localindex"):
+        raise NoLocalIndex("there is no localindex yet")
+
+    return memory.get("localindex")
 
 
 def make_local_index(options):
@@ -114,12 +109,7 @@ def make_local_index(options):
     @type options: instance
     """
     datadir = get_data_dir(options)
-    args = {"DIR": options.dir,
-            "folders": {"dirnames": {},
-                        "filestats": {}},
-
-            "numfiles": 0}
-
+    args = {"DIR": options.dir, "folders": {"dirnames": {}, "filestats": {}}, "numfiles": 0}
     os.path.walk(options.dir, index_files_visit, args)
 
     for dir_name in args["folders"]["dirnames"].copy():

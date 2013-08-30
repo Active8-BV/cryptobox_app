@@ -122,7 +122,9 @@ def run_app_command(options):
             memory.replace("localindex", localindex)
 
         if options.password and options.username and options.cryptobox:
-            if authorize_user(options):
+            authorize_user(memory, options)
+
+            if memory.get("authorized"):
                 if options.sync:
                     if not options.encrypt:
                         raise ExitAppWarning("A sync step should always be followed by an encrypt step (-e or --encrypt)")

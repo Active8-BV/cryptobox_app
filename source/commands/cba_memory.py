@@ -47,6 +47,10 @@ class Memory(object):
     """
 
     def __init__(self):
+        """
+        @return: Memory instance
+        @rtype: Memory
+        """
         self.data = {}
 
     def set(self, key, value):
@@ -163,12 +167,12 @@ class Memory(object):
         return True
 
 
-def server_file_history_setup(relative_path_name):
+def server_file_history_setup(memory, relative_path_name):
     """
     server_file_history_setup
+    @type memory: Memory
     @type relative_path_name: str, unicode
     """
-    memory = Memory()
     relative_path_name = relative_path_name.replace(memory.get("cryptobox_folder"), "")
     fnode_path_id = relative_path_name.replace(os.path.sep, "/")
     return fnode_path_id, memory
@@ -183,22 +187,25 @@ def have_serverhash(fnodehash):
     return memory.set_have_value("serverhash_history", fnodehash)
 
 
-def in_server_file_history(relative_path_name):
+def in_server_file_history(memory, relative_path_name):
     """
     in_server_file_history
+    @type memory: Memory
     @type relative_path_name: str, unicode
     """
-    fnode_path_id, memory = server_file_history_setup(relative_path_name)
-    return have_serverhash(fnode_path_id)
+    fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
+    return have_serverhash(fnode_path_id), memory
 
 
-def add_server_file_history(relative_path_name):
+def add_server_file_history(memory, relative_path_name):
     """
     add_server_file_history
+    @type memory: Memory
     @type relative_path_name: str, unicode
     """
-    fnode_path_id, memory = server_file_history_setup(relative_path_name)
+    fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
     memory.set_add_value("serverhash_history", fnode_path_id)
+    return memory
 
 
 def del_serverhash(fnode_hash):

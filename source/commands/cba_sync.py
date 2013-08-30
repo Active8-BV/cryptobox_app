@@ -83,16 +83,18 @@ def get_unique_content(options, all_unique_nodes, local_file_paths):
     pool.terminate()
 
 
-def sync_directories_with_server(options, serverindex, dirname_hashes_server, unique_dirs):
+def parse_made_local(memory, options, dirname_hashes_server, serverindex):
     """
-    sync_directories_with_server
-    @type options: instance
-    @type serverindex: dict
+    @type memory: Memory
+    @param dirname_hashes_server: folders on server
     @type dirname_hashes_server: dict
-    @type unique_dirs: set
+    @type serverindex: dict
+    @param options: options
+    @type options: instance
+    @return: list of dirs on server or to remove locally
+    @rtype: tuple
     """
-    fake = options.fake
-    localindex = get_local_index()
+    localindex = get_local_index(memory)
     local_dirs_not_on_server = []
 
     for dirhashlocal in localindex["dirnames"]:
@@ -118,41 +120,71 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
         else:
             dirs_to_make_on_server.append(node)
 
-    memory = Memory()
-    cryptobox = options.cryptobox
+    return dirs_to_make_on_server, dirs_to_remove_locally
 
+
+def instruct_server_to_make_folders(memory, options, dirs_to_make_on_server):
+    """
+    @type memory: Memory
+    @type options: instance
+    @type dirs_to_make_on_server: list
+    @rtype: Memory
+    """
     payload = {"foldernames": [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_to_make_on_server]}
     for dir_name in payload["foldernames"]:
         log("add server", dir_name)
+        add_server_file_history(memory, dir_name)
 
-        if not fake:
-            add_server_file_history(dir_name)
+    if len(payload["foldernames"]) > 0:
+        on_server(options.server, "docs/makefolder", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
 
-    if not fake and len(payload["foldernames"]) > 0:
-        on_server(options.server, "docs/makefolder", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+    return memory
 
+
+def remove_local_folders(dirs_to_remove_locally):
+    """
+    @type dirs_to_remove_locally: list
+    """
     for node in dirs_to_remove_locally:
         log("remove local", node["dirname"])
 
         if os.path.exists(node["dirname"]):
-            if not fake:
-                shutil.rmtree(node["dirname"], True)
+            shutil.rmtree(node["dirname"], True)
 
+
+def parse_removed_local(memory, options, unique_dirs):
+    """
+    @type memory: Memory
+    @type options: instance
+    @type unique_dirs: list
+    @rtype: list, Memory
+    """
     on_server_not_local = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs] if not os.path.exists(np)]
     dir_names_to_delete_on_server = []
 
     for dir_name in on_server_not_local:
         dirname_rel = dir_name.replace(options.dir, "")
+        have_on_server, memory = in_server_file_history(memory, dirname_rel)
 
-        if in_server_file_history(dirname_rel):
+        if have_on_server:
             dir_names_to_delete_on_server.append(dirname_rel)
         else:
             log("add local:", dir_name)
+            ensure_directory(dir_name)
+            memory = add_server_file_history(memory, dirname_rel)
 
-            if not fake:
-                ensure_directory(dir_name)
-                add_server_file_history(dirname_rel)
+    return dir_names_to_delete_on_server, memory
 
+
+def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server):
+    """
+    @type memory: Memory
+    @type options: instance
+    @type serverindex: dict
+    @type dir_names_to_delete_on_server: list
+    @return:
+    @rtype:
+    """
     short_node_ids_to_delete = []
     shortest_paths = set()
 
@@ -168,17 +200,35 @@ def sync_directories_with_server(options, serverindex, dirname_hashes_server, un
 
     for dir_name_rel in shortest_paths:
         log("remove server:", dir_name_rel)
-
-        if not fake:
-            del_serverhash(dir_name_rel)
+        del_serverhash(dir_name_rel)
 
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
+        on_server(options.server, "docs/delete", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
 
-        if not fake:
-            on_server(options.server, "docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+
+def sync_directories_with_server(memory, options, serverindex, dirname_hashes_server, unique_dirs):
+    """
+    sync_directories_with_server
+    @type memory: Memory
+    @type options: instance
+    @type serverindex: dict
+    @type dirname_hashes_server: dict
+    @type unique_dirs: set
+    @rtype: Memory
+    """
+
+    # find new folders locally and determine if we need to make on server or delete locally
+    dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(memory, options, dirname_hashes_server, serverindex)
+    memory = instruct_server_to_make_folders(memory, options, dirs_to_make_on_server)
+    remove_local_folders(dirs_to_remove_locally)
+
+    # find new folders on server and determine local creation or server removal
+    dir_names_to_delete_on_server, memory = parse_removed_local(memory, options, unique_dirs)
+    instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server)
+    return memory
 
 
 def upload_file(options, file_object, parent):
@@ -257,8 +307,10 @@ def get_server_index(memory, options):
     @type memory: Memory
     @type options: instance
     @return: index
-    @rtype: dict
+    @rtype: Memory
     """
+    if not memory.has("session"):
+        memory = authorize_user(memory, options)
 
     try:
         result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
@@ -279,22 +331,11 @@ def get_server_index(memory, options):
     return memory
 
 
-def sync_server(options):
+def parse_serverindex(serverindex):
     """
-    @type options: optparse.Values
-    @return: @rtype: @raise:
-
+    @type serverindex: dict
+    @rtype: dict, list, dict, set
     """
-    fake = options.fake
-
-    if cryptobox_locked():
-        exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
-        return
-
-    memory = Memory()
-    cryptobox = options.cryptobox
-    serverindex = get_server_index(memory, options)
-    memory.replace("serverindex", serverindex)
     unique_content = {}
     unique_dirs = set()
     fnodes = []
@@ -320,7 +361,28 @@ def sync_server(options):
 
         checked_dirnames.append(dirname_of_path)
 
-    sync_directories_with_server(options, serverindex, dirname_hashes_server, unique_dirs)
+    return dirname_hashes_server, fnodes, unique_content, unique_dirs
+
+
+def sync_server(memory, options):
+    """
+    @type memory: Memory
+    @type options: optparse.Values
+    @return: @rtype: @raise:
+
+    """
+    fake = options.fake
+
+    if cryptobox_locked():
+        exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
+        return
+
+    cryptobox = options.cryptobox
+    memory = get_server_index(memory, options)
+    serverindex = memory.get("serverindex")
+    memory.replace("serverindex", serverindex)
+    dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+    memory = sync_directories_with_server(memory, options, serverindex, dirname_hashes_server, unique_dirs)
     localindex = get_local_index()
     local_paths_to_delete_on_server = []
     new_server_files_to_local_paths = []
@@ -348,7 +410,7 @@ def sync_server(options):
 
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
-            print "cba_sync.py:353", local_file_path
+            print "cba_sync.py:415", local_file_path
             if not in_local_file_history(local_file_path):
                 parent = path_to_server_parent_guid(options, local_file_path)
 

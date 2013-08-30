@@ -249,10 +249,11 @@ def check_otp(server, session, results):
     if not "otp" in results:
         return True
     else:
-
         payload = results["payload"]
+
         if "trust_computer" in payload:
             return True
+
         cryptobox = results["cryptobox"]
         payload["otp"] = results["otp"]
         results = on_server(server, "checkotp", cryptobox=cryptobox, payload=payload, session=session)
@@ -271,16 +272,19 @@ def authorize_user(memory, options):
         if memory.has("authorized"):
             if memory.get("authorized"):
                 return memory
+
         if memory.has("session"):
             memory.replace("authorized", True)
             return memory
 
         session, results = authorize(options.server, options.cryptobox, options.username, options.password)
         memory.set("session", session)
+
         if check_otp(options.server, session, results):
             memory.replace("authorized", True)
         else:
             memory.replace("authorized", False)
+
         return memory
     except PasswordException, p:
         cba_warning(p, "not authorized")
@@ -294,7 +298,6 @@ def authorized(memory, options):
     @type options: instance
     @type memory: Memory
     """
-
     if not memory.has("session"):
         memory.replace("authorized", False)
         return memory
