@@ -117,7 +117,6 @@ def make_local_index(options):
     args = {"DIR": options.dir,
             "folders": {"dirnames": {},
                         "filestats": {}},
-
             "numfiles": 0}
 
     os.path.walk(options.dir, index_files_visit, args)
@@ -229,7 +228,8 @@ def index_and_encrypt(options):
                 shutil.rmtree(blob_dir, True)
 
     if numfiles > 0:
-        print "cba_index.py:234"
+        print "cba_index.py:234", numfiles
+
     return salt, secret
 
 
@@ -241,6 +241,7 @@ def restore_hidden_config(options):
     hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
     hidden_configs_dict = {}
     dsecret = {}
+
     def return_secret(s):
         """
         @param s:
