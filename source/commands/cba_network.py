@@ -182,9 +182,10 @@ def on_server(server, method, cryptobox, payload, session, files=None):
     return parse_http_result(result)
 
 
-def download_server(options, url):
+def download_server(memory, options, url):
     """
     download_server
+    @type memory: Memory
     @type options: instance
     @type url: str, unicode
     """
@@ -193,10 +194,9 @@ def download_server(options, url):
     URL = options.server + options.cryptobox + "/" + url
 
     #log("download server:", URL)
-    memory = Memory()
     session = memory.get("session")
     result = session.get(URL, cookies=cookies)
-    return parse_http_result(result)
+    return parse_http_result(result), memory
 
 
 def server_time(server, cryptobox):

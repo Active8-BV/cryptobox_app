@@ -117,7 +117,7 @@ def run_app_command(options):
             if not options.password:
                 raise ExitAppWarning("No password given (-p or --password)")
 
-        if not cryptobox_locked():
+        if not cryptobox_locked(memory):
             localindex = make_local_index(options)
             memory.replace("localindex", localindex)
 
@@ -129,7 +129,7 @@ def run_app_command(options):
                     if not options.encrypt:
                         raise ExitAppWarning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
 
-                    if cryptobox_locked():
+                    if cryptobox_locked(memory):
                         raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                     ensure_directory(options.dir)
@@ -139,14 +139,14 @@ def run_app_command(options):
         secret = None
 
         if options.encrypt:
-            salt, secret = index_and_encrypt(options)
+            salt, secret, memory = index_and_encrypt(memory, options)
 
         if options.decrypt:
             if options.remove:
                 raise ExitAppWarning("option remove (-r) cannot be used together with decrypt (dataloss)")
 
             if not options.clear:
-                decrypt_and_build_filetree(options)
+                memory = decrypt_and_build_filetree(memory, options)
 
         if options.clear:
             if options.encrypt:

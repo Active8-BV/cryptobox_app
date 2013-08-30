@@ -96,20 +96,26 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         """
         localindex = make_local_index(self.cboptions)
         self.memory.replace("localindex", localindex)
-        index_and_encrypt(self.cboptions)
+        salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
+        self.assertIsNotNone(salt)
+        self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 20)
 
         # add a new file
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
 
-        index_and_encrypt(self.cboptions)
+        salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
+        self.assertIsNotNone(salt)
+        self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
 
         # same content, blob count should not raise
 
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
 
-        index_and_encrypt(self.cboptions)
+        salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
+        self.assertIsNotNone(salt)
+        self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
 
 
@@ -209,18 +215,28 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.assertEqual(len(dirname_hashes_server), 4)
         self.assertEqual(len(fnodes), 9)
         self.assertEqual(len(unique_content), 4)
-
         self.memory.set("localindex", make_local_index(self.cboptions))
+
         dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(self.memory, self.cboptions, dirname_hashes_server, serverindex)
         self.assertEqual(len(dirs_to_make_on_server), 0)
         self.assertEqual(len(dirs_to_remove_locally), 0)
+
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 0)
         self.assertEqual(len(dir_names_to_make_locally), 3)
-        make_directories_local(self.memory, dir_names_to_make_locally)
+        self.memory = make_directories_local(self.memory, dir_names_to_make_locally)
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 0)
         self.assertEqual(len(dir_names_to_make_locally), 0)
+
+        # remove a local directory
+        os.system("rm -Rf testdata/testmap/map1")
+        self.memory.replace("localindex", make_local_index(self.cboptions))
+
+        dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
+        self.assertEqual(len(dir_names_to_delete_on_server), 2)
+        self.assertEqual(len(dir_names_to_make_locally), 0)
+        self.memory = memory
 
 
 if __name__ == '__main__':

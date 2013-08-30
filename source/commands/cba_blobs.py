@@ -144,4 +144,5 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
     for fnode in files_same_hash:
         memory = add_server_file_history(memory, fnode["doc"]["m_path"])
         write_blob_to_filepath(memory, fnode, options, data)
+
     return memory
