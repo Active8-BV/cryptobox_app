@@ -107,8 +107,9 @@ class NoTimeStamp(Exception):
     pass
 
 
-def write_blob_to_filepath(node, options, data):
+def write_blob_to_filepath(memory, node, options, data):
     """
+    @type memory: Memory
     @type node: dict
     @type options: optparse.Values
     @type data: str or unicode
@@ -119,12 +120,14 @@ def write_blob_to_filepath(node, options, data):
     st_mtime = int(node["content_hash_latest_timestamp"][1])
     dirname_of_path = os.path.dirname(node["doc"]["m_path"])
     new_path = os.path.join(options.dir, os.path.join(dirname_of_path.lstrip(os.path.sep), node["doc"]["m_name"]))
-    add_local_file_history(new_path)
+    memory = add_local_file_history(memory, new_path)
     write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+    return memory
 
 
-def write_blobs_to_filepaths(options, file_nodes, data, downloaded_fhash):
+def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash):
     """
+    @type memory: Memory
     @type options: optparse.Values
     @type file_nodes: list
     @type data: str or unicode
@@ -139,5 +142,6 @@ def write_blobs_to_filepaths(options, file_nodes, data, downloaded_fhash):
             files_same_hash.append(sfile)
 
     for fnode in files_same_hash:
-        add_server_file_history(fnode["doc"]["m_path"])
-        write_blob_to_filepath(fnode, options, data)
+        memory = add_server_file_history(memory, fnode["doc"]["m_path"])
+        write_blob_to_filepath(memory, fnode, options, data)
+    return memory
