@@ -174,7 +174,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
             self.memory.delete("localindex")
         self.memory.save(get_data_dir(self.cboptions))
 
-        #os.system("rm -Rf testdata/testmap")
+        os.system("rm -Rf testdata/testmap")
 
 
     def test_connection(self):
