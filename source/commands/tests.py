@@ -7,7 +7,7 @@ import os
 import pickle
 import unittest
 import requests
-from subprocess import Popen
+from subprocess import Popen, PIPE
 from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
@@ -109,8 +109,7 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
 
-        # same content, blob count should not raise
-
+        # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
 
         salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
@@ -149,7 +148,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.memory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
-        self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         django_starting = True
 
         while django_starting:
@@ -177,9 +176,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
 
         #os.system("rm -Rf testdata/testmap")
 
-    def test_new_tree(self):
-        self.pipe = Popen("python server/manage.py load -c test", shell=True, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
-        self.pipe.wait()
 
     def test_connection(self):
         """
@@ -209,6 +205,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         test_compare_server_with_local_tree
         """
+        self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        self.pipe.wait()
+
         self.memory = get_server_index(self.memory, self.cboptions)
         serverindex = self.memory.get("serverindex")
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
