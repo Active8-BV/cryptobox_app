@@ -4,14 +4,19 @@ unit test for app commands
 """
 __author__ = 'rabshakeh'
 import os
+import time
 import pickle
 import unittest
+import requests
+from subprocess import Popen
 from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
+from cba_sync import get_server_index
+from cba_file import ensure_directory
 
 
 def count_files_dir(fpath):
@@ -28,7 +33,7 @@ def count_files_dir(fpath):
     return len(s)
 
 
-class CryptoboxAppTest(unittest.TestCase):
+class CryptoboxAppTestBasic(unittest.TestCase):
     """
     CryptoboTestCase
     """
@@ -53,19 +58,20 @@ class CryptoboxAppTest(unittest.TestCase):
                           "numdownloadthreads": 2}
 
         self.cboptions = dict2obj_new(self.options_d)
-
+        ensure_directory(self.cboptions.dir)
         self.memory = Memory()
 
     def tearDown(self):
         """
         tearDown
         """
-        self.memory.delete("localindex")
+        if self.memory.has("localindex"):
+            self.memory.delete("localindex")
+
         self.memory.save(get_data_dir(self.cboptions))
 
         os.system("rm -Rf testdata/testmap")
 
-    @unittest.skip("skip test_index_no_box_given")
     def test_index_no_box_given(self):
         """
         test_index
@@ -77,7 +83,6 @@ class CryptoboxAppTest(unittest.TestCase):
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
             run_app_command(self.no_box_given)
 
-    @unittest.skip("skip test_index_directory")
     def test_index_directory(self):
         """
         test_index
@@ -87,7 +92,6 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex = make_local_index(self.cboptions)
         self.assertTrue(localindex_check == localindex)
 
-    @unittest.skip("skip test_index_and_encrypt")
     def test_index_and_encrypt(self):
         """
         test_index_and_encrypt
@@ -108,21 +112,85 @@ class CryptoboxAppTest(unittest.TestCase):
         index_and_encrypt(self.cboptions)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
 
-    @unittest.skip("skip test_connection")
+
+class CryptoboxAppTestServer(unittest.TestCase):
+    """
+    CryptoboTestCase
+    """
+
+    def setUp(self):
+        """
+        setUp
+        """
+
+        #SERVER = "https://www.cryptobox.nl/"
+        os.system("rm -Rf testdata/testmap")
+
+        #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
+                          "encrypt": True,
+                          "username": "rabshakeh",
+                          "password": "kjhfsd98",
+                          "cryptobox": "test",
+                          "clear": False,
+                          "sync": False,
+                          "fake": False,
+                          "server": "http://127.0.0.1:8000/",
+                          "numdownloadthreads": 2}
+
+        self.cboptions = dict2obj_new(self.options_d)
+        self.memory = Memory()
+        ensure_directory(self.cboptions.dir)
+        ensure_directory(get_data_dir(self.cboptions))
+        self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        django_starting = True
+        while django_starting:
+            try:
+                requests.get("http://127.0.0.1:8000")
+                django_starting = False
+            except requests.ConnectionError:
+                django_starting = True
+
+    def tearDown(self):
+        """
+        tearDown
+        """
+        djangopid = os.popen("ps aux | grep manage").read()
+        for l in djangopid.split("\n"):
+            if "runserver 127.0.0.1:8000" in str(l):
+                for i in range(0, 10):
+                    l = l.replace("  ", " ")
+                os.system("kill -9 "+l.split(" ")[1])
+
+        if self.memory.has("localindex"):
+            self.memory.delete("localindex")
+        self.memory.save(get_data_dir(self.cboptions))
+        os.system("rm -Rf testdata/testmap")
+
+    def test_new_tree(self):
+        self.pipe = Popen("python server/manage.py load -c test", shell=True, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        self.pipe.wait()
+
     def test_connection(self):
         """
         test_connection
         """
-        self.assertFalse(authorized(self.cboptions))
-        self.assertTrue(authorize_user(self.cboptions))
-        self.assertTrue(authorized(self.cboptions))
+        self.memory = authorized(self.memory, self.cboptions)
+        self.assertFalse(self.memory.get("authorized"))
+        self.memory = authorize_user(self.memory, self.cboptions)
+        self.assertTrue(self.memory.get("authorized"))
+        self.memory = authorized(self.memory, self.cboptions)
+        self.assertTrue(self.memory.get("authorized"))
 
-    #@unittest.skip("skip test_index_new_file")
-    def test_index_new_file(self):
+    def test_get_server_tree(self):
         """
-        test_index_new_file
+        test_get_server_tree
         """
-        localindex = make_local_index(self.cboptions)
+        self.memory = authorize_user(self.memory, self.cboptions)
+        self.assertTrue(self.memory.get("authorized"))
+        serverindex = get_server_index(self.memory, self.cboptions)
+        pass
+
 
 
 if __name__ == '__main__':

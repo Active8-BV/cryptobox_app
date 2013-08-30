@@ -252,6 +252,30 @@ def path_to_server_parent_guid(options, path):
         raise MultipleGuidsForPath(path)
 
 
+def get_server_index(memory, options):
+    """
+    @type memory: Memory
+    @type options: instance
+    @return: index
+    @rtype: dict
+    """
+    try:
+        result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+    except ServerForbidden:
+        log("unauthorized try again")
+
+        if memory.has("session"):
+            memory.delete("session")
+
+        memory = authorize_user(memory, options)
+        result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+    if not result[0]:
+        raise TreeLoadError()
+    serverindex = result[1]
+    memory.set("serverindex", serverindex)
+    return memory
+
+
 def sync_server(options):
     """
     @type options: optparse.Values
@@ -267,21 +291,7 @@ def sync_server(options):
     memory = Memory()
     cryptobox = options.cryptobox
 
-    try:
-        result = on_server(options.server, "tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
-    except ServerForbidden:
-        log("unauthorized try again")
-
-        if memory.has("session"):
-            memory.delete("session")
-
-        authorize_user(options)
-        result = on_server(options.server, "tree", cryptobox=cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
-
-    if not result[0]:
-        raise TreeLoadError()
-
-    serverindex = result[1]
+    serverindex = get_server_index(memory, options)
     memory.replace("serverindex", serverindex)
     unique_content = {}
     unique_dirs = set()

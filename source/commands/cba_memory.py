@@ -45,15 +45,15 @@ class Memory(object):
     """
     Memory
     """
-    _instance = None
+    #_instance = None
     data = {}
 
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            #noinspection PyArgumentList
+    #def __new__(cls, *args, **kwargs):
+    #    if not cls._instance:
+    #        #noinspection PyArgumentList
             #noinspection PyAttributeOutsideInit
-            cls._instance = super(Memory, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
+    #        cls._instance = super(Memory, cls).__new__(cls, *args, **kwargs)
+    #    return cls._instance
 
     def set(self, key, value):
         """

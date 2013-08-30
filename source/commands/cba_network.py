@@ -249,7 +249,10 @@ def check_otp(server, session, results):
     if not "otp" in results:
         return True
     else:
+
         payload = results["payload"]
+        if "trust_computer" in payload:
+            return True
         cryptobox = results["cryptobox"]
         payload["otp"] = results["otp"]
         results = on_server(server, "checkotp", cryptobox=cryptobox, payload=payload, session=session)
@@ -257,36 +260,46 @@ def check_otp(server, session, results):
         return results
 
 
-def authorize_user(options):
+def authorize_user(memory, options):
     """
     authorize_user
     @type options: instance
+    @type memory: Memory
     """
 
     try:
-        memory = Memory()
-
+        if memory.has("authorized"):
+            if memory.get("authorized"):
+                return memory
         if memory.has("session"):
-            return True
+            memory.replace("authorized", True)
+            return memory
 
         session, results = authorize(options.server, options.cryptobox, options.username, options.password)
         memory.set("session", session)
-        return check_otp(session, results, options.server)
+        if check_otp(options.server, session, results):
+            memory.replace("authorized", True)
+        else:
+            memory.replace("authorized", False)
+        return memory
     except PasswordException, p:
         cba_warning(p, "not authorized")
-        return False
+        memory.replace("authorized", False)
+        return memory
 
 
-def authorized(options):
+def authorized(memory, options):
     """
     authorized
     @type options: instance
+    @type memory: Memory
     """
-    memory = Memory()
 
     if not memory.has("session"):
-        return False
+        memory.replace("authorized", False)
+        return memory
 
     cryptobox = options.cryptobox
     result = on_server(options.server, "authorized", cryptobox=cryptobox, payload=None, session=memory.get("session")).json()
-    return result[0]
+    memory.replace("authorized", result[0])
+    return memory
