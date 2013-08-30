@@ -13,7 +13,6 @@ def update_progress(curr, total, msg, console=False):
     @type total: int
     @type msg: str or unicode
     @type console: bool
-
     """
     global last_update_string_len
     if total == 0:
@@ -31,4 +30,5 @@ def update_progress(curr, total, msg, console=False):
         if len(update_string) < last_update_string_len:
             sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
         sys.stderr.write(update_string)
+
     last_update_string_len = len(update_string)
