@@ -15,7 +15,8 @@ from cba_memory import Memory
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
-    parse_removed_local, make_directories_local, parse_made_local, instruct_server_to_make_folders, sync_directories_with_server
+    parse_removed_local, make_directories_local, parse_made_local, instruct_server_to_make_folders, sync_directories_with_server, \
+    diff_new_files_on_server
 from cba_file import ensure_directory
 
 
@@ -270,10 +271,14 @@ class CryptoboxAppTestServer(unittest.TestCase):
         test_compare_server_tree_with_local_tree_method_files
         """
         self.reset_cb_db()
+        serverindex, self.memory = get_server_index(self.memory, self.cboptions)
+        dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
-        self.assertTrue(self.directories_synced())
 
+        self.memory, on_local_not_server, on_server_not_local = diff_new_files_on_server(self.memory, self.cboptions, file_nodes)
 
+        self.assertEqual(len(on_local_not_server), 0)
+        self.assertEqual(len(on_server_not_local), 9)
 
 if __name__ == '__main__':
     unittest.main()
