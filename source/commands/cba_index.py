@@ -124,11 +124,11 @@ def index_and_encrypt(memory, options):
         return None, None
 
     salt, secret = get_secret(memory, options)
-    cryptobox_index = make_local_index(options)
+    localindex = make_local_index(options)
     ensure_directory(datadir)
 
-    if len(cryptobox_index["dirnames"]) > 0:
-        numfiles = reduce(lambda x, y: x + y, [len(cryptobox_index["dirnames"][x]["filenames"]) for x in cryptobox_index["dirnames"]])
+    if len(localindex["dirnames"]) > 0:
+        numfiles = reduce(lambda x, y: x + y, [len(localindex["dirnames"][x]["filenames"]) for x in localindex["dirnames"]])
     else:
         numfiles = 0
 
@@ -137,14 +137,14 @@ def index_and_encrypt(memory, options):
     new_objects = 0
     hash_set_on_disk = set()
 
-    for dirhash in cryptobox_index["dirnames"]:
-        for fname in cryptobox_index["dirnames"][dirhash]["filenames"]:
+    for dirhash in localindex["dirnames"]:
+        for fname in localindex["dirnames"][dirhash]["filenames"]:
             file_cnt += 1
-            file_dir = cryptobox_index["dirnames"][dirhash]["dirname"]
+            file_dir = localindex["dirnames"][dirhash]["dirname"]
             file_path = os.path.join(file_dir, fname["name"])
 
             if os.path.exists(file_path):
-                filedata = make_cryptogit_hash(file_path, datadir, cryptobox_index)
+                filedata, localindex = make_cryptogit_hash(file_path, datadir, localindex)
                 fname["hash"] = filedata["filehash"]
                 hash_set_on_disk.add(filedata["filehash"])
 
@@ -163,11 +163,11 @@ def index_and_encrypt(memory, options):
             encrypt_new_blobs(salt, secret, new_blobs)
 
     if options.remove:
-        cryptobox_index["locked"] = True
+        localindex["locked"] = True
     else:
-        cryptobox_index["locked"] = False
-    cryptobox_index["salt_b64"] = base64.encodestring(salt)
-    memory = store_cryptobox_index(memory, cryptobox_index)
+        localindex["locked"] = False
+    localindex["salt_b64"] = base64.encodestring(salt)
+    memory = store_cryptobox_index(memory, localindex)
 
     if options.remove:
         ld = os.listdir(options.dir)

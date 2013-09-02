@@ -138,11 +138,11 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
                     write_fdict_to_file(file_blob, fpath)
 
 
-def make_cryptogit_hash(fpath, datadir, cryptobox_index):
+def make_cryptogit_hash(fpath, datadir, localindex):
     """
     @type fpath: str or unicode
     @type datadir: str or unicode
-    @type cryptobox_index: dict
+    @type localindex: dict
     @return: @rtype:
     """
     file_dict = read_file_to_fdict(fpath)
@@ -156,5 +156,5 @@ def make_cryptogit_hash(fpath, datadir, cryptobox_index):
                 "blob_exists": os.path.exists(blobpath)}
 
     del file_dict["data"]
-    cryptobox_index["filestats"][fpath] = file_dict
-    return filedata
+    localindex["filestats"][fpath] = file_dict
+    return filedata, localindex
