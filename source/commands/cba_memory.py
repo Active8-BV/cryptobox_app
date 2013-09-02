@@ -3,7 +3,7 @@
 memory singleton which get written to disk
 """
 import os
-from cba_crypto import pickle_object, unpickle_object
+from cba_crypto import pickle_object, unpickle_object, make_sha1_hash
 
 
 class MemoryNoKey(Exception):
@@ -194,7 +194,7 @@ def in_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    has_server_hash, memory = have_serverhash(memory, fnode_path_id)
+    has_server_hash, memory = have_serverhash(memory, make_sha1_hash(fnode_path_id))
     return has_server_hash, memory
 
 
