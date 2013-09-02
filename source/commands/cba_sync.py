@@ -103,7 +103,6 @@ def parse_made_local(memory, options, localindex, dirname_hashes_server, tree_ti
     @return: list of dirs on server or to remove locally
     @rtype: tuple
     """
-
     local_dirs_not_on_server = []
 
     for dirhashlocal in localindex["dirnames"]:
@@ -171,7 +170,6 @@ def make_directories_local(memory, options, localindex, folders):
     @type localindex: dict
     @type folders: list
     """
-
     for f in folders:
         ensure_directory(f.name)
         memory = add_server_file_history(memory, make_sha1_hash(f.relname))
@@ -240,7 +238,6 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
         on_server(options.server, "docs/delete", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
-
     return memory
 
 
@@ -252,7 +249,6 @@ def sync_directories_with_server(memory, options):
     @rtype: Memory
     """
     localindex = make_local_index(options)
-
     serverindex, memory = get_server_index(memory, options)
     dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     tree_timestamp= float(serverindex["tree_timestamp"])

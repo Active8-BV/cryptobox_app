@@ -93,8 +93,6 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         """
         test_index_and_encrypt
         """
-
-
         salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
@@ -168,7 +166,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
                 for i in range(0, 10):
                     l = l.replace("  ", " ")
                 os.system("kill -9 "+l.split(" ")[1])
-
         self.memory.save(get_data_dir(self.cboptions))
 
         os.system("rm -Rf testdata/testmap")
@@ -214,7 +211,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
     def directories_synced(self):
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         localindex = make_local_index(self.cboptions)
-
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(self.memory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dirs_to_make_on_server) == 0) and (len(dirs_to_remove_locally) == 0)
@@ -225,7 +221,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         self.reset_cb_db()
         localindex = make_local_index(self.cboptions)
-
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         self.assertEqual(len(dirname_hashes_server), 4)
@@ -247,7 +242,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.assertEqual(len(dir_names_to_delete_on_server), 2)
         self.assertEqual(len(dir_names_to_make_locally), 0)
         self.memory.save(get_data_dir(self.cboptions))
-
         self.memory = instruct_server_to_delete_folders(self.memory, self.cboptions, serverindex, dir_names_to_delete_on_server)
 
         # check if we are the same now
@@ -256,7 +250,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
         # unzip test files and make them on server
         self.unzip_testfiles()
         localindex = make_local_index(self.cboptions)
-
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(self.memory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         self.assertFalse(self.directories_synced())
