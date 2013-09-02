@@ -195,19 +195,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.memory = authorized(self.memory, self.cboptions)
         self.assertTrue(self.memory.get("authorized"))
 
-    def test_get_server_tree(self):
-        """
-        test_get_server_tree
-        """
-        os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        self.memory = authorize_user(self.memory, self.cboptions)
-        self.assertTrue(self.memory.get("authorized"))
-        self.memory = get_server_index(self.memory, self.cboptions)
-        serverindex = self.memory.get("serverindex")
-        serverindex_test = pickle.load(open("testdata/serverindex_test.pickle"))
-        self.maxDiff = None
-        self.assertEqual(serverindex, serverindex_test)
-
     def directories_synced(self):
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         localindex = make_local_index(self.cboptions)
@@ -215,9 +202,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(self.memory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dirs_to_make_on_server) == 0) and (len(dirs_to_remove_locally) == 0)
 
-    def test_compare_server_tree_with_local_tree(self):
+    def test_compare_server_tree_with_local_tree_folders(self):
         """
-        test_compare_server_with_local_tree
+        test_compare_server_tree_with_local_tree_folders
         """
         self.reset_cb_db()
         localindex = make_local_index(self.cboptions)
@@ -238,6 +225,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
 
         # mirror the local structure to server, remove a local directory
         os.system("rm -Rf testdata/testmap/map1")
+        dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
         self.assertEqual(len(dir_names_to_delete_on_server), 2)
         self.assertEqual(len(dir_names_to_make_locally), 0)
@@ -257,9 +245,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         serverindex, self.memory = instruct_server_to_make_folders(self.memory, self.cboptions, dirs_to_make_on_server)
         self.assertTrue(self.directories_synced())
 
-    def test_compare_server_tree_with_local_tree_method(self):
+    def test_compare_server_tree_with_local_tree_method_folders(self):
         """
-        test_compare_server_tree_with_local_tree_method
+        test_compare_server_tree_with_local_tree_method_folders
         """
         self.reset_cb_db()
         self.unzip_testfiles()
@@ -268,7 +256,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
 
         # delete on server
         dir_names_to_delete_on_server = ['/map1']
-        serverindex, self.memory = instruct_server_to_delete_folders(self.memory, self.cboptions, serverindex, dir_names_to_delete_on_server)
+        self.memory = instruct_server_to_delete_folders(self.memory, self.cboptions, serverindex, dir_names_to_delete_on_server)
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
@@ -276,6 +264,15 @@ class CryptoboxAppTestServer(unittest.TestCase):
         os.system("rm -Rf testdata/testmap/map2")
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
         self.assertTrue(self.directories_synced())
+
+    def test_compare_server_tree_with_local_tree_method_files(self):
+        """
+        test_compare_server_tree_with_local_tree_method_files
+        """
+        self.reset_cb_db()
+        serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
+        self.assertTrue(self.directories_synced())
+
 
 
 if __name__ == '__main__':

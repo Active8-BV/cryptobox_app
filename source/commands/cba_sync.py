@@ -182,18 +182,19 @@ def make_directories_local(memory, options, localindex, folders):
     return memory
 
 
-def parse_removed_local(memory, options, unique_dirs):
+def parse_removed_local(memory, options, unique_dirs_server):
     """
     @type memory: Memory
     @type options: instance
-    @type unique_dirs: set
+    @type unique_dirs_server: set
     @rtype: list, Memory
     """
-    local_folders = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs] if not os.path.exists(np)]
+    local_folders_removed = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs_server] if not os.path.exists(np)]
+
     dir_names_to_delete_on_server = []
     dir_names_to_make_locally = []
 
-    for dir_name in local_folders:
+    for dir_name in local_folders_removed:
         dirname_rel = dir_name.replace(options.dir, "")
         have_on_server, memory = in_server_file_history(memory, dirname_rel)
 
@@ -344,7 +345,7 @@ def get_server_index(memory, options):
     @type memory: Memory
     @type options: instance
     @return: index
-    @rtype: Memory
+    @rtype: dict, Memory
     """
     if not memory.has("session"):
         memory = authorize_user(memory, options)
