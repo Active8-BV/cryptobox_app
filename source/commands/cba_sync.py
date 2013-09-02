@@ -402,6 +402,27 @@ def parse_serverindex(serverindex):
     return dirname_hashes_server, fnodes, unique_content, unique_dirs
 
 
+def diff_new_files_on_server(memory, options, file_nodes):
+    """
+    """
+    on_local_not_server = []
+    on_server_not_local = []
+    for fnode in file_nodes:
+        server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
+
+        if os.path.exists(server_path_to_local):
+            memory = add_local_file_history(memory, server_path_to_local)
+        else:
+            seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
+
+            if seen_local_file_before:
+                on_local_not_server.append(server_path_to_local)
+            else:
+                log("new file on server", server_path_to_local)
+                on_server_not_local.append(fnode)
+    return memory, on_local_not_server, on_server_not_local
+
+
 def sync_server(memory, options):
     """
     @type memory: Memory
@@ -416,28 +437,11 @@ def sync_server(memory, options):
         return
 
     cryptobox = options.cryptobox
-    memory = get_server_index(memory, options)
-    serverindex = memory.get("serverindex")
-    memory.replace("serverindex", serverindex)
-    dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+    serverindex, memory = get_server_index(memory, options)
+    dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     serverindex, memory = sync_directories_with_server(memory, options)
     localindex = make_local_index(options)
-    local_paths_to_delete_on_server = []
-    new_server_files_to_local_paths = []
-
-    for fnode in fnodes:
-        server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
-
-        if os.path.exists(server_path_to_local):
-            memory = add_local_file_history(memory, server_path_to_local)
-        else:
-            seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
-
-            if seen_local_file_before:
-                local_paths_to_delete_on_server.append(server_path_to_local)
-            else:
-                log("new file on server", server_path_to_local)
-                new_server_files_to_local_paths.append(fnode)
+    memory, on_local_not_server, on_server_not_local = diff_new_files_on_server(memory, options, file_nodes)
 
     local_filenames = [(localindex["dirnames"][d]["dirname"], localindex["dirnames"][d]["filenames"]) for d in localindex["dirnames"] if len(localindex["dirnames"][d]["filenames"]) > 0]
     local_filenames_set = set()
@@ -459,10 +463,10 @@ def sync_server(memory, options):
                     log("new file on disk", local_file_path, parent)
                     memory = upload_file(memory, options, open(local_file_path, "rb"), parent)
 
-    memory, get_unique_content(memory, options, unique_content, new_server_files_to_local_paths)
+    memory, get_unique_content(memory, options, unique_content, on_server_not_local)
     delete_file_guids = []
 
-    for fpath in local_paths_to_delete_on_server:
+    for fpath in on_local_not_server:
         relpath = fpath.replace(options.dir, "")
 
         guids = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if x["doc"]["m_path"] == relpath]
@@ -476,7 +480,7 @@ def sync_server(memory, options):
         if not fake:
             on_server(options.server, "docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
 
-    for fpath in local_paths_to_delete_on_server:
+    for fpath in on_local_not_server:
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
     return memory
