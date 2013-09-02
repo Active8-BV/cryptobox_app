@@ -9,7 +9,7 @@ import multiprocessing
 from optparse import OptionParser
 from cba_memory import Memory
 from cba_utils import log, exit_app_warning, cba_warning, strcmp
-from cba_index import restore_hidden_config, make_local_index, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt
+from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt
 from cba_tree import decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server
@@ -117,10 +117,6 @@ def run_app_command(options):
             if not options.password:
                 raise ExitAppWarning("No password given (-p or --password)")
 
-        if not cryptobox_locked(memory):
-            localindex = make_local_index(options)
-            memory.replace("localindex", localindex)
-
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
 
@@ -156,7 +152,6 @@ def run_app_command(options):
             shutil.rmtree(datadir, True)
             log("cleared all meta data in ", get_data_dir(options))
     finally:
-        memory.delete("localindex")
         memory.save(datadir)
 
     hide_config(options, salt, secret)

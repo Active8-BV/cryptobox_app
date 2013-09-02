@@ -94,17 +94,6 @@ def index_files_visit(arg, dir_name, names):
     arg["numfiles"] += len(filenames)
 
 
-def get_local_index(memory):
-    """
-    get_local_index
-    @type memory: Memory
-    """
-    if not memory.has("localindex"):
-        raise NoLocalIndex("there is no localindex yet")
-
-    return memory.get("localindex")
-
-
 def make_local_index(options):
     """
     make_local_index
