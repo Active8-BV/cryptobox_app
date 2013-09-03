@@ -428,12 +428,11 @@ def diff_new_files_on_server(memory, options, file_nodes):
     return memory, locally_deleted_files, files_to_download
 
 
-def diff_new_files_locally(memory, options, cryptobox_index):
+def diff_new_files_locally(memory, options):
     """
     diff_new_files_locally
     @type memory: Memory
     @type options: instance
-    @type cryptobox_index: dict
     """
     localindex = make_local_index(options)
 
