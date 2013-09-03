@@ -16,7 +16,7 @@ from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     parse_removed_local, make_directories_local, parse_made_local, instruct_server_to_make_folders, sync_directories_with_server, \
-    diff_new_files_on_server, diff_new_files_locally
+    diff_new_files_on_server, diff_new_files_locally, upload_file
 from cba_file import ensure_directory
 
 
@@ -127,8 +127,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
 
         #SERVER = "https://www.cryptobox.nl/"
-        os.system("rm -Rf testdata/testmap")
-
+        #os.system("rm -Rf testdata/testmap")
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
                           "encrypt": True,
@@ -169,8 +168,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
                 os.system("kill -9 "+l.split(" ")[1])
         self.memory.save(get_data_dir(self.cboptions))
 
-        os.system("rm -Rf testdata/testmap")
-
     @staticmethod
     def unzip_testfiles():
         """
@@ -185,6 +182,14 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
 
+    def complete_reset(self):
+        """
+        complete_reset
+        """
+        os.system("rm -Rf testdata/testmap")
+        ensure_directory(self.cboptions.dir)
+        ensure_directory(get_data_dir(self.cboptions))
+
     def test_connection(self):
         """
         test_connection
@@ -197,6 +202,10 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.assertTrue(self.memory.get("authorized"))
 
     def directories_synced(self):
+        """
+        directories_synced
+        """
+        self.complete_reset()
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         localindex = make_local_index(self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
@@ -207,6 +216,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         test_compare_server_tree_with_local_tree_folders
         """
+        self.complete_reset()
         self.reset_cb_db()
         localindex = make_local_index(self.cboptions)
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
@@ -250,6 +260,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         test_compare_server_tree_with_local_tree_method_folders
         """
+        self.complete_reset()
         self.reset_cb_db()
         self.unzip_testfiles()
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
@@ -272,8 +283,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         memory = self.memory
         options = self.cboptions
-        self.reset_cb_db()
-        self.unzip_testfiles()
+
+        #self.reset_cb_db()
+        #self.unzip_testfiles()
         serverindex, memory = get_server_index(memory, options)
         dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         serverindex, memory = sync_directories_with_server(memory, options)
@@ -282,6 +294,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.assertEqual(len(on_server_not_local), 9)
 
         files_to_upload, memory = diff_new_files_locally(memory, options)
+        for uf in files_to_upload:
+            memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
+
         self.memory = memory
         self.cboptions = options
 
