@@ -55,7 +55,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-    pool = multiprocessing.Pool(processes=options.numdownloadthreads)
+    from multiprocessing.dummy import Pool
+    pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
     #noinspection PyUnusedLocal
