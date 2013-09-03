@@ -16,7 +16,8 @@ from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     parse_removed_local, make_directories_local, parse_made_local, instruct_server_to_make_folders, sync_directories_with_server, \
-    diff_new_files_on_server, diff_new_files_locally, upload_file, get_unique_content
+    diff_new_files_on_server, diff_new_files_locally, upload_file, get_unique_content, NoParentFound
+
 from cba_file import ensure_directory
 
 
@@ -129,7 +130,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
 
         #SERVER = "https://www.cryptobox.nl/"
-        #os.system("rm -Rf testdata/testmap")
+
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
                           "encrypt": True,
@@ -147,20 +148,25 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.memory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
+        self.kill_django()
         self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
+
+    def kill_django(self):
+        """
+        """
+        djangopid = os.popen("ps aux | grep manage").read()
+        for l in djangopid.split("\n"):
+            if "runserver 127.0.0.1:8000" in str(l):
+                for i in range(0, 10):
+                    l = l.replace("  ", " ")
+                os.system("kill -9 " + l.split(" ")[1])
 
     def tearDown(self):
         """
         tearDown
         """
-        djangopid = os.popen("ps aux | grep manage").read()
-
-        for l in djangopid.split("\n"):
-            if "runserver 127.0.0.1:8000" in str(l):
-                for i in range(0, 10):
-                    l = l.replace("  ", " ")
-                os.system("kill -9 "+l.split(" ")[1])
+        self.kill_django()
         self.memory.save(get_data_dir(self.cboptions))
 
     @staticmethod
@@ -174,6 +180,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         reset_cb_db
         """
+        os.system("rm -Rf testdata/testmap")
+        ensure_directory(self.cboptions.dir)
+        ensure_directory(get_data_dir(self.cboptions))
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         #self.pipe = Popen("/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/restore_testdb.sh", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
@@ -214,8 +223,11 @@ class CryptoboxAppTestServer(unittest.TestCase):
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         memory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.memory, self.cboptions, fnodes)
-        files_to_upload, self.memory = diff_new_files_locally(self.memory, self.cboptions)
-        return (len(files_to_delete_on_server) == 0) and (len(files_to_download) == 0 and (len(files_to_upload)))
+        try:
+            files_to_upload, self.memory = diff_new_files_locally(self.memory, self.cboptions)
+        except NoParentFound:
+            return False
+        return (len(files_to_delete_on_server) == 0) and (len(files_to_download) == 0) and (len(files_to_upload) == 0)
 
     def test_compare_server_tree_with_local_tree_folders(self):
         """
@@ -288,9 +300,13 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         self.reset_cb_db()
         self.unzip_testfiles()
+        self.assertFalse(self.directories_synced())
+        self.assertFalse(self.files_synced())
         serverindex, memory = get_server_index(self.memory, self.cboptions)
         dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
+        self.assertTrue(self.directories_synced())
+        self.assertFalse(self.files_synced())
         self.memory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.memory, self.cboptions, file_nodes)
         self.assertEqual(len(files_to_delete_on_server), 0)
         self.assertEqual(len(files_to_download), 8)
@@ -299,10 +315,10 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.memory = get_unique_content(memory, self.cboptions, unique_content, files_to_download)
 
         files_to_upload, self.memory = diff_new_files_locally(self.memory, self.cboptions)
-        self.assertEqual(len(files_to_download), 5)
+        self.assertEqual(len(files_to_download), 8)
         for uf in files_to_upload:
             self.memory = upload_file(self.memory, self.cboptions, open(uf.local_file_path, "rb"), uf.parent_short_id)
-
+        self.assertTrue(self.files_synced())
 
 
 if __name__ == '__main__':
