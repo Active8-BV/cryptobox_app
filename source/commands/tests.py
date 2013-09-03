@@ -297,9 +297,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
-    def test_compare_clean_server_tree_with_local_tree_method_files(self):
+    def test_sync_clean_tree(self):
         """
-        test_compare_clean_server_tree_with_local_tree_method_files
+        test_sync_clean_tree
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
@@ -326,9 +326,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
             self.memory = upload_file(self.memory, self.cboptions, open(uf.local_file_path, "rb"), uf.parent_short_id)
         self.assertTrue(self.files_synced())
 
-    def test_compare_server_tree_with_local_tree_method_files(self):
+    def test_sync_synced_tree_mutations(self):
         """
-        test_compare_server_tree_with_local_tree_method_files
+        test_sync_synced_tree_mutations
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
