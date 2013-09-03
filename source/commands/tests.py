@@ -174,8 +174,16 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         unzip_testfiles
         """
+        os.system("cd testdata; mv testmap_clean.zip testmap.zip")
         os.system("cd testdata; unzip -o testmap.zip > /dev/null")
 
+    @staticmethod
+    def unzip_testfiles_synced(self):
+        """
+
+        """
+        os.system("cd testdata; mv testmap_synced.zip testmap.zip")
+        os.system("cd testdata; unzip -o testmap.zip > /dev/null")
     def reset_cb_db(self):
         """
         reset_cb_db
@@ -186,6 +194,8 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         #self.pipe = Popen("/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/restore_testdb.sh", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
+
+
 
     def complete_reset(self):
         """
@@ -294,30 +304,53 @@ class CryptoboxAppTestServer(unittest.TestCase):
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
-    def test_compare_server_tree_with_local_tree_method_files(self):
+    def test_compare_clean_server_tree_with_local_tree_method_files(self):
         """
-        test_compare_server_tree_with_local_tree_method_files
+        test_compare_clean_server_tree_with_local_tree_method_files
         """
         self.reset_cb_db()
         self.unzip_testfiles()
-        self.assertFalse(self.directories_synced())
-        self.assertFalse(self.files_synced())
+        # build directories locally and on server
         serverindex, memory = get_server_index(self.memory, self.cboptions)
         dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
         self.assertTrue(self.directories_synced())
-        self.assertFalse(self.files_synced())
+
+        # find new files on server
         self.memory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.memory, self.cboptions, file_nodes)
         self.assertEqual(len(files_to_delete_on_server), 0)
         self.assertEqual(len(files_to_download), 8)
 
-        # get the unique content in the blobstore
+        # get the unique content and write to disk
         self.memory = get_unique_content(memory, self.cboptions, unique_content, files_to_download)
 
+        # get new content locally and upload to server
         files_to_upload, self.memory = diff_new_files_locally(self.memory, self.cboptions)
         self.assertEqual(len(files_to_download), 8)
         for uf in files_to_upload:
             self.memory = upload_file(self.memory, self.cboptions, open(uf.local_file_path, "rb"), uf.parent_short_id)
+        self.assertTrue(self.files_synced())
+
+    def test_compare_server_tree_with_local_tree_method_files(self):
+        """
+        test_compare_server_tree_with_local_tree_method_files
+        """
+        self.reset_cb_db_synced()
+        self.unzip_testfiles_synced()
+        # build directories locally and on server
+        serverindex, memory = get_server_index(self.memory, self.cboptions)
+        dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+        serverindex, self.memory = sync_directories_with_server(self.memory, self.cboptions)
+        self.assertTrue(self.directories_synced())
+
+        # find new files on server
+        self.memory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.memory, self.cboptions, file_nodes)
+        self.assertEqual(len(files_to_delete_on_server), 0)
+        self.assertEqual(len(files_to_download), 0)
+
+        # get new content locally and upload to server
+        files_to_upload, self.memory = diff_new_files_locally(self.memory, self.cboptions)
+        self.assertEqual(len(files_to_download), 0)
         self.assertTrue(self.files_synced())
 
 
