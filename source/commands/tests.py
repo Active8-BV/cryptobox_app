@@ -281,7 +281,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.assertEqual(len(on_local_not_server), 0)
         self.assertEqual(len(on_server_not_local), 9)
 
-        files_to_upload, memory = diff_new_files_locally(memory, options, c)
+        files_to_upload, memory = diff_new_files_locally(memory, options)
         self.memory = memory
         self.cboptions = options
 
