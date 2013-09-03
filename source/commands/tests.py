@@ -149,14 +149,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
         ensure_directory(get_data_dir(self.cboptions))
         self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
-        django_starting = False
-
-        while django_starting:
-            try:
-                requests.get("http://127.0.0.1:8000")
-                django_starting = False
-            except requests.ConnectionError:
-                django_starting = True
 
     def tearDown(self):
         """
@@ -182,7 +174,8 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         reset_cb_db
         """
-        self.pipe = Popen("/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/restore_testdb.sh", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        #self.pipe = Popen("/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/restore_testdb.sh", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
 
     def complete_reset(self):
@@ -208,7 +201,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         directories_synced
         """
-        self.complete_reset()
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         localindex = make_local_index(self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
@@ -225,8 +217,8 @@ class CryptoboxAppTestServer(unittest.TestCase):
         serverindex, self.memory = get_server_index(self.memory, self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         self.assertEqual(len(dirname_hashes_server), 4)
-        self.assertEqual(len(fnodes), 9)
-        self.assertEqual(len(unique_content), 4)
+        self.assertEqual(len(fnodes), 8)
+        self.assertEqual(len(unique_content), 3)
 
         # mirror the server structure to local
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
@@ -241,7 +233,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         os.system("rm -Rf testdata/testmap/map1")
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
-        self.assertEqual(len(dir_names_to_delete_on_server), 3)
+        self.assertEqual(len(dir_names_to_delete_on_server), 2)
         self.assertEqual(len(dir_names_to_make_locally), 0)
         self.memory.save(get_data_dir(self.cboptions))
         self.memory = instruct_server_to_delete_folders(self.memory, self.cboptions, serverindex, dir_names_to_delete_on_server)
@@ -287,17 +279,18 @@ class CryptoboxAppTestServer(unittest.TestCase):
         memory = self.memory
         options = self.cboptions
 
-        #self.reset_cb_db()
-        #self.unzip_testfiles()
+        self.reset_cb_db()
+        self.unzip_testfiles()
         serverindex, memory = get_server_index(memory, options)
         dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         serverindex, memory = sync_directories_with_server(memory, options)
         memory, on_local_not_server, on_server_not_local = diff_new_files_on_server(memory, options, file_nodes)
         self.assertEqual(len(on_local_not_server), 0)
-        self.assertEqual(len(on_server_not_local), 9)
+        self.assertEqual(len(on_server_not_local), 8)
 
         files_to_upload, memory = diff_new_files_locally(memory, options)
         for uf in files_to_upload:
+            print "upload", uf.local_file_path
             memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
 
         self.memory = memory

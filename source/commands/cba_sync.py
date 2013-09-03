@@ -142,7 +142,6 @@ def instruct_server_to_make_folders(memory, options, dirs_to_make_on_server):
     """
     payload = {"foldernames": [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_to_make_on_server]}
     for dir_name in payload["foldernames"]:
-        log("add server", dir_name)
         add_server_file_history(memory, dir_name)
 
     if len(payload["foldernames"]) > 0:
@@ -422,7 +421,6 @@ def diff_new_files_on_server(memory, options, file_nodes):
             if seen_local_file_before:
                 locally_deleted_files.append(server_path_to_local)
             else:
-                log("new file on server", server_path_to_local)
                 files_to_download.append(fnode)
 
     return memory, locally_deleted_files, files_to_download
@@ -454,7 +452,6 @@ def diff_new_files_locally(memory, options):
                 parent, memory = path_to_server_parent_guid(memory, options, local_file_path)
 
                 if parent:
-                    log("new file on disk", local_file_path, parent)
                     upload_file_object = namedtuple("upload_file_object", ["local_file_path", "parent_short_id"])
                     upload_file_object.local_file_path = local_file_path
                     upload_file_object.parent_short_id = parent
