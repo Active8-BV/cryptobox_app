@@ -171,6 +171,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         os.system("rm -Rf testdata/testmap")
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
+        os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
 
@@ -325,7 +326,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
             self.memory = upload_file(self.memory, self.cboptions, open(uf.local_file_path, "rb"), uf.parent_short_id)
         self.assertTrue(self.files_synced())
 
-    def ignore_test_compare_server_tree_with_local_tree_method_files(self):
+    def test_compare_server_tree_with_local_tree_method_files(self):
         """
         test_compare_server_tree_with_local_tree_method_files
         """
