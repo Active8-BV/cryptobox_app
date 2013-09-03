@@ -46,7 +46,7 @@ def download_blob(memory, options, node):
 def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     """
     @type memory: Memory
-    @type options: optparse.Values
+    @type options: istance
     @type all_unique_nodes: dict
     @type local_file_paths: list
     """
@@ -72,7 +72,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
-        result = pool.apply_async(download_blob, (options, node), callback=done_downloading)
+        result = pool.apply_async(download_blob, (memory, options, node), callback=done_downloading)
         download_results.append(result)
 
     pool.close()
