@@ -86,8 +86,10 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         test_index
         """
         self.cboptions.sync = False
+
         localindex_check = pickle.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
+        #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
     def test_index_and_encrypt(self):
@@ -97,7 +99,7 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 20)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 7)
 
         # add a new file
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
@@ -105,7 +107,7 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
         # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
@@ -113,7 +115,7 @@ class CryptoboxAppTestBasic(unittest.TestCase):
         salt, secret, self.memory = index_and_encrypt(self.memory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 21)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
 
 class CryptoboxAppTestServer(unittest.TestCase):
@@ -146,7 +148,8 @@ class CryptoboxAppTestServer(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
-        django_starting = True
+        os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
+        django_starting = False
 
         while django_starting:
             try:
@@ -179,7 +182,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         reset_cb_db
         """
-        self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        self.pipe = Popen("/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/restore_testdb.sh", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
 
     def complete_reset(self):
@@ -238,7 +241,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         os.system("rm -Rf testdata/testmap/map1")
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(self.memory, self.cboptions, unique_dirs)
-        self.assertEqual(len(dir_names_to_delete_on_server), 2)
+        self.assertEqual(len(dir_names_to_delete_on_server), 3)
         self.assertEqual(len(dir_names_to_make_locally), 0)
         self.memory.save(get_data_dir(self.cboptions))
         self.memory = instruct_server_to_delete_folders(self.memory, self.cboptions, serverindex, dir_names_to_delete_on_server)

@@ -9,7 +9,7 @@ import urllib
 import shutil
 import multiprocessing
 from collections import namedtuple
-from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, store_cryptobox_index
+from cba_index import cryptobox_locked, TreeLoadError, index_files_visit
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, ServerForbidden, authorize_user
@@ -22,7 +22,7 @@ from cba_memory import have_serverhash, \
     in_local_file_history, \
     del_local_file_history, \
     del_server_file_history
-from cba_file import ensure_directory, make_cryptogit_hash
+from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 from cba_index import make_local_index
 
@@ -459,17 +459,7 @@ def diff_new_files_locally(memory, options):
                     upload_file_object.local_file_path = local_file_path
                     upload_file_object.parent_short_id = parent
                     files_to_upload.append(upload_file_object)
-    """
-    files_to_upload_d = {}
-    for uf in files_to_upload:
-        fd, localindex = make_cryptogit_hash(uf.local_file_path, options.dir, localindex)
-        fhash = fd["filehash"]
-        if fhash in files_to_upload_d:
-            files_to_upload_d[fhash].append(uf)
-        else:
-            files_to_upload_d[fhash] = [uf]
-    memory = store_cryptobox_index(memory, localindex)
-    """
+
     return files_to_upload, memory
 
 
