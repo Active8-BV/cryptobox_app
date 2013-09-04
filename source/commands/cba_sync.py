@@ -434,9 +434,9 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
     return memory, local_del_files, file_downloads
 
 
-def diff_new_files_locally(memory, options, localindex):
+def diff_files_locally(memory, options, localindex):
     """
-    diff_new_files_locally
+    diff_files_locally
     @type memory: Memory
     @type options: instance
     @type localindex: dict
@@ -490,7 +490,7 @@ def sync_server(memory, options, localindex):
 
     # file diff
     memory, local_del_files, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
-    file_uploads, memory = diff_new_files_locally(memory, options, localindex)
+    file_uploads, memory = diff_files_locally(memory, options, localindex)
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
 

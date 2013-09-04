@@ -15,7 +15,7 @@ from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
-    sync_directories_with_server, diff_new_files_on_server, diff_new_files_locally, upload_file, \
+    sync_directories_with_server, diff_new_files_on_server, diff_files_locally, upload_file, \
     get_unique_content, instruct_server_to_delete_items
 from cba_file import ensure_directory
 
@@ -298,7 +298,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         # get new content locally and upload to server
         localindex = make_local_index(self.cboptions)
-        file_uploads, self.cbmemory = diff_new_files_locally(self.cbmemory, self.cboptions, localindex)
+        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex)
         self.assertEqual(len(file_uploads), 5)
 
         for uf in file_uploads:
@@ -334,7 +334,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, local_del_files, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
 
         #local files
-        file_uploads, self.cbmemory = diff_new_files_locally(self.cbmemory, self.cboptions, localindex)
+        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex)
         return local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local
 
     def itest_sync_synced_tree_mutations_local(self):
