@@ -114,7 +114,6 @@ class CryptoboxAppTestServer(unittest.TestCase):
     """
     CryptoboTestCase
     """
-
     @staticmethod
     def kill_django():
         """
@@ -326,6 +325,7 @@ class CryptoboxAppTestServer(unittest.TestCase):
         files_synced
         """
         files_to_delete_on_server, files_to_download, files_to_upload, dir_names_to_delete_on_server, dir_names_to_make_locally, dirs_to_make_on_server, dirs_to_remove_locally = self.get_sync_changes()
+
         for l in [files_to_delete_on_server, files_to_download, files_to_upload, dir_names_to_delete_on_server, dir_names_to_make_locally, dirs_to_make_on_server, dirs_to_remove_locally]:
             if len(l) != 0:
                 return False
@@ -338,13 +338,16 @@ class CryptoboxAppTestServer(unittest.TestCase):
         localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+
         # server dirs
         dir_names_to_delete_on_server, dir_names_to_make_locally, self.cbmemory = dirs_on_server(self.cbmemory, self.cboptions, unique_dirs)
+
         #local dirs
         dirs_to_make_on_server, dirs_to_remove_locally = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
 
         # find new files on server
-        self.cbmemory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes)
+        self.cbmemory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes, dir_names_to_delete_on_server)
+
         #local files
         files_to_upload, self.cbmemory = diff_new_files_locally(self.cbmemory, self.cboptions, localindex)
         return files_to_delete_on_server, files_to_download, files_to_upload, dir_names_to_delete_on_server, dir_names_to_make_locally, dirs_to_make_on_server, dirs_to_remove_locally
@@ -355,11 +358,17 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
+        self.cbmemory.load(get_data_dir(self.cboptions))
+        self.cbmemory.delete("session")
+        self.cbmemory.delete("authorized")
         os.system("date > testdata/testmap/map1/date.txt")
         os.system("mkdir testdata/testmap/map3")
+        os.system("rm -Rf testdata/testmap/map2")
+        os.system("rm -Rf testdata/testmap/all_types/word.docx")
         files_to_delete_on_server, files_to_download, files_to_upload, dir_names_to_delete_on_server, dir_names_to_make_locally, dirs_to_make_on_server, dirs_to_remove_locally = self.get_sync_changes()
         self.assertEqual(len(files_to_upload), 1)
-
+        self.assertEqual(len(dirs_to_make_on_server), 1)
+        self.assertEqual(len(files_to_delete_on_server), 1)
 
 
 if __name__ == '__main__':
