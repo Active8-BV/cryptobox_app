@@ -7,7 +7,6 @@ import uuid
 import base64
 import urllib
 import shutil
-import multiprocessing
 from collections import namedtuple
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit
 from cba_blobs import write_blobs_to_filepaths, have_blob
@@ -93,7 +92,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     return memory
 
 
-def parse_made_local(memory, options, localindex, dirname_hashes_server, tree_timestamp):
+def dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_timestamp):
     """
     @type memory: Memory
     @param dirname_hashes_server: folders on server
@@ -158,8 +157,6 @@ def remove_local_folders(dirs_to_remove_locally):
     @type dirs_to_remove_locally: list
     """
     for node in dirs_to_remove_locally:
-        log("remove local", node["dirname"])
-
         if os.path.exists(node["dirname"]):
             shutil.rmtree(node["dirname"], True)
 
@@ -183,7 +180,7 @@ def make_directories_local(memory, options, localindex, folders):
     return memory
 
 
-def parse_removed_local(memory, options, unique_dirs_server):
+def dirs_on_server(memory, options, unique_dirs_server):
     """
     @type memory: Memory
     @type options: instance
@@ -232,8 +229,6 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to
         shortest_paths.add(shortest)
 
     for dir_name_rel in shortest_paths:
-        log("remove server:", dir_name_rel)
-
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     if len(short_node_ids_to_delete) > 0:
@@ -255,16 +250,16 @@ def sync_directories_with_server(memory, options):
     tree_timestamp= float(serverindex["tree_timestamp"])
 
     # find new folders locally and determine if we need to make on server or delete locally
-    dirs_to_make_on_server, dirs_to_remove_locally = parse_made_local(memory, options, localindex, dirname_hashes_server, tree_timestamp)
+    dirs_to_make_on_server, dirs_to_remove_locally = dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_timestamp)
     serverindex, memory = instruct_server_to_make_folders(memory, options, dirs_to_make_on_server)
     remove_local_folders(dirs_to_remove_locally)
 
     # local checking
-    dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(memory, options, unique_dirs)
+    dir_names_to_delete_on_server, dir_names_to_make_locally, memory = dirs_on_server(memory, options, unique_dirs)
     memory = make_directories_local(memory, options, localindex, dir_names_to_make_locally)
 
     # find new folders on server and determine local creation or server removal
-    dir_names_to_delete_on_server, dir_names_to_make_locally, memory = parse_removed_local(memory, options, unique_dirs)
+    dir_names_to_delete_on_server, dir_names_to_make_locally, memory = dirs_on_server(memory, options, unique_dirs)
     memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server)
     return serverindex, memory
 
@@ -428,14 +423,13 @@ def diff_new_files_on_server(memory, options, file_nodes):
     return memory, locally_deleted_files, files_to_download
 
 
-def diff_new_files_locally(memory, options):
+def diff_new_files_locally(memory, options, localindex):
     """
     diff_new_files_locally
     @type memory: Memory
     @type options: instance
+    @type localindex: dict
     """
-    localindex = make_local_index(options)
-
     local_filenames = [(localindex["dirnames"][d]["dirname"], localindex["dirnames"][d]["filenames"]) for d in localindex["dirnames"] if len(localindex["dirnames"][d]["filenames"]) > 0]
     local_filenames_set = set()
     files_to_upload = []
@@ -462,10 +456,11 @@ def diff_new_files_locally(memory, options):
     return files_to_upload, memory
 
 
-def sync_server(memory, options):
+def sync_server(memory, options, localindex):
     """
     @type memory: Memory
     @type options: optparse.Values
+    @type localindex: dict
     @return: @rtype: @raise:
 
     """
@@ -480,7 +475,7 @@ def sync_server(memory, options):
     dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     serverindex, memory = sync_directories_with_server(memory, options)
     memory, locally_deleted_files, files_to_download = diff_new_files_on_server(memory, options, file_nodes)
-    files_to_upload, memory = diff_new_files_locally(memory, options, )
+    files_to_upload, memory = diff_new_files_locally(memory, options, localindex)
     for uf in files_to_upload:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
 
