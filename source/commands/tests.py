@@ -143,6 +143,8 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index
         """
+        os.system("rm -Rf testdata/testmap")
+        self.unzip_testfiles_clean()
         self.cboptions.sync = False
         localindex_check = pickle.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
