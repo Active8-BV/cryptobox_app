@@ -111,11 +111,12 @@ def make_local_index(options):
     return cryptobox_index
 
 
-def index_and_encrypt(memory, options):
+def index_and_encrypt(memory, options, localindex):
     """
     index_and_encrypt
     @type memory: Memory
     @type options: instance
+    @type localindex: dict
     """
     datadir = get_data_dir(options)
 
@@ -124,7 +125,7 @@ def index_and_encrypt(memory, options):
         return None, None
 
     salt, secret = get_secret(memory, options)
-    localindex = make_local_index(options)
+
     ensure_directory(datadir)
 
     if len(localindex["dirnames"]) > 0:
