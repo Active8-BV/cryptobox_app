@@ -23,7 +23,6 @@ from cba_memory import have_serverhash, \
     del_server_file_history
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
-from cba_index import make_local_index
 
 
 def download_blob(memory, options, node):
@@ -237,15 +236,16 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to
     return memory
 
 
-def sync_directories_with_server(memory, options):
+def sync_directories_with_server(memory, options, localindex, serverindex):
     """
     sync_directories_with_server
     @type memory: Memory
     @type options: instance
-    @rtype: Memory
+    @type localindex: dict
+    @type serverindex: dict
+
     """
-    localindex = make_local_index(options)
-    serverindex, memory = get_server_index(memory, options)
+
     dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     tree_timestamp= float(serverindex["tree_timestamp"])
 
@@ -261,7 +261,8 @@ def sync_directories_with_server(memory, options):
     # find new folders on server and determine local creation or server removal
     dir_names_to_delete_on_server, dir_names_to_make_locally, memory = dirs_on_server(memory, options, unique_dirs)
     memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server)
-    return serverindex, memory
+
+    return memory, dir_names_to_delete_on_server
 
 
 def upload_file(memory, options, file_object, parent):
@@ -477,8 +478,8 @@ def sync_server(memory, options, localindex):
     cryptobox = options.cryptobox
     serverindex, memory = get_server_index(memory, options)
     dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-    serverindex, memory = sync_directories_with_server(memory, options)
-    memory, locally_deleted_files, files_to_download = diff_new_files_on_server(memory, options, file_nodes)
+    memory, dir_names_to_delete_on_server = sync_directories_with_server(memory, options, localindex, serverindex)
+    memory, locally_deleted_files, files_to_download = diff_new_files_on_server(memory, options, file_nodes, dir_names_to_delete_on_server)
     files_to_upload, memory = diff_new_files_locally(memory, options, localindex)
     for uf in files_to_upload:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
