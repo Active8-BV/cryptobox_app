@@ -205,6 +205,18 @@ def dirs_on_server(memory, options, unique_dirs_server):
     return dir_names_to_delete_on_server, dir_names_to_make_locally, memory
 
 
+def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
+    """
+    @type memory: Memory
+    @type options: instance
+    @type short_node_ids_to_delete: list
+    """
+    if len(short_node_ids_to_delete) > 0:
+        payload = {"tree_item_list": short_node_ids_to_delete}
+        on_server(options.server, "docs/delete", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
+    return memory
+
+
 def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to_delete_on_server):
     """
     @type memory: Memory
@@ -230,9 +242,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dir_names_to
     for dir_name_rel in shortest_paths:
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
-    if len(short_node_ids_to_delete) > 0:
-        payload = {"tree_item_list": short_node_ids_to_delete}
-        on_server(options.server, "docs/delete", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
+    memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
     return memory
 
 
@@ -243,11 +253,9 @@ def sync_directories_with_server(memory, options, localindex, serverindex):
     @type options: instance
     @type localindex: dict
     @type serverindex: dict
-
     """
-
     dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-    tree_timestamp= float(serverindex["tree_timestamp"])
+    tree_timestamp = float(serverindex["tree_timestamp"])
 
     # find new folders locally and determine if we need to make on server or delete locally
     dirs_to_make_on_server, dirs_to_remove_locally = dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_timestamp)
@@ -424,7 +432,6 @@ def diff_new_files_on_server(memory, options, file_nodes, dirs_scheduled_for_rem
 
     dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip("/")) for d in dirs_scheduled_for_removal]
     locally_deleted_files = [f for f in locally_deleted_files if os.path.dirname(f) not in dirs_scheduled_for_removal]
-
     return memory, locally_deleted_files, files_to_download
 
 
