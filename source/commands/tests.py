@@ -4,6 +4,7 @@ unit test for app commands
 """
 __author__ = 'rabshakeh'
 import os
+import time
 import pickle
 import unittest
 from subprocess import Popen, PIPE
@@ -12,11 +13,11 @@ from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
 from cba_blobs import get_blob_dir, get_data_dir
-from cba_network import authorize_user, authorized
+from cba_network import authorize_user, authorized, on_server
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
     sync_directories_with_server, diff_new_files_on_server, diff_files_locally, upload_file, \
-    get_unique_content, instruct_server_to_delete_items
+    get_unique_content, instruct_server_to_delete_items, path_to_server_shortid
 from cba_file import ensure_directory
 
 
@@ -51,6 +52,19 @@ class CryptoboxAppTest(unittest.TestCase):
                     l = l.replace("  ", " ")
                 os.system("kill -9 " + l.split(" ")[1])
 
+    @staticmethod
+    def kill_cronjob():
+        """
+        kill_cronjob
+        """
+        cronpid = os.popen("ps aux | grep cronjob.py").read()
+
+        for l in cronpid.split("\n"):
+            if "Python cronjob.py" in str(l):
+                for i in range(0, 10):
+                    l = l.replace("  ", " ")
+                os.system("kill -9 " + l.split(" ")[1])
+
     def setUp(self):
         """
         setUp
@@ -65,6 +79,8 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.kill_django()
+        self.kill_cronjob()
+        self.pipe = Popen("python cronjob.py", shell=True, stdout=None, cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
         self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
 
@@ -73,6 +89,7 @@ class CryptoboxAppTest(unittest.TestCase):
         tearDown
         """
         self.kill_django()
+        self.kill_cronjob()
         self.cbmemory.save(get_data_dir(self.cboptions))
 
     @staticmethod
@@ -127,6 +144,17 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/testmap")
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
+
+    def wait_for_tasks(self):
+        """
+        wait_for_tasks
+        """
+        while True:
+            time.sleep(0.2)
+            result = on_server(self.cboptions.server, "tasks", cryptobox=self.cboptions.cryptobox, payload={}, session=self.cbmemory.get("session")).json()
+
+            if len(result[1]) == 0:
+                break
 
     def itest_index_no_box_given(self):
         """
@@ -298,12 +326,13 @@ class CryptoboxAppTest(unittest.TestCase):
 
         # get new content locally and upload to server
         localindex = make_local_index(self.cboptions)
-        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex)
+        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex, server_file_nodes)
         self.assertEqual(len(file_uploads), 5)
 
         for uf in file_uploads:
             self.cbmemory = upload_file(self.cbmemory, self.cboptions, open(uf.local_file_path, "rb"), uf.parent_short_id)
         self.assertTrue(self.files_synced())
+        self.wait_for_tasks()
 
     def files_synced(self):
         """
@@ -334,7 +363,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, local_del_files, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
 
         #local files
-        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex)
+        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex, server_file_nodes)
         return local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local
 
     def itest_sync_synced_tree_mutations_local(self):
@@ -376,7 +405,11 @@ class CryptoboxAppTest(unittest.TestCase):
         if not self.cbmemory.has("session"):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
 
-        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, ['sxzh', 'ftkr']) # /all_types/document.pdf, /all_types/bmptest.png
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+        docpdf, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/document.pdf')
+        bmppng, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/bmptest.png')
+        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [docpdf, bmppng]) # /all_types/document.pdf, /all_types/bmptest.png
+        self.wait_for_tasks()
         local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
         self.assertEqual(len(local_del_files), 0)
         self.assertEqual(len(file_downloads), 0)

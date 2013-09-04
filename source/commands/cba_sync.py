@@ -319,20 +319,45 @@ class NoParentFound(Exception):
     pass
 
 
-def path_to_server_parent_guid(memory, options, path):
+def path_to_server_parent_guid(memory, options, serverindex, path):
     """
     @type memory: Memory
     @param options:
     @type options:
     @param path:
     @type path:
+    @type serverindex: dict
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
     path = path.replace(options.dir, "")
     path = os.path.dirname(path)
 
-    result = [x["doc"]["m_short_id"] for x in memory.get("serverindex")["doclist"] if strcmp(x["doc"]["m_path"], path)]
+    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], path)]
+
+    if len(result) == 0:
+        raise NoParentFound(path)
+
+    elif len(result) == 1:
+        return result[0], memory
+    else:
+        raise MultipleGuidsForPath(path)
+
+
+def path_to_server_shortid(memory, options, serverindex, path):
+    """
+    @type memory: Memory
+    @param options:
+    @type options:
+    @param path:
+    @type path:
+    @type serverindex: dict
+    @return: @rtype: @raise MultipleGuidsForPath:
+
+    """
+    path = path.replace(options.dir, "")
+
+    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], path)]
 
     if len(result) == 0:
         raise NoParentFound(path)
@@ -434,12 +459,14 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
     return memory, local_del_files, file_downloads
 
 
-def diff_files_locally(memory, options, localindex):
+def diff_files_locally(memory, options, localindex, serverindex, server_file_nodes):
     """
     diff_files_locally
     @type memory: Memory
     @type options: instance
     @type localindex: dict
+    @type serverindex: dict
+    @type server_file_nodes: list
     """
     local_filenames = [(localindex["dirnames"][d]["dirname"], localindex["dirnames"][d]["filenames"]) for d in localindex["dirnames"] if len(localindex["dirnames"][d]["filenames"]) > 0]
     local_filenames_set = set()
@@ -456,7 +483,7 @@ def diff_files_locally(memory, options, localindex):
             seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
 
             if not seen_local_file_before:
-                parent, memory = path_to_server_parent_guid(memory, options, local_file_path)
+                parent, memory = path_to_server_parent_guid(memory, options, serverindex, local_file_path)
 
                 if parent:
                     upload_file_object = namedtuple("upload_file_object", ["local_file_path", "parent_short_id"])
@@ -464,6 +491,19 @@ def diff_files_locally(memory, options, localindex):
                     upload_file_object.parent_short_id = parent
                     file_uploads.append(upload_file_object)
 
+    for server_file in server_file_nodes:
+        file_deleted_on_server = False
+        server_file_path = os.path.join(options.dir, server_file["doc"]["m_path"].lstrip("/"))
+
+        for local_file_path in local_filenames_set:
+            if os.path.exists(local_file_path):
+                if strcmp(server_file_path, local_file_path):
+                    file_deleted_on_server = True
+                else:
+                    file_deleted_on_server = False
+
+        if not file_deleted_on_server:
+            print "cba_sync.py:508", server_file_path
     return file_uploads, memory
 
 
@@ -490,7 +530,7 @@ def sync_server(memory, options, localindex):
 
     # file diff
     memory, local_del_files, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
-    file_uploads, memory = diff_files_locally(memory, options, localindex)
+    file_uploads, memory = diff_files_locally(memory, options, localindex, serverindex, server_file_nodes)
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
 

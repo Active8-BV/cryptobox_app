@@ -53,6 +53,9 @@ def strcmp(s1, s2):
     @type s2: str or unicode
     @return: @rtype: bool
     """
+    s1 = str(s1)
+    s2 = str(s2)
+
     if not s1 or not s2:
         return False
 
@@ -207,8 +210,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:212", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:213", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:215", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:216", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
