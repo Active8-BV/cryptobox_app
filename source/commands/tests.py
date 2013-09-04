@@ -34,86 +34,7 @@ def count_files_dir(fpath):
     return len(s)
 
 
-class CryptoboxAppTestBasic(unittest.TestCase):
-    """
-    CryptoboTestCase
-    """
-
-    def setUp(self):
-        """
-        setUp
-        """
-
-        #SERVER = "https://www.cryptobox.nl/"
-        os.system("rm -Rf testdata/testmap")
-        os.system("cd testdata; cp testmap_clean.zip testmap.zip")
-        os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        os.system("rm testdata/testmap.zip")
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "fake": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
-        self.cboptions = dict2obj_new(self.options_d)
-        ensure_directory(self.cboptions.dir)
-        self.cbmemory = Memory()
-
-    def tearDown(self):
-        """
-        tearDown
-        """
-        self.cbmemory.save(get_data_dir(self.cboptions))
-
-        os.system("rm -Rf testdata/testmap")
-
-    def test_index_no_box_given(self):
-        """
-        test_index
-        """
-        self.no_box_given = self.options_d.copy()
-        self.no_box_given = dict2obj_new(self.no_box_given)
-        del self.no_box_given["cryptobox"]
-
-        with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
-            run_app_command(self.no_box_given)
-
-    def test_index_directory(self):
-        """
-        test_index
-        """
-        self.cboptions.sync = False
-        localindex_check = pickle.load(open("testdata/localindex_test.pickle"))
-        localindex = make_local_index(self.cboptions)
-
-        #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
-        self.assertTrue(localindex_check == localindex)
-
-    def test_index_and_encrypt(self):
-        """
-        test_index_and_encrypt
-        """
-        localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
-        self.assertIsNotNone(salt)
-        self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 7)
-
-        # add a new file
-        open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
-
-        localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
-        self.assertIsNotNone(salt)
-        self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
-
-        # same content, blob count should not rise
-        open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
-
-        localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
-        self.assertIsNotNone(salt)
-        self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
-
-
-class CryptoboxAppTestServer(unittest.TestCase):
+class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
     """
@@ -206,6 +127,56 @@ class CryptoboxAppTestServer(unittest.TestCase):
         os.system("rm -Rf testdata/testmap")
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
+
+    def test_index_no_box_given(self):
+        """
+        test_index
+        """
+        self.no_box_given = self.options_d.copy()
+        self.no_box_given = dict2obj_new(self.no_box_given)
+        del self.no_box_given["cryptobox"]
+
+        with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
+            run_app_command(self.no_box_given)
+
+    def test_index_directory(self):
+        """
+        test_index
+        """
+        self.cboptions.sync = False
+        localindex_check = pickle.load(open("testdata/localindex_test.pickle"))
+        localindex = make_local_index(self.cboptions)
+
+        #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
+        self.assertTrue(localindex_check == localindex)
+
+    def test_index_and_encrypt(self):
+        """
+        test_index_and_encrypt
+        """
+        localindex = make_local_index(self.cboptions)
+        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        self.assertIsNotNone(salt)
+        self.assertIsNotNone(secret)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 7)
+
+        # add a new file
+        open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
+
+        localindex = make_local_index(self.cboptions)
+        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        self.assertIsNotNone(salt)
+        self.assertIsNotNone(secret)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
+
+        # same content, blob count should not rise
+        open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
+
+        localindex = make_local_index(self.cboptions)
+        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        self.assertIsNotNone(salt)
+        self.assertIsNotNone(secret)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
     def directories_synced(self):
         """
@@ -316,8 +287,8 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.assertTrue(self.directories_synced())
 
         # find new files on server
-        self.cbmemory, filde_del_server, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes, dir_del_server)
-        self.assertEqual(len(filde_del_server), 0)
+        self.cbmemory, local_del_files, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes, dir_del_server)
+        self.assertEqual(len(local_del_files), 0)
         self.assertEqual(len(file_downloads), 5)
 
         # get the unique content and write to disk
@@ -336,9 +307,9 @@ class CryptoboxAppTestServer(unittest.TestCase):
         """
         files_synced
         """
-        filde_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
+        local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
 
-        for l in [filde_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local]:
+        for l in [local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local]:
             if len(l) != 0:
                 return False
         return True
@@ -358,11 +329,11 @@ class CryptoboxAppTestServer(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
 
         # find new files on server
-        self.cbmemory, filde_del_server, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes, dir_del_server)
+        self.cbmemory, local_del_files, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes, dir_del_server)
 
         #local files
         file_uploads, self.cbmemory = diff_new_files_locally(self.cbmemory, self.cboptions, localindex)
-        return filde_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local
+        return local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local
 
     def test_sync_synced_tree_mutations(self):
         """
@@ -381,10 +352,10 @@ class CryptoboxAppTestServer(unittest.TestCase):
         if not self.cbmemory.has("session"):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
 
-        filde_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
+        local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
         self.assertEqual(len(dir_make_server), 1)
-        self.assertEqual(len(filde_del_server), 1)
+        self.assertEqual(len(local_del_files), 1)
 
         # delete something on server
         self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, ['sxzh', 'ftkr'])
