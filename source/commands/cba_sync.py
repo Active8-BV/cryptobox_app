@@ -269,7 +269,6 @@ def sync_directories_with_server(memory, options, localindex, serverindex):
     # find new folders on server and determine local creation or server removal
     dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
     memory = instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server)
-
     return memory, dirs_del_server
 
 
@@ -406,18 +405,18 @@ def parse_serverindex(serverindex):
     return dirname_hashes_server, fnodes, unique_content, unique_dirs
 
 
-def diff_new_files_on_server(memory, options, file_nodes, dirs_scheduled_for_removal):
+def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_for_removal):
     """
     diff_new_files_on_server
     @type memory: Memory
     @type options: instance
-    @type file_nodes: list
+    @type server_file_nodes: list
     @type dirs_scheduled_for_removal: list
     """
     local_del_files = []
     file_downloads = []
 
-    for fnode in file_nodes:
+    for fnode in server_file_nodes:
         server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
 
         if os.path.exists(server_path_to_local):
@@ -486,11 +485,11 @@ def sync_server(memory, options, localindex):
     serverindex, memory = get_server_index(memory, options)
 
     # folder structure
-    dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+    dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
 
     # file diff
-    memory, local_del_files, file_downloads = diff_new_files_on_server(memory, options, file_nodes, dirs_del_server)
+    memory, local_del_files, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
     file_uploads, memory = diff_new_files_locally(memory, options, localindex)
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
