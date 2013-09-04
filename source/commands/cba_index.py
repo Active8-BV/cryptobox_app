@@ -125,7 +125,6 @@ def index_and_encrypt(memory, options, localindex):
         return None, None
 
     salt, secret = get_secret(memory, options)
-
     ensure_directory(datadir)
 
     if len(localindex["dirnames"]) > 0:

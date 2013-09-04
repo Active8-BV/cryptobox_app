@@ -397,12 +397,13 @@ def parse_serverindex(serverindex):
     return dirname_hashes_server, fnodes, unique_content, unique_dirs
 
 
-def diff_new_files_on_server(memory, options, file_nodes):
+def diff_new_files_on_server(memory, options, file_nodes, dirs_scheduled_for_removal):
     """
     diff_new_files_on_server
     @type memory: Memory
     @type options: instance
     @type file_nodes: list
+    @type dirs_scheduled_for_removal: list
     """
     locally_deleted_files = []
     files_to_download = []
@@ -419,6 +420,9 @@ def diff_new_files_on_server(memory, options, file_nodes):
                 locally_deleted_files.append(server_path_to_local)
             else:
                 files_to_download.append(fnode)
+
+    dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip("/")) for d in dirs_scheduled_for_removal]
+    locally_deleted_files = [f for f in locally_deleted_files if os.path.dirname(f) not in dirs_scheduled_for_removal]
 
     return memory, locally_deleted_files, files_to_download
 

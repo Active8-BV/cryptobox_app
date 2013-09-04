@@ -118,6 +118,7 @@ def run_app_command(options):
                 raise ExitAppWarning("No password given (-p or --password)")
 
         localindex = make_local_index(options)
+
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
 
