@@ -276,18 +276,21 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.complete_reset()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-        serverindex, self.cbmemory = sync_directories_with_server(self.cbmemory, self.cboptions)
+        localindex = make_local_index(self.cboptions)
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+
+        self.cbmemory, dir_names_to_delete_on_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
         # delete on server
         dir_names_to_delete_on_server = ['/map1']
         self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, dir_names_to_delete_on_server)
-        serverindex, self.cbmemory = sync_directories_with_server(self.cbmemory, self.cboptions)
+        self.cbmemory, dir_names_to_delete_on_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
         # delete local
         os.system("rm -Rf testdata/testmap/map2")
-        serverindex, self.cbmemory = sync_directories_with_server(self.cbmemory, self.cboptions)
+        self.cbmemory, dir_names_to_delete_on_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
     def ignore_test_sync_clean_tree(self):
@@ -298,13 +301,14 @@ class CryptoboxAppTestServer(unittest.TestCase):
         self.unzip_testfiles_clean()
 
         # build directories locally and on server
+        localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         dirname_hashes_server, file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-        serverindex, self.cbmemory = sync_directories_with_server(self.cbmemory, self.cboptions)
+        self.cbmemory, dir_names_to_delete_on_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
         # find new files on server
-        self.cbmemory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes)
+        self.cbmemory, files_to_delete_on_server, files_to_download = diff_new_files_on_server(self.cbmemory, self.cboptions, file_nodes, dir_names_to_delete_on_server)
         self.assertEqual(len(files_to_delete_on_server), 0)
         self.assertEqual(len(files_to_download), 5)
 
