@@ -1,7 +1,10 @@
 child_process = require("child_process")
 path = require("path")
 gui = require('nw.gui')
+
+
 winmain = gui.Window.get()
+
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
@@ -27,14 +30,14 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         if memory.has(memory_name)
             return
-        print "cryptobox.cf:36", cmd_name
+        print "cryptobox.cf:35", cmd_name
         cmd_to_run = path.join(process.cwd(), "commands")
         cmd_to_run = path.join(cmd_to_run, cmd_name)
         p = $q.defer()
 
         process_result = (error, stdout, stderr) =>
             if utils.exist(stderr)
-                print "cryptobox.cf:43", stderr
+                print "cryptobox.cf:42", stderr
 
             if utils.exist(error)
                 console.error "cryptobox.cf:25", stderr
@@ -51,7 +54,6 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         p.promise
 
     $scope.python_version = run_command("pyversion")
-    $scope.num_files = run_command("index_directory -d '/Users/rabshakeh/Desktop' -i 'mydir.dict'")
 
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)
@@ -61,4 +63,3 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.run_commands = ->
         $scope.python_version = run_command("pyversion")
-        $scope.num_files = run_command("index_directory -d '/Users/rabshakeh/Desktop' -i 'mydir.dict'")
