@@ -80,7 +80,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(get_data_dir(self.cboptions))
         self.kill_django()
         self.kill_cronjob()
-        self.pipe = Popen("python cronjob.py", shell=True, stdout=None, cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        self.pipe = Popen("python cronjob.py", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
         self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
 
@@ -151,7 +151,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         while True:
             time.sleep(0.2)
-            result = on_server(self.cboptions.server, "tasks", cryptobox=self.cboptions.cryptobox, payload={}, session=self.cbmemory.get("session")).json()
+            result, memory = on_server(self.cbmemory, self.cboptions, "tasks", payload={}, session=self.cbmemory.get("session"))
 
             if len(result[1]) == 0:
                 break
