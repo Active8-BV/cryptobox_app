@@ -145,18 +145,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def wait_for_tasks(self):
-        """
-        wait_for_tasks
-        """
-        while True:
-            time.sleep(0.2)
-            result, memory = on_server(self.cbmemory, self.cboptions, "tasks", payload={}, session=self.cbmemory.get("session"))
-
-            if len(result[1]) == 0:
-                break
-
-    def itest_index_no_box_given(self):
+    def itestindex_no_box_given(self):
         """
         test_index
         """
@@ -167,7 +156,7 @@ class CryptoboxAppTest(unittest.TestCase):
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
             run_app_command(self.no_box_given)
 
-    def itest_index_directory(self):
+    def itestindex_directory(self):
         """
         test_index
         """
@@ -180,7 +169,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
-    def itest_index_and_encrypt(self):
+    def itestindex_and_encrypt(self):
         """
         test_index_and_encrypt
         """
@@ -218,7 +207,7 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
 
-    def itest_connection(self):
+    def itestconnection(self):
         """
         test_connection
         """
@@ -229,7 +218,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = authorized(self.cbmemory, self.cboptions)
         self.assertTrue(self.cbmemory.get("authorized"))
 
-    def itest_compare_server_tree_with_local_tree_folders(self):
+    def itestcompare_server_tree_with_local_tree_folders(self):
         """
         test_compare_server_tree_with_local_tree_folders
         """
@@ -273,7 +262,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = instruct_server_to_make_folders(self.cbmemory, self.cboptions, dir_make_server)
         self.assertTrue(self.directories_synced())
 
-    def itest_compare_server_tree_with_local_tree_method_folders(self):
+    def itestcompare_server_tree_with_local_tree_method_folders(self):
         """
         test_compare_server_tree_with_local_tree_method_folders
         """
@@ -302,7 +291,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, dir_del_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
-    def itest_sync_clean_tree(self):
+    def itestsync_clean_tree(self):
         """
         test_sync_clean_tree
         """
@@ -316,9 +305,11 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, dir_del_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+
         # find new files on server
-        self.cbmemory, local_del_files, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
-        self.assertEqual(len(local_del_files), 0)
+        self.cbmemory, file_del_server, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
+        self.assertEqual(len(file_del_server), 0)
         self.assertEqual(len(file_downloads), 5)
 
         # get the unique content and write to disk
@@ -338,9 +329,9 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         files_synced
         """
-        local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
+        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
 
-        for l in [local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local]:
+        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local]:
             if len(l) != 0:
                 return False
         return True
@@ -360,13 +351,13 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
 
         # find new files on server
-        self.cbmemory, local_del_files, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
+        self.cbmemory, file_del_server, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
 
         #local files
-        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex, server_file_nodes)
-        return local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local
+        file_uploads, file_del_local, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex, server_file_nodes)
+        return file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local
 
-    def itest_sync_synced_tree_mutations_local(self):
+    def test_sync_synced_tree_mutations_local(self):
         """
         test_sync_synced_tree_mutations_local
         """
@@ -383,16 +374,17 @@ class CryptoboxAppTest(unittest.TestCase):
         if not self.cbmemory.has("session"):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
 
-        local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
-        self.assertEqual(len(local_del_files), 1)
+        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = self.get_sync_changes()
+        self.assertEqual(len(file_del_server), 1)
         self.assertEqual(len(file_downloads), 0)
         self.assertEqual(len(file_uploads), 1)
         self.assertEqual(len(dir_del_server), 1)
         self.assertEqual(len(dir_make_local), 0)
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(dir_del_local), 0)
+        self.assertEqual(len(file_del_local), 1)
 
-    def test_sync_synced_tree_mutations_server(self):
+    def itest_sync_synced_tree_mutations_server(self):
         """
         test_sync_synced_tree_mutations_server
         """
@@ -407,11 +399,11 @@ class CryptoboxAppTest(unittest.TestCase):
 
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         docpdf, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/document.pdf')
-        bmppng, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/bmptest.png')
-        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [docpdf, bmppng]) # /all_types/document.pdf, /all_types/bmptest.png
-        self.wait_for_tasks()
-        local_del_files, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
-        self.assertEqual(len(local_del_files), 0)
+
+        #bmppng, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/bmptest.png')
+        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [docpdf])
+        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
+        self.assertEqual(len(file_del_server), 0)
         self.assertEqual(len(file_downloads), 0)
         self.assertEqual(len(file_uploads), 0)
         self.assertEqual(len(dir_del_server), 0)

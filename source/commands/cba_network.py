@@ -153,7 +153,9 @@ def parse_http_result(result):
 
         raise ServerError(result.reason)
 
-    result = result.json()
+    if result.raw.headers["content-type"] == "application/json":
+        result = result.json()
+
     return result
 
 
@@ -188,9 +190,6 @@ def on_server(memory, options, method, payload, session, files=None, retry=False
     except ServerForbidden, ex:
         if retry:
             log("unauthorized exit")
-
-            raise ex
-
         else:
             log("unauthorized try again")
 
@@ -198,7 +197,9 @@ def on_server(memory, options, method, payload, session, files=None, retry=False
                 memory.delete("session")
 
             memory = authorize_user(memory, options)
-            on_server(memory, options, method, payload, session, files, retry=True)
+            return on_server(memory, options, method, payload, session, files, retry=True)
+
+        raise ex
 
 
 def download_server(memory, options, url):
@@ -240,19 +241,19 @@ def authorize(memory, options):
     """
     @type memory: Memory
     @type options: instance
+    @rtype session, results, memory: dict, list, Memory
     """
     session = requests.Session()
     payload = {"username": options.username, "password": options.password, "trust_computer": True}
     result, memory = on_server(memory, options, "authorize", payload=payload, session=session)
     payload["trust_computer"] = True
     payload["trused_location_name"] = "Cryptobox"
-    results = result.json()
 
-    if results[0]:
-        results = results[1]
+    if result[0]:
+        results = result[1]
         results["cryptobox"] = options.cryptobox
         results["payload"] = payload
-        return session, results
+        return session, results, memory
     else:
         raise PasswordException(options.username)
 
@@ -294,14 +295,14 @@ def authorize_user(memory, options):
             memory.replace("authorized", True)
             return memory
 
-        session, results = authorize(memory, options)
+        session, results, memory = authorize(memory, options)
         memory.set("session", session)
 
-        if check_otp(memory, options, session, results):
-            memory.replace("authorized", True)
-        else:
-            memory.replace("authorized", False)
+        #if check_otp(memory, options, session, results):
+        memory.replace("authorized", True)
 
+        #else:
+        #    memory.replace("authorized", False)
         return memory
     except PasswordException, p:
         cba_warning(p, "not authorized")
@@ -320,6 +321,5 @@ def authorized(memory, options):
         return memory
 
     result, memory = on_server(memory, options, "authorized", payload=None, session=memory.get("session"))
-    result = result.json()
     memory.replace("authorized", result[0])
     return memory
