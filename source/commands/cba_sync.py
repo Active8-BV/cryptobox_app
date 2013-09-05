@@ -12,7 +12,7 @@ from cba_index import cryptobox_locked, TreeLoadError, index_files_visit
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning
+from cba_utils import handle_exception, strcmp, exit_app_warning, log
 from cba_memory import have_serverhash, \
     Memory, \
     add_server_file_history, \
@@ -220,7 +220,9 @@ def wait_for_tasks(memory, options):
             time.sleep(0.2)
         else:
             time.sleep(1)
-            print "waiting for tasks"
+            if num_tasks > 4:
+                log("waiting for tasks")
+                time.sleep(2)
 
 
 def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):

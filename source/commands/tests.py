@@ -16,7 +16,7 @@ from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
     sync_directories_with_server, diff_new_files_on_server, diff_files_locally, upload_file, \
-    get_unique_content, instruct_server_to_delete_items, path_to_server_shortid
+    get_unique_content, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks
 from cba_file import ensure_directory
 
 
@@ -38,19 +38,6 @@ class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
     """
-    @staticmethod
-    def kill_django():
-        """
-        kill_django
-        """
-        djangopid = os.popen("ps aux | grep manage").read()
-
-        for l in djangopid.split("\n"):
-            if "runserver 127.0.0.1:8000" in str(l):
-                for i in range(0, 10):
-                    l = l.replace("  ", " ")
-                os.system("kill -9 " + l.split(" ")[1])
-
 
     def setUp(self):
         """
@@ -65,16 +52,15 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
-        #self.kill_django()
-        #self.pipedjango = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
+        self.do_wait_for_tasks = True
 
     def tearDown(self):
         """
         tearDown
         """
-        #self.kill_django()
-
+        if self.do_wait_for_tasks:
+            wait_for_tasks(self.cbmemory, self.cboptions)
         self.cbmemory.save(get_data_dir(self.cboptions))
 
     @staticmethod
@@ -134,6 +120,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index
         """
+        self.do_wait_for_tasks = False
         self.no_box_given = self.options_d.copy()
         self.no_box_given = dict2obj_new(self.no_box_given)
         del self.no_box_given["cryptobox"]
@@ -145,6 +132,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index
         """
+        self.do_wait_for_tasks = False
         os.system("rm -Rf testdata/testmap")
         self.unzip_testfiles_clean()
         self.cboptions.sync = False
@@ -158,6 +146,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index_and_encrypt
         """
+        self.do_wait_for_tasks = False
         localindex = make_local_index(self.cboptions)
         salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
