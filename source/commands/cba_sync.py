@@ -8,7 +8,6 @@ import uuid
 import base64
 import urllib
 import shutil
-from collections import namedtuple
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
@@ -169,10 +168,10 @@ def make_directories_local(memory, options, localindex, folders):
     @type folders: list
     """
     for f in folders:
-        ensure_directory(f.name)
-        memory = add_server_file_history(memory, make_sha1_hash(f.relname))
+        ensure_directory(f["name"])
+        memory = add_server_file_history(memory, f["relname"])
         arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
-        index_files_visit(arg, f.name, [])
+        index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
             localindex["dirnames"][k] = arg["folders"]["dirnames"][k]
@@ -187,7 +186,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
     @type unique_dirs_server: set
     @rtype: list, Memory
     """
-    local_folders_removed = [np for np in [os.path.join(options.dir, np.lstrip("/")) for np in unique_dirs_server] if not os.path.exists(np)]
+    local_folders_removed = [np for np in [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server] if not os.path.exists(np)]
     dirs_del_server = []
     dirs_make_local = []
 
@@ -198,9 +197,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = namedtuple("folder", ["name", "relname"])
-            folder.name = dir_name
-            folder.relname = dirname_rel
+            folder = {"name": dir_name, "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
@@ -466,19 +463,18 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
             else:
                 file_downloads.append(fnode)
 
-    dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip("/")) for d in dirs_scheduled_for_removal]
+    dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip(os.path.sep)) for d in dirs_scheduled_for_removal]
     file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dirs_scheduled_for_removal]
     return memory, file_del_server, file_downloads
 
 
-def diff_files_locally(memory, options, localindex, serverindex, server_file_nodes):
+def diff_files_locally(memory, options, localindex, serverindex):
     """
     diff_files_locally
     @type memory: Memory
     @type options: instance
     @type localindex: dict
     @type serverindex: dict
-    @type server_file_nodes: list
     """
     local_filenames = [(localindex["dirnames"][d]["dirname"], localindex["dirnames"][d]["filenames"]) for d in localindex["dirnames"] if len(localindex["dirnames"][d]["filenames"]) > 0]
     local_filenames_set = set()
@@ -490,7 +486,7 @@ def diff_files_locally(memory, options, localindex, serverindex, server_file_nod
                 local_file = os.path.join(ft[0], fname["name"])
                 local_filenames_set.add(str(local_file))
 
-    server_file_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip("/"))) for x in serverindex["doclist"]]
+    server_file_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
             seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
@@ -499,17 +495,16 @@ def diff_files_locally(memory, options, localindex, serverindex, server_file_nod
                 parent, memory = path_to_server_parent_guid(memory, options, serverindex, local_file_path)
 
                 if parent:
-                    upload_file_object = namedtuple("upload_file_object", ["local_file_path", "parent_short_id"])
-                    upload_file_object.local_file_path = local_file_path
-                    upload_file_object.parent_short_id = parent
+                    upload_file_object = {"local_file_path": local_file_path, "parent_short_id": parent}
                     file_uploads.append(upload_file_object)
 
     file_del_local = []
-
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
             if local_file_path not in server_file_paths:
-                file_del_local.append(local_file_path)
+                seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
+                if seen_local_file_before:
+                    file_del_local.append(local_file_path)
 
     return file_uploads, file_del_local, memory
 
@@ -536,7 +531,7 @@ def sync_server(memory, options, localindex):
 
     # file diff
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
-    file_uploads, memory = diff_files_locally(memory, options, localindex, serverindex, server_file_nodes)
+    file_uploads, file_del_server, memory = diff_files_locally(memory, options, localindex, serverindex)
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
 

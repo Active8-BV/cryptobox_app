@@ -152,7 +152,10 @@ class Memory(object):
             return False
 
         collection = self.get(list_name)
-        return value in collection
+        for v in collection:
+            if value == v:
+                return True
+        return False
 
     def set_delete_value(self, list_name, value):
         """
@@ -194,7 +197,7 @@ def in_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    has_server_hash, memory = have_serverhash(memory, make_sha1_hash(fnode_path_id))
+    has_server_hash, memory = have_serverhash(memory, (fnode_path_id, make_sha1_hash(fnode_path_id)))
     return has_server_hash, memory
 
 
@@ -205,18 +208,19 @@ def add_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    memory.set_add_value("serverhash_history", fnode_path_id)
+    memory.set_add_value("serverhash_history", (fnode_path_id, make_sha1_hash(fnode_path_id)))
     return memory
 
 
-def del_serverhash(memory, fnode_hash):
+def del_serverhash(memory, relative_path_name):
     """
     del_serverhash
     @type memory: Memory
-    @type fnode_hash: str, unicode
+    @type relative_path_name: str, unicode
     """
-    if memory.set_have_value("serverhash_history", fnode_hash):
-        memory.set_delete_value("serverhash_history", fnode_hash)
+    fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
+    if memory.set_have_value("serverhash_history", (fnode_path_id, make_sha1_hash(fnode_path_id))):
+        memory.set_delete_value("serverhash_history", (fnode_path_id, make_sha1_hash(fnode_path_id)))
     return memory
 
 
@@ -227,7 +231,7 @@ def del_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    memory = del_serverhash(memory, fnode_path_id)
+    memory = del_serverhash(memory, (fnode_path_id, make_sha1_hash(fnode_path_id)))
     return memory
 
 
@@ -238,7 +242,7 @@ def add_local_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_hash, memory = server_file_history_setup(memory, relative_path_name)
-    memory.set_add_value("localpath_history", fnode_hash)
+    memory.set_add_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
     return memory
 
 
@@ -249,7 +253,7 @@ def in_local_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_hash, memory = server_file_history_setup(memory, relative_path_name)
-    return memory.set_have_value("localpath_history", fnode_hash), memory
+    return memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))), memory
 
 
 def del_local_file_history(memory, relative_path_name):
@@ -258,8 +262,8 @@ def del_local_file_history(memory, relative_path_name):
     del_local_file_history
     @type relative_path_name: str, unicode
     """
-    fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
+    fnode_hash, memory = server_file_history_setup(memory, relative_path_name)
 
-    if memory.set_have_value("localpath_history", fnode_path_id):
-        memory.set_delete_value("localpath_history", fnode_path_id)
+    if memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))):
+        memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
     return memory

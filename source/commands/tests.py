@@ -4,7 +4,7 @@ unit test for app commands
 """
 __author__ = 'rabshakeh'
 import os
-import time
+
 import pickle
 import unittest
 from subprocess import Popen, PIPE
@@ -13,7 +13,7 @@ from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt
 from cba_memory import Memory
 from cba_blobs import get_blob_dir, get_data_dir
-from cba_network import authorize_user, authorized, on_server
+from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
     sync_directories_with_server, diff_new_files_on_server, diff_files_locally, upload_file, \
@@ -317,21 +317,21 @@ class CryptoboxAppTest(unittest.TestCase):
 
         # get new content locally and upload to server
         localindex = make_local_index(self.cboptions)
-        file_uploads, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex, server_file_nodes)
+        file_uploads, file_del_local, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(file_uploads), 5)
+        self.assertEqual(len(file_del_local), 0)
 
         for uf in file_uploads:
-            self.cbmemory = upload_file(self.cbmemory, self.cboptions, open(uf.local_file_path, "rb"), uf.parent_short_id)
+            self.cbmemory = upload_file(self.cbmemory, self.cboptions, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
         self.assertTrue(self.files_synced())
-        self.wait_for_tasks()
 
     def files_synced(self):
         """
         files_synced
         """
-        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
+        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = self.get_sync_changes()
 
-        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local]:
+        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local]:
             if len(l) != 0:
                 return False
         return True
@@ -354,7 +354,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, file_del_server, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
 
         #local files
-        file_uploads, file_del_local, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex, server_file_nodes)
+        file_uploads, file_del_local, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex)
         return file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local
 
     def test_sync_synced_tree_mutations_local(self):
@@ -382,7 +382,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_local), 0)
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(dir_del_local), 0)
-        self.assertEqual(len(file_del_local), 1)
+        self.assertEqual(len(file_del_local), 0)
 
     def itest_sync_synced_tree_mutations_server(self):
         """
@@ -402,7 +402,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #bmppng, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/bmptest.png')
         self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [docpdf])
-        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local = self.get_sync_changes()
+        file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = self.get_sync_changes()
         self.assertEqual(len(file_del_server), 0)
         self.assertEqual(len(file_downloads), 0)
         self.assertEqual(len(file_uploads), 0)
