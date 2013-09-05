@@ -11,8 +11,8 @@ from collections import namedtuple
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
-from cba_network import download_server, on_server, NotAuthorized, ServerForbidden, authorize_user
-from cba_utils import handle_exception, strcmp, log, exit_app_warning
+from cba_network import download_server, on_server, NotAuthorized, authorize_user
+from cba_utils import handle_exception, strcmp, exit_app_warning
 from cba_memory import have_serverhash, \
     Memory, \
     add_server_file_history, \
@@ -145,7 +145,8 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
         add_server_file_history(memory, dir_name)
 
     if len(payload["foldernames"]) > 0:
-        on_server(options.server, "docs/makefolder", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
+        result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
+        result.json()
 
     serverindex, memory = get_server_index(memory, options)
     return serverindex, memory
@@ -213,7 +214,8 @@ def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
     """
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
-        on_server(options.server, "docs/delete", cryptobox=options.cryptobox, payload=payload, session=memory.get("session")).json()
+        result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
+
     return memory
 
 
@@ -289,7 +291,7 @@ def upload_file(memory, options, file_object, parent):
 
     payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     files = {'file': file_object}
-    on_server(options.server, "docs/upload", cryptobox=options.cryptobox, payload=payload, session=memory.get("session"), files=files)
+    result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
     return memory
 
 
@@ -378,16 +380,7 @@ def get_server_index(memory, options):
     if not memory.has("session"):
         memory = authorize_user(memory, options)
 
-    try:
-        result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
-    except ServerForbidden:
-        log("unauthorized try again")
-
-        if memory.has("session"):
-            memory.delete("session")
-
-        memory = authorize_user(memory, options)
-        result = on_server(options.server, "tree", cryptobox=options.cryptobox, payload={'listonly': True}, session=memory.get("session")).json()
+    result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
 
     if not result[0]:
         raise TreeLoadError()
@@ -503,7 +496,7 @@ def diff_files_locally(memory, options, localindex, serverindex, server_file_nod
                     file_deleted_on_server = False
 
         if not file_deleted_on_server:
-            print "cba_sync.py:508", server_file_path
+            print "cba_sync.py:498", server_file_path
     return file_uploads, memory
 
 
@@ -521,7 +514,6 @@ def sync_server(memory, options, localindex):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
 
-    cryptobox = options.cryptobox
     serverindex, memory = get_server_index(memory, options)
 
     # folder structure
@@ -549,7 +541,7 @@ def sync_server(memory, options, localindex):
         payload = {"tree_item_list": delete_file_guids}
 
         if not fake:
-            on_server(options.server, "docs/delete", cryptobox=cryptobox, payload=payload, session=memory.get("session")).json()
+            result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
 
     for fpath in local_del_files:
         memory = del_server_file_history(memory, fpath)

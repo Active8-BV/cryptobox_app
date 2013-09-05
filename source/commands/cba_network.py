@@ -6,10 +6,10 @@ import os
 import time
 import base64
 import urllib
-import requests
 import subprocess
 import json
-from cba_utils import cba_warning
+import requests
+from cba_utils import cba_warning, log
 from cba_memory import Memory
 
 
@@ -153,19 +153,23 @@ def parse_http_result(result):
 
         raise ServerError(result.reason)
 
+    result = result.json()
     return result
 
 
-def on_server(server, method, cryptobox, payload, session, files=None):
+def on_server(memory, options, method, payload, session, files=None, retry=False):
     """
-    @type server: str or unicode
+    @type memory: Memory
+    @type options: instance
     @type method: str or unicode
-    @type cryptobox: str or unicode
     @type payload: dict or None
     @type session: requests.sessions.Session or None
+    @type retry: bool
     @type files: dict
     @return: @rtype:
     """
+    server = options.server
+    cryptobox = options.cryptobox
     cookies = {}
     SERVICE = server + cryptobox + "/" + method + "/" + str(time.time())
 
@@ -179,7 +183,22 @@ def on_server(server, method, cryptobox, payload, session, files=None):
     else:
         result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
 
-    return parse_http_result(result)
+    try:
+        return parse_http_result(result), memory
+    except ServerForbidden, ex:
+        if retry:
+            log("unauthorized exit")
+
+            raise ex
+
+        else:
+            log("unauthorized try again")
+
+            if memory.has("session"):
+                memory.delete("session")
+
+            memory = authorize_user(memory, options)
+            on_server(memory, options, method, payload, session, files, retry=True)
 
 
 def download_server(memory, options, url):
@@ -199,13 +218,15 @@ def download_server(memory, options, url):
     return parse_http_result(result), memory
 
 
-def server_time(server, cryptobox):
+def server_time(memory, options):
     """
     server_time
-    @type server: str, unicode
-    @type cryptobox: str, unicode
+    @type memory: Memory
+    @type options: instance
     """
-    return float(on_server(server, "clock", cryptobox, payload=None, session=None)[0])
+    result, memory = on_server(memory, options, "clock", payload=None, session=None)
+    stime = float(result[0])
+    return stime, memory
 
 
 class PasswordException(Exception):
@@ -215,36 +236,33 @@ class PasswordException(Exception):
     pass
 
 
-def authorize(server, cryptobox, username, password):
+def authorize(memory, options):
     """
-    @type server: str, unicode
-    @type cryptobox: str or unicode
-    @type username: str or unicode
-    @type password: str or unicode
+    @type memory: Memory
+    @type options: instance
     """
     session = requests.Session()
-    payload = {"username": username,
-               "password": password, "trust_computer": True}
-
-    result = on_server(server, "authorize", cryptobox=cryptobox, payload=payload, session=session)
+    payload = {"username": options.username, "password": options.password, "trust_computer": True}
+    result, memory = on_server(memory, options, "authorize", payload=payload, session=session)
     payload["trust_computer"] = True
     payload["trused_location_name"] = "Cryptobox"
     results = result.json()
 
     if results[0]:
         results = results[1]
-        results["cryptobox"] = cryptobox
+        results["cryptobox"] = options.cryptobox
         results["payload"] = payload
         return session, results
     else:
-        raise PasswordException(username)
+        raise PasswordException(options.username)
 
 
-def check_otp(server, session, results):
+def check_otp(memory, options, session, results):
     """
-    @type server: str, unicode
+    @type memory: Memory
+    @type options: instance
     @type session: requests.sessions.Session
-    @type results: dict
+    @type results: dict, instance
     """
     if not "otp" in results:
         return True
@@ -254,11 +272,10 @@ def check_otp(server, session, results):
         if "trust_computer" in payload:
             return True
 
-        cryptobox = results["cryptobox"]
         payload["otp"] = results["otp"]
-        results = on_server(server, "checkotp", cryptobox=cryptobox, payload=payload, session=session)
+        results, memory = on_server(memory, options, "checkotp", payload=payload, session=session)
         results = results.json()
-        return results
+        return results, memory
 
 
 def authorize_user(memory, options):
@@ -277,10 +294,10 @@ def authorize_user(memory, options):
             memory.replace("authorized", True)
             return memory
 
-        session, results = authorize(options.server, options.cryptobox, options.username, options.password)
+        session, results = authorize(memory, options)
         memory.set("session", session)
 
-        if check_otp(options.server, session, results):
+        if check_otp(memory, options, session, results):
             memory.replace("authorized", True)
         else:
             memory.replace("authorized", False)
@@ -302,7 +319,7 @@ def authorized(memory, options):
         memory.replace("authorized", False)
         return memory
 
-    cryptobox = options.cryptobox
-    result = on_server(options.server, "authorized", cryptobox=cryptobox, payload=None, session=memory.get("session")).json()
+    result, memory = on_server(memory, options, "authorized", payload=None, session=memory.get("session"))
+    result = result.json()
     memory.replace("authorized", result[0])
     return memory
