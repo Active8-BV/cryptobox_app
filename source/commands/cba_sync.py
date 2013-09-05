@@ -264,7 +264,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
-    memory = wait_for_tasks(memory, options)
+
     return memory
 
 
