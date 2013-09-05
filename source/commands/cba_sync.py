@@ -3,6 +3,7 @@
 sync functions
 """
 import os
+import time
 import uuid
 import base64
 import urllib
@@ -146,7 +147,6 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
 
     if len(payload["foldernames"]) > 0:
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
-        result.json()
 
     serverindex, memory = get_server_index(memory, options)
     return serverindex, memory
@@ -206,6 +206,25 @@ def dirs_on_server(memory, options, unique_dirs_server):
     return dirs_del_server, dirs_make_local, memory
 
 
+def wait_for_tasks(memory, options):
+    """
+    wait_for_tasks
+    @type memory: Memory
+    @type options: instance
+    """
+    while True:
+        result, memory = on_server(memory, options, "tasks", payload={}, session=memory.get("session"))
+        num_tasks = len(result[1])
+
+        if num_tasks == 0:
+            return memory
+
+        if num_tasks < 2:
+            time.sleep(0.2)
+        else:
+            time.sleep(1)
+
+
 def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
     """
     @type memory: Memory
@@ -215,7 +234,7 @@ def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
         result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
-
+        memory = wait_for_tasks(memory, options)
     return memory
 
 
@@ -245,6 +264,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
+    memory = wait_for_tasks(memory, options)
     return memory
 
 
@@ -381,7 +401,6 @@ def get_server_index(memory, options):
         memory = authorize_user(memory, options)
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
-
     if not result[0]:
         raise TreeLoadError()
 
@@ -431,7 +450,7 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
     @type server_file_nodes: list
     @type dirs_scheduled_for_removal: list
     """
-    local_del_files = []
+    file_del_server = []
     file_downloads = []
 
     for fnode in server_file_nodes:
@@ -443,13 +462,13 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
             seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
 
             if seen_local_file_before:
-                local_del_files.append(server_path_to_local)
+                file_del_server.append(server_path_to_local)
             else:
                 file_downloads.append(fnode)
 
     dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip("/")) for d in dirs_scheduled_for_removal]
-    local_del_files = [f for f in local_del_files if os.path.dirname(f) not in dirs_scheduled_for_removal]
-    return memory, local_del_files, file_downloads
+    file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dirs_scheduled_for_removal]
+    return memory, file_del_server, file_downloads
 
 
 def diff_files_locally(memory, options, localindex, serverindex, server_file_nodes):
@@ -469,8 +488,9 @@ def diff_files_locally(memory, options, localindex, serverindex, server_file_nod
         for fname in ft[1]:
             if not str(fname["name"]).startswith("."):
                 local_file = os.path.join(ft[0], fname["name"])
-                local_filenames_set.add(local_file)
+                local_filenames_set.add(str(local_file))
 
+    server_file_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip("/"))) for x in serverindex["doclist"]]
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
             seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
@@ -484,20 +504,14 @@ def diff_files_locally(memory, options, localindex, serverindex, server_file_nod
                     upload_file_object.parent_short_id = parent
                     file_uploads.append(upload_file_object)
 
-    for server_file in server_file_nodes:
-        file_deleted_on_server = False
-        server_file_path = os.path.join(options.dir, server_file["doc"]["m_path"].lstrip("/"))
+    file_del_local = []
 
-        for local_file_path in local_filenames_set:
-            if os.path.exists(local_file_path):
-                if strcmp(server_file_path, local_file_path):
-                    file_deleted_on_server = True
-                else:
-                    file_deleted_on_server = False
+    for local_file_path in local_filenames_set:
+        if os.path.exists(local_file_path):
+            if local_file_path not in server_file_paths:
+                file_del_local.append(local_file_path)
 
-        if not file_deleted_on_server:
-            print "cba_sync.py:498", server_file_path
-    return file_uploads, memory
+    return file_uploads, file_del_local, memory
 
 
 def sync_server(memory, options, localindex):
@@ -521,7 +535,7 @@ def sync_server(memory, options, localindex):
     memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
 
     # file diff
-    memory, local_del_files, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
+    memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
     file_uploads, memory = diff_files_locally(memory, options, localindex, serverindex, server_file_nodes)
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
@@ -529,7 +543,7 @@ def sync_server(memory, options, localindex):
     memory = get_unique_content(memory, options, unique_content, file_downloads)
     delete_file_guids = []
 
-    for fpath in local_del_files:
+    for fpath in file_del_server:
         relpath = fpath.replace(options.dir, "")
 
         guids = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if x["doc"]["m_path"] == relpath]
@@ -543,7 +557,7 @@ def sync_server(memory, options, localindex):
         if not fake:
             result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
 
-    for fpath in local_del_files:
+    for fpath in file_del_server:
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
     return memory
