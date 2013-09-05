@@ -220,6 +220,7 @@ def wait_for_tasks(memory, options):
             time.sleep(0.2)
         else:
             time.sleep(1)
+            print "waiting for tasks"
 
 
 def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
@@ -499,10 +500,12 @@ def diff_files_locally(memory, options, localindex, serverindex):
                     file_uploads.append(upload_file_object)
 
     file_del_local = []
+
     for local_file_path in local_filenames_set:
         if os.path.exists(local_file_path):
             if local_file_path not in server_file_paths:
                 seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
+
                 if seen_local_file_before:
                     file_del_local.append(local_file_path)
 

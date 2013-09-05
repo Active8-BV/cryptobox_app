@@ -152,6 +152,7 @@ class Memory(object):
             return False
 
         collection = self.get(list_name)
+
         for v in collection:
             if value == v:
                 return True
@@ -219,6 +220,7 @@ def del_serverhash(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
+
     if memory.set_have_value("serverhash_history", (fnode_path_id, make_sha1_hash(fnode_path_id))):
         memory.set_delete_value("serverhash_history", (fnode_path_id, make_sha1_hash(fnode_path_id)))
     return memory
