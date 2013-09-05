@@ -4,7 +4,6 @@ unit test for app commands
 """
 __author__ = 'rabshakeh'
 import os
-
 import pickle
 import unittest
 from subprocess import Popen, PIPE
@@ -52,18 +51,6 @@ class CryptoboxAppTest(unittest.TestCase):
                     l = l.replace("  ", " ")
                 os.system("kill -9 " + l.split(" ")[1])
 
-    @staticmethod
-    def kill_cronjob():
-        """
-        kill_cronjob
-        """
-        cronpid = os.popen("ps aux | grep cronjob.py").read()
-
-        for l in cronpid.split("\n"):
-            if "Python cronjob.py" in str(l):
-                for i in range(0, 10):
-                    l = l.replace("  ", " ")
-                os.system("kill -9 " + l.split(" ")[1])
 
     def setUp(self):
         """
@@ -78,18 +65,16 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
-        self.kill_django()
-        self.kill_cronjob()
-        self.pipe = Popen("python cronjob.py", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-        self.pipe = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        #self.kill_django()
+        #self.pipedjango = Popen("python server/manage.py runserver 127.0.0.1:8000", shell=True, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
 
     def tearDown(self):
         """
         tearDown
         """
-        self.kill_django()
-        self.kill_cronjob()
+        #self.kill_django()
+
         self.cbmemory.save(get_data_dir(self.cboptions))
 
     @staticmethod
@@ -145,7 +130,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def itestindex_no_box_given(self):
+    def test_index_no_box_given(self):
         """
         test_index
         """
@@ -156,7 +141,7 @@ class CryptoboxAppTest(unittest.TestCase):
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
             run_app_command(self.no_box_given)
 
-    def itestindex_directory(self):
+    def test_index_directory(self):
         """
         test_index
         """
@@ -169,7 +154,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
-    def itestindex_and_encrypt(self):
+    def test_index_and_encrypt(self):
         """
         test_index_and_encrypt
         """
@@ -207,7 +192,7 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
 
-    def itestconnection(self):
+    def test_connection(self):
         """
         test_connection
         """
@@ -218,7 +203,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = authorized(self.cbmemory, self.cboptions)
         self.assertTrue(self.cbmemory.get("authorized"))
 
-    def itestcompare_server_tree_with_local_tree_folders(self):
+    def test_compare_server_tree_with_local_tree_folders(self):
         """
         test_compare_server_tree_with_local_tree_folders
         """
@@ -262,7 +247,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = instruct_server_to_make_folders(self.cbmemory, self.cboptions, dir_make_server)
         self.assertTrue(self.directories_synced())
 
-    def itestcompare_server_tree_with_local_tree_method_folders(self):
+    def test_compare_server_tree_with_local_tree_method_folders(self):
         """
         test_compare_server_tree_with_local_tree_method_folders
         """
@@ -291,7 +276,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, dir_del_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
 
-    def itestsync_clean_tree(self):
+    def test_sync_clean_tree(self):
         """
         test_sync_clean_tree
         """
@@ -384,7 +369,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_local), 0)
         self.assertEqual(len(file_del_local), 0)
 
-    def itest_sync_synced_tree_mutations_server(self):
+    def test_sync_synced_tree_mutations_server(self):
         """
         test_sync_synced_tree_mutations_server
         """
