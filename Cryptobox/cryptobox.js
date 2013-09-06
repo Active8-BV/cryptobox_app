@@ -38,6 +38,7 @@ angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
 cryptobox_ctrl = function($scope, $q, memory, utils) {
   var cba_commander, cmd_to_run, memory_name, run_command, spawn,
     _this = this;
+  $scope.cba_version = 0.1;
   memory.set("g_running", true);
   $scope.on_exit = function() {
     var killprocess, quit;
@@ -61,7 +62,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }
     cmd_to_run = path.join(process.cwd(), "commands");
     cmd_to_run = path.join(cmd_to_run, cmd_name);
-    print("cryptobox.cf:57", cmd_to_run);
+    print("cryptobox.cf:58", cmd_to_run);
     p = $q.defer();
     process_result = function(error, stdout, stderr) {
       if (utils.exist(stderr)) {
@@ -87,10 +88,10 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   memory_name = "g_process_" + utils.slugify(cmd_to_run);
   memory.set(memory_name, cba_commander.pid);
   cba_commander.stdout.on("data", function(data) {
-    return print("cryptobox.cf:88", data);
+    return print("cryptobox.cf:89", data);
   });
   cba_commander.stderr.on("data", function(data) {
-    return print("cryptobox.cf:91", data);
+    return print("cryptobox.cf:92", data);
   });
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);

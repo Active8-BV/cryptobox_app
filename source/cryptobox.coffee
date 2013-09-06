@@ -27,6 +27,7 @@ print = (msg, others...) ->
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
+    $scope.cba_version = 0.1
     memory.set("g_running", true)
 
     $scope.on_exit = =>
@@ -52,7 +53,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         cmd_to_run = path.join(process.cwd(), "commands")
         cmd_to_run = path.join(cmd_to_run, cmd_name)
-        print "cryptobox.cf:57", cmd_to_run
+        print "cryptobox.cf:58", cmd_to_run
         p = $q.defer()
 
         process_result = (error, stdout, stderr) =>
@@ -83,10 +84,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     memory.set(memory_name, cba_commander.pid)
 
     cba_commander.stdout.on "data", (data) ->
-      print "cryptobox.cf:88", data
+      print "cryptobox.cf:89", data
 
     cba_commander.stderr.on "data", (data) ->
-      print "cryptobox.cf:91", data
+      print "cryptobox.cf:92", data
 
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)

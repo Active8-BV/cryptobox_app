@@ -2,7 +2,8 @@
 <html ng-app="cryptoboxApp">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <META NAME="copyright" CONTENT="Cryptobox is copyrighted by Active8 BV (www.a8.nl)">
 
     <title>Cryptobox</title>
@@ -13,9 +14,9 @@
         }
     </style>
 
-    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet">
     <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
-    <script type="text/javascript" src="js/angular-1.0.6.min.js"></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/app_basic.min.js"></script>
@@ -25,20 +26,53 @@
 
 
 <div ng-controller="cryptobox_ctrl">
+
+    <div class="well">
+        <blockquote>
+            <p class="lead">Cryptobox syncer</p>
+            <small>version: {{cba_version}} pre-alpha</small>
+        </blockquote>
+    </div>
+
     <div class="container">
         <div class="row">
-            <br/>
 
-            <div class="span10">
-                Python version: {{python_version}}<br/>
+            <div class="row">
+                <div class="col-md-12"><br/>
 
-                <p class="lead">Active8</p>
-                Files: {{num_files}}<br/>
+                    <form role="form">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Email address</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1">Password</label>
+                            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputFile">File input</label>
+                            <input type="file" id="exampleInputFile">
+
+                            <p class="help-block">Example block-level help text here.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox"> Check me out
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                </div>
             </div>
-            <div class="span1">
-                <button class="btn" type="button" ng-click="run_commands()">run commands</button>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="well">
+                        <button type="button" class="btn btn-default dropdown-toggle">sync</button>
+                        <button type="button" class="btn btn-warning dropdown-toggle">lock</button>
+                        <button type="button" class="btn btn-success dropdown-toggle">unlock</button>
+                    </div>
+                </div>
             </div>
-
         </div>
     </div>
 </div>
