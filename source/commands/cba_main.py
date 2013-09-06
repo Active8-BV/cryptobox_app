@@ -32,7 +32,7 @@ def add_options():
     parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
     parser.add_option("-x", "--debug", dest="debug", action='store_true', help="drop to debug repl", metavar="DEBUG")
-    parser.add_option("-k", "--fake", dest="fake", action='store_true', help="fake server run", metavar="FAKE")
+
     return parser.parse_args()
 
 
@@ -65,9 +65,6 @@ def run_app_command(options):
     @return: succes indicator
     @rtype: bool
     """
-    if options.fake:
-        log("doing fake server operations")
-
     if not options.numdownloadthreads:
         options.numdownloadthreads = multiprocessing.cpu_count() * 2
     else:
