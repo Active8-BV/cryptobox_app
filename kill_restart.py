@@ -16,7 +16,7 @@ if __name__ == '__main__':
         while True:
             if not os.path.exists("app.running"):
                 os.system("killall node-webkit")
-                os.system("killall pyversion")
+                os.system("killall cba_commander")
                 open("app.running", "w").write(".")
                 pool.apply_async(bring_to_front)
                 os.system("make run")

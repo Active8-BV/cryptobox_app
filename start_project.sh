@@ -14,7 +14,7 @@ function on_change_path_cmd {
 on_change_path_cmd ./source/cryptobox.coffee 'python -OO cp.py -r 0 -f ./source/cryptobox.coffee; coffee -c -b ./source/cryptobox.coffee; mv ./source/cryptobox.js ./Cryptobox'
 
 
-python -OO when_changed.py ./source/commands/pyversion.py -c "./buildcommands.sh pyversion" &
+python -OO when_changed.py ./source/commands/cba_commander.py -c "./buildcommands.sh cba_commander" &
 #python -OO when_changed.py ./source/commands/index_directory.py -c "./buildcommands.sh index_directory" &
 
 python kill_restart.py &

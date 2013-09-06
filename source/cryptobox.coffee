@@ -7,6 +7,24 @@ xmlrpc = require('xmlrpc')
 winmain = gui.Window.get()
 
 
+print = (msg, others...) ->
+  switch _.size(others)
+      when 0
+          console?.log msg
+      when 1
+          console?.log msg + " " + others[0]
+      when 2
+          console?.log msg + " " + others[0] + " " + others[1]
+      when 3
+          console?.log msg + " " + others[0] + " " + others[1] + " " + others[2]
+      when 4
+          console?.log msg + " " + others[0] + " " + others[1] + " " + others[2] + " " + others[3]
+      when 5
+          console?.log msg + " " + others[0] + " " + others[1] + " " + others[2] + " " + others[3] + " " + others[4]
+      else
+          console?.log others, msg
+
+
 angular.module("cryptoboxApp", ["cryptoboxApp.base"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
     memory.set("g_running", true)
@@ -34,6 +52,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         cmd_to_run = path.join(process.cwd(), "commands")
         cmd_to_run = path.join(cmd_to_run, cmd_name)
+        print "cryptobox.cf:57", cmd_to_run
         p = $q.defer()
 
         process_result = (error, stdout, stderr) =>
@@ -54,7 +73,20 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         memory.set(memory_name, child.pid)
         p.promise
 
-    $scope.python_version = run_command("pyversion")
+    #$scope.python_version = run_command("cba_commander")
+    #cba_commander = child_process.spawn("cba_commander")
+    spawn = require("child_process").spawn
+    cmd_to_run = path.join(process.cwd(), "commands")
+    cmd_to_run = path.join("cba_commander", cmd_name)
+    cba_commander = spawn(cmd_to_run, [""])
+    memory_name = "g_process_" + utils.slugify(cmd_name)
+    memory.set(memory_name, cba_commander.pid)
+
+    cba_commander.stdout.on "data", (data) ->
+      print "cryptobox.cf:83", data
+
+    cba_commander.stderr.on "data", (data) ->
+      print "cryptobox.cf:86", data
 
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)
@@ -63,18 +95,12 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         py_file_input_change($scope.file_input)
 
     $scope.run_commands = ->
-        run_command("pyversion")
-        client = xmlrpc.createClient(
+        clientOptions =
           host: "localhost"
-          port: 8000
-          cookies: true
-        )
+          port: 8654
+          path: "/RPC2"
 
-        #client.setCookie "login", "bilbo"
-        #This call will send provided cookie to the server
-        client.methodCall "adder_function", [2, 4], (error, value) ->
-          print "cryptobox.cf:78", error, value
+        client = xmlrpc.createClient(clientOptions)
+        client.methodCall "add", [2, 4], (error, value) ->
           $scope.python_version = value
-
-          #Here we may get cookie received from server if we know its name
-          #print client.getCookie("session")
+          utils.force_digest($scope)

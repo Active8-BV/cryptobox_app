@@ -220,6 +220,7 @@ def wait_for_tasks(memory, options):
             time.sleep(0.2)
         else:
             time.sleep(1)
+
             if num_tasks > 4:
                 log("waiting for tasks")
                 time.sleep(2)
@@ -264,7 +265,6 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
-
     return memory
 
 
