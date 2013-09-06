@@ -1,6 +1,7 @@
 child_process = require("child_process")
 path = require("path")
 gui = require('nw.gui')
+xmlrpc = require('xmlrpc')
 
 
 winmain = gui.Window.get()
@@ -30,14 +31,14 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         if memory.has(memory_name)
             return
-        print "cryptobox.cf:35", cmd_name
+
         cmd_to_run = path.join(process.cwd(), "commands")
         cmd_to_run = path.join(cmd_to_run, cmd_name)
         p = $q.defer()
 
         process_result = (error, stdout, stderr) =>
             if utils.exist(stderr)
-                print "cryptobox.cf:42", stderr
+                console.error console.error
 
             if utils.exist(error)
                 console.error "cryptobox.cf:25", stderr
@@ -62,4 +63,18 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         py_file_input_change($scope.file_input)
 
     $scope.run_commands = ->
-        $scope.python_version = run_command("pyversion")
+        run_command("pyversion")
+        client = xmlrpc.createClient(
+          host: "localhost"
+          port: 8000
+          cookies: true
+        )
+
+        #client.setCookie "login", "bilbo"
+        #This call will send provided cookie to the server
+        client.methodCall "adder_function", [2, 4], (error, value) ->
+          print "cryptobox.cf:78", error, value
+          $scope.python_version = value
+
+          #Here we may get cookie received from server if we know its name
+          #print client.getCookie("session")

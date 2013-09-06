@@ -4,9 +4,44 @@ python version
 """
 
 import sys
-import time
-import datetime
-#for i in range(0, 120):
-print sys.version.split("\n")[0], datetime.datetime.now().time()
-#time.sleep(1)
 
+import datetime
+
+
+import threading
+class XMLRPCThread(threading.Thread):
+    def run(self):
+        from SimpleXMLRPCServer import SimpleXMLRPCServer
+        from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+
+        # Restrict to a particular path.
+        class RequestHandler(SimpleXMLRPCRequestHandler):
+            rpc_paths = ('/RPC2',)
+
+        # Create server
+        server = SimpleXMLRPCServer(("localhost", 8000), requestHandler=RequestHandler)
+        server.register_introspection_functions()
+
+        # Register pow() function; this will use the value of
+        # pow.__name__ as the name, which is just 'pow'.
+        server.register_function(pow)
+
+        # Register a function under a different name
+        def adder_function(x, y):
+            return x + y
+
+        server.register_function(adder_function, 'add')
+
+        # Register an instance; all the methods of the instance are
+        # published as XML-RPC methods (in this case, just 'div').
+        class MyFuncs:
+            def div(self, x, y):
+                return x // y
+
+        server.register_instance(MyFuncs())
+
+        server.serve_forever()
+xx = XMLRPCThread()
+#xx.start()
+
+print "started", sys.version.split("\n")[0], datetime.datetime.now().time()
