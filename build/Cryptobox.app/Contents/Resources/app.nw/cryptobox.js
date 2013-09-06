@@ -36,7 +36,7 @@ print = function() {
 angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var cba_commander, run_command, spawn,
+  var cba_commander, cmd_to_run, memory_name, run_command, spawn,
     _this = this;
   memory.set("g_running", true);
   $scope.on_exit = function() {
@@ -81,12 +81,16 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return p.promise;
   };
   spawn = require("child_process").spawn;
-  cba_commander = spawn("/Users/rabshakeh/workspace/cryptobox/cryptobox_app/Cryptobox/commands/cba_commander", [""]);
+  cmd_to_run = path.join(process.cwd(), "commands");
+  cmd_to_run = path.join(cmd_to_run, "cba_commander");
+  cba_commander = spawn(cmd_to_run, [""]);
+  memory_name = "g_process_" + utils.slugify(cmd_to_run);
+  memory.set(memory_name, cba_commander.pid);
   cba_commander.stdout.on("data", function(data) {
-    return print("cryptobox.cf:83", data);
+    return print("cryptobox.cf:88", data);
   });
   cba_commander.stderr.on("data", function(data) {
-    return print("cryptobox.cf:86", data);
+    return print("cryptobox.cf:91", data);
   });
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);

@@ -8,19 +8,12 @@ import uuid
 import base64
 import urllib
 import shutil
-from cba_index import cryptobox_locked, TreeLoadError, index_files_visit
+from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log
-from cba_memory import have_serverhash, \
-    Memory, \
-    add_server_file_history, \
-    in_server_file_history, \
-    add_local_file_history, \
-    in_local_file_history, \
-    del_local_file_history, \
-    del_server_file_history
+from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -54,7 +47,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     from multiprocessing.dummy import Pool
-
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
@@ -158,6 +150,15 @@ def remove_local_folders(dirs_del_local):
     for node in dirs_del_local:
         if os.path.exists(node["dirname"]):
             shutil.rmtree(node["dirname"], True)
+
+
+def remove_local_files(file_del_local):
+    """
+    @type file_del_local: list
+    """
+    for fpath in file_del_local:
+        if os.path.exists(fpath):
+            os.remove(fpath)
 
 
 def make_directories_local(memory, options, localindex, folders):
@@ -522,7 +523,6 @@ def sync_server(memory, options, localindex):
     @return: @rtype: @raise:
 
     """
-    fake = options.fake
 
     if cryptobox_locked(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
@@ -534,30 +534,25 @@ def sync_server(memory, options, localindex):
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
 
+    serverindex, memory = get_server_index(memory, options)
+
     # file diff
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
-    file_uploads, file_del_server, memory = diff_files_locally(memory, options, localindex, serverindex)
-    for uf in file_uploads:
-        memory = upload_file(memory, options, open(uf.local_file_path, "rb"), uf.parent_short_id)
 
     memory = get_unique_content(memory, options, unique_content, file_downloads)
-    delete_file_guids = []
+    localindex = make_local_index(options)
 
-    for fpath in file_del_server:
-        relpath = fpath.replace(options.dir, "")
+    file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
 
-        guids = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if x["doc"]["m_path"] == relpath]
+    for uf in file_uploads:
+        memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
 
-        if len(guids) == 1:
-            delete_file_guids.append(guids[0])
-
-    if len(delete_file_guids) > 0:
-        payload = {"tree_item_list": delete_file_guids}
-
-        if not fake:
-            result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
+    remove_local_files(file_del_local)
 
     for fpath in file_del_server:
         memory = del_server_file_history(memory, fpath)
-        memory = del_local_file_history(memory, fpath)
-    return memory
+
+    for fpath in file_del_local:
+        memory = del_server_file_history(memory, fpath)
+
+    return localindex, memory

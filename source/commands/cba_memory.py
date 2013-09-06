@@ -233,7 +233,7 @@ def del_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_path_id, memory = server_file_history_setup(memory, relative_path_name)
-    memory = del_serverhash(memory, (fnode_path_id, make_sha1_hash(fnode_path_id)))
+    memory = del_serverhash(memory, relative_path_name)
     return memory
 
 

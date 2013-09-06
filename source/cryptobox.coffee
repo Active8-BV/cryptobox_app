@@ -77,16 +77,16 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     #cba_commander = child_process.spawn("cba_commander")
     spawn = require("child_process").spawn
     cmd_to_run = path.join(process.cwd(), "commands")
-    cmd_to_run = path.join("cba_commander", cmd_name)
+    cmd_to_run = path.join(cmd_to_run, "cba_commander")
     cba_commander = spawn(cmd_to_run, [""])
-    memory_name = "g_process_" + utils.slugify(cmd_name)
+    memory_name = "g_process_" + utils.slugify(cmd_to_run)
     memory.set(memory_name, cba_commander.pid)
 
     cba_commander.stdout.on "data", (data) ->
-      print "cryptobox.cf:83", data
+      print "cryptobox.cf:88", data
 
     cba_commander.stderr.on "data", (data) ->
-      print "cryptobox.cf:86", data
+      print "cryptobox.cf:91", data
 
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)
@@ -95,7 +95,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         py_file_input_change($scope.file_input)
 
     $scope.run_commands = ->
-        clientOptions =
+        clientOptions = 
           host: "localhost"
           port: 8654
           path: "/RPC2"
