@@ -23,7 +23,7 @@ def download_blob(memory, options, node):
     """
     download_blob
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type node: dict
     """
 
@@ -92,7 +92,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_times
     @type dirname_hashes_server: dict
     @type tree_timestamp: float
     @param options: options
-    @type options: instance
+    @type options: optparse.Values, instance
     @type localindex: dict
     @return: list of dirs on server or to remove locally
     @rtype: tuple
@@ -130,7 +130,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_times
 def instruct_server_to_make_folders(memory, options, dirs_make_server):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type dirs_make_server: list
     @rtype: Memory
     """
@@ -166,7 +166,7 @@ def remove_local_files(file_del_local):
 def make_directories_local(memory, options, localindex, folders):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type localindex: dict
     @type folders: list
     """
@@ -185,7 +185,7 @@ def make_directories_local(memory, options, localindex, folders):
 def dirs_on_server(memory, options, unique_dirs_server):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type unique_dirs_server: set
     @rtype: list, Memory
     """
@@ -210,7 +210,7 @@ def wait_for_tasks(memory, options):
     """
     wait_for_tasks
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     while True:
         result, memory = on_server(memory, options, "tasks", payload={}, session=memory.get("session"))
@@ -232,7 +232,7 @@ def wait_for_tasks(memory, options):
 def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type short_node_ids_to_delete: list
     """
     if len(short_node_ids_to_delete) > 0:
@@ -245,7 +245,7 @@ def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
 def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type serverindex: dict
     @type dirs_del_server: list
     @return:
@@ -275,7 +275,7 @@ def sync_directories_with_server(memory, options, localindex, serverindex):
     """
     sync_directories_with_server
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type localindex: dict
     @type serverindex: dict
     """
@@ -396,7 +396,7 @@ def path_to_server_shortid(memory, options, serverindex, path):
 def get_server_index(memory, options):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @return: index
     @rtype: dict, Memory
     """
@@ -449,7 +449,7 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
     """
     diff_new_files_on_server
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type server_file_nodes: list
     @type dirs_scheduled_for_removal: list
     """
@@ -478,7 +478,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
     """
     diff_files_locally
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type localindex: dict
     @type serverindex: dict
     """
@@ -520,7 +520,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
 def sync_server(memory, options, localindex):
     """
     @type memory: Memory
-    @type options: optparse.Values
+    @type options: optparse.Values, instance
     @type localindex: dict
     @return: @rtype: @raise:
 

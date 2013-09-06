@@ -4,7 +4,6 @@ python version
 """
 import sys
 import time
-import datetime
 import threading
 
 
@@ -20,6 +19,7 @@ class XMLRPCThread(threading.Thread):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
         from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
+        #noinspection PyClassicStyleClass
         class RequestHandler(SimpleXMLRPCRequestHandler):
             """
             RequestHandler
@@ -34,6 +34,8 @@ class XMLRPCThread(threading.Thread):
         def adder_function(x, y):
             """
             adder_function
+            :param y:
+            :param x:
             """
             for i in range(0, 10):
                 sys.stdout.write("adding: " + str(x) + " and " + str(y))

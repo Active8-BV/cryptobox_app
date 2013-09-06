@@ -17,7 +17,7 @@ def decrypt_and_build_filetree(memory, options):
     """
     decrypt_and_build_filetree
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     password = options.password
     datadir = get_data_dir(options)

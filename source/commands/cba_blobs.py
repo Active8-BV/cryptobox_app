@@ -13,7 +13,7 @@ from cba_memory import add_local_file_history, add_server_file_history
 def get_data_dir(options):
     """
     get_data_dir
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     return os.path.join(options.dir, ".cryptobox")
 
@@ -21,7 +21,7 @@ def get_data_dir(options):
 def get_blob_dir(options):
     """
     get_blob_dir
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     datadir = get_data_dir(options)
     return os.path.join(datadir, "blobs")
@@ -92,7 +92,7 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
 def have_blob(options, blob_hash):
     """
     have_blob
-    @type options: instance
+    @type options: optparse.Values, instance
     @type blob_hash: str, unicode
     """
     blobdir = os.path.join(get_blob_dir(options), blob_hash[:2])

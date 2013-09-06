@@ -17,7 +17,7 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
     dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
     sync_directories_with_server, diff_new_files_on_server, diff_files_locally, upload_file, \
     get_unique_content, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, \
-    remove_local_files
+    remove_local_files, sync_server
 from cba_file import ensure_directory
 
 
@@ -417,12 +417,16 @@ class CryptoboxAppTest(unittest.TestCase):
         file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
 
-    def test_sync_method(self):
+    def test_sync_method_clean_tree(self):
         """
-        test_sync_method
+        test_sync_method_clean_tree
         """
-        pass
-
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        localindex = make_local_index(self.cboptions)
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions, localindex)
+        self.assertTrue(self.files_synced())
+        os.system("ls > testdata/testmap/all_types/test.txt")
 
 if __name__ == '__main__':
     unittest.main()
