@@ -52,6 +52,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
+
         os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
         self.do_wait_for_tasks = True
 
