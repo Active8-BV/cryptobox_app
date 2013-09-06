@@ -13,7 +13,8 @@ from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log
-from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history
+from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, \
+    add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -47,6 +48,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     from multiprocessing.dummy import Pool
+
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
@@ -523,7 +525,6 @@ def sync_server(memory, options, localindex):
     @return: @rtype: @raise:
 
     """
-
     if cryptobox_locked(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
@@ -533,17 +534,13 @@ def sync_server(memory, options, localindex):
     # folder structure
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
-
     serverindex, memory = get_server_index(memory, options)
 
     # file diff
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
-
     memory = get_unique_content(memory, options, unique_content, file_downloads)
     localindex = make_local_index(options)
-
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
-
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
 
@@ -551,8 +548,10 @@ def sync_server(memory, options, localindex):
 
     for fpath in file_del_server:
         memory = del_server_file_history(memory, fpath)
+        memory = del_local_file_history(memory, fpath)
 
     for fpath in file_del_local:
         memory = del_server_file_history(memory, fpath)
+        memory = del_local_file_history(memory, fpath)
 
     return localindex, memory

@@ -277,7 +277,6 @@ class CryptoboxAppTest(unittest.TestCase):
         # build directories locally and on server
         localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-
         dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         self.cbmemory, dir_del_server = sync_directories_with_server(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertTrue(self.directories_synced())
@@ -301,6 +300,18 @@ class CryptoboxAppTest(unittest.TestCase):
         for uf in file_uploads:
             self.cbmemory = upload_file(self.cbmemory, self.cboptions, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
 
+        # remove local files
+        remove_local_files(file_del_local)
+
+        for fpath in file_del_server:
+            self.cbmemory = del_server_file_history(self.cbmemory, fpath)
+            self.cbmemory = del_local_file_history(self.cbmemory, fpath)
+
+        for fpath in file_del_local:
+            self.cbmemory = del_server_file_history(self.cbmemory, fpath)
+            self.cbmemory = del_local_file_history(self.cbmemory, fpath)
+
+        # should be in sync
         self.assertTrue(self.files_synced())
 
     def files_synced(self):
@@ -385,15 +396,14 @@ class CryptoboxAppTest(unittest.TestCase):
 
         # remove local files
         remove_local_files(file_del_local)
+
         for fpath in file_del_server:
             self.cbmemory = del_server_file_history(self.cbmemory, fpath)
             self.cbmemory = del_local_file_history(self.cbmemory, fpath)
 
-
         for fpath in file_del_local:
             self.cbmemory = del_server_file_history(self.cbmemory, fpath)
             self.cbmemory = del_local_file_history(self.cbmemory, fpath)
-
         self.assertEqual(len(file_del_server), 0)
         self.assertEqual(len(file_del_local), 2)
         self.assertEqual(len(file_downloads), 0)
@@ -402,7 +412,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_local), 0)
         self.assertEqual(len(dir_make_server), 0)
         self.assertEqual(len(dir_del_local), 0)
-
 
         os.system("ls > testdata/testmap/all_types/bmptest.png")
         file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = self.get_sync_changes()
@@ -413,6 +422,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_sync_method
         """
         pass
+
 
 if __name__ == '__main__':
     unittest.main()
