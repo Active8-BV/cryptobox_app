@@ -66,7 +66,7 @@ def get_secret(memory, options):
     """
     get_secret
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     password = options.password
     current_cryptobox_index = get_cryptobox_index(memory)
@@ -97,7 +97,7 @@ def index_files_visit(arg, dir_name, names):
 def make_local_index(options):
     """
     make_local_index
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     datadir = get_data_dir(options)
     args = {"DIR": options.dir, "folders": {"dirnames": {}, "filestats": {}}, "numfiles": 0}
@@ -115,7 +115,7 @@ def index_and_encrypt(memory, options, localindex):
     """
     index_and_encrypt
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type localindex: dict
     """
     datadir = get_data_dir(options)

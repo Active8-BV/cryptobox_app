@@ -162,7 +162,7 @@ def parse_http_result(result):
 def on_server(memory, options, method, payload, session, files=None, retry=False):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type method: str or unicode
     @type payload: dict or None
     @type session: requests.sessions.Session or None
@@ -206,7 +206,7 @@ def download_server(memory, options, url):
     """
     download_server
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type url: str, unicode
     """
     cookies = {}
@@ -223,7 +223,7 @@ def server_time(memory, options):
     """
     server_time
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     result, memory = on_server(memory, options, "clock", payload=None, session=None)
     stime = float(result[0])
@@ -240,7 +240,7 @@ class PasswordException(Exception):
 def authorize(memory, options):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @rtype session, results, memory: dict, list, Memory
     """
     session = requests.Session()
@@ -261,7 +261,7 @@ def authorize(memory, options):
 def check_otp(memory, options, session, results):
     """
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     @type session: requests.sessions.Session
     @type results: dict, instance
     """
@@ -283,7 +283,7 @@ def authorize_user(memory, options):
     """
     authorize_user
     @type memory: Memory
-    @type options: instance
+    @type options: optparse.Values, instance
     """
 
     try:
@@ -313,7 +313,7 @@ def authorize_user(memory, options):
 def authorized(memory, options):
     """
     authorized
-    @type options: instance
+    @type options: optparse.Values, instance
     @type memory: Memory
     """
     if not memory.has("session"):
