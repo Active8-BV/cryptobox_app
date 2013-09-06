@@ -12,6 +12,7 @@ class XMLRPCThread(threading.Thread):
     """
     XMLRPCThread
     """
+
     def run(self):
         """
         run
@@ -49,6 +50,5 @@ xx = XMLRPCThread()
 
 
 xx.start()
-
 
 #sys.stdout.write(sys.version.split("\n")[0] + " " + str(datetime.datetime.now().time()) + "\n")
