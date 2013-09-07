@@ -17,13 +17,13 @@
     <link href="css/bootstrap.css" rel="stylesheet">
     <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/angular-file-upload.min.js"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/app_basic.min.js"></script>
     <script type="text/javascript" src="cryptobox.js"></script>
 </head>
 <body>
-
 
 <div ng-controller="cryptobox_ctrl">
 
@@ -35,41 +35,60 @@
     </div>
 
     <div class="container">
+        <!-- Button trigger modal -->
+        <a data-toggle="modal" href="#myModal" class="btn btn-primary btn-lg">Launch demo modal</a>
+
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Modal title</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-horizontal" role="form">
+                            <div class="form-group">
+                                <label for="cbfolder">cryptobox folder</label>
+                                <input type="text" class="form-control" ng_model="cb_folder_text" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
+
+                                <div style='height: 0px;width:0px; overflow:hidden;'><input type="file" id="cb_folder" nwdirectory ng-file-select="file_input_change($files)"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cbusername">username</label>
+                                <input type="text" class="form-control" ng_model="cb_username" placeholder="Username">
+                            </div>
+
+                        </form>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
+
+
         <div class="row">
 
             <div class="row">
-                <div class="col-md-12"><br/>
-
-                    <form role="form">
-                        <div class="form-group">
-                            <label for="exampleInputEmail1">Email address</label>
-                            <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
-                        </div>
-                        <div class="form-group">
-                            <label for="exampleInputPassword1">Password</label>
-                            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-                        </div>
-                        <div class="form-group">
-                            <label for="exampleInputFile">File input</label>
-                            <input type="file" id="exampleInputFile">
-
-                            <p class="help-block">Example block-level help text here.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox"> Check me out
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-default">Submit</button>
-                    </form>
+                <div class="col-md-6"><br/>
+                    <small>self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
+                    </small>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-12">
                     <div class="well">
-                        <button type="button" class="btn btn-default dropdown-toggle">sync</button>
-                        <button type="button" class="btn btn-warning dropdown-toggle">lock</button>
-                        <button type="button" class="btn btn-success dropdown-toggle">unlock</button>
+                        <button type="button" class="btn btn-default" ng-click="test_btn()">test</button>
+                        <button type="button" class="btn btn-primary">sync</button>
+                        <button type="button" class="btn btn-warning">lock</button>
+                        <button type="button" class="btn btn-success">unlock</button>
                     </div>
                 </div>
             </div>

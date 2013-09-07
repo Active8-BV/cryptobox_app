@@ -33,7 +33,7 @@ print = function() {
   }
 };
 
-angular.module("cryptoboxApp", ["cryptoboxApp.base"]);
+angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
   var cba_commander, cmd_to_run, memory_name, run_command, spawn,
@@ -96,11 +96,20 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);
   };
-  $scope.file_input_change = function() {
-    return py_file_input_change($scope.file_input);
+  $scope.file_input_change = function(f) {
+    if (typeof console !== "undefined" && console !== null) {
+      if (typeof console.log === "function") {
+        console.log(f);
+      }
+    }
+    $scope.cb_folder_text = f[0].path;
+    print("cryptobox.cf:100", $scope.cb_folder_text);
+    return typeof console !== "undefined" && console !== null ? typeof console.log === "function" ? console.log($scope.cb_folder_text) : void 0 : void 0;
   };
-  return $scope.run_commands = function() {
+  return $scope.test_btn = function() {
     var client, clientOptions;
+    print("cryptobox.cf:104", $('#cb_folder'));
+    print("cryptobox.cf:105", $scope.cb_folder);
     clientOptions = {
       host: "localhost",
       port: 8654,
@@ -108,7 +117,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     };
     client = xmlrpc.createClient(clientOptions);
     return client.methodCall("add", [2, 4], function(error, value) {
-      $scope.python_version = value;
+      print("cryptobox.cf:113", value);
       return utils.force_digest($scope);
     });
   };

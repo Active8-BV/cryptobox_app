@@ -25,7 +25,7 @@ print = (msg, others...) ->
           console?.log others, msg
 
 
-angular.module("cryptoboxApp", ["cryptoboxApp.base"])
+angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.cba_version = 0.1
     memory.set("g_running", true)
@@ -92,10 +92,15 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.handle_change =  ->
         $scope.yourName =  handle($scope.yourName)
 
-    $scope.file_input_change = ->
-        py_file_input_change($scope.file_input)
+    $scope.file_input_change = (f) ->
+        console?.log? f
+        $scope.cb_folder_text = f[0].path
+        print "cryptobox.cf:100", $scope.cb_folder_text
+        console?.log? $scope.cb_folder_text
 
-    $scope.run_commands = ->
+    $scope.test_btn = ->
+        print "cryptobox.cf:104", $('#cb_folder')
+        print "cryptobox.cf:105", $scope.cb_folder
         clientOptions = 
           host: "localhost"
           port: 8654
@@ -103,5 +108,5 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         client = xmlrpc.createClient(clientOptions)
         client.methodCall "add", [2, 4], (error, value) ->
-          $scope.python_version = value
+          print "cryptobox.cf:113", value
           utils.force_digest($scope)
