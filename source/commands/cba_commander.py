@@ -37,10 +37,10 @@ class XMLRPCThread(threading.Thread):
             :param y:
             :param x:
             """
-            for i in range(0, 10):
+            for i in range(0, 3):
                 sys.stdout.write("adding: " + str(x) + " and " + str(y))
                 sys.stdout.flush()
-                time.sleep(0.5)
+
 
             return x + y
 
