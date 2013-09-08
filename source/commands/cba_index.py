@@ -117,6 +117,7 @@ def index_and_encrypt(memory, options, localindex_param):
     @type memory: Memory
     @type options: optparse.Values, instance
     @type localindex_param: dict
+    @rtype salt, secret, memory, localindex: str, str, Memory, dict
     """
     localindex = localindex_param
     datadir = get_data_dir(options)

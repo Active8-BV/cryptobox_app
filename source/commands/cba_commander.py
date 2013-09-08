@@ -3,7 +3,6 @@
 python version
 """
 import sys
-import time
 import threading
 
 
