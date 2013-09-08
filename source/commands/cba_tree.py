@@ -27,7 +27,7 @@ def decrypt_and_build_filetree(memory, options):
         return
 
     blobdir = os.path.join(datadir, "blobs")
-    cryptobox_index, memory = get_cryptobox_index(memory)
+    cryptobox_index = get_cryptobox_index(memory)
 
     if cryptobox_index:
         cb_locked = cryptobox_locked(memory)

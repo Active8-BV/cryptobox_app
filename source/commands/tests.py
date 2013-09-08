@@ -9,7 +9,7 @@ import unittest
 from subprocess import Popen, PIPE
 from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
-from cba_index import make_local_index, index_and_encrypt
+from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir
 from cba_memory import Memory, del_local_file_history, del_server_file_history
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
@@ -19,6 +19,7 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
     get_unique_content, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, \
     remove_local_files, sync_server
 from cba_file import ensure_directory
+from cba_tree import decrypt_and_build_filetree
 
 
 def count_files_dir(fpath):
@@ -47,14 +48,12 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #SERVER = "https://www.cryptobox.nl/"
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": True, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
         self.cboptions = dict2obj_new(self.options_d)
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
-
-        os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
         self.do_wait_for_tasks = True
 
     def tearDown(self):
@@ -91,6 +90,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
+        os.system("wget -q -O '/dev/null' --retry-connrefused http://127.0.0.1:8000/")
         os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
@@ -148,6 +148,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index_and_encrypt
         """
+        self.unzip_testfiles_clean()
         self.do_wait_for_tasks = False
         localindex = make_local_index(self.cboptions)
         salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
@@ -172,6 +173,56 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
+
+    def test_index_encrypt_decrypt_clean(self):
+        """
+        test_index_encrypt_decrypt_clean
+        """
+        self.do_wait_for_tasks = False
+        self.unzip_testfiles_clean()
+        os.system("rm -Rf " + get_blob_dir(self.cboptions))
+
+        localindex1 = make_local_index(self.cboptions)
+        self.cboptions.remove = True
+        salt, secret, self.cbmemory, localindex1 = index_and_encrypt(self.cbmemory, self.cboptions, localindex1)
+        self.assertEqual(count_files_dir(self.cboptions.dir), 9)
+        self.cbmemory = decrypt_and_build_filetree(self.cbmemory, self.cboptions)
+        os.system("rm -Rf " + get_blob_dir(self.cboptions))
+
+        localindex2 = make_local_index(self.cboptions)
+        salt, secret, self.cbmemory, localindex2 = index_and_encrypt(self.cbmemory, self.cboptions, localindex2)
+        self.maxDiff = None
+
+        def remove_atime(index):
+            """
+            remove_atime
+            """
+
+            def del_atime(ix, x):
+                """
+                del_atime
+                """
+                del ix[x]["st_atime"]
+                del ix[x]["st_ctime"]
+
+                return ix
+
+            filestats = [del_atime(index["filestats"], x) for x in index["filestats"]]
+            index["filestats"] = filestats[0]
+            return index
+
+        localindex1 = remove_atime(localindex1)
+        localindex2 = remove_atime(localindex2)
+        self.assertEquals(localindex1["filestats"], localindex2["filestats"])
+
+    def test_index_clear(self):
+        self.do_wait_for_tasks = False
+        self.unzip_testfiles_clean()
+        localindex = make_local_index(self.cboptions)
+        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        self.cboptions.clear = True
+        self.cboptions.encrypt = False
+        check_and_clean_dir(self.cboptions)
 
     def directories_synced(self):
         """
@@ -426,7 +477,10 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex = make_local_index(self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions, localindex)
         self.assertTrue(self.files_synced())
+
         os.system("ls > testdata/testmap/all_types/test.txt")
+        self.assertFalse(self.files_synced())
+
 
 if __name__ == '__main__':
     unittest.main()
