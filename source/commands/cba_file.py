@@ -53,12 +53,12 @@ def read_file_to_fdict(path):
     """
     ft = read_file(path)
     file_dict = {"data": ft[0],
-
                  "st_ctime": int(ft[1]),
                  "st_atime": int(ft[2]),
                  "st_mtime": int(ft[3]),
                  "st_mode": int(ft[4]),
                  "st_uid": int(ft[5]),
+
                  "st_gid": int(ft[6])}
 
     return file_dict

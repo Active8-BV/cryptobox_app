@@ -4,12 +4,12 @@
 some utility functions
 """
 import os
-import shutil
 import multiprocessing
 from optparse import OptionParser
 from cba_memory import Memory
 from cba_utils import log, exit_app_warning, cba_warning, strcmp
-from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index
+from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, \
+    make_local_index, ExitAppWarning, check_and_clean_dir
 from cba_tree import decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server
@@ -32,7 +32,6 @@ def add_options():
     parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
     parser.add_option("-x", "--debug", dest="debug", action='store_true', help="drop to debug repl", metavar="DEBUG")
-
     return parser.parse_args()
 
 
@@ -49,13 +48,6 @@ def interact():
     myglobals["m"] = Memory()
     myglobals["md"] = myglobals["m"].data
     code.InteractiveConsole(locals=myglobals).interact()
-
-
-class ExitAppWarning(Exception):
-    """
-    ExitAppWarning
-    """
-    pass
 
 
 def run_app_command(options):
@@ -143,13 +135,7 @@ def run_app_command(options):
             if not options.clear:
                 memory = decrypt_and_build_filetree(memory, options)
 
-        if options.clear:
-            if options.encrypt:
-                raise ExitAppWarning("clear options cannot be used together with encrypt, possible data loss")
-
-            datadir = get_data_dir(options)
-            shutil.rmtree(datadir, True)
-            log("cleared all meta data in ", get_data_dir(options))
+        datadir = check_and_clean_dir(options)
     finally:
         memory.save(datadir)
 

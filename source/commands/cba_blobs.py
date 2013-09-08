@@ -54,7 +54,6 @@ def encrypt_new_blobs(salt, secret, new_blobs):
         counter += 1
         ensure_directory(new_blobs[fhash]["blobdir"])
         result = pool.apply_async(read_and_encrypt_file,
-
                                   (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret),
                                   callback=done_encrypting)
 

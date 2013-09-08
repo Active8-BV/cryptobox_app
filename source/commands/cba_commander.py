@@ -20,6 +20,7 @@ class XMLRPCThread(threading.Thread):
         from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
         #noinspection PyClassicStyleClass
+
         class RequestHandler(SimpleXMLRPCRequestHandler):
             """
             RequestHandler
@@ -40,7 +41,6 @@ class XMLRPCThread(threading.Thread):
             for i in range(0, 3):
                 sys.stdout.write("adding: " + str(x) + " and " + str(y))
                 sys.stdout.flush()
-
 
             return x + y
 

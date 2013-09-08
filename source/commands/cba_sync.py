@@ -553,5 +553,4 @@ def sync_server(memory, options, localindex):
     for fpath in file_del_local:
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
-
     return localindex, memory
