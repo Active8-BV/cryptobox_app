@@ -151,7 +151,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_clean()
         self.do_wait_for_tasks = False
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 7)
@@ -196,11 +196,14 @@ class CryptoboxAppTest(unittest.TestCase):
         def remove_atime(index):
             """
             remove_atime
+            @type index: dict
             """
 
             def del_atime(ix, x):
                 """
                 del_atime
+                @type ix: dict
+                @type x: dict
                 """
                 del ix[x]["st_atime"]
                 del ix[x]["st_ctime"]
@@ -219,7 +222,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.unzip_testfiles_clean()
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.cboptions.clear = True
         self.cboptions.encrypt = False
         check_and_clean_dir(self.cboptions)
