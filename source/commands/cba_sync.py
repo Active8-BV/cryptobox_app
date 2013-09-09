@@ -82,6 +82,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         memory = write_blobs_to_filepaths(memory, options, local_file_paths, result["content"], result["content_hash"])
         update_progress(len(downloaded_files), len(unique_nodes), "writing")
 
+    local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
     return memory
 
 
