@@ -48,7 +48,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #SERVER = "https://www.cryptobox.nl/"
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": True, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
         self.cboptions = dict2obj_new(self.options_d)
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
@@ -207,7 +207,6 @@ class CryptoboxAppTest(unittest.TestCase):
                 """
                 del ix[x]["st_atime"]
                 del ix[x]["st_ctime"]
-
                 return ix
 
             filestats = [del_atime(index["filestats"], x) for x in index["filestats"]]
@@ -226,6 +225,8 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions.clear = True
         self.cboptions.encrypt = False
         check_and_clean_dir(self.cboptions)
+        dd = get_data_dir(self.cboptions)
+        self.assertEquals(os.path.exists(dd), False)
 
     def directories_synced(self):
         """
