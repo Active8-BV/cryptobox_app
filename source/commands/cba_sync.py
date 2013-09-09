@@ -8,13 +8,12 @@ import uuid
 import base64
 import urllib
 import shutil
-from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index
+from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log
-from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, \
-    add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history
+from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -48,7 +47,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     from multiprocessing.dummy import Pool
-
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
@@ -83,6 +81,19 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         update_progress(len(downloaded_files), len(unique_nodes), "writing")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
+    if len(local_file_paths_not_written) > 0:
+        local_index = get_cryptobox_index(memory)
+        local_file_hashes = {}
+        for ldir in local_index["dirnames"]:
+            for f in local_index["dirnames"][ldir]["filenames"]:
+                local_file_hashes[f["hash"]] = os.path.join(local_index["dirnames"][ldir]["dirname"], f["name"])
+        for lfnw in local_file_paths_not_written:
+            w = False
+            for lfh in local_file_hashes:
+                if not w:
+                    if strcmp(lfnw["content_hash_latest_timestamp"][0], lfh):
+                        w = True
+                        open(os.path.join(options.dir, lfnw["doc"]["m_path"].lstrip(os.path.sep)), "w").write(open(local_file_hashes[lfh]).read())
     return memory
 
 

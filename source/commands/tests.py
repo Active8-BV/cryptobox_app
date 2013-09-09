@@ -9,7 +9,7 @@ import unittest
 from subprocess import Popen, PIPE
 from cba_main import run_app_command, ExitAppWarning
 from cba_utils import dict2obj_new
-from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir
+from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
@@ -19,7 +19,6 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
     get_unique_content, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, \
     remove_local_files, sync_server
 from cba_file import ensure_directory
-from cba_tree import decrypt_and_build_filetree
 
 
 def count_files_dir(fpath):
