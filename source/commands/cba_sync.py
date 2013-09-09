@@ -550,11 +550,21 @@ def sync_server(memory, options, localindex):
     memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
     serverindex, memory = get_server_index(memory, options)
 
+    memory = instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server)
+
     # file diff
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
+    del_server_items = []
+    for del_file in file_del_server:
+        del_short_guid, memory = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
+        del_server_items.append(del_short_guid)
+    # delete items
+    memory = instruct_server_to_delete_items(memory, options, del_server_items)
+    # get new items
     memory = get_unique_content(memory, options, unique_content, file_downloads)
     localindex = make_local_index(options)
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
+
     for uf in file_uploads:
         memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
 
