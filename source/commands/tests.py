@@ -47,7 +47,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #SERVER = "https://www.cryptobox.nl/"
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        server = "https://www.cryptobox.nl/"
+        #server = "https://www.cryptobox.nl/"
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 2}
         self.cboptions = dict2obj_new(self.options_d)
