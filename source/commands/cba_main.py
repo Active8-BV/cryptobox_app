@@ -7,10 +7,9 @@ import os
 import multiprocessing
 from optparse import OptionParser
 from cba_memory import Memory
-from cba_utils import log, exit_app_warning, cba_warning, strcmp
+from cba_utils import exit_app_warning, cba_warning, strcmp
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, \
-    make_local_index, ExitAppWarning, check_and_clean_dir
-from cba_tree import decrypt_and_build_filetree
+    make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server
 from cba_blobs import get_data_dir
