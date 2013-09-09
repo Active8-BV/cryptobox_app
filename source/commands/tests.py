@@ -47,7 +47,9 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #SERVER = "https://www.cryptobox.nl/"
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": "http://127.0.0.1:8000/", "numdownloadthreads": 2}
+        server = "https://www.cryptobox.nl/"
+        server = "http://127.0.01:8000/"
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 2}
         self.cboptions = dict2obj_new(self.options_d)
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
@@ -177,6 +179,9 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index_encrypt_decrypt_clean
         """
+        self.complete_reset()
+        self.reset_cb_db_clean()
+
         self.do_wait_for_tasks = False
         self.unzip_testfiles_clean()
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
@@ -184,7 +189,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex1 = make_local_index(self.cboptions)
         self.cboptions.remove = True
         salt, secret, self.cbmemory, localindex1 = index_and_encrypt(self.cbmemory, self.cboptions, localindex1)
-        self.assertEqual(count_files_dir(self.cboptions.dir), 9)
+        self.assertEqual(count_files_dir(self.cboptions.dir), 7)
         self.cbmemory = decrypt_and_build_filetree(self.cbmemory, self.cboptions)
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
 
@@ -325,8 +330,8 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_clean_tree
         """
-        #self.reset_cb_db_clean()
-        #self.unzip_testfiles_clean()
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
 
         # build directories locally and on server
         localindex = make_local_index(self.cboptions)
