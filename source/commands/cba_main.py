@@ -70,8 +70,13 @@ def run_app_command(options):
         raise ExitAppWarning("No cryptobox given -b or --cryptobox")
 
     options.basedir = options.dir
+    ensure_directory(options.basedir)
     options.dir = os.path.join(options.dir, options.cryptobox)
     datadir = get_data_dir(options)
+    if not datadir:
+        cba_warning("Datadir is None")
+    if not os.path.exists(datadir):
+        cba_warning("Datadir does not exists")
     restore_hidden_config(options)
     memory = Memory()
     memory.load(datadir)
@@ -121,7 +126,7 @@ def run_app_command(options):
         secret = None
 
         if options.encrypt:
-            salt, secret, memory = index_and_encrypt(memory, options, localindex)
+            salt, secret, memory, localindex = index_and_encrypt(memory, options, localindex)
 
         if options.decrypt:
             if options.remove:
@@ -130,8 +135,9 @@ def run_app_command(options):
             if not options.clear:
                 memory = decrypt_and_build_filetree(memory, options)
 
-        datadir = check_and_clean_dir(options)
+        check_and_clean_dir(options)
     finally:
+        print datadir
         memory.save(datadir)
 
     hide_config(options, salt, secret)

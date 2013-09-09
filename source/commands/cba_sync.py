@@ -401,6 +401,8 @@ def get_server_index(memory, options):
     @rtype: dict, Memory
     """
     if not memory.has("session"):
+        if memory.has("authorized"):
+            memory.delete("authorized")
         memory = authorize_user(memory, options)
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))

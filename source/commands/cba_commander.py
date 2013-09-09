@@ -11,7 +11,7 @@ class XMLRPCThread(threading.Thread):
     XMLRPCThread
     """
 
-    def run(self): 
+    def run(self):
         """
         run
         """

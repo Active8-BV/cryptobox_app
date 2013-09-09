@@ -160,7 +160,7 @@ class CryptoboxAppTest(unittest.TestCase):
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
 
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
@@ -169,7 +169,7 @@ class CryptoboxAppTest(unittest.TestCase):
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
 
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
@@ -326,8 +326,8 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_clean_tree
         """
-        self.reset_cb_db_clean()
-        self.unzip_testfiles_clean()
+        #self.reset_cb_db_clean()
+        #self.unzip_testfiles_clean()
 
         # build directories locally and on server
         localindex = make_local_index(self.cboptions)
