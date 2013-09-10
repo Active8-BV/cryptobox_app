@@ -4,6 +4,8 @@ python version
 """
 import sys
 import threading
+from SimpleXMLRPCServer import SimpleXMLRPCServer
+from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
 
 class XMLRPCThread(threading.Thread):
@@ -15,11 +17,8 @@ class XMLRPCThread(threading.Thread):
         """
         run
         """
-        from SimpleXMLRPCServer import SimpleXMLRPCServer
-        from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
         #noinspection PyClassicStyleClass
-
         class RequestHandler(SimpleXMLRPCRequestHandler):
             """
             RequestHandler
@@ -46,10 +45,5 @@ class XMLRPCThread(threading.Thread):
         server.register_function(adder_function, 'add')
         server.serve_forever()
 
-
-xx = XMLRPCThread()
-
-
-xx.start()
-
-#sys.stdout.write(sys.version.split("\n")[0] + " " + str(datetime.datetime.now().time()) + "\n")
+commandserver = XMLRPCThread()
+commandserver.start()
