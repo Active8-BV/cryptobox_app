@@ -31,7 +31,6 @@ def add_options():
     parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
     parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
-
     return parser.parse_args()
 
 
@@ -72,10 +71,13 @@ def run_app_command(options):
     ensure_directory(options.basedir)
     options.dir = os.path.join(options.dir, options.cryptobox)
     datadir = get_data_dir(options)
+
     if not datadir:
         cba_warning("Datadir is None")
+
     if not os.path.exists(datadir):
         cba_warning("Datadir does not exists")
+
     restore_hidden_config(options)
     memory = Memory()
     memory.load(datadir)
@@ -138,8 +140,10 @@ def run_app_command(options):
     finally:
         if memory.has("session"):
             memory.delete("session")
+
         if memory.has("authorized"):
             memory.delete("authorized")
+
         memory.save(datadir)
 
     hide_config(options, salt, secret)

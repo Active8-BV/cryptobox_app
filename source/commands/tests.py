@@ -180,7 +180,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.complete_reset()
         self.reset_cb_db_clean()
-
         self.do_wait_for_tasks = False
         self.unzip_testfiles_clean()
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
@@ -303,7 +302,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.complete_reset()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
@@ -313,14 +311,11 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, dir_del_server)
 
         # sync dirs again
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
         # delete local
         os.system("rm -Rf testdata/testmap/map2")
-
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
@@ -332,9 +327,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_clean()
 
         # build directories locally and on server
-
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
         self.assertTrue(self.files_synced())
@@ -413,7 +406,6 @@ class CryptoboxAppTest(unittest.TestCase):
         for fpath in file_del_local:
             self.cbmemory = del_server_file_history(self.cbmemory, fpath)
             self.cbmemory = del_local_file_history(self.cbmemory, fpath)
-
         self.assertEqual(len(file_del_server), 0)
         self.assertEqual(len(file_del_local), 0)
         self.assertEqual(len(file_downloads), 0)
@@ -429,13 +421,11 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
         os.system("ls > testdata/testmap/all_types/test.txt")
         self.assertFalse(self.files_synced())
-
 
     def test_sync_conflict_folder(self):
         """
@@ -443,7 +433,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         os.system("ls > testdata/testmap/all_types/listing.txt")

@@ -9,7 +9,6 @@ import base64
 import urllib
 import shutil
 from multiprocessing.dummy import Pool
-
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
@@ -48,7 +47,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
@@ -83,19 +81,24 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         update_progress(len(downloaded_files), len(unique_nodes), "writing")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
+
     if len(local_file_paths_not_written) > 0:
         local_index = get_cryptobox_index(memory)
         local_file_hashes = {}
+
         for ldir in local_index["dirnames"]:
             for f in local_index["dirnames"][ldir]["filenames"]:
                 local_file_hashes[f["hash"]] = os.path.join(local_index["dirnames"][ldir]["dirname"], f["name"])
+
         for lfnw in local_file_paths_not_written:
             w = False
+
             for lfh in local_file_hashes:
                 if not w:
                     if strcmp(lfnw["content_hash_latest_timestamp"][0], lfh):
                         w = True
                         open(os.path.join(options.dir, lfnw["doc"]["m_path"].lstrip(os.path.sep)), "w").write(open(local_file_hashes[lfh]).read())
+
     return memory
 
 
@@ -113,8 +116,8 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
     """
     if "tree_timestamp" not in serverindex:
         raise Exception("dirs_on_local needs a tree timestamp")
-    tree_timestamp = float(serverindex["tree_timestamp"])
 
+    tree_timestamp = float(serverindex["tree_timestamp"])
     local_dirs_not_on_server = []
 
     for dirhashlocal in localindex["dirnames"]:
@@ -141,7 +144,9 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
             dirs_del_local.append(node)
         else:
             dirs_make_server.append(node)
+
     dirs_make_server_unique = []
+
     key_set = set([k["dirnamehash"] for k in dirs_make_server])
     for k in key_set:
         for i in dirs_make_server:
@@ -239,8 +244,10 @@ def wait_for_tasks(memory, options):
     """
     while True:
         session = None
+
         if memory.has("session"):
             session = memory.get("session")
+
         result, memory = on_server(memory, options, "tasks", payload={}, session=session)
         num_tasks = len(result[1])
 
@@ -346,6 +353,7 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
 
         if len(result) == 0:
             raise NoParentFound(parent_path)
+
         else:
             return result[0], parent_path, memory
 
@@ -389,6 +397,7 @@ def get_server_index(memory, options):
     if not memory.has("session"):
         if memory.has("authorized"):
             memory.delete("authorized")
+
         memory = authorize_user(memory, options)
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
@@ -565,9 +574,11 @@ def upload_files(memory, options, serverindex, file_uploads):
         @type result: dict
         """
         uploaded_files.append(result)
+
         # update_progress(len(uploaded_files), len(unique_nodes), "downloading")
 
     upload_result = []
+
     for uf in file_uploads:
         result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
         upload_result.append(result)
@@ -583,7 +594,6 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     #for uf in file_uploads:
     #    memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
-
     return memory
 
 
@@ -600,22 +610,20 @@ def sync_server(memory, options):
 
     serverindex, memory = get_server_index(memory, options)
     localindex = make_local_index(options)
-
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
-
     serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
     remove_local_folders(dir_del_local)
     memory = make_directories_local(memory, options, localindex, dir_make_local)
     memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_del_server)
-
     del_server_items = []
+
     for del_file in file_del_server:
         del_short_guid, memory = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
         del_server_items.append(del_short_guid)
+
         # delete items
     memory = instruct_server_to_delete_items(memory, options, del_server_items)
     memory = get_unique_content(memory, options, unique_content, file_downloads)
-
     memory = upload_files(memory, options, serverindex, file_uploads)
     remove_local_files(file_del_local)
 
