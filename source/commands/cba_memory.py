@@ -199,7 +199,7 @@ def in_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
-    has_server_hash, memory = have_serverhash(memory, (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    has_server_hash, memory = have_serverhash(memory, relative_path_unix_style)
     return has_server_hash, memory
 
 
