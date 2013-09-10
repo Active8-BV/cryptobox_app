@@ -119,7 +119,7 @@ def run_app_command(options):
                         raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                     ensure_directory(options.dir)
-                    localindex, memory = sync_server(memory, options, localindex)
+                    localindex, memory = sync_server(memory, options)
 
         salt = None
         secret = None
