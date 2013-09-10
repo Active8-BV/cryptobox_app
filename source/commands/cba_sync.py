@@ -139,8 +139,15 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
             dirs_del_local.append(node)
         else:
             dirs_make_server.append(node)
+    dirs_make_server_unique = []
+    key_set = set([k["dirnamehash"] for k in dirs_make_server])
+    for k in key_set:
+        for i in dirs_make_server:
+            if strcmp(i["dirnamehash"], k):
+                dirs_make_server_unique.append(i)
+                break
 
-    return dirs_make_server, dirs_del_local
+    return dirs_make_server_unique, dirs_del_local
 
 
 def instruct_server_to_make_folders(memory, options, dirs_make_server):
@@ -229,7 +236,10 @@ def wait_for_tasks(memory, options):
     @type options: optparse.Values, instance
     """
     while True:
-        result, memory = on_server(memory, options, "tasks", payload={}, session=memory.get("session"))
+        session = None
+        if memory.has("session"):
+            session = memory.get("session")
+        result, memory = on_server(memory, options, "tasks", payload={}, session=session)
         num_tasks = len(result[1])
 
         if num_tasks == 0:
@@ -509,31 +519,6 @@ def diff_files_locally(memory, options, localindex, serverindex):
     return file_uploads, file_del_local, memory
 
 
-def sync_directories_with_server(memory, options, localindex, serverindex):
-    """
-    sync_directories_with_server
-    @type memory: Memory
-    @type options: optparse.Values, instance
-    @type localindex: dict
-    @type serverindex: dict
-    """
-    dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-
-    # find new folders locally and determine if we need to make on server or delete locally
-    dirs_make_server, dirs_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
-    serverindex, memory = instruct_server_to_make_folders(memory, options, dirs_make_server)
-    remove_local_folders(dirs_del_local)
-
-    # local checking
-    dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
-    memory = make_directories_local(memory, options, localindex, dirs_make_local)
-
-    # find new folders on server and determine local creation or server removal
-    dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
-    memory = instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server)
-    return memory, dirs_del_server
-
-
 def get_sync_changes(memory, options, localindex, serverindex):
     """
     get_sync_changes
@@ -541,6 +526,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @type options: optparse.Values, instance
     @type localindex: dict
     @type serverindex: dict
+    @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content): tuple
     """
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
@@ -555,7 +541,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     #local files
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
-    return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local
+    return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
 def upload_files(memory, options, file_uploads):
@@ -596,11 +582,10 @@ def upload_files(memory, options, file_uploads):
     return memory
 
 
-def sync_server(memory, options, localindex):
+def sync_server(memory, options):
     """
     @type memory: Memory
     @type options: optparse.Values, instance
-    @type localindex: dict
     @return: @rtype: @raise:
 
     """
@@ -609,30 +594,24 @@ def sync_server(memory, options, localindex):
         return
 
     serverindex, memory = get_server_index(memory, options)
+    localindex = make_local_index(options)
 
-    #memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = get_sync_changes(memory, options, localindex, serverindex)
-    # folder structure
-    dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-    memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
-    serverindex, memory = get_server_index(memory, options)
+    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
 
-    memory = instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server)
+    serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
+    remove_local_folders(dir_del_local)
+    memory = make_directories_local(memory, options, localindex, dir_make_local)
+    memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_del_server)
 
-    # file diff
-    memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dirs_del_server)
     del_server_items = []
     for del_file in file_del_server:
         del_short_guid, memory = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
         del_server_items.append(del_short_guid)
         # delete items
     memory = instruct_server_to_delete_items(memory, options, del_server_items)
-    # get new items
     memory = get_unique_content(memory, options, unique_content, file_downloads)
-    localindex = make_local_index(options)
-    file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
 
     memory = upload_files(memory, options, file_uploads)
-
     remove_local_files(file_del_local)
 
     for fpath in file_del_server:
