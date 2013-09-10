@@ -136,7 +136,10 @@ def run_app_command(options):
 
         check_and_clean_dir(options)
     finally:
-        print datadir
+        if memory.has("session"):
+            memory.delete("session")
+        if memory.has("authorized"):
+            memory.delete("authorized")
         memory.save(datadir)
 
     hide_config(options, salt, secret)

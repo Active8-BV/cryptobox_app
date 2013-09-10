@@ -384,27 +384,6 @@ class CryptoboxAppTest(unittest.TestCase):
                 return False
         return True
 
-    def get_sync_changes(self):
-        """
-        get_sync_changes
-        """
-        localindex = make_local_index(self.cboptions)
-        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-
-        # server dirs
-        dir_del_server, dir_make_local, self.cbmemory = dirs_on_server(self.cbmemory, self.cboptions, unique_dirs)
-
-        #local dirs
-        dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
-
-        # find new files on server
-        self.cbmemory, file_del_server, file_downloads = diff_new_files_on_server(self.cbmemory, self.cboptions, server_file_nodes, dir_del_server)
-
-        #local files
-        file_uploads, file_del_local, self.cbmemory = diff_files_locally(self.cbmemory, self.cboptions, localindex, serverindex)
-        return file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local
-
     def test_sync_synced_tree_mutations_local(self):
         """
         test_sync_synced_tree_mutations_local
