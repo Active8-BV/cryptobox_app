@@ -97,18 +97,22 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     return memory
 
 
-def dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_timestamp):
+def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex):
     """
     @type memory: Memory
     @param dirname_hashes_server: folders on server
     @type dirname_hashes_server: dict
-    @type tree_timestamp: float
+    @type serverindex: dict
     @param options: options
     @type options: optparse.Values, instance
     @type localindex: dict
     @return: list of dirs on server or to remove locally
     @rtype: tuple
     """
+    if "tree_timestamp" not in serverindex:
+        raise Exception("dirs_on_local needs a tree timestamp")
+    tree_timestamp = float(serverindex["tree_timestamp"])
+
     local_dirs_not_on_server = []
 
     for dirhashlocal in localindex["dirnames"]:
@@ -129,7 +133,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_times
         if float(os.stat(node["dirname"]).st_mtime) >= tree_timestamp:
             dirs_make_server.append(node)
 
-        have_hash_on_server, memory = have_serverhash(memory, node["dirnamehash"])
+        have_hash_on_server, memory = have_serverhash(memory, node["dirname"])
 
         if have_hash_on_server:
             dirs_del_local.append(node)
@@ -281,32 +285,6 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
 
     memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
     return memory
-
-
-def sync_directories_with_server(memory, options, localindex, serverindex):
-    """
-    sync_directories_with_server
-    @type memory: Memory
-    @type options: optparse.Values, instance
-    @type localindex: dict
-    @type serverindex: dict
-    """
-    dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-    tree_timestamp = float(serverindex["tree_timestamp"])
-
-    # find new folders locally and determine if we need to make on server or delete locally
-    dirs_make_server, dirs_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, tree_timestamp)
-    serverindex, memory = instruct_server_to_make_folders(memory, options, dirs_make_server)
-    remove_local_folders(dirs_del_local)
-
-    # local checking
-    dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
-    memory = make_directories_local(memory, options, localindex, dirs_make_local)
-
-    # find new folders on server and determine local creation or server removal
-    dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
-    memory = instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server)
-    return memory, dirs_del_server
 
 
 def upload_file(memory, options, file_object, parent):
@@ -531,6 +509,55 @@ def diff_files_locally(memory, options, localindex, serverindex):
     return file_uploads, file_del_local, memory
 
 
+def sync_directories_with_server(memory, options, localindex, serverindex):
+    """
+    sync_directories_with_server
+    @type memory: Memory
+    @type options: optparse.Values, instance
+    @type localindex: dict
+    @type serverindex: dict
+    """
+    dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+
+    # find new folders locally and determine if we need to make on server or delete locally
+    dirs_make_server, dirs_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
+    serverindex, memory = instruct_server_to_make_folders(memory, options, dirs_make_server)
+    remove_local_folders(dirs_del_local)
+
+    # local checking
+    dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
+    memory = make_directories_local(memory, options, localindex, dirs_make_local)
+
+    # find new folders on server and determine local creation or server removal
+    dirs_del_server, dirs_make_local, memory = dirs_on_server(memory, options, unique_dirs)
+    memory = instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_server)
+    return memory, dirs_del_server
+
+
+def get_sync_changes(memory, options, localindex, serverindex):
+    """
+    get_sync_changes
+    @type memory: Memory
+    @type options: optparse.Values, instance
+    @type localindex: dict
+    @type serverindex: dict
+    """
+    dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
+
+    # server dirs
+    dir_del_server, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
+
+    #local dirs
+    dir_make_server, dir_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
+
+    # find new files on server
+    memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dir_del_server)
+
+    #local files
+    file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
+    return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local
+
+
 def sync_server(memory, options, localindex):
     """
     @type memory: Memory
@@ -545,6 +572,7 @@ def sync_server(memory, options, localindex):
 
     serverindex, memory = get_server_index(memory, options)
 
+    #memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local = get_sync_changes(memory, options, localindex, serverindex)
     # folder structure
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
     memory, dirs_del_server = sync_directories_with_server(memory, options, localindex, serverindex)
@@ -558,7 +586,7 @@ def sync_server(memory, options, localindex):
     for del_file in file_del_server:
         del_short_guid, memory = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
         del_server_items.append(del_short_guid)
-    # delete items
+        # delete items
     memory = instruct_server_to_delete_items(memory, options, del_server_items)
     # get new items
     memory = get_unique_content(memory, options, unique_content, file_downloads)
