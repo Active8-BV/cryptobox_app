@@ -118,7 +118,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def ignore_test_index_no_box_given(self):
+    def test_index_no_box_given(self):
         """
         test_index
         """
@@ -130,7 +130,7 @@ class CryptoboxAppTest(unittest.TestCase):
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
             run_app_command(self.no_box_given)
 
-    def ignore_test_index_directory(self):
+    def test_index_directory(self):
         """
         test_index
         """
@@ -144,7 +144,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
-    def ignore_test_index_and_encrypt(self):
+    def test_index_and_encrypt(self):
         """
         test_index_and_encrypt
         """
@@ -174,7 +174,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
-    def ignore_test_index_encrypt_decrypt_clean(self):
+    def test_index_encrypt_decrypt_clean(self):
         """
         test_index_encrypt_decrypt_clean
         """
@@ -220,7 +220,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex2 = remove_atime(localindex2)
         self.assertEquals(localindex1["filestats"], localindex2["filestats"])
 
-    def ignore_test_index_clear(self):
+    def test_index_clear(self):
         self.do_wait_for_tasks = False
         self.unzip_testfiles_clean()
         localindex = make_local_index(self.cboptions)
@@ -241,7 +241,7 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
 
-    def ignore_test_connection(self):
+    def test_connection(self):
         """
         test_connection
         """
@@ -252,7 +252,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = authorized(self.cbmemory, self.cboptions)
         self.assertTrue(self.cbmemory.get("authorized"))
 
-    def ignore_test_compare_server_tree_with_local_tree_folders(self):
+    def test_compare_server_tree_with_local_tree_folders(self):
         """
         test_compare_server_tree_with_local_tree_folders
         """
@@ -296,7 +296,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = instruct_server_to_make_folders(self.cbmemory, self.cboptions, dir_make_server)
         self.assertTrue(self.directories_synced())
 
-    def ignore_test_compare_server_tree_with_local_tree_method_folders(self):
+    def test_compare_server_tree_with_local_tree_method_folders(self):
         """
         test_compare_server_tree_with_local_tree_method_folders
         """
@@ -324,7 +324,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
-    def ignore_test_sync_clean_tree(self):
+    def test_sync_clean_tree(self):
         """
         test_sync_clean_tree
         """
@@ -352,7 +352,7 @@ class CryptoboxAppTest(unittest.TestCase):
                 return False
         return True
 
-    def ignore_test_sync_synced_tree_mutations_local(self):
+    def test_sync_synced_tree_mutations_local(self):
         """
         test_sync_synced_tree_mutations_local
         """
@@ -381,7 +381,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_local), 0)
         self.assertEqual(len(file_del_local), 0)
 
-    def ignore_test_sync_synced_tree_mutations_server(self):
+    def test_sync_synced_tree_mutations_server(self):
         """
         test_sync_synced_tree_mutations_server
         """
@@ -423,7 +423,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_server), 0)
         self.assertEqual(len(dir_del_local), 0)
 
-    def ignore_test_sync_method_clean_tree(self):
+    def test_sync_method_clean_tree(self):
         """
         test_sync_method_clean_tree
         """
@@ -444,12 +444,10 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
 
-        #self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, ["/all_types"])
-        os.system("ls > testdata/testmap/all_types/listing.txt")
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-
+        os.system("ls > testdata/testmap/all_types/listing.txt")
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(file_uploads), 1)
 
