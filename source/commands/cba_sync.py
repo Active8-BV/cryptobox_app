@@ -8,6 +8,8 @@ import uuid
 import base64
 import urllib
 import shutil
+from multiprocessing.dummy import Pool
+
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
@@ -16,7 +18,7 @@ from cba_utils import handle_exception, strcmp, exit_app_warning, log
 from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
-from multiprocessing.dummy import Pool
+
 
 def download_blob(memory, options, node):
     """
@@ -297,27 +299,6 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
     return memory
 
 
-def upload_file(memory, options, file_object, parent):
-    """
-    @type memory: Memory
-    @param options:
-    @type options:
-    @param file_object:
-    @type file_object:
-    @param parent:
-    @type parent:
-    @raise NotAuthorized:
-
-    """
-    if not memory.has("session"):
-        raise NotAuthorized("trying to upload without a session")
-
-    payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
-    files = {'file': file_object}
-    result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
-    return memory
-
-
 def save_encode_b64(s):
     """
     @param s:
@@ -355,18 +336,23 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
-    path = path.replace(options.dir, "")
-    path = os.path.dirname(path)
+    parent_path = path.replace(options.dir, "")
+    parent_path = os.path.dirname(parent_path)
 
-    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], path)]
+    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
 
     if len(result) == 0:
-        raise NoParentFound(path)
+        result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
+
+        if len(result) == 0:
+            raise NoParentFound(parent_path)
+        else:
+            return result[0], parent_path, memory
 
     elif len(result) == 1:
-        return result[0], memory
+        return result[0], parent_path, memory
     else:
-        raise MultipleGuidsForPath(path)
+        raise MultipleGuidsForPath(parent_path)
 
 
 def path_to_server_shortid(memory, options, serverindex, path):
@@ -500,11 +486,8 @@ def diff_files_locally(memory, options, localindex, serverindex):
             seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
 
             if not seen_local_file_before:
-                parent, memory = path_to_server_parent_guid(memory, options, serverindex, local_file_path)
-
-                if parent:
-                    upload_file_object = {"local_file_path": local_file_path, "parent_short_id": parent}
-                    file_uploads.append(upload_file_object)
+                upload_file_object = {"local_file_path": local_file_path, "parent_short_id": None, "path": local_file_path}
+                file_uploads.append(upload_file_object)
 
     file_del_local = []
 
@@ -544,13 +527,35 @@ def get_sync_changes(memory, options, localindex, serverindex):
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
-def upload_files(memory, options, file_uploads):
+def upload_file(memory, options, file_object, parent):
+    """
+    @type memory: Memory
+    @type options: instance
+    @type file_object: file
+    @type parent: str, unicode
+    @raise NotAuthorized:
+
+    """
+    if not memory.has("session"):
+        raise NotAuthorized("trying to upload without a session")
+
+    payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
+    files = {'file': file_object}
+    result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
+    return memory
+
+
+def upload_files(memory, options, serverindex, file_uploads):
     """
     upload_files
     @type memory: Memory
     @type options: optparse.Values, instance
+    @type serverindex: dict
     @type file_uploads: list
     """
+    for uf in file_uploads:
+        uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_file_path"])
+
     pool = Pool(processes=options.numdownloadthreads)
     uploaded_files = []
 
@@ -611,7 +616,7 @@ def sync_server(memory, options):
     memory = instruct_server_to_delete_items(memory, options, del_server_items)
     memory = get_unique_content(memory, options, unique_content, file_downloads)
 
-    memory = upload_files(memory, options, file_uploads)
+    memory = upload_files(memory, options, serverindex, file_uploads)
     remove_local_files(file_del_local)
 
     for fpath in file_del_server:
