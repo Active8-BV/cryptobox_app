@@ -403,5 +403,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_tree.py:92"
+        print "cba_index.py:408"
     return memory
