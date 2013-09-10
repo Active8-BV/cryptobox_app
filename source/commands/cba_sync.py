@@ -16,7 +16,7 @@ from cba_utils import handle_exception, strcmp, exit_app_warning, log
 from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
-
+from multiprocessing.dummy import Pool
 
 def download_blob(memory, options, node):
     """
@@ -46,7 +46,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-    from multiprocessing.dummy import Pool
+
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
@@ -241,7 +241,7 @@ def wait_for_tasks(memory, options):
             time.sleep(1)
 
             if num_tasks > 4:
-                log("waiting for tasks")
+                log("waiting for tasks", num_tasks)
                 time.sleep(2)
 
 
@@ -558,6 +558,44 @@ def get_sync_changes(memory, options, localindex, serverindex):
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local
 
 
+def upload_files(memory, options, file_uploads):
+    """
+    upload_files
+    @type memory: Memory
+    @type options: optparse.Values, instance
+    @type file_uploads: list
+    """
+    pool = Pool(processes=options.numdownloadthreads)
+    uploaded_files = []
+
+    def done_downloading(result):
+        """
+        done_downloading
+        @type result: dict
+        """
+        uploaded_files.append(result)
+        # update_progress(len(uploaded_files), len(unique_nodes), "downloading")
+
+    upload_result = []
+    for uf in file_uploads:
+        result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
+        upload_result.append(result)
+
+    pool.close()
+    pool.join()
+
+    for result in upload_result:
+        if not result.successful():
+            result.get()
+
+    pool.terminate()
+
+    #for uf in file_uploads:
+    #    memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
+
+    return memory
+
+
 def sync_server(memory, options, localindex):
     """
     @type memory: Memory
@@ -593,8 +631,7 @@ def sync_server(memory, options, localindex):
     localindex = make_local_index(options)
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
 
-    for uf in file_uploads:
-        memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
+    memory = upload_files(memory, options, file_uploads)
 
     remove_local_files(file_del_local)
 
