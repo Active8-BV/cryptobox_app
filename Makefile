@@ -15,4 +15,5 @@ package:
 
 run:
 	cp ../www_cryptobox_nl/source/js/app_basic.min.js ./Cryptobox/js/
-	./node-webkit.app/Contents/MacOS/node-webkit Cryptobox/
+	python run_node_webkit_cryptobox.py
+

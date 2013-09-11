@@ -13,11 +13,12 @@ xmlrpc = require('xmlrpc');
 winmain = gui.Window.get();
 
 print = function() {
-  var msg, others;
+  var len_others, msg, others;
   msg = arguments[0], others = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-  switch (_.size(others)) {
+  len_others = _.size(others);
+  switch (len_others) {
     case 0:
-      return typeof console !== "undefined" && console !== null ? console.log(msg) : void 0;
+      return go(typeof console !== "undefined" && console !== null ? console.log(msg) : void 0);
     case 1:
       return typeof console !== "undefined" && console !== null ? console.log(msg + " " + others[0]) : void 0;
     case 2:
@@ -62,7 +63,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }
     cmd_to_run = path.join(process.cwd(), "commands");
     cmd_to_run = path.join(cmd_to_run, cmd_name);
-    print("cryptobox.cf:58", cmd_to_run);
+    print("cryptobox.cf:55", cmd_to_run);
     p = $q.defer();
     process_result = function(error, stdout, stderr) {
       if (utils.exist(stderr)) {
@@ -88,10 +89,10 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   memory_name = "g_process_" + utils.slugify(cmd_to_run);
   memory.set(memory_name, cba_commander.pid);
   cba_commander.stdout.on("data", function(data) {
-    return print("cryptobox.cf:89", data);
+    return print("cryptobox.cf:86", data);
   });
   cba_commander.stderr.on("data", function(data) {
-    return print("cryptobox.cf:92", data);
+    return print("cryptobox.cf:89", data);
   });
   $scope.handle_change = function() {
     return $scope.yourName = handle($scope.yourName);
@@ -103,21 +104,22 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       }
     }
     $scope.cb_folder_text = f[0].path;
-    print("cryptobox.cf:100", $scope.cb_folder_text);
+    print("cryptobox.cf:97", $scope.cb_folder_text);
     return typeof console !== "undefined" && console !== null ? typeof console.log === "function" ? console.log($scope.cb_folder_text) : void 0 : void 0;
   };
   return $scope.test_btn = function() {
     var client, clientOptions;
-    print("cryptobox.cf:104", $('#cb_folder'));
-    print("cryptobox.cf:105", $scope.cb_folder);
+    print("cryptobox.cf:101", $('#cb_folder'));
+    print("cryptobox.cf:102", $scope.cb_folder);
     clientOptions = {
       host: "localhost",
       port: 8654,
       path: "/RPC2"
     };
     client = xmlrpc.createClient(clientOptions);
-    return client.methodCall("add", [2, 4], function(error, value) {
-      print("cryptobox.cf:113", value);
+    return client.methodCall("get_val", ["my_test_var"], function(error, value) {
+      print("cryptobox.cf:110", error);
+      print("cryptobox.cf:111", value);
       return utils.force_digest($scope);
     });
   };

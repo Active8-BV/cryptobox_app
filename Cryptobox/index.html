@@ -35,44 +35,19 @@
     </div>
 
     <div class="container">
-        <!-- Button trigger modal -->
-        <a data-toggle="modal" href="#myModal" class="btn btn-primary btn-lg">Launch demo modal</a>
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <label for="cb_folder">cryptobox folder</label>
+                <input type="text" class="form-control" ng_model="cb_folder_text" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
 
-        <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title">Modal title</h4>
-                    </div>
-                    <div class="modal-body">
-                        <form class="form-horizontal" role="form">
-                            <div class="form-group">
-                                <label for="cbfolder">cryptobox folder</label>
-                                <input type="text" class="form-control" ng_model="cb_folder_text" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
-
-                                <div style='height: 0px;width:0px; overflow:hidden;'><input type="file" id="cb_folder" nwdirectory ng-file-select="file_input_change($files)"></div>
-                            </div>
-                            <div class="form-group">
-                                <label for="cbusername">username</label>
-                                <input type="text" class="form-control" ng_model="cb_username" placeholder="Username">
-                            </div>
-
-                        </form>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-                <!-- /.modal-content -->
+                <div style='height: 0;width:0; overflow:hidden;'><input type="file" id="cb_folder" nwdirectory ng-file-select="file_input_change($files)"></div>
             </div>
-            <!-- /.modal-dialog -->
-        </div>
-        <!-- /.modal -->
+            <div class="form-group">
+                <label for="cb_username">username</label>
+                <input type="text" class="form-control" id="cb_username" ng_model="cb_username" placeholder="Username">
+            </div>
 
+        </form>
 
         <div class="row">
 

@@ -18,9 +18,11 @@ if __name__ == '__main__':
                 os.system("killall node-webkit")
                 os.system("killall cba_commander")
                 open("app.running", "w").write(".")
-                pool.apply_async(bring_to_front)
+                pool.apply_async(bring_to_front)                
                 os.system("make run")
+                os.system("clear")
                 os.remove("app.running")
             print "restarting app"
+            
     finally:
         os.remove("app.running")
