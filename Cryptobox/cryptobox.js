@@ -196,22 +196,24 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     set_user_var_scope("cb_username");
     set_user_var_scope("cb_password");
     set_user_var_scope("cb_name");
-    return set_user_var_scope("cb_server");
+    set_user_var_scope("cb_server");
+    return set_user_var_scope("show_settings");
   };
   set_data_user_config_once = _.once(set_data_user_config);
   set_data_user_config_once();
-  $scope.show_settings = true;
+  $scope.show_settings = false;
   $scope.form_change = function() {
-    var p_cb_folder, p_cb_name, p_cb_password, p_cb_server, p_cb_username;
+    var p_cb_folder, p_cb_name, p_cb_password, p_cb_server, p_cb_username, p_show_settings;
     p_cb_folder = store_user_var("cb_folder", $scope.cb_folder_text);
     p_cb_username = store_user_var("cb_username", $scope.cb_username);
     p_cb_password = store_user_var("cb_password", $scope.cb_password);
     p_cb_name = store_user_var("cb_name", $scope.cb_name);
     p_cb_server = store_user_var("cb_server", $scope.cb_server);
-    return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server]).then(function() {
+    p_show_settings = store_user_var("show_settings", $scope.show_settings);
+    return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:204", err);
+      return print("cryptobox.cf:206", err);
     });
   };
   return $scope.file_input_change = function(f) {
