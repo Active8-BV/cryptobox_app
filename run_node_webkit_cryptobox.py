@@ -8,12 +8,24 @@ def main():
     """
 
     proc = Popen("./node-webkit.app/Contents/MacOS/node-webkit Cryptobox/", shell=True, stdout=PIPE, stderr=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/cryptobox_app")
-
     while True:
 
         line = proc.stderr.readline()
         if line != '':
-            if "cryptobox.cf" in line:
+            if "INFO:CONSOLE" in line and not "cryptobox.cf" in line:
+                ls = line.split(", source: file")
+                if len(ls) > 0:
+                    msg = ls[0].replace("\n", "")
+                    if ", source: file" in line:
+                        print "\033[93m" + msg + "\033[0m "
+                    else:
+                        print "\033[91m" + msg + "\033[0m "
+            if "at" in line and "file://" in line:
+                ls = line.split("(file://")
+                if len(ls) > 0:
+                    msg = ls[0].replace("\n", "")
+                    print "\033[93m    " + msg + "\033[0m "
+            elif "cryptobox.cf" in line:
                 ls = line.split("cryptobox.cf:")
                 if len(ls) > 0:
                     msg = ls[1].replace("\n", "")
@@ -29,7 +41,7 @@ def main():
                                 if cnt > 0:
                                     msg += " " + s
                                 cnt += 1
-                        print "\033[93m" + msg + "\033[0m "
+                        print "\033[92m" + msg + "\033[0m "
         else:
             break
 
