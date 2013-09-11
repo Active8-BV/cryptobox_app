@@ -182,10 +182,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         set_user_var_scope("cb_password")
         set_user_var_scope("cb_name")
         set_user_var_scope("cb_server")
+        set_user_var_scope("show_settings")
 
     set_data_user_config_once = _.once(set_data_user_config)
     set_data_user_config_once()
-    $scope.show_settings = true
+    $scope.show_settings = false
 
     $scope.form_change = ->
         p_cb_folder = store_user_var("cb_folder", $scope.cb_folder_text)
@@ -193,13 +194,14 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         p_cb_password = store_user_var("cb_password", $scope.cb_password)
         p_cb_name = store_user_var("cb_name", $scope.cb_name)
         p_cb_server = store_user_var("cb_server", $scope.cb_server)
+        p_show_settings = store_user_var("show_settings", $scope.show_settings)
 
-        $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server]).then(
+        $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(
             ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:204", err
+                print "cryptobox.cf:206", err
         )
 
     $scope.file_input_change = (f) ->

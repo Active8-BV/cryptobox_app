@@ -39,7 +39,7 @@
         <div class="well">
             <form>
                 <label for="show_settings">Show settings: </label>
-                <input id="show_settings" type="checkbox" ng-model="show_settings">
+                <input id="show_settings" type="checkbox" ng-model="show_settings" ng-change="form_change()">
             </form>
             <form class="form-horizontal" role="form" ng-show="show_settings">
                 <div class="form-group">
