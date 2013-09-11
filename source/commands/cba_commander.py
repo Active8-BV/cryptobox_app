@@ -121,13 +121,15 @@ class XMLRPCThread(threading.Thread):
             @type val: str, unicode
             """
             memory.set(name, val)
+            return True
+
 
         def get_val(name):
             """
             set_val
             @type name: str, unicode
             """
-            memory.get(name)
+            return memory.get(name)
 
         server.register_function(set_val, 'set_val')
         server.register_function(get_val, 'get_val')
