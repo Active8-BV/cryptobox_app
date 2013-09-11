@@ -8,21 +8,18 @@ winmain = gui.Window.get()
 
 
 print = (msg, others...) ->
-  switch _.size(others)
-      when 0
-          console?.log msg
-      when 1
-          console?.log msg + " " + others[0]
-      when 2
-          console?.log msg + " " + others[0] + " " + others[1]
-      when 3
-          console?.log msg + " " + others[0] + " " + others[1] + " " + others[2]
-      when 4
-          console?.log msg + " " + others[0] + " " + others[1] + " " + others[2] + " " + others[3]
-      when 5
-          console?.log msg + " " + others[0] + " " + others[1] + " " + others[2] + " " + others[3] + " " + others[4]
-      else
-          console?.log others, msg
+    len_others = _.size(others)
+
+    #noinspection CoffeeScriptSwitchStatementWithNoDefaultBranch
+    switch len_others
+        when 0 then go console?.log msg
+        when 1 then console?.log msg + " " + others[0]
+        when 2 then console?.log msg + " " + others[0] + " " + others[1]
+        when 3 then console?.log msg + " " + others[0] + " " + others[1] + " " + others[2]
+        when 4 then console?.log msg + " " + others[0] + " " + others[1] + " " + others[2] + " " + others[3]
+        when 5 then console?.log msg + " " + others[0] + " " + others[1] + " " + others[2] + " " + others[3] + " " + others[4]
+        else
+            console?.log others, msg
 
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
@@ -32,7 +29,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.on_exit = =>
         killprocess = (child) ->
-            console.error "cryptobox.cf:19", "killing"+memory.get(child)
+            console.error "cryptobox.cf:19", "killing" + memory.get(child)
 
             #memory_name = "g_process_" + utils.slugify(cmd_name)
             process.kill(memory.get(child));
@@ -53,7 +50,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         cmd_to_run = path.join(process.cwd(), "commands")
         cmd_to_run = path.join(cmd_to_run, cmd_name)
-        print "cryptobox.cf:58", cmd_to_run
+        print "cryptobox.cf:55", cmd_to_run
         p = $q.defer()
 
         process_result = (error, stdout, stderr) =>
@@ -84,29 +81,30 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     memory.set(memory_name, cba_commander.pid)
 
     cba_commander.stdout.on "data", (data) ->
-      print "cryptobox.cf:89", data
+        print "cryptobox.cf:86", data
 
     cba_commander.stderr.on "data", (data) ->
-      print "cryptobox.cf:92", data
+        print "cryptobox.cf:89", data
 
-    $scope.handle_change =  ->
-        $scope.yourName =  handle($scope.yourName)
+    $scope.handle_change = ->
+        $scope.yourName = handle($scope.yourName)
 
     $scope.file_input_change = (f) ->
         console?.log? f
         $scope.cb_folder_text = f[0].path
-        print "cryptobox.cf:100", $scope.cb_folder_text
+        print "cryptobox.cf:97", $scope.cb_folder_text
         console?.log? $scope.cb_folder_text
 
     $scope.test_btn = ->
-        print "cryptobox.cf:104", $('#cb_folder')
-        print "cryptobox.cf:105", $scope.cb_folder
+        print "cryptobox.cf:101", $('#cb_folder')
+        print "cryptobox.cf:102", $scope.cb_folder
         clientOptions = 
-          host: "localhost"
-          port: 8654
-          path: "/RPC2"
+            host: "localhost"
+            port: 8654
+            path: "/RPC2"
 
         client = xmlrpc.createClient(clientOptions)
-        client.methodCall "add", [2, 4], (error, value) ->
-          print "cryptobox.cf:113", value
-          utils.force_digest($scope)
+        client.methodCall "get_val", ["my_test_var"], (error, value) ->
+            print "cryptobox.cf:110", error
+            print "cryptobox.cf:111", value
+            utils.force_digest($scope)
