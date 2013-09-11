@@ -2,7 +2,8 @@
 <html ng-app="cryptoboxApp">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <META NAME="copyright" CONTENT="Cryptobox is copyrighted by Active8 BV (www.a8.nl)">
 
     <title>Cryptobox</title>
@@ -13,30 +14,83 @@
         }
     </style>
 
-    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet">
     <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
-    <script type="text/javascript" src="js/angular-1.0.6.min.js"></script>
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/angular-file-upload.min.js"></script>
     <script type="text/javascript" src="js/underscore-min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/app_basic.min.js"></script>
+    <script type="text/javascript" src="js/pouchdb-nightly.min.js"></script>
     <script type="text/javascript" src="cryptobox.js"></script>
 </head>
 <body>
 
-
 <div ng-controller="cryptobox_ctrl">
+
+    <div class="well">
+        <blockquote>
+            <p class="lead">Cryptobox syncer</p>
+            <small>version: {{cba_version}} pre-alpha</small>
+        </blockquote>
+    </div>
+
     <div class="container">
+        <div class="well">
+            <form>
+                <label for="show_settings">Show settings: </label>
+                <input id="show_settings" type="checkbox" ng-model="show_settings">
+            </form>
+            <form class="form-horizontal" role="form" ng-show="show_settings">
+                <div class="form-group">
+                    <label  for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
+
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng_model="cb_folder_text" ng-change="form_change()" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
+
+                        <div style='height: 0;width:0; overflow:hidden;'><input type="file" id="cb_folder" class="form-control" nwdirectory ng-file-select="file_input_change($files)"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_username">username</label>
+
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng-change="form_change()" id="cb_username" ng_model="cb_username" placeholder="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_password">password</label>
+
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" ng-change="form_change()" id="cb_password" ng_model="cb_password" placeholder="password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_name">cryptobox naam</label>
+
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng-change="form_change()" id="cb_name" ng_model="cb_name" placeholder="naam cryptobox">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_server">cryptobox server</label>
+
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng-change="form_change()" id="cb_server" ng_model="cb_server" placeholder="cryptobox server">
+                    </div>
+                </div>
+
+            </form>
+        </div>
         <div class="row">
-            <br/>
 
-            <div class="span10">
-                Python version: {{python_version}}<br/>
-
-                <p class="lead">Active8</p>
-                Files: {{num_files}}<br/>
-            </div>
-            <div class="span1">
-                <button class="btn" type="button" ng-click="run_commands()">run commands</button>
+            <div class="col-sm-12">
+                <div class="well">
+                    <button type="button" class="btn btn-default" ng-click="test_btn()">test</button>
+                    <button type="button" class="btn btn-primary" ng-click="sync_btn()">sync</button>
+                    <button type="button" class="btn btn-warning">lock</button>
+                    <button type="button" class="btn btn-success">unlock</button>
+                </div>
             </div>
 
         </div>

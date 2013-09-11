@@ -24,6 +24,43 @@ print = (msg, others...) ->
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
+    get_rpc_client = ->
+        clientOptions = 
+            host: "localhost"
+            port: 8654
+            path: "/RPC2"
+
+        return xmlrpc.createClient(clientOptions)
+
+    set_val = (k, v) ->
+        p = $q.defer()
+        client = get_rpc_client()
+        client.methodCall "set_val", [k, v], (error, value) ->
+            if exist(error)
+                p.reject(error)
+            else:
+                if utils.exist_truth(value)
+                    p.resolve("set_val " + k + ":" + v)
+                    utils.force_digest($scope)
+                else
+                    p.reject("error set_val")
+                    utils.force_digest($scope)
+
+            utils.force_digest($scope)
+        p.promise
+
+    get_val = (k) ->
+        p = $q.defer()
+        client = get_rpc_client()
+        client.methodCall "get_val", [k], (error, value) ->
+            if exist(error)
+                p.reject(error)
+                utils.force_digest($scope)
+            else
+                p.resolve(value)
+                utils.force_digest($scope)
+        p.promise
+
     $scope.cba_version = 0.1
     memory.set("g_running", true)
 
@@ -41,38 +78,6 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         _.defer(quit)
 
     winmain.on('close', $scope.on_exit);
-
-    run_command = (cmd_name) ->
-        memory_name = "g_process_" + utils.slugify(cmd_name)
-
-        if memory.has(memory_name)
-            return
-
-        cmd_to_run = path.join(process.cwd(), "commands")
-        cmd_to_run = path.join(cmd_to_run, cmd_name)
-        print "cryptobox.cf:55", cmd_to_run
-        p = $q.defer()
-
-        process_result = (error, stdout, stderr) =>
-            if utils.exist(stderr)
-                console.error console.error
-
-            if utils.exist(error)
-                console.error "cryptobox.cf:25", stderr
-
-                p.reject(error)
-            else
-                p.resolve(stdout)
-
-            memory.del(memory_name)
-            utils.force_digest($scope)
-
-        child = child_process.exec(cmd_to_run, process_result)
-        memory.set(memory_name, child.pid)
-        p.promise
-
-    #$scope.python_version = run_command("cba_commander")
-    #cba_commander = child_process.spawn("cba_commander")
     spawn = require("child_process").spawn
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_commander")
@@ -81,70 +86,122 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     memory.set(memory_name, cba_commander.pid)
 
     cba_commander.stdout.on "data", (data) ->
-        print "cryptobox.cf:86", data
+        print "cryptobox.cf:91", data
 
     cba_commander.stderr.on "data", (data) ->
-        print "cryptobox.cf:89", data
+        print "cryptobox.cf:94", data
 
-    $scope.handle_change = ->
-        $scope.yourName = handle($scope.yourName)
-
-    $scope.file_input_change = (f) ->
-        console?.log? f
-        $scope.cb_folder_text = f[0].path
-        print "cryptobox.cf:97", $scope.cb_folder_text
-        console?.log? $scope.cb_folder_text
-
-    get_rpc_client = ->
-        clientOptions = 
-            host: "localhost"
-            port: 8654
-            path: "/RPC2"
-
-        return xmlrpc.createClient(clientOptions)
-
-    set_val = (k, v) ->
+    store_user_var = (k, v) ->
         p = $q.defer()
-        client = get_rpc_client()
-        client.methodCall "set_val", [k, v], (error, value) ->
-            if exist(error)
-                p.reject(error)
-            else:
-                if utils.exist_truth(value)
+        db = new PouchDB('cb_userinfo')
 
-                    p.resolve("set_val -> " + k + ":" + v)
+        if not exist(db)
+            p.reject("no db")
+        else
+            record = 
+                _id: k
+                value: v
+            db.get k, (e, d) ->
+                if exist(d)
+                    if exist(d._rev)
+                        record._rev = d._rev
+                db.put record, (e, r) ->
+                    if exist(e)
+                        p.reject(e)
+                        utils.force_digest($scope)
+
+                    if exist(r)
+                        if exist_truth(r.ok)
+                            p.resolve(true)
+                            utils.force_digest($scope)
+                        else
+                            p.reject(r)
+                            utils.force_digest($scope)
+                    else
+                        p.reject("store_user_var generic error")
+                        utils.force_digest($scope)
+
+        return p.promise
+
+    get_user_var = (k) ->
+        p = $q.defer()
+        db = new PouchDB('cb_userinfo')
+
+        if not exist(db)
+            p.reject("no db")
+        else
+            db.get k, (e, d) ->
+                if exist(e)
+                    p.reject(e)
                 else
-                    p.reject("error set_val")
+                    if exist(d)
 
-            utils.force_digest($scope)
-        p.promise
+                        #print "cryptobox.cf:146", k, d.value
+                        p.resolve(d.value)
+                        utils.force_digest($scope)
+                    else
+                        p.reject()
 
-    get_val = (k) ->
-        p = $q.defer()
-        client = get_rpc_client()
-        client.methodCall "get_val", [k], (error, value) ->
-            if exist(error)
-                p.reject(error)
-            else:
-                p.resolve(value)
+                        #utils.force_digest($scope)
 
-            utils.force_digest($scope)
-        p.promise
-
-    $scope.test_btn = ->
-        set_val("my_test_var", "hello world").then(
-            (value) ->
-                print "cryptobox.cf:139", value
-
-            (error) ->
-                print "cryptobox.cf:142", error
-        )
+        return p.promise
 
     $scope.sync_btn = ->
-        get_val("my_test_var").then(
-            (value) ->
-                print "cryptobox.cf:148", value
+        store_user_var("dir", "erik").then(
+            ->
+                print "cryptobox.cf:154", "ok"
 
-            (error) ->
-                print "cryptobox.cf:151", error
+            (err) ->
+                console?.log? "error", err
         )
+
+    $scope.test_btn = ->
+        get_user_var("cb_folder").then(
+            (val) ->
+                console?.log val
+
+            (err) ->
+                console?.log? "error", err
+        )
+
+    set_user_var_scope = (name, scope_name) ->
+        get_user_var(name).then(
+            (v) ->
+                if exist(scope_name)
+                    $scope[scope_name] = v
+                else
+                    $scope[name] = v
+
+            (err) ->
+                print "cryptobox.cf:178", err
+        )
+
+    set_data_user_config = ->
+        set_user_var_scope("cb_folder", "cb_folder_text")
+        set_user_var_scope("cb_username")
+        set_user_var_scope("cb_password")
+        set_user_var_scope("cb_name")
+        set_user_var_scope("cb_server")
+
+    set_data_user_config_once = _.once(set_data_user_config)
+    set_data_user_config_once()
+    $scope.show_settings = true
+
+    $scope.form_change = ->
+        p_cb_folder = store_user_var("cb_folder", $scope.cb_folder_text)
+        p_cb_username = store_user_var("cb_username", $scope.cb_username)
+        p_cb_password = store_user_var("cb_password", $scope.cb_password)
+        p_cb_name = store_user_var("cb_name", $scope.cb_name)
+        p_cb_server = store_user_var("cb_server", $scope.cb_server)
+
+        $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server]).then(
+            ->
+                utils.force_digest($scope)
+
+            (err) ->
+                print "cryptobox.cf:204", err
+        )
+
+    $scope.file_input_change = (f) ->
+        $scope.cb_folder_text = f[0].path
+        $scope.form_change()

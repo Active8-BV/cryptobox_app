@@ -3,10 +3,11 @@
     "description": "Cryptobox sync client",
     "version": "0.1",
     "main": "index.html",
-
+    
     "window": {
         "toolbar": true,
-        "width": 800,
+        "frame": true,
+        "width": 1000,        
         "height": 900,
         "always-on-top": false
     }
