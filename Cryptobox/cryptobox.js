@@ -37,7 +37,7 @@ print = function() {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var cba_commander, cmd_to_run, memory_name, run_command, spawn,
+  var cba_commander, cmd_to_run, get_rpc_client, get_val, memory_name, run_command, set_val, spawn,
     _this = this;
   $scope.cba_version = 0.1;
   memory.set("g_running", true);
@@ -107,20 +107,57 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     print("cryptobox.cf:97", $scope.cb_folder_text);
     return typeof console !== "undefined" && console !== null ? typeof console.log === "function" ? console.log($scope.cb_folder_text) : void 0 : void 0;
   };
-  return $scope.test_btn = function() {
-    var client, clientOptions;
-    print("cryptobox.cf:101", $('#cb_folder'));
-    print("cryptobox.cf:102", $scope.cb_folder);
+  get_rpc_client = function() {
+    var clientOptions;
     clientOptions = {
       host: "localhost",
       port: 8654,
       path: "/RPC2"
     };
-    client = xmlrpc.createClient(clientOptions);
-    return client.methodCall("get_val", ["my_test_var"], function(error, value) {
-      print("cryptobox.cf:110", error);
-      print("cryptobox.cf:111", value);
+    return xmlrpc.createClient(clientOptions);
+  };
+  set_val = function(k, v) {
+    var client, p;
+    p = $q.defer();
+    client = get_rpc_client();
+    client.methodCall("set_val", [k, v], function(error, value) {
+      if (exist(error)) {
+        p.reject(error);
+      }
+      ({
+        "else": utils.exist_truth(value) ? p.resolve("set_val -> " + k + ":" + v) : p.reject("error set_val")
+      });
       return utils.force_digest($scope);
+    });
+    return p.promise;
+  };
+  get_val = function(k) {
+    var client, p;
+    p = $q.defer();
+    client = get_rpc_client();
+    client.methodCall("get_val", [k], function(error, value) {
+      if (exist(error)) {
+        p.reject(error);
+      }
+      ({
+        "else": p.resolve(value)
+      });
+      return utils.force_digest($scope);
+    });
+    return p.promise;
+  };
+  $scope.test_btn = function() {
+    return set_val("my_test_var", "hello world").then(function(value) {
+      return print("cryptobox.cf:139", value);
+    }, function(error) {
+      return print("cryptobox.cf:142", error);
+    });
+  };
+  return $scope.sync_btn = function() {
+    return get_val("my_test_var").then(function(value) {
+      return print("cryptobox.cf:148", value);
+    }, function(error) {
+      return print("cryptobox.cf:151", error);
     });
   };
 };

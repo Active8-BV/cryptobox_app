@@ -95,16 +95,56 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         print "cryptobox.cf:97", $scope.cb_folder_text
         console?.log? $scope.cb_folder_text
 
-    $scope.test_btn = ->
-        print "cryptobox.cf:101", $('#cb_folder')
-        print "cryptobox.cf:102", $scope.cb_folder
+    get_rpc_client = ->
         clientOptions = 
             host: "localhost"
             port: 8654
             path: "/RPC2"
 
-        client = xmlrpc.createClient(clientOptions)
-        client.methodCall "get_val", ["my_test_var"], (error, value) ->
-            print "cryptobox.cf:110", error
-            print "cryptobox.cf:111", value
+        return xmlrpc.createClient(clientOptions)
+
+    set_val = (k, v) ->
+        p = $q.defer()
+        client = get_rpc_client()
+        client.methodCall "set_val", [k, v], (error, value) ->
+            if exist(error)
+                p.reject(error)
+            else:
+                if utils.exist_truth(value)
+
+                    p.resolve("set_val -> " + k + ":" + v)
+                else
+                    p.reject("error set_val")
+
             utils.force_digest($scope)
+        p.promise
+
+    get_val = (k) ->
+        p = $q.defer()
+        client = get_rpc_client()
+        client.methodCall "get_val", [k], (error, value) ->
+            if exist(error)
+                p.reject(error)
+            else:
+                p.resolve(value)
+
+            utils.force_digest($scope)
+        p.promise
+
+    $scope.test_btn = ->
+        set_val("my_test_var", "hello world").then(
+            (value) ->
+                print "cryptobox.cf:139", value
+
+            (error) ->
+                print "cryptobox.cf:142", error
+        )
+
+    $scope.sync_btn = ->
+        get_val("my_test_var").then(
+            (value) ->
+                print "cryptobox.cf:148", value
+
+            (error) ->
+                print "cryptobox.cf:151", error
+        )
