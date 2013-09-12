@@ -7,7 +7,7 @@ import os
 import pickle
 import unittest
 from subprocess import Popen, PIPE
-from cba_main import ExitAppWarning
+from cba_main import ExitAppWarning, cryptobox_command
 from cba_utils import dict2obj_new
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
@@ -128,7 +128,7 @@ class CryptoboxAppTest(unittest.TestCase):
         del self.no_box_given["cryptobox"]
 
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
-            run_app_command(self.no_box_given)
+            cryptobox_command(self.no_box_given)
 
     def test_index_directory(self):
         """
