@@ -37,7 +37,7 @@ print = function() {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var cba_commander, cmd_to_run, get_rpc_client, get_user_var, get_val, memory_name, set_data_user_config, set_data_user_config_once, set_user_var_scope, set_val, spawn, store_user_var,
+  var cba_commander, cmd_to_run, get_rpc_client, get_user_var, get_val, memory_name, run_command, set_data_user_config, set_data_user_config_once, set_user_var_scope, set_val, spawn, store_user_var,
     _this = this;
   get_rpc_client = function() {
     var clientOptions;
@@ -156,6 +156,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
           return p.reject(e);
         } else {
           if (exist(d)) {
+            print("cryptobox.cf:140", k, d.value);
             p.resolve(d.value);
             return utils.force_digest($scope);
           } else {
@@ -166,20 +167,6 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }
     return p.promise;
   };
-  $scope.sync_btn = function() {
-    return store_user_var("dir", "erik").then(function() {
-      return print("cryptobox.cf:154", "ok");
-    }, function(err) {
-      return typeof console !== "undefined" && console !== null ? typeof console.log === "function" ? console.log("error", err) : void 0 : void 0;
-    });
-  };
-  $scope.test_btn = function() {
-    return get_user_var("cb_folder").then(function(val) {
-      return typeof console !== "undefined" && console !== null ? console.log(val) : void 0;
-    }, function(err) {
-      return typeof console !== "undefined" && console !== null ? typeof console.log === "function" ? console.log("error", err) : void 0 : void 0;
-    });
-  };
   set_user_var_scope = function(name, scope_name) {
     return get_user_var(name).then(function(v) {
       if (exist(scope_name)) {
@@ -188,7 +175,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         return $scope[name] = v;
       }
     }, function(err) {
-      return print("cryptobox.cf:178", err);
+      return print("cryptobox.cf:159", err);
     });
   };
   set_data_user_config = function() {
@@ -202,6 +189,9 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   set_data_user_config_once = _.once(set_data_user_config);
   set_data_user_config_once();
   $scope.show_settings = false;
+  $scope.$on("$includeContentLoaded", function(event) {
+    return typeof console !== "undefined" && console !== null ? console.log(event) : void 0;
+  });
   $scope.form_change = function() {
     var p_cb_folder, p_cb_name, p_cb_password, p_cb_server, p_cb_username, p_show_settings;
     p_cb_folder = store_user_var("cb_folder", $scope.cb_folder_text);
@@ -210,14 +200,50 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     p_cb_name = store_user_var("cb_name", $scope.cb_name);
     p_cb_server = store_user_var("cb_server", $scope.cb_server);
     p_show_settings = store_user_var("show_settings", $scope.show_settings);
-    return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function() {
+    return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function(x) {
+      print("cryptobox.cf:187", x);
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:206", err);
+      return print("cryptobox.cf:191", err);
     });
   };
-  return $scope.file_input_change = function(f) {
+  $scope.file_input_change = function(f) {
     $scope.cb_folder_text = f[0].path;
     return $scope.form_change();
+  };
+  $scope.sync_btn = function() {
+    return print("cryptobox.cf:199", "sync");
+  };
+  run_command = function(flags) {
+    var add_flag, client, p;
+    client = get_rpc_client();
+    cmd_to_run = path.join(process.cwd(), "commands");
+    cmd_to_run = path.join(cmd_to_run, "cba_main");
+    add_flag = function(flag) {
+      if (exist(flag)) {
+        return cmd_to_run += " " + flag;
+      }
+    };
+    _.each(flags, add_flag);
+    p = $q.defer();
+    print("cryptobox.cf:212", "run_command", cmd_to_run);
+    client.methodCall("run_command", [cmd_to_run], function(error, value) {
+      print("cryptobox.cf:214", error, value);
+      if (exist(error)) {
+        p.reject(error);
+        return utils.force_digest($scope);
+      } else {
+        p.resolve(value);
+        return utils.force_digest($scope);
+      }
+    });
+    return p.promise;
+  };
+  return $scope.test_btn = function() {
+    return run_command(["-v 1"]).then(function(res) {
+      return print("cryptobox.cf:226", res);
+    }, function(err) {
+      return print("cryptobox.cf:229", err);
+    });
   };
 };

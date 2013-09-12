@@ -8,12 +8,6 @@
 
     <title>Cryptobox</title>
 
-    <style type="text/css">
-        body {
-            background: #fff;
-        }
-    </style>
-
     <link href="css/bootstrap.css" rel="stylesheet">
     <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>
@@ -36,6 +30,16 @@
     </div>
 
     <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="well">
+                    <button type="button" class="btn btn-default" ng-click="test_btn()">test</button>
+                    <button type="button" class="btn btn-primary" ng-click="sync_btn()">sync</button>
+                    <button type="button" class="btn btn-warning">lock</button>
+                    <button type="button" class="btn btn-success">unlock</button>
+                </div>
+            </div>
+        </div>
         <div class="well">
             <form>
                 <label for="show_settings">Show settings: </label>
@@ -43,7 +47,7 @@
             </form>
             <form class="form-horizontal" role="form" ng-show="show_settings">
                 <div class="form-group">
-                    <label  for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
+                    <label for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
 
                     <div class="col-sm-9">
                         <input type="text" class="form-control" ng_model="cb_folder_text" ng-change="form_change()" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
@@ -81,19 +85,14 @@
                 </div>
 
             </form>
+
         </div>
         <div class="row">
-
             <div class="col-sm-12">
-                <div class="well">
-                    <button type="button" class="btn btn-default" ng-click="test_btn()">test</button>
-                    <button type="button" class="btn btn-primary" ng-click="sync_btn()">sync</button>
-                    <button type="button" class="btn btn-warning">lock</button>
-                    <button type="button" class="btn btn-success">unlock</button>
-                </div>
+                <pre>output here</pre>
             </div>
-
         </div>
+
     </div>
 </div>
 

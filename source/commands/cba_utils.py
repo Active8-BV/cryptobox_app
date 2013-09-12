@@ -10,6 +10,43 @@ g_lock = multiprocessing.Lock()
 DEBUG = True
 
 
+def exist(data):
+    """
+    @param data:
+    @type data:
+    @return: @rtype:
+    """
+    data = str(data).strip()
+
+    if not data:
+        return False
+
+    elif str(data) == "":
+        return False
+
+    elif len(str(data)) == 0:
+        return False
+
+    elif str(data) == "False":
+        return False
+
+    elif str(data) == "false":
+        return False
+
+    elif str(data) == "undefined":
+        return False
+
+    elif str(data) == "null":
+        return False
+
+    elif str(data) == "none":
+        return False
+
+    elif str(data) == "None":
+        return False
+    return True
+
+
 class dict2obj_new(dict):
     """
     dict2obj_new
@@ -210,8 +247,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:215", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:216", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:252", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:253", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
