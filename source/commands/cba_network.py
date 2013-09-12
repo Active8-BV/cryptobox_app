@@ -166,7 +166,7 @@ def on_server(memory, options, method, payload, session, files=None):
     @type method: str or unicode
     @type payload: dict or None
     @type session: requests.sessions.Session or None
-    @type retry: bool
+
     @type files: dict
     @return: @rtype:
     """

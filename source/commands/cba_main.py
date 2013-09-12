@@ -197,10 +197,10 @@ class XMLRPCThread(threading.Thread):
                 return True
 
             def force_stop(self):
-                #noinspection PyAttributeOutsideInit
                 """
                 :return: :rtype:
                 """
+                #noinspection PyAttributeOutsideInit
                 self.stopped = True
 
                 #self.server_close()
