@@ -379,7 +379,7 @@ def decrypt_and_build_filetree(memory, options):
         @type e:
         """
         progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting " + str(e))
+        update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting " + "\n\t"+"\n\t".join(e))
 
     secret = password_derivation(password, base64.decodestring(cryptobox_index["salt_b64"]))
     decrypt_results = []

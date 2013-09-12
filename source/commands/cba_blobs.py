@@ -83,7 +83,7 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
 
     try:
         fdir = os.path.join(blobdir, fhash[:2])
-        decrypt_write_file(cryptobox_index, fdir, fhash, secret)
+        return decrypt_write_file(cryptobox_index, fdir, fhash, secret)
     except Exception, e:
         handle_exception(e, False)
 
