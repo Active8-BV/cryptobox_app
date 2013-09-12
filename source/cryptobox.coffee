@@ -82,16 +82,39 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
     cba_main = null
+    cba_main = spawn(cmd_to_run, [""])
+    output = []
 
-    #cba_main = spawn(cmd_to_run, [""])
+    clear_msg_buffer = ->
+        output = []
+
+    add_output = (msg) ->
+        print "cryptobox.cf:94", msg
+        if msg.replace?
+            msg = msg.replace("stderr:", "")
+            msg.replace("\n", "")
+            msg = msg.trim()
+        output.unshift(utils.format_time(utils.get_local_time()) + ": " + msg)
+
+    update_output = ->
+        msgs = ""
+
+        make_stream = (msg) ->
+             msgs += msg + "\n"
+
+        _.each(output, make_stream)
+        $scope.cmd_output = msgs
+        utils.force_digest($scope)
+
+    utils.set_interval("cryptobox.cf:111", update_output, 100, "update_output")
 
     if exist(cba_main)
         memory_name = "g_process_" + utils.slugify(cmd_to_run)
         memory.set(memory_name, cba_main.pid)
         cba_main.stdout.on "data", (data) ->
-            print "cryptobox.cf:94", data
+            add_output("stdout:" + data)
         cba_main.stderr.on "data", (data) ->
-            print "cryptobox.cf:96", data
+            add_output("stderr:" + data)
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -137,7 +160,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-                        print "cryptobox.cf:142", k, d.value
+                        print "cryptobox.cf:165", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -156,7 +179,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:161", err
+                print "cryptobox.cf:184", err
         )
 
     set_data_user_config = ->
@@ -189,7 +212,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:194", err
+                print "cryptobox.cf:217", err
         )
 
     $scope.file_input_change = (f) ->
@@ -199,7 +222,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:204", "run_command", cmd_to_run
+        print "cryptobox.cf:227", "run_command", cmd_to_run
         client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
@@ -209,40 +232,31 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
         p.promise
 
-    $scope.test_btn = ->
-        option = 
-            version: true
-
-        run_command("cryptobox_command", [option]).then(
-            (res) ->
-                $scope.cmd_output = res
-
-            (err) ->
-                print "cryptobox.cf:223", err
-        )
-
-    set_time_out()
-
     $scope.sync_btn = ->
+        clear_msg_buffer()
         option = 
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
             cryptobox: $scope.cb_name
             server: $scope.cb_server
-            encrypt: "1"
+            encrypt: true
             clear: "0"
             sync: "1"
 
         run_command("cryptobox_command", [option]).then(
             (res) ->
-                $scope.cmd_output = res
+                if not utils.exist_truth(res)
+                    add_output(res)
+                else
+                    add_output("done syncing")
 
             (err) ->
-                $scope.cmd_output = err
+                add_output(err)
         )
 
     $scope.check_btn = ->
+        clear_msg_buffer()
         option = 
             dir: $scope.cb_folder_text
             username: $scope.cb_username
@@ -255,8 +269,8 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         run_command("cryptobox_command", [option]).then(
             (res) ->
-                $scope.cmd_output = res
+                add_output(res)
 
             (err) ->
-                $scope.cmd_output = err
+                add_output(err)
         )

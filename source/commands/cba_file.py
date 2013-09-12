@@ -3,7 +3,8 @@
 file operations
 """
 import os
-from cba_utils import handle_exception, strcmp
+
+from cba_utils import handle_exception, strcmp, log
 from cba_crypto import encrypt, decrypt, pickle_object, unpickle_object, make_sha1_hash
 
 
@@ -12,6 +13,7 @@ def ensure_directory(path):
     @type path: str or unicode or unicode
     """
     if not os.path.exists(path):
+        log("making", path)
         os.makedirs(path)
 
 

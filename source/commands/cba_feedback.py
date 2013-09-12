@@ -7,7 +7,7 @@ import math
 last_update_string_len = 0
 
 
-def update_progress(curr, total, msg, console=False):
+def update_progress(curr, total, msg, console=True):
     """
     @type curr: int
     @type total: int
@@ -24,11 +24,13 @@ def update_progress(curr, total, msg, console=False):
         progress = 100
 
     msg = msg + " " + str(curr) + "/" + str(total)
-    update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
+    #update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
+    update_string = "{0}% {1}".format(progress, msg)
 
     if console:
-        if len(update_string) < last_update_string_len:
-            sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
-        sys.stderr.write(update_string)
+        #if len(update_string) < last_update_string_len:
+        #    sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
+        sys.stderr.write(update_string+"\n")
+        sys.stderr.flush()
 
     last_update_string_len = len(update_string)

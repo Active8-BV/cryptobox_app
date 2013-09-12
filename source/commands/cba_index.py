@@ -159,7 +159,7 @@ def index_and_encrypt(memory, options, localindex_param):
                     encrypt_new_blobs(salt, secret, new_blobs)
                     new_blobs = {}
 
-            update_progress(file_cnt, numfiles, "checking")
+            update_progress(file_cnt, numfiles, "check " + file_path)
 
     if len(new_blobs) > 0:
         if len(new_blobs) > 0:
@@ -379,7 +379,7 @@ def decrypt_and_build_filetree(memory, options):
         @type e:
         """
         progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting")
+        update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting " + str(e))
 
     secret = password_derivation(password, base64.decodestring(cryptobox_index["salt_b64"]))
     decrypt_results = []
