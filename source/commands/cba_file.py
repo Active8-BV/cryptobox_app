@@ -123,7 +123,7 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     """
     blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
     file_blob = {"data": decrypt(secret, blob_enc)}
-
+    paths = []
     for dirhash in cryptobox_index["dirnames"]:
         for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
             if strcmp(fhash, cfile["hash"]):
@@ -137,6 +137,8 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
                     file_blob["st_uid"] = int(ft["st_uid"])
                     file_blob["st_gid"] = int(ft["st_gid"])
                     write_fdict_to_file(file_blob, fpath)
+                    paths.append(fpath)
+    return paths
 
 
 def make_cryptogit_hash(fpath, datadir, localindex):
