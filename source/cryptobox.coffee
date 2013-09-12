@@ -80,16 +80,18 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     winmain.on('close', $scope.on_exit);
     spawn = require("child_process").spawn
     cmd_to_run = path.join(process.cwd(), "commands")
-    cmd_to_run = path.join(cmd_to_run, "cba_commander")
-    cba_commander = spawn(cmd_to_run, [""])
-    memory_name = "g_process_" + utils.slugify(cmd_to_run)
-    memory.set(memory_name, cba_commander.pid)
+    cmd_to_run = path.join(cmd_to_run, "cba_main")
+    cba_main = null
 
-    cba_commander.stdout.on "data", (data) ->
-        print "cryptobox.cf:91", data
+    #cba_main = spawn(cmd_to_run, [""])
 
-    cba_commander.stderr.on "data", (data) ->
-        print "cryptobox.cf:94", data
+    if exist(cba_main)
+        memory_name = "g_process_" + utils.slugify(cmd_to_run)
+        memory.set(memory_name, cba_main.pid)
+        cba_main.stdout.on "data", (data) ->
+            print "cryptobox.cf:94", data
+        cba_main.stderr.on "data", (data) ->
+            print "cryptobox.cf:96", data
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -135,7 +137,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-                        print "cryptobox.cf:140", k, d.value
+                        print "cryptobox.cf:142", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -154,7 +156,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:159", err
+                print "cryptobox.cf:161", err
         )
 
     set_data_user_config = ->
@@ -181,35 +183,24 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         p_show_settings = store_user_var("show_settings", $scope.show_settings)
 
         $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(
-            (x) ->
-                print "cryptobox.cf:187", x
+            ->
+
+                #print "cryptobox.cf:189", x
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:191", err
+                print "cryptobox.cf:194", err
         )
 
     $scope.file_input_change = (f) ->
         $scope.cb_folder_text = f[0].path
         $scope.form_change()
 
-    $scope.sync_btn = ->
-        print "cryptobox.cf:199", "sync"
-
-    run_command = (flags) ->
+    run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
-        cmd_to_run = path.join(process.cwd(), "commands")
-        cmd_to_run = path.join(cmd_to_run, "cba_main")
-
-        add_flag = (flag) ->
-            if exist(flag)
-                cmd_to_run += " " + flag
-
-        _.each(flags, add_flag)
         p = $q.defer()
-        print "cryptobox.cf:212", "run_command", cmd_to_run
-        client.methodCall "run_command", [cmd_to_run], (error, value) ->
-            print "cryptobox.cf:214", error, value
+        print "cryptobox.cf:204", "run_command", cmd_to_run
+        client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
                 utils.force_digest($scope)
@@ -219,10 +210,53 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         p.promise
 
     $scope.test_btn = ->
-        run_command(["-v 1"]).then(
+        option = 
+            version: true
+
+        run_command("cryptobox_command", [option]).then(
             (res) ->
-                print "cryptobox.cf:226", res
+                $scope.cmd_output = res
 
             (err) ->
-                print "cryptobox.cf:229", err
+                print "cryptobox.cf:223", err
+        )
+
+    set_time_out()
+
+    $scope.sync_btn = ->
+        option = 
+            dir: $scope.cb_folder_text
+            username: $scope.cb_username
+            password: $scope.cb_password
+            cryptobox: $scope.cb_name
+            server: $scope.cb_server
+            encrypt: "1"
+            clear: "0"
+            sync: "1"
+
+        run_command("cryptobox_command", [option]).then(
+            (res) ->
+                $scope.cmd_output = res
+
+            (err) ->
+                $scope.cmd_output = err
+        )
+
+    $scope.check_btn = ->
+        option = 
+            dir: $scope.cb_folder_text
+            username: $scope.cb_username
+            password: $scope.cb_password
+            cryptobox: $scope.cb_name
+            server: $scope.cb_server
+            check: "1"
+
+            #sync: "0"
+
+        run_command("cryptobox_command", [option]).then(
+            (res) ->
+                $scope.cmd_output = res
+
+            (err) ->
+                $scope.cmd_output = err
         )

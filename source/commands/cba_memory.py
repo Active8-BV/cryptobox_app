@@ -6,6 +6,90 @@ import os
 from cba_crypto import pickle_object, unpickle_object, make_sha1_hash
 
 
+class SingletonMemoryNoKey(Exception):
+    """
+    SingletonMemoryNoKey
+    """
+    pass
+
+
+class SingletonMemoryExpired(Exception):
+    """
+    SingletonMemoryExpired
+    """
+    pass
+
+
+class SingletonMemory(object):
+    #noinspection PyUnresolvedReferences
+    """
+    @param cls:
+    @type cls:
+    @param args:
+    @type args:
+    @param kwargs:
+    @type kwargs:
+    @return:
+    @rtype:
+    """
+    _instance = None
+    data = {}
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            #noinspection PyAttributeOutsideInit,PyArgumentList
+            cls._instance = super(SingletonMemory, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def set(self, key, value):
+        """
+        @param key:
+        @type key:
+        @param value:
+        @type value:
+        """
+        self.data[key] = value
+
+    def has(self, key):
+        """
+        @param key:
+        @type key:
+        @return: @rtype: @raise SingletonMemoryExpired:
+
+        """
+        return key in self.data
+
+    def get(self, key):
+        """
+        @param key:
+        @type key:
+        @return: @rtype: @raise SingletonMemoryNoKey:
+
+        """
+        if self.has(key):
+            return self.data[key]
+        else:
+            return ""
+
+    def delete(self, key):
+        """
+        @param key:
+        @type key:
+        @raise SingletonMemoryNoKey:
+
+        """
+        if self.has(key):
+            del self.data[key]
+            return True
+        else:
+            raise SingletonMemoryNoKey(str(key))
+
+    def size(self):
+        """
+        @return: @rtype:
+        """
+        return len(self.data)
+
 class MemoryNoKey(Exception):
     """
     MemoryNoKey

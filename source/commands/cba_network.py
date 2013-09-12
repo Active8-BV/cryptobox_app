@@ -188,19 +188,7 @@ def on_server(memory, options, method, payload, session, files=None, retry=False
     try:
         return parse_http_result(result), memory
     except ServerForbidden, ex:
-        if retry:
-            log("unauthorized exit")
-        else:
-            log("unauthorized try again")
-
-            if memory.has("session"):
-                memory.delete("session")
-
-            memory = authorize_user(memory, options)
-            return on_server(memory, options, method, payload, session, files, retry=True)
-
-        raise ex
-
+        log("unauthorized exit", ex)
 
 def download_server(memory, options, url):
     """

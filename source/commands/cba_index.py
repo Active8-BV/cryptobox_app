@@ -321,7 +321,7 @@ def check_and_clean_dir(options):
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
         raise ExitAppWarning("check_and_clean_dir needs clear and encrypt option")
 
-    if options.clear:
+    if options.clear == "1":
         if options.encrypt:
             raise ExitAppWarning("clear options cannot be used together with encrypt, possible data loss")
 
