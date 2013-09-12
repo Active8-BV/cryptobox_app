@@ -15,7 +15,7 @@ on_change_path_cmd ./source/cryptobox.coffee 'python -OO cp.py -r 0 -f ./source/
 
 
 python -OO when_changed.py ./source/commands/cba_commander.py -c "./buildcommands.sh cba_commander" &
-#python -OO when_changed.py ./source/commands/index_directory.py -c "./buildcommands.sh index_directory" &
+python -OO when_changed.py ./source/commands/cba_main.py -c "./buildcommands.sh cba_main" &
 
 python kill_restart.py &
 python -OO kill_on_change_procs.py

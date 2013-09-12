@@ -135,8 +135,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-
-                        #print "cryptobox.cf:146", k, d.value
+                        print "cryptobox.cf:140", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -145,24 +144,6 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                         #utils.force_digest($scope)
 
         return p.promise
-
-    $scope.sync_btn = ->
-        store_user_var("dir", "erik").then(
-            ->
-                print "cryptobox.cf:154", "ok"
-
-            (err) ->
-                console?.log? "error", err
-        )
-
-    $scope.test_btn = ->
-        get_user_var("cb_folder").then(
-            (val) ->
-                console?.log val
-
-            (err) ->
-                console?.log? "error", err
-        )
 
     set_user_var_scope = (name, scope_name) ->
         get_user_var(name).then(
@@ -173,7 +154,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:178", err
+                print "cryptobox.cf:159", err
         )
 
     set_data_user_config = ->
@@ -188,6 +169,9 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     set_data_user_config_once()
     $scope.show_settings = false
 
+    $scope.$on "$includeContentLoaded", (event) ->
+        console?.log event
+
     $scope.form_change = ->
         p_cb_folder = store_user_var("cb_folder", $scope.cb_folder_text)
         p_cb_username = store_user_var("cb_username", $scope.cb_username)
@@ -197,13 +181,48 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         p_show_settings = store_user_var("show_settings", $scope.show_settings)
 
         $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(
-            ->
+            (x) ->
+                print "cryptobox.cf:187", x
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:206", err
+                print "cryptobox.cf:191", err
         )
 
     $scope.file_input_change = (f) ->
         $scope.cb_folder_text = f[0].path
         $scope.form_change()
+
+    $scope.sync_btn = ->
+        print "cryptobox.cf:199", "sync"
+
+    run_command = (flags) ->
+        client = get_rpc_client()
+        cmd_to_run = path.join(process.cwd(), "commands")
+        cmd_to_run = path.join(cmd_to_run, "cba_main")
+
+        add_flag = (flag) ->
+            if exist(flag)
+                cmd_to_run += " " + flag
+
+        _.each(flags, add_flag)
+        p = $q.defer()
+        print "cryptobox.cf:212", "run_command", cmd_to_run
+        client.methodCall "run_command", [cmd_to_run], (error, value) ->
+            print "cryptobox.cf:214", error, value
+            if exist(error)
+                p.reject(error)
+                utils.force_digest($scope)
+            else
+                p.resolve(value)
+                utils.force_digest($scope)
+        p.promise
+
+    $scope.test_btn = ->
+        run_command(["-v 1"]).then(
+            (res) ->
+                print "cryptobox.cf:226", res
+
+            (err) ->
+                print "cryptobox.cf:229", err
+        )
