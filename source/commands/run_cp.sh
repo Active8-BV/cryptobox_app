@@ -17,6 +17,6 @@ on_change_path cba_file.py
 on_change_path tests.py
 
 git commit -am "-"
-
+git push
 echo "done"
 
