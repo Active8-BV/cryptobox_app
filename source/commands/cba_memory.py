@@ -90,6 +90,7 @@ class SingletonMemory(object):
         """
         return len(self.data)
 
+
 class MemoryNoKey(Exception):
     """
     MemoryNoKey
