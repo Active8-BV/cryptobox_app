@@ -87,7 +87,8 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     clear_msg_buffer = ->
         output = []
-
+    $scope.clear_btn = ->
+        clear_msg_buffer()
     add_output = (msg) ->
         print "cryptobox.cf:94", msg
         if msg.replace?

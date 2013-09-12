@@ -5,7 +5,10 @@ some utility functions
 """
 import sys
 reload(sys)
+
 #noinspection PyUnresolvedReferences
+
+
 sys.setdefaultencoding("utf-8")
 import os
 import time
@@ -83,6 +86,12 @@ def cryptobox_command(options):
     memory = Memory()
     memory.load(datadir)
     memory.replace("cryptobox_folder", options.dir)
+
+    if memory.has("session"):
+        memory.delete("session")
+
+    if memory.has("authorized"):
+        memory.replace("authorized", False)
 
     try:
         if not os.path.exists(options.basedir):
@@ -167,7 +176,7 @@ class XMLRPCThread(threading.Thread):
         run
         """
         memory = SingletonMemory()
- 
+
         #noinspection PyClassicStyleClass
 
         class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
@@ -204,6 +213,7 @@ class XMLRPCThread(threading.Thread):
                 """
                 :return: :rtype:
                 """
+
                 #noinspection PyAttributeOutsideInit
                 self.stopped = True
 
@@ -254,7 +264,7 @@ class XMLRPCThread(threading.Thread):
         try:
             server.serve_forever()
         finally:
-            print "cba_main.py:255", "stopping"
+            print "cba_main.py:269", "stopping"
             server.force_stop()
             server.server_close()
 
@@ -268,7 +278,7 @@ def main():
         (options, args) = add_options()
 
         if not options.cryptobox and not options.version:
-            print "cba_main.py:269", "xmlrpc server running"
+            print "cba_main.py:283", "xmlrpc server running"
             commandserver = XMLRPCThread()
             commandserver.start()
 

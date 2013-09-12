@@ -3,7 +3,6 @@
 file operations
 """
 import os
-
 from cba_utils import handle_exception, strcmp, log
 from cba_crypto import encrypt, decrypt, pickle_object, unpickle_object, make_sha1_hash
 

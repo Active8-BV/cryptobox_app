@@ -59,7 +59,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         @type result: dict
         """
         downloaded_files.append(result)
-        update_progress(len(downloaded_files), len(unique_nodes), "downloading")
+        update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result["content_hash"]))
 
     download_results = []
 
@@ -590,6 +590,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     upload_result = []
 
     for uf in file_uploads:
+        print "cba_sync.py:595", "upload", uf["local_file_path"]
         result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
         upload_result.append(result)
 
