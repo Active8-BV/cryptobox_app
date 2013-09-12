@@ -81,7 +81,7 @@ def cba_warning(*arg):
     @param arg: a list of objects to display
     @type arg:
     """
-    sys.stderr.write("\033[91mwarning: " + " ".join([str(s) for s in arg]).strip(" ") + "\033[0m\n")
+    sys.stderr.write("".join([str(s) for s in arg]).strip(" "))
 
 
 def strcmp(s1, s2):

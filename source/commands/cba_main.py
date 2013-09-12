@@ -3,6 +3,10 @@
 """
 some utility functions
 """
+import sys
+reload(sys)
+#noinspection PyUnresolvedReferences
+sys.setdefaultencoding("utf-8")
 import os
 import time
 import threading
@@ -70,10 +74,10 @@ def cryptobox_command(options):
     datadir = get_data_dir(options)
 
     if not datadir:
-        cba_warning("Datadir is None")
+        cba_warning("datadir is None")
 
     if not os.path.exists(datadir):
-        cba_warning("Datadir does not exists")
+        cba_warning("datadir does not exists")
 
     restore_hidden_config(options)
     memory = Memory()
@@ -163,7 +167,7 @@ class XMLRPCThread(threading.Thread):
         run
         """
         memory = SingletonMemory()
-
+ 
         #noinspection PyClassicStyleClass
 
         class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
