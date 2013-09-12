@@ -159,7 +159,7 @@ def parse_http_result(result):
     return result
 
 
-def on_server(memory, options, method, payload, session, files=None, retry=False):
+def on_server(memory, options, method, payload, session, files=None):
     """
     @type memory: Memory
     @type options: optparse.Values, instance
@@ -189,6 +189,7 @@ def on_server(memory, options, method, payload, session, files=None, retry=False
         return parse_http_result(result), memory
     except ServerForbidden, ex:
         log("unauthorized exit", ex)
+
 
 def download_server(memory, options, url):
     """

@@ -19,7 +19,6 @@ from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
 
 
-
 def add_options():
     """
     options for the command line tool
@@ -48,7 +47,6 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-
     if isinstance(options, dict):
         options = dict2obj_new(options)
 
@@ -121,6 +119,7 @@ def cryptobox_command(options):
 
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
+
                 if options.check:
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
@@ -176,6 +175,9 @@ class XMLRPCThread(threading.Thread):
         #noinspection PyClassicStyleClass
 
         class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+            """
+            StoppableRPCServer
+            """
             allow_reuse_address = True
             stopped = False
 
@@ -199,6 +201,9 @@ class XMLRPCThread(threading.Thread):
                 return True
 
             def create_dummy_request(self):
+                """
+                create_dummy_request
+                """
                 server = xmlrpclib.Server('http://%s:%s' % self.server_address)
                 server.ping()
 
@@ -237,7 +242,7 @@ class XMLRPCThread(threading.Thread):
         try:
             server.serve_forever()
         finally:
-            print "stopping"
+            print "cba_main.py:247", "stopping"
             server.force_stop()
             server.server_close()
 
@@ -251,7 +256,7 @@ def main():
         (options, args) = add_options()
 
         if not options.cryptobox and not options.version:
-            print "cba_main.py:333", "xmlrpc server running"
+            print "cba_main.py:261", "xmlrpc server running"
             commandserver = XMLRPCThread()
             commandserver.start()
 

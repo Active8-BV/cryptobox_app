@@ -534,9 +534,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     #local files
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
-
     sm = SingletonMemory()
-
     sm.set("file_downloads", file_downloads)
     sm.set("file_uploads", file_uploads)
     sm.set("dir_del_server", dir_del_server)
@@ -545,7 +543,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
     sm.set("dir_del_local", dir_del_local)
     sm.set("file_del_local", file_del_local)
     sm.set("file_del_server", file_del_server)
-
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
@@ -624,7 +621,6 @@ def sync_server(memory, options):
     serverindex, memory = get_server_index(memory, options)
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
-
     serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
     remove_local_folders(dir_del_local)
     memory = make_directories_local(memory, options, localindex, dir_make_local)
