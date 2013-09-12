@@ -186,6 +186,10 @@ class XMLRPCThread(threading.Thread):
                 self.register_function(lambda: 'OK', 'ping')
 
             def serve_forever(self, poll_interval=0.1):
+                """
+                :param poll_interval:
+                :return: :rtype:
+                """
                 while not self.stopped:
                     self.handle_request()
                     time.sleep(poll_interval)
@@ -193,6 +197,10 @@ class XMLRPCThread(threading.Thread):
                 return True
 
             def force_stop(self):
+                #noinspection PyAttributeOutsideInit
+                """
+                :return: :rtype:
+                """
                 self.stopped = True
 
                 #self.server_close()
@@ -242,7 +250,7 @@ class XMLRPCThread(threading.Thread):
         try:
             server.serve_forever()
         finally:
-            print "cba_main.py:247", "stopping"
+            print "cba_main.py:255", "stopping"
             server.force_stop()
             server.server_close()
 
@@ -256,7 +264,7 @@ def main():
         (options, args) = add_options()
 
         if not options.cryptobox and not options.version:
-            print "cba_main.py:261", "xmlrpc server running"
+            print "cba_main.py:269", "xmlrpc server running"
             commandserver = XMLRPCThread()
             commandserver.start()
 
