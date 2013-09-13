@@ -18,7 +18,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from optparse import OptionParser
 from cba_memory import Memory, SingletonMemory
-from cba_utils import cba_warning, strcmp, dict2obj_new, exit_app_warning
+from cba_utils import cba_warning, strcmp, dict2obj_new, exit_app_warning, log
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, \
     make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
@@ -34,8 +34,8 @@ def add_options():
     parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
     parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files", metavar="ENCRYPT")
     parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
-    parser.add_option("-r", "--remove", dest="remove", action='store_true', help="remove the unencrypted files", metavar="DECRYPT")
-    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="DECRYPT")
+    parser.add_option("-r", "--remove", dest="remove", action='store_true', help="remove the unencrypted files", metavar="REMOVE")
+    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="CLEAR")
     parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
     parser.add_option("-p", "--password", dest="password", help="password used encryption", metavar="PASSWORD")
     parser.add_option("-b", "--cryptobox", dest="cryptobox", help="cryptobox slug", metavar="CRYPTOBOX")
@@ -97,8 +97,9 @@ def cryptobox_command(options):
         if not os.path.exists(options.basedir):
             raise ExitAppWarning("DIR [", options.dir, "] does not exist")
 
-        if not options.encrypt and not options.decrypt:
-            cba_warning("No encrypt or decrypt directive given (-d or -e)")
+        if not options.check:
+            if not options.encrypt and not options.decrypt:
+                cba_warning("No encrypt or decrypt directive given (-d or -e)")
 
         if not options.password:
             raise ExitAppWarning("No password given (-p or --password)")
@@ -123,21 +124,40 @@ def cryptobox_command(options):
             authorize_user(memory, options)
 
             if memory.get("authorized"):
-                if options.sync:
+
+                if options.check:
+                    if cryptobox_locked(memory):
+                        raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+
+                    ensure_directory(options.dir)
+                    serverindex, memory = get_server_index(memory, options)
+                    localindex = make_local_index(options)
+                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+
+                    log ("\n\n-------------------------------------------------------------------------------------\n")
+                    log("files to download", "\n\t" + "\n\t".join([x["doc"]["m_path"] for x in file_downloads]))
+                    log("files to upload", "\n\t" + "\n\t".join([x["path"] for x in file_uploads]))
+
+                    log("dirs to delete server", "\n\t" + "\n\t".join(dir_del_server))
+                    log("dirs to make local", "\n\t" + "\n\t".join([x["name"] for x in dir_make_local]))
+
+                    log("dirs to make server", "\n\t" + "\n\t".join([x["dirname"] for x in dir_make_server]))
+                    log("dirs to delete local", "\n\t" + "\n\t".join([x["dirname"] for x in dir_del_local]))
+
+                    log("files to delete server", "\n\t" + "\n\t".join(file_del_server))
+                    log("files to delete local", "\n\t" + "\n\t".join(file_del_local))
+                    log("-------------------------------------------------------------------------------------")
+
+
+                elif options.sync:
                     if not options.encrypt:
                         raise ExitAppWarning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
-
                     if cryptobox_locked(memory):
                         raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
 
-                if options.check:
-                    ensure_directory(options.dir)
-                    serverindex, memory = get_server_index(memory, options)
-                    localindex = make_local_index(options)
-                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
 
         salt = None
         secret = None
@@ -149,7 +169,7 @@ def cryptobox_command(options):
             if options.remove:
                 raise ExitAppWarning("option remove (-r) cannot be used together with decrypt (dataloss)")
 
-            if not options.clear:
+            if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
 
         check_and_clean_dir(options)
@@ -264,7 +284,7 @@ class XMLRPCThread(threading.Thread):
         try:
             server.serve_forever()
         finally:
-            print "cba_main.py:269", "stopping"
+            log("cba_main.py:269", "stopping")
             server.force_stop()
             server.server_close()
 
@@ -278,7 +298,7 @@ def main():
         (options, args) = add_options()
 
         if not options.cryptobox and not options.version:
-            print "cba_main.py:283", "xmlrpc server running"
+            log("cba_main.py:283", "xmlrpc server running")
             commandserver = XMLRPCThread()
             commandserver.start()
 

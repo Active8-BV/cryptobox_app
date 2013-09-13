@@ -84,7 +84,8 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var killprocess, quit;
     killprocess = function(child) {
       console.error("cryptobox.cf:19", "killing" + memory.get(child));
-      return process.kill(memory.get(child));
+      print("cryptobox.cf:74", "killing", child, memory.get(child));
+      return process.kill(memory.get(child), 'SIGINT');
     };
     _.each(memory.all_prefix("g_process"), killprocess);
     quit = function() {
@@ -99,17 +100,24 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   cba_main = null;
   cba_main = spawn(cmd_to_run, [""]);
   output = [];
+  cba_main.on('SIGHUP', function() {
+    return print("cryptobox.cf:91", 'Got SIGHUP signal.');
+  });
   clear_msg_buffer = function() {
-    return output = [];
+    output = [];
+    return utils.force_digest($scope);
+  };
+  $scope.clear_btn = function() {
+    return clear_msg_buffer();
   };
   add_output = function(msg) {
-    print("cryptobox.cf:94", msg);
+    print("cryptobox.cf:101", msg);
     if (msg.replace != null) {
       msg = msg.replace("stderr:", "");
       msg.replace("\n", "");
       msg = msg.trim();
     }
-    return output.unshift(utils.format_time(utils.get_local_time()) + ": " + msg);
+    return output.push(utils.format_time(utils.get_local_time()) + ": " + msg);
   };
   update_output = function() {
     var make_stream, msgs;
@@ -121,7 +129,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     $scope.cmd_output = msgs;
     return utils.force_digest($scope);
   };
-  utils.set_interval("cryptobox.cf:111", update_output, 100, "update_output");
+  utils.set_interval("cryptobox.cf:118", update_output, 100, "update_output");
   if (exist(cba_main)) {
     memory_name = "g_process_" + utils.slugify(cmd_to_run);
     memory.set(memory_name, cba_main.pid);
@@ -183,7 +191,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
           return p.reject(e);
         } else {
           if (exist(d)) {
-            print("cryptobox.cf:165", k, d.value);
+            print("cryptobox.cf:172", k, d.value);
             p.resolve(d.value);
             return utils.force_digest($scope);
           } else {
@@ -202,7 +210,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         return $scope[name] = v;
       }
     }, function(err) {
-      return print("cryptobox.cf:184", err);
+      return print("cryptobox.cf:191", err);
     });
   };
   set_data_user_config = function() {
@@ -230,7 +238,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:217", err);
+      return print("cryptobox.cf:224", err);
     });
   };
   $scope.file_input_change = function(f) {
@@ -241,7 +249,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client, p;
     client = get_rpc_client();
     p = $q.defer();
-    print("cryptobox.cf:227", "run_command", cmd_to_run);
+    print("cryptobox.cf:234", "run_command", cmd_to_run);
     client.methodCall(command_name, command_arguments, function(error, value) {
       if (exist(error)) {
         p.reject(error);
@@ -256,6 +264,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.sync_btn = function() {
     var option;
     clear_msg_buffer();
+    add_output("syncing data");
     option = {
       dir: $scope.cb_folder_text,
       username: $scope.cb_username,
@@ -276,9 +285,10 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       return add_output(err);
     });
   };
-  return $scope.check_btn = function() {
+  $scope.check_btn = function() {
     var option;
     clear_msg_buffer();
+    add_output("checking changes");
     option = {
       dir: $scope.cb_folder_text,
       username: $scope.cb_username,
@@ -288,6 +298,46 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       check: "1"
     };
     return run_command("cryptobox_command", [option]).then(function(res) {
+      return add_output(res);
+    }, function(err) {
+      return add_output(err);
+    });
+  };
+  $scope.encrypt_btn = function() {
+    var option;
+    clear_msg_buffer();
+    add_output("sync encrypt remove data");
+    option = {
+      dir: $scope.cb_folder_text,
+      username: $scope.cb_username,
+      password: $scope.cb_password,
+      cryptobox: $scope.cb_name,
+      server: $scope.cb_server,
+      encrypt: true,
+      remove: true,
+      sync: false
+    };
+    return run_command("cryptobox_command", [option]).then(function(res) {
+      return add_output(res);
+    }, function(err) {
+      return add_output(err);
+    });
+  };
+  return $scope.decrypt_btn = function() {
+    var option;
+    clear_msg_buffer();
+    add_output("decrypt local data");
+    option = {
+      dir: $scope.cb_folder_text,
+      username: $scope.cb_username,
+      password: $scope.cb_password,
+      cryptobox: $scope.cb_name,
+      server: $scope.cb_server,
+      decrypt: true,
+      clear: false
+    };
+    return run_command("cryptobox_command", [option]).then(function(res) {
+      print("cryptobox.cf:322", res);
       return add_output(res);
     }, function(err) {
       return add_output(err);

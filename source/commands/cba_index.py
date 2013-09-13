@@ -7,7 +7,7 @@ import shutil
 import base64
 import multiprocessing
 from Crypto import Random
-from cba_utils import cba_warning, strcmp, get_uuid
+from cba_utils import cba_warning, strcmp, get_uuid, log
 from cba_memory import Memory
 from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
@@ -178,7 +178,7 @@ def index_and_encrypt(memory, options, localindex_param):
 
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
-
+            log("delete", fpath)
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
             else:
@@ -378,6 +378,7 @@ def decrypt_and_build_filetree(memory, options):
         @param e: event
         @type e:
         """
+
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting " + "\n\t"+"\n\t".join(e))
 
