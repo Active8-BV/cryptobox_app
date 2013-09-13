@@ -108,7 +108,9 @@ def log(*arg):
     @type arg:
     """
     msg = " ".join([str(s) for s in arg]).strip(" ")
-    sys.stderr.write("\033[93m" + msg + "\n\033[0m")
+    sys.stderr.write(msg)
+    sys.stderr.flush()
+
 
 
 def exit_app_warning(*arg):

@@ -20,7 +20,7 @@ if __name__ == '__main__':
                 open("app.running", "w").write(".")
                 pool.apply_async(bring_to_front)                
                 os.system("make run")
-                os.system("clear")
+                #os.system("clear")
                 os.remove("app.running")
             print "restarting app"
             
