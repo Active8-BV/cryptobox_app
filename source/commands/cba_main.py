@@ -12,6 +12,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import os
 import time
+import socket
 import threading
 import multiprocessing
 import xmlrpclib
@@ -224,10 +225,16 @@ class XMLRPCThread(threading.Thread):
                 :return: :rtype:
                 """
                 while not self.stopped:
-                    self.handle_request()
-                    time.sleep(poll_interval)
-
+                    tslp = time.time() - memory.get("last_ping")
+                    print tslp
+                    if int(tslp) < 10:
+                        self.handle_request()
+                        time.sleep(poll_interval)
+                    else:
+                        log("no ping received, stopping")
+                        return True
                 return True
+
 
             def force_stop(self):
                 """
@@ -237,9 +244,6 @@ class XMLRPCThread(threading.Thread):
                 #noinspection PyAttributeOutsideInit
                 self.stopped = True
 
-                #self.server_close()
-                #self.stopped = True
-                #self.create_dummy_request()
                 return True
 
             def create_dummy_request(self):
@@ -276,14 +280,23 @@ class XMLRPCThread(threading.Thread):
             server.force_stop()
             return True
 
+        def last_ping():
+            """
+            ping from client
+            """
+            memory.set("last_ping", time.time())
+            return True
+
         server.register_function(set_val, 'set_val')
         server.register_function(get_val, 'get_val')
         server.register_function(force_stop, 'force_stop')
+        server.register_function(last_ping, 'last_ping')
         server.register_function(cryptobox_command, "cryptobox_command")
 
         try:
+            memory.set("last_ping", time.time())
             server.serve_forever()
-        finally:
+        finally: 
             log("cba_main.py:269", "stopping")
             server.force_stop()
             server.server_close()
@@ -293,6 +306,13 @@ def main():
     """
     @return: @rtype:
     """
+    try:
+        server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
+        server.ping()
+        print "server already running"
+        return
+    except:
+        pass
 
     try:
         (options, args) = add_options()
@@ -304,6 +324,12 @@ def main():
 
             while True:
                 time.sleep(1)
+                try:
+                    server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
+                    server.ping()
+                except socket.error:
+                    print
+                    break;
         else:
             try:
                 cryptobox_command(options)
