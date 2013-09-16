@@ -1,3 +1,4 @@
+build/*.log
 build/Cryptobox.dmg
 source/commands/testdata/testmap/
 __MACOSX/
