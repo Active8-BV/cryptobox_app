@@ -227,6 +227,7 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.cboptions.clear = True
         self.cboptions.encrypt = False
+        self.cboptions.clear = "1"
         check_and_clean_dir(self.cboptions)
         dd = get_data_dir(self.cboptions)
         self.assertEquals(os.path.exists(dd), False)
