@@ -78,15 +78,24 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         _.defer(quit)
 
+    set_output_buffers = (cba_main_proc) ->
+        if exist(cba_main_proc)
+            memory_name = "g_process_" + utils.slugify(cmd_to_run)
+            memory.set(memory_name, cba_main_proc.pid)
+
+        if exist(cba_main_proc.stdout)
+            cba_main_proc.stdout.on "data", (data) ->
+                add_output("stdout:" + data)
+
+        if exist(cba_main_proc.stderr)
+            cba_main_proc.stderr.on "data", (data) ->
+                add_output("stderr:" + data)
+
     winmain.on('close', $scope.on_exit);
     spawn = require("child_process").spawn
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
-    cba_main = null
-    cba_main = spawn(cmd_to_run, [""])
     output = []
-    cba_main.on 'SIGHUP', ->
-        print "cryptobox.cf:91", 'Got SIGHUP signal.'
 
     clear_msg_buffer = ->
         output = []
@@ -96,7 +105,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         clear_msg_buffer()
 
     add_output = (msg) ->
-        print "cryptobox.cf:101", msg
+        if msg.indexOf?
+            if msg.indexOf("Error") == -1
+                if msg.indexOf("POST /RPC2") > 0
+                    return
+
         if msg.replace?
             msg = msg.replace("stderr:", "")
             msg.replace("\n", "")
@@ -113,15 +126,25 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.cmd_output = msgs
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:118", update_output, 100, "update_output")
+    utils.set_interval("cryptobox.cf:131", update_output, 100, "update_output")
+    starting = false
 
-    if exist(cba_main)
-        memory_name = "g_process_" + utils.slugify(cmd_to_run)
-        memory.set(memory_name, cba_main.pid)
-        cba_main.stdout.on "data", (data) ->
-            add_output("stdout:" + data)
-        cba_main.stderr.on "data", (data) ->
-            add_output("stderr:" + data)
+    ping_client = ->
+        if utils.exist_truth(starting)
+            return
+
+        client = get_rpc_client()
+        client.methodCall "last_ping", [], (error, value) ->
+            if exist(error)
+                print "cryptobox.cf:141", error
+                starting = true
+                print "cryptobox.cf:143", "starting again"
+                cba_main = spawn(cmd_to_run, [""])
+                set_output_buffers(cba_main)
+                starting = false
+
+    utils.set_interval("cryptobox.cf:148", ping_client, 5000, "ping_client")
+    ping_client()
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -167,7 +190,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-                        print "cryptobox.cf:172", k, d.value
+                        print "cryptobox.cf:195", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -186,7 +209,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:191", err
+                print "cryptobox.cf:214", err
         )
 
     set_data_user_config = ->
@@ -219,7 +242,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:224", err
+                print "cryptobox.cf:247", err
         )
 
     $scope.file_input_change = (f) ->
@@ -229,7 +252,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:234", "run_command", cmd_to_run
+        print "cryptobox.cf:257", "run_command", cmd_to_run
         client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
@@ -317,7 +340,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         run_command("cryptobox_command", [option]).then(
             (res) ->
-                print "cryptobox.cf:322", res
+                print "cryptobox.cf:345", res
                 add_output(res)
 
             (err) ->
