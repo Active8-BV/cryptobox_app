@@ -187,6 +187,7 @@ def on_server(memory, options, method, payload, session, files=None):
         return parse_http_result(result), memory
     except ServerForbidden, ex:
         log("unauthorized exit", ex)
+        return (None, None), memory
 
 
 def download_server(memory, options, url):
