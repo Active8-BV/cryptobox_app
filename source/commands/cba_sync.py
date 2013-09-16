@@ -585,12 +585,10 @@ def upload_files(memory, options, serverindex, file_uploads):
         """
         uploaded_files.append(download_result)
 
-        # update_progress(len(uploaded_files), len(unique_nodes), "downloading")
-
     upload_result = []
 
     for uf in file_uploads:
-        print "cba_sync.py:595", "upload", uf["local_file_path"]
+        log("upload", uf["local_file_path"])
         result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
         upload_result.append(result)
 
