@@ -47,13 +47,13 @@ def exist(data):
     return True
 
 
-class dict2obj_new(dict):
+class Dict2Obj(dict):
     """
-    dict2obj_new
+    Dict2Obj
     """
 
     def __init__(self, dict_):
-        super(dict2obj_new, self).__init__(dict_)
+        super(Dict2Obj, self).__init__(dict_)
 
         for key in self:
             item = self[key]
@@ -61,10 +61,10 @@ class dict2obj_new(dict):
             if isinstance(item, list):
                 for idx, it in enumerate(item):
                     if isinstance(it, dict):
-                        item[idx] = dict2obj_new(it)
+                        item[idx] = Dict2Obj(it)
 
             elif isinstance(item, dict):
-                self[key] = dict2obj_new(item)
+                self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
 
@@ -110,7 +110,6 @@ def log(*arg):
     msg = " ".join([str(s) for s in arg]).strip(" ")
     sys.stderr.write(msg)
     sys.stderr.flush()
-
 
 
 def exit_app_warning(*arg):
@@ -249,8 +248,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:252", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:253", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:253", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:254", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 

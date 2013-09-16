@@ -53,13 +53,13 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     #noinspection PyUnusedLocal
 
-    def done_downloading(result):
+    def done_downloading(result_async_method):
         """
         done_downloading
-        @type result: dict
+        @type result_async_method: dict
         """
-        downloaded_files.append(result)
-        update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result["content_hash"]))
+        downloaded_files.append(result_async_method)
+        update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result_async_method["content_hash"]))
 
     download_results = []
 
@@ -578,12 +578,12 @@ def upload_files(memory, options, serverindex, file_uploads):
     pool = Pool(processes=options.numdownloadthreads)
     uploaded_files = []
 
-    def done_downloading(result):
+    def done_downloading(download_result):
         """
         done_downloading
-        @type result: dict
+        @type download_result: dict
         """
-        uploaded_files.append(result)
+        uploaded_files.append(download_result)
 
         # update_progress(len(uploaded_files), len(unique_nodes), "downloading")
 
