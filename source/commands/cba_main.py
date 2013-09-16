@@ -296,7 +296,7 @@ class XMLRPCThread(threading.Thread):
         try:
             memory.set("last_ping", time.time())
             server.serve_forever()
-        finally: 
+        finally:
             log("cba_main.py:269", "stopping")
             server.force_stop()
             server.server_close()

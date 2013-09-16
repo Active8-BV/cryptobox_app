@@ -114,6 +114,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         complete_reset
         """
+        os.system("echo 'flush_all' | nc localhost 11211")
         os.system("rm -Rf testdata/testmap")
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
