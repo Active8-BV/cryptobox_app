@@ -403,7 +403,13 @@ def get_server_index(memory, options):
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
     if not result[0]:
-        raise TreeLoadError()
+        if memory.has("authorized"):
+            memory.delete("authorized")
+
+        memory = authorize_user(memory, options)
+        result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
+        if not result[0]:
+            raise TreeLoadError()
 
     serverindex = result[1]
     memory.replace("serverindex", serverindex)
