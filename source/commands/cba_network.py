@@ -172,17 +172,17 @@ def on_server(memory, options, method, payload, session, files=None):
     server = options.server
     cryptobox = options.cryptobox
     cookies = {}
-    SERVICE = server + cryptobox + "/" + method + "/" + str(time.time())
+    service = server + cryptobox + "/" + method + "/" + str(time.time())
 
     if not session:
         session = requests
 
     if not payload:
-        result = session.post(SERVICE, cookies=cookies, files=files)
+        result = session.post(service, cookies=cookies, files=files)
     elif files:
-        result = session.post(SERVICE, data=payload, cookies=cookies, files=files)
+        result = session.post(service, data=payload, cookies=cookies, files=files)
     else:
-        result = session.post(SERVICE, data=json.dumps(payload), cookies=cookies)
+        result = session.post(service, data=json.dumps(payload), cookies=cookies)
 
     try:
         return parse_http_result(result), memory
@@ -199,11 +199,11 @@ def download_server(memory, options, url):
     """
     cookies = {}
     url = os.path.normpath(url)
-    URL = options.server + options.cryptobox + "/" + url
+    url = options.server + options.cryptobox + "/" + url
 
     #log("download server:", URL)
     session = memory.get("session")
-    result = session.get(URL, cookies=cookies)
+    result = session.get(url, cookies=cookies)
     return parse_http_result(result), memory
 
 

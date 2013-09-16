@@ -86,7 +86,7 @@ def index_files_visit(arg, dir_name, names):
     @type dir_name: str or unicode
     @type names: list
     """
-    filenames = [os.path.basename(x) for x in filter(lambda x: not os.path.os.path.isdir(x), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
+    filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
     dirname_hash = make_sha1_hash(dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/"))
     nameshash = make_sha1_hash("".join(names))
 
@@ -131,7 +131,7 @@ def index_and_encrypt(memory, options, localindex_param):
     ensure_directory(datadir)
 
     if len(localindex["dirnames"]) > 0:
-        numfiles = reduce(lambda x, y: x + y, [len(localindex["dirnames"][x]["filenames"]) for x in localindex["dirnames"]])
+        numfiles = reduce(lambda dirname, y: dirname + y, [len(localindex["dirnames"][x]["filenames"]) for x in localindex["dirnames"]])
     else:
         numfiles = 0
 
@@ -179,6 +179,7 @@ def index_and_encrypt(memory, options, localindex_param):
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
             log("delete", fpath)
+
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
             else:
@@ -378,7 +379,6 @@ def decrypt_and_build_filetree(memory, options):
         @param e: event
         @type e:
         """
-
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting " + "\n\t"+"\n\t".join(e))
 
@@ -404,5 +404,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:408"
+        print "cba_index.py:409"
     return memory

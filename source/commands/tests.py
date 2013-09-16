@@ -8,7 +8,7 @@ import pickle
 import unittest
 from subprocess import Popen, PIPE
 from cba_main import ExitAppWarning, cryptobox_command
-from cba_utils import dict2obj_new
+from cba_utils import Dict2Obj
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
 from cba_blobs import get_blob_dir, get_data_dir
@@ -33,6 +33,8 @@ def count_files_dir(fpath):
 
     return len(s)
 
+#noinspection PyPep8Naming
+
 
 class CryptoboxAppTest(unittest.TestCase):
     """
@@ -49,13 +51,13 @@ class CryptoboxAppTest(unittest.TestCase):
         #server = "https://www.cryptobox.nl/"
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 2}
-        self.cboptions = dict2obj_new(self.options_d)
+        self.cboptions = Dict2Obj(self.options_d)
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
-
+    #noinspection PyPep8Naming
     def tearDown(self):
         """
         tearDown
@@ -125,7 +127,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.do_wait_for_tasks = False
         self.no_box_given = self.options_d.copy()
-        self.no_box_given = dict2obj_new(self.no_box_given)
+        self.no_box_given = Dict2Obj(self.no_box_given)
         del self.no_box_given["cryptobox"]
 
         with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
@@ -194,7 +196,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         localindex2 = make_local_index(self.cboptions)
         salt, secret, self.cbmemory, localindex2 = index_and_encrypt(self.cbmemory, self.cboptions, localindex2)
-        self.maxDiff = None
+        self.max_diff = None
 
         def remove_atime(index):
             """
@@ -202,14 +204,14 @@ class CryptoboxAppTest(unittest.TestCase):
             @type index: dict
             """
 
-            def del_atime(ix, x):
+            def del_atime(ix, k):
                 """
                 del_atime
                 @type ix: dict
-                @type x: dict
+                @type k: dict
                 """
-                del ix[x]["st_atime"]
-                del ix[x]["st_ctime"]
+                del ix[k]["st_atime"]
+                del ix[k]["st_ctime"]
                 return ix
 
             filestats = [del_atime(index["filestats"], x) for x in index["filestats"]]

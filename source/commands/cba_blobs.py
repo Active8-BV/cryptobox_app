@@ -110,7 +110,7 @@ def write_blob_to_filepath(memory, node, options, data):
     """
     @type memory: Memory
     @type node: dict
-    @type options: optparse.Values
+    @type options: optparse.Values, instance
     @type data: str or unicode
     """
     if not node["content_hash_latest_timestamp"][1]:

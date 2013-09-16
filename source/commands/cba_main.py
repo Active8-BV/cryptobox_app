@@ -19,7 +19,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from optparse import OptionParser
 from cba_memory import Memory, SingletonMemory
-from cba_utils import cba_warning, strcmp, dict2obj_new, exit_app_warning, log
+from cba_utils import cba_warning, strcmp, Dict2Obj, exit_app_warning, log
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, \
     make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
@@ -56,7 +56,7 @@ def cryptobox_command(options):
     @rtype: bool
     """
     if isinstance(options, dict):
-        options = dict2obj_new(options)
+        options = Dict2Obj(options)
 
     if options.version:
         return "0.1"
@@ -125,7 +125,6 @@ def cryptobox_command(options):
             authorize_user(memory, options)
 
             if memory.get("authorized"):
-
                 if options.check:
                     if cryptobox_locked(memory):
                         raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
@@ -137,27 +136,22 @@ def cryptobox_command(options):
 
                     log("files to download", "\n" + "\n".join([x["doc"]["m_path"] for x in file_downloads]), "\n")
                     log("files to upload", "\n" + "\n".join([x["path"] for x in file_uploads]), "\n")
-
                     log("dirs to delete server", "\n" + "\n".join(dir_del_server), "\n")
-                    log("dirs to make local", "\n" + "\n".join([x["name"] for x in dir_make_local]), "\n")
 
+                    log("dirs to make local", "\n" + "\n".join([x["name"] for x in dir_make_local]), "\n")
                     log("dirs to make server", "\n" + "\n".join([x["dirname"] for x in dir_make_server]), "\n")
                     log("dirs to delete local", "\n" + "\n".join([x["dirname"] for x in dir_del_local]), "\n")
-
                     log("files to delete server", "\n" + "\n".join(file_del_server), "\n")
                     log("files to delete local", "\n" + "\n".join(file_del_local), "\n")
-
-
-
                 elif options.sync:
                     if not options.encrypt:
                         raise ExitAppWarning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+
                     if cryptobox_locked(memory):
                         raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
-
 
         salt = None
         secret = None
@@ -225,6 +219,7 @@ class XMLRPCThread(threading.Thread):
                 """
                 while not self.stopped:
                     tslp = time.time() - memory.get("last_ping")
+
                     if int(tslp) < 10:
                         self.handle_request()
                         time.sleep(poll_interval)
@@ -233,7 +228,6 @@ class XMLRPCThread(threading.Thread):
                         return True
                 return True
 
-
             def force_stop(self):
                 """
                 :return: :rtype:
@@ -241,15 +235,7 @@ class XMLRPCThread(threading.Thread):
 
                 #noinspection PyAttributeOutsideInit
                 self.stopped = True
-
                 return True
-
-            def create_dummy_request(self):
-                """
-                create_dummy_request
-                """
-                server = xmlrpclib.Server('http://%s:%s' % self.server_address)
-                server.ping()
 
         # Create server
         server = StoppableRPCServer(("localhost", 8654), requestHandler=RequestHandler)
@@ -293,6 +279,7 @@ class XMLRPCThread(threading.Thread):
 
         try:
             memory.set("last_ping", time.time())
+
             server.serve_forever()
         finally:
             log("cba_main.py:269", "stopping")
@@ -304,30 +291,34 @@ def main():
     """
     @return: @rtype:
     """
-    try:
-        server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
-        server.ping()
-        print "server already running"
-        return
-    except:
-        pass
 
     try:
         (options, args) = add_options()
 
         if not options.cryptobox and not options.version:
+            #noinspection PyBroadException
+            try:
+                server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
+                server.ping()
+                print "cba_main.py:305", "server already running"
+                return
+            except:
+                pass
+
             log("cba_main.py:283", "xmlrpc server up")
             commandserver = XMLRPCThread()
             commandserver.start()
 
             while True:
                 time.sleep(1)
+
                 try:
                     server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
                     server.ping()
                 except socket.error:
-                    print
-                    break;
+                    print "cba_main.py:321"
+                    break
+
         else:
             try:
                 cryptobox_command(options)
