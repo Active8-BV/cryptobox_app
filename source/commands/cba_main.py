@@ -135,19 +135,18 @@ def cryptobox_command(options):
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
 
-                    log ("\n\n-------------------------------------------------------------------------------------\n")
-                    log("files to download", "\n\t" + "\n\t".join([x["doc"]["m_path"] for x in file_downloads]))
-                    log("files to upload", "\n\t" + "\n\t".join([x["path"] for x in file_uploads]))
+                    log("files to download", "\n" + "\n".join([x["doc"]["m_path"] for x in file_downloads]), "\n")
+                    log("files to upload", "\n" + "\n".join([x["path"] for x in file_uploads]), "\n")
 
-                    log("dirs to delete server", "\n\t" + "\n\t".join(dir_del_server))
-                    log("dirs to make local", "\n\t" + "\n\t".join([x["name"] for x in dir_make_local]))
+                    log("dirs to delete server", "\n" + "\n".join(dir_del_server), "\n")
+                    log("dirs to make local", "\n" + "\n".join([x["name"] for x in dir_make_local]), "\n")
 
-                    log("dirs to make server", "\n\t" + "\n\t".join([x["dirname"] for x in dir_make_server]))
-                    log("dirs to delete local", "\n\t" + "\n\t".join([x["dirname"] for x in dir_del_local]))
+                    log("dirs to make server", "\n" + "\n".join([x["dirname"] for x in dir_make_server]), "\n")
+                    log("dirs to delete local", "\n" + "\n".join([x["dirname"] for x in dir_del_local]), "\n")
 
-                    log("files to delete server", "\n\t" + "\n\t".join(file_del_server))
-                    log("files to delete local", "\n\t" + "\n\t".join(file_del_local))
-                    log("-------------------------------------------------------------------------------------")
+                    log("files to delete server", "\n" + "\n".join(file_del_server), "\n")
+                    log("files to delete local", "\n" + "\n".join(file_del_local), "\n")
+
 
 
                 elif options.sync:
@@ -226,7 +225,6 @@ class XMLRPCThread(threading.Thread):
                 """
                 while not self.stopped:
                     tslp = time.time() - memory.get("last_ping")
-                    print tslp
                     if int(tslp) < 10:
                         self.handle_request()
                         time.sleep(poll_interval)
@@ -318,7 +316,7 @@ def main():
         (options, args) = add_options()
 
         if not options.cryptobox and not options.version:
-            log("cba_main.py:283", "xmlrpc server running")
+            log("cba_main.py:283", "xmlrpc server up")
             commandserver = XMLRPCThread()
             commandserver.start()
 
