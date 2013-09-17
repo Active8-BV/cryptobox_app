@@ -15,7 +15,6 @@ import socket
 import time
 import multiprocessing
 import xmlrpclib
-import httplib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
@@ -295,7 +294,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 ping from client
                 """
-                print "cba_main.py:300", "last_ping"
+                print "cba_main.py:299", "last_ping"
                 memory.set("last_ping", time.time())
                 return "ping received"
 
@@ -338,75 +337,9 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:343", "bye xmlrpc server"
+            print "cba_main.py:342", "bye xmlrpc server"
 
 #noinspection PyClassicStyleClass
-
-
-class TimeoutHTTPConnection(httplib.HTTPConnection):
-
-    def connect(self):
-        httplib.HTTPConnection.connect(self)
-        self.sock.settimeout(self.timeout)
-
-#noinspection PyClassicStyleClass
-
-
-class TimeoutHTTP(httplib.HTTP):
-    """
-    TimeoutHTTP
-    """
-    _connection_class = TimeoutHTTPConnection
-
-    def set_timeout(self, timeout):
-        """
-        set_timeout
-        """
-        self._conn.timeout = timeout
-
-    def getresponse(self, buffering):
-        """
-        getresponse
-        """
-        return self.getreply(buffering)
-
-#noinspection PyClassicStyleClass
-
-
-class TimeoutTransport(xmlrpclib.Transport):
-    """
-    TimeoutTransport
-    """
-
-    def __init__(self, timeout=10, *l, **kw):
-        """
-        __init__
-        """
-        xmlrpclib.Transport.__init__(self, *l, **kw)
-        self.timeout = timeout
-
-    def make_connection(self, host):
-        """
-        make_connection
-        """
-        conn = TimeoutHTTP(host)
-        conn.set_timeout(self.timeout)
-        return conn
-
-#noinspection PyClassicStyleClass
-
-
-class TimeoutServerProxy(xmlrpclib.ServerProxy):
-    """
-    TimeoutServerProxy
-    """
-
-    def __init__(self, uri, timeout=10, *l, **kw):
-        """
-        __init__
-        """
-        kw['transport'] = TimeoutTransport(timeout=timeout, use_datetime=kw.get('use_datetime', 0))
-        xmlrpclib.ServerProxy.__init__(self, uri, *l, **kw)
 
 
 def main():
@@ -428,10 +361,12 @@ def main():
 
             try:
                 if commandserver.is_alive():
-                    s = TimeoutServerProxy('http://localhost:8654/RPC2', timeout=1)
+                    s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+                    socket.setdefaulttimeout(10)
                     s.ping()
-                pass
-            except socket.error:
+                    socket.setdefaulttimeout(None)
+            except socket.error, ex:
+                print "cba_main.py:371", "kill it damnit", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -448,4 +383,4 @@ if strcmp(__name__, '__main__'):
     try:
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:453", "\nbye main"
+        print "cba_main.py:388", "\nbye main"
