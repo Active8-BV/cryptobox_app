@@ -14,8 +14,7 @@ from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log
-from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, \
-    in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
+from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -76,10 +75,12 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
             result.get()
 
     pool.terminate()
+    log("writing files")
 
     for result in downloaded_files:
         memory = write_blobs_to_filepaths(memory, options, local_file_paths, result["content"], result["content_hash"])
-        update_progress(len(downloaded_files), len(unique_nodes), "writing")
+
+    log("done writing files")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 

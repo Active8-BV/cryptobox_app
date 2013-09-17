@@ -66,11 +66,9 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.on_exit = =>
         killprocess = (child) ->
-            console.error "cryptobox.cf:19", "killing" + memory.get(child)
-
-            #memory_name = "g_process_" + utils.slugify(cmd_name)
             print "cryptobox.cf:74", "killing", child, memory.get(child)
-            process.kill(memory.get(child), 'SIGINT');
+            process.kill(memory.get(child));
+            console.error "cryptobox.cf:19", "killing" + memory.get(child)
         _.each(memory.all_prefix("g_process"), killprocess)
 
         quit = ->
