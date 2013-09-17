@@ -1,3 +1,5 @@
+nohup.out
+build
 build/*.log
 build/Cryptobox.dmg
 source/commands/testdata/testmap/
