@@ -52,7 +52,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
-
     #noinspection PyUnusedLocal
     def done_downloading(result_async_method):
         """

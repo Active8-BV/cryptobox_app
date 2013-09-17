@@ -204,7 +204,6 @@ class XMLRPCThread(multiprocessing.Process):
 
         try:
             memory = SingletonMemory()
-
             #noinspection PyClassicStyleClass
 
             class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
@@ -212,7 +211,6 @@ class XMLRPCThread(multiprocessing.Process):
                 RequestHandler
                 """
                 rpc_paths = ('/RPC2',)
-
             #noinspection PyClassicStyleClass
 
             class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
@@ -246,10 +244,8 @@ class XMLRPCThread(multiprocessing.Process):
                     :return: :rtype:
                     """
                     self.server_close()
-
                     #noinspection PyAttributeOutsideInit
                     self.stopped = True
-
                     #noinspection PyBroadException
                     try:
                         self.create_dummy_request()
@@ -294,7 +290,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 ping from client
                 """
-                print "cba_main.py:299", "last_ping"
+                print "cba_main.py:295", "last_ping"
                 memory.set("last_ping", time.time())
                 return "ping received"
 
@@ -337,7 +333,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:342", "bye xmlrpc server"
+            print "cba_main.py:338", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -348,7 +344,6 @@ def main():
     (options, args) = add_options()
 
     if not options.cryptobox and not options.version:
-
         #noinspection PyBroadException
         me = singleton.SingleInstance() # will sys.exit(-1) if other instance is running
         queue = multiprocessing.Queue()
@@ -366,7 +361,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:371", "kill it damnit", ex
+                print "cba_main.py:366", "kill it damnit", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -383,4 +378,4 @@ if strcmp(__name__, '__main__'):
     try:
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:388", "\nbye main"
+        print "cba_main.py:383", "\nbye main"
