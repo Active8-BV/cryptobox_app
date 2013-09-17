@@ -339,6 +339,7 @@ class XMLRPCThread(multiprocessing.Process):
         except KeyboardInterrupt:
             print "cba_main.py:342", "bye xmlrpc server"
 
+
 #noinspection PyClassicStyleClass
 def main():
     """
@@ -347,6 +348,7 @@ def main():
     (options, args) = add_options()
 
     if not options.cryptobox and not options.version:
+
         #noinspection PyBroadException
         me = singleton.SingleInstance() # will sys.exit(-1) if other instance is running
         queue = multiprocessing.Queue()
@@ -364,7 +366,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:369", "kill it damnit", ex
+                print "cba_main.py:371", "kill it damnit", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -381,4 +383,4 @@ if strcmp(__name__, '__main__'):
     try:
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:386", "\nbye main"
+        print "cba_main.py:388", "\nbye main"
