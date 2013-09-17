@@ -54,8 +54,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     downloaded_files = []
 
     #noinspection PyUnusedLocal
-
-
     def done_downloading(result_async_method):
         """
         done_downloading

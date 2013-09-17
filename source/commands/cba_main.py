@@ -340,9 +340,7 @@ class XMLRPCThread(multiprocessing.Process): # ##^ class def 0
             print "cba_main.py:342", "bye xmlrpc server" # ##^ debug statement 0
 
 #noinspection PyClassicStyleClass # ##^  scope 0
-
-
-def main(): # ##^ funct1on def 0
+def main(): # ##^ funct1on def after no1nspect1on 0
     """ # ##^  1n 1n_python_comment 0
     @return: @rtype: ADDTYPES # ##^  after doc comment 1n 1n_python_comment 0
     """ # ##^  0
@@ -366,7 +364,7 @@ def main(): # ##^ funct1on def 0
                     s.ping() # ##^ methodcallnested method call 2
                     socket.setdefaulttimeout(None) # ##^ methodcallnested method call 2
             except socket.error, ex: # ##^ except 0
-                print "cba_main.py:371", "kill it damnit", ex # ##^ debug statement 0
+                print "cba_main.py:369", "kill it damnit", ex # ##^ debug statement 0
                 commandserver.terminate() # ##^ methodcall after pr1nt 0
 
             if not commandserver.is_alive(): # ##^  1f statement scope change 1
@@ -383,7 +381,8 @@ if strcmp(__name__, '__main__'): # ##^ ma1n -1
     try: # ##^  -1
         main() # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch -1
     except KeyboardInterrupt: # ##^ except -1
-        print "cba_main.py:388", "\nbye main" # ##^ debug statement -1
+        print "cba_main.py:386", "\nbye main" # ##^ debug statement -1
+ # ##^ global_class_declare -1 # ##^  -1 # ##^  -1 # ##^  -1
  # ##^ global_class_declare -1 # ##^  -1 # ##^  -1
  # ##^ global_class_declare -1 # ##^  -1
 

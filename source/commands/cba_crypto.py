@@ -114,8 +114,6 @@ class EncryptionHashMismatch(Exception):
     """
     pass
 #noinspection PyArgumentEqualDefault
-
-
 def decrypt(secret, encrypted_data_dict, hashcheck=True):
     """
     encrypt data or a list of data with the password (key)
