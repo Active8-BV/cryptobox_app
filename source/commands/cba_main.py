@@ -384,6 +384,7 @@ if strcmp(__name__, '__main__'): # ##^ ma1n -1
         main() # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch -1
     except KeyboardInterrupt: # ##^ except -1
         print "cba_main.py:388", "\nbye main" # ##^ debug statement -1
+ # ##^ global_class_declare -1 # ##^  -1 # ##^  -1
  # ##^ global_class_declare -1 # ##^  -1
 
  # ##^ global_class_declare -1
