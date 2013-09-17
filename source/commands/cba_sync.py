@@ -594,6 +594,7 @@ def upload_files(memory, options, serverindex, file_uploads):
         @type download_result: dict
         """
         uploaded_files.append(download_result)
+        update_progress(len(uploaded_files), len(file_uploads), "uploading")
 
     upload_result = []
 

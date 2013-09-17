@@ -355,3 +355,28 @@ def del_local_file_history(memory, relative_path_name):
     if memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))):
         memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
     return memory
+
+
+def update_memory_progress(p):
+    """
+    update_progress
+    """
+    from cba_utils import log
+
+    log(p)
+    mem = SingletonMemory()
+    mem.set("progress", p)
+    return
+    if mem.has("progress"):
+        if mem.get("progress") <= p:
+            mem.set("progress", p)
+    else:
+        mem.set("progress", p)
+
+
+def reset_memory_progress():
+    """
+    reset_memory_progress
+    """
+    mem = SingletonMemory()
+    mem.set("progress", 0)

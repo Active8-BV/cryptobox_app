@@ -4,6 +4,7 @@ communications with userinterface
 """
 import sys
 import math
+from cba_memory import update_memory_progress
 last_update_string_len = 0
 
 
@@ -23,6 +24,7 @@ def update_progress(curr, total, msg, console=True):
     if progress > 100:
         progress = 100
 
+    update_memory_progress(progress)
     msg = msg + " " + str(curr) + "/" + str(total)
 
     #update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
