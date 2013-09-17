@@ -9,7 +9,7 @@ import urllib
 import subprocess
 import json
 import requests
-from cba_utils import cba_warning, log
+from cba_utils import log
 from cba_memory import Memory
 
 
@@ -203,7 +203,7 @@ def download_server(memory, options, url):
 
     #log("download server:", URL)
     session = memory.get("session")
-    result = session.get(url, cookies=cookies)
+    result = session.get(url, cookies=cookies, timeout=3600)
     return parse_http_result(result), memory
 
 
@@ -293,7 +293,7 @@ def authorize_user(memory, options):
         #    memory.replace("authorized", False)
         return memory
     except PasswordException, p:
-        cba_warning(p, "not authorized")
+        log(p, "not authorized")
         memory.replace("authorized", False)
         return memory
 

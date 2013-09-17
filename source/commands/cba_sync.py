@@ -4,6 +4,7 @@ sync functions
 """
 import os
 import time
+import random
 import uuid
 import base64
 import urllib
@@ -30,6 +31,7 @@ def download_blob(memory, options, node):
     try:
         url = "download/" + node["doc"]["m_short_id"]
         result, memory = download_server(memory, options, url)
+        time.sleep(random.random()*2)
         return {"url": result.url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result.content}
     except Exception, e:
         handle_exception(e)

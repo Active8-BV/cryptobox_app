@@ -18,7 +18,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from optparse import OptionParser
 from cba_memory import Memory, SingletonMemory
-from cba_utils import cba_warning, strcmp, Dict2Obj, exit_app_warning, log
+from cba_utils import strcmp, Dict2Obj, exit_app_warning, log
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -76,10 +76,10 @@ def cryptobox_command(options):
     datadir = get_data_dir(options)
 
     if not datadir:
-        cba_warning("datadir is None")
+        log("datadir is None")
 
     if not os.path.exists(datadir):
-        cba_warning("datadir does not exists")
+        log("datadir does not exists")
 
     restore_hidden_config(options)
     memory = Memory()
@@ -94,28 +94,33 @@ def cryptobox_command(options):
 
     try:
         if not os.path.exists(options.basedir):
-            raise ExitAppWarning("DIR [", options.dir, "] does not exist")
+            log("DIR [", options.dir, "] does not exist")
+            return
 
         if not options.check:
             if not options.encrypt and not options.decrypt:
-                cba_warning("No encrypt or decrypt directive given (-d or -e)")
+                log("No encrypt or decrypt directive given (-d or -e)")
 
         if not options.password:
-            raise ExitAppWarning("No password given (-p or --password)")
+            log("No password given (-p or --password)")
 
         if options.username or options.cryptobox:
             if not options.username:
-                raise ExitAppWarning("No username given (-u or --username)")
+                log("No username given (-u or --username)")
+                return
 
             if not options.cryptobox:
-                raise ExitAppWarning("No cryptobox given (-b or --cryptobox)")
+                log("No cryptobox given (-b or --cryptobox)")
+                return
 
         if options.sync:
             if not options.username:
-                raise ExitAppWarning("No username given (-u or --username)")
+                log("No username given (-u or --username)")
+                return
 
             if not options.password:
-                raise ExitAppWarning("No password given (-p or --password)")
+                log("No password given (-p or --password)")
+                return
 
         localindex = make_local_index(options)
 
@@ -143,10 +148,12 @@ def cryptobox_command(options):
                     log("files to delete local", "\n" + "\n".join(file_del_local), "\n")
                 elif options.sync:
                     if not options.encrypt:
-                        raise ExitAppWarning("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+                        log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+                        return
 
                     if cryptobox_locked(memory):
-                        raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        log("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        return
 
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -159,7 +166,8 @@ def cryptobox_command(options):
 
         if options.decrypt:
             if options.remove:
-                raise ExitAppWarning("option remove (-r) cannot be used together with decrypt (dataloss)")
+                log("option remove (-r) cannot be used together with decrypt (dataloss)")
+                return
 
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)

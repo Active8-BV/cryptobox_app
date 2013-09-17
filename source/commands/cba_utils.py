@@ -75,15 +75,6 @@ class Dict2Obj(dict):
             return None
 
 
-def cba_warning(*arg):
-    """
-    cba_warning
-    @param arg: a list of objects to display
-    @type arg:
-    """
-    sys.stderr.write("".join([str(s) for s in arg]).strip(" "))
-
-
 def strcmp(s1, s2):
     """
     @type s1: str or unicode
@@ -118,7 +109,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    cba_warning("cba_utils.py:40", *arg)
+    log("cba_utils.py:40", *arg)
     sys.exit(1)
 
 
