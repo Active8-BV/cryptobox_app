@@ -13,7 +13,6 @@ sys.setdefaultencoding("utf-8")
 import os
 import time
 import httplib
-import socket
 import threading
 import multiprocessing
 import xmlrpclib
@@ -201,38 +200,17 @@ class XMLRPCThread(threading.Thread):
 
         #noinspection PyClassicStyleClass
 
-        class TimeoutTransport(xmlrpclib.Transport):
-            """
-            TimeoutTransport
-            """
-            timeout = 10.0
-
-            def set_timeout(self, timeout):
-                """
-                set_timeout
-                """
-                self.timeout = timeout
-
-            def make_connection(self, host):
-                """
-                make_connection
-                """
-                h = httplib.HTTPSConnection(host, timeout=self.timeout)
-                return h
-
-        #noinspection PyClassicStyleClass
-
         class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
             """
             StoppableRPCServer
             """
             allow_reuse_address = True
             stopped = False
+            timeout = 1
 
             def __init__(self, *args, **kw):
                 SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, *args, **kw)
                 self.register_function(lambda: 'OK', 'ping')
-                self.timeout = 1
 
             def serve_forever(self, poll_interval=0.1):
                 """
@@ -245,7 +223,7 @@ class XMLRPCThread(threading.Thread):
                     if int(tslp) < 2:
                         self.handle_request()
                         time.sleep(poll_interval)
-                        print "cba_main.py:250", "timeout"
+                        print "cba_main.py:228", "timeout"
                     else:
                         log("no ping received, stopping")
                         self.force_stop()
@@ -260,14 +238,14 @@ class XMLRPCThread(threading.Thread):
                 try:
                     self.create_dummy_request()
                 except:
-                    print "cba_main.py:265"
+                    print "cba_main.py:243"
 
-            def create_dummy_request(self):
+            @staticmethod
+            def create_dummy_request():
                 """
                 create_dummy_request
                 """
-                server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
-                server.ping()
+                xmlrpclib.ServerProxy("http://localhost:8654/RPC2").ping()
 
         # Create server
         t = TimeoutTransport()
@@ -333,7 +311,7 @@ def main():
             try:
                 SimpleXMLRPCServer.SimpleXMLRPCServer(("localhost", 8654))
             except:
-                print "cba_main.py:338", "server already running"
+                print "cba_main.py:316", "server already running"
                 return
 
             log("cba_main.py:283", "xmlrpc server up")
