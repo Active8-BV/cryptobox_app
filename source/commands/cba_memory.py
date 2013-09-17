@@ -360,6 +360,7 @@ def del_local_file_history(memory, relative_path_name):
 def update_memory_progress(p):
     """
     update_progress
+    @type p:int
     """
     from cba_utils import log
 

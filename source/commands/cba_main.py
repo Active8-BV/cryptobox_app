@@ -352,20 +352,21 @@ def main():
         commandserver.start()
 
         while True:
-            time.sleep(0.5)
+            time.sleep(5)
 
             try:
                 if commandserver.is_alive():
                     s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                    socket.setdefaulttimeout(10)
+                    socket.setdefaulttimeout(60)
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:366", "kill it damnit", ex
+                print "cba_main.py:366", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
                 break
+
 
     else:
         try:
