@@ -74,7 +74,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     print "cryptobox.cf:76", "killing" + memory.get(child)
                     process.kill(memory.get(child));
 
-        _.each(memory.all_prefix("g_process"), killprocess)
+        #_.each(memory.all_prefix("g_process"), killprocess)
 
         quit = ->
             gui.App.quit()
