@@ -113,6 +113,8 @@ class EncryptionHashMismatch(Exception):
 
     """
     pass
+
+
 #noinspection PyArgumentEqualDefault
 def decrypt(secret, encrypted_data_dict, hashcheck=True):
     """
