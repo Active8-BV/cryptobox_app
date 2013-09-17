@@ -12,6 +12,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import os
 import time
+import httplib
 import socket
 import threading
 import multiprocessing
@@ -201,6 +202,27 @@ class XMLRPCThread(threading.Thread):
 
         #noinspection PyClassicStyleClass
 
+        class TimeoutTransport(xmlrpclib.Transport):
+            """
+            TimeoutTransport
+            """
+            timeout = 10.0
+
+            def set_timeout(self, timeout):
+                """
+                set_timeout
+                """
+                self.timeout = timeout
+
+            def make_connection(self, host):
+                """
+                make_connection
+                """
+                h = httplib.HTTPSConnection(host, timeout=self.timeout)
+                return h
+
+        #noinspection PyClassicStyleClass
+
         class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
             """
             StoppableRPCServer
@@ -298,12 +320,10 @@ def main():
         if not options.cryptobox and not options.version:
             #noinspection PyBroadException
             try:
-                server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
-                server.ping()
-                print "cba_main.py:305", "server already running"
-                return
+                SimpleXMLRPCServer.SimpleXMLRPCServer(("localhost", 8654))
             except:
-                pass
+                print "cba_main.py:327", "server already running"
+                return
 
             log("cba_main.py:283", "xmlrpc server up")
             commandserver = XMLRPCThread()
@@ -316,7 +336,7 @@ def main():
                     server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
                     server.ping()
                 except socket.error:
-                    print "cba_main.py:321"
+                    print "cba_main.py:341"
                     break
 
         else:
