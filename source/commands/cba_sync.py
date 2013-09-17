@@ -15,7 +15,8 @@ from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log
-from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
+from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, \
+    add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
