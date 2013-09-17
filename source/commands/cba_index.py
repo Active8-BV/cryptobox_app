@@ -7,7 +7,7 @@ import shutil
 import base64
 import multiprocessing
 from Crypto import Random
-from cba_utils import log, strcmp, get_uuid, log
+from cba_utils import log, strcmp, get_uuid
 from cba_memory import Memory
 from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
