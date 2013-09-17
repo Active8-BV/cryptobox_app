@@ -37,8 +37,6 @@ def encrypt_new_blobs(salt, secret, new_blobs):
     progressdata = {"processed_files": 0, "numfiles": len(new_blobs)}
 
     #noinspection PyUnusedLocal
-
-
     def done_encrypting(e):
         """
         @param e: event
