@@ -83,9 +83,11 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.on_exit = function() {
     var killprocess, quit;
     killprocess = function(child) {
-      console.error("cryptobox.cf:19", "killing" + memory.get(child));
-      print("cryptobox.cf:74", "killing", child, memory.get(child));
-      return process.kill(memory.get(child), 'SIGINT');
+      var client;
+      client = get_rpc_client();
+      return client.methodCall("force_stop", [], function(e, v) {
+        return print("cryptobox.cf:73", e, v);
+      });
     };
     _.each(memory.all_prefix("g_process"), killprocess);
     quit = function() {
@@ -165,7 +167,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     $scope.cmd_output = msgs;
     return utils.force_digest($scope);
   };
-  utils.set_interval("cryptobox.cf:147", update_output, 100, "update_output");
+  utils.set_interval("cryptobox.cf:150", update_output, 100, "update_output");
   starting = false;
   first_start = true;
   ping_client = function() {
@@ -178,19 +180,19 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       var cba_main;
       if (exist(error)) {
         if (!utils.exist_truth(first_start)) {
-          print("cryptobox.cf:159", error);
+          print("cryptobox.cf:162", error);
         } else {
           first_start = false;
         }
         starting = true;
-        print("cryptobox.cf:164", "starting again");
+        print("cryptobox.cf:167", "starting again");
         cba_main = spawn(cmd_to_run, [""]);
         set_output_buffers(cba_main);
         return starting = false;
       }
     });
   };
-  utils.set_interval("cryptobox.cf:169", ping_client, 5000, "ping_client");
+  utils.set_interval("cryptobox.cf:172", ping_client, 5000, "ping_client");
   ping_client();
   store_user_var = function(k, v) {
     var db, p, record;
@@ -243,7 +245,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
           return p.reject(e);
         } else {
           if (exist(d)) {
-            print("cryptobox.cf:216", k, d.value);
+            print("cryptobox.cf:219", k, d.value);
             p.resolve(d.value);
             return utils.force_digest($scope);
           } else {
@@ -262,7 +264,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         return $scope[name] = v;
       }
     }, function(err) {
-      return print("cryptobox.cf:235", err);
+      return print("cryptobox.cf:238", err);
     });
   };
   set_data_user_config = function() {
@@ -295,7 +297,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:273", err);
+      return print("cryptobox.cf:276", err);
     });
   };
   $scope.file_input_change = function(f) {
@@ -306,7 +308,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client, p;
     client = get_rpc_client();
     p = $q.defer();
-    print("cryptobox.cf:283", "run_command", cmd_to_run);
+    print("cryptobox.cf:286", "run_command", cmd_to_run);
     client.methodCall(command_name, command_arguments, function(error, value) {
       if (exist(error)) {
         p.reject(error);
@@ -394,7 +396,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       clear: false
     };
     return run_command("cryptobox_command", [option]).then(function(res) {
-      print("cryptobox.cf:371", res);
+      print("cryptobox.cf:374", res);
       return add_output(res);
     }, function(err) {
       return add_output(err);

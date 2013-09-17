@@ -205,7 +205,7 @@ class XMLRPCThread(threading.Thread):
             """
             allow_reuse_address = True
             stopped = False
-            timeout = 1
+            timeout = 10
 
             def __init__(self, *args, **kw):
                 SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, *args, **kw)
@@ -219,7 +219,7 @@ class XMLRPCThread(threading.Thread):
                 while not self.stopped:
                     tslp = time.time() - memory.get("last_ping")
 
-                    if int(tslp) < 2:
+                    if int(tslp) < 20:
                         self.handle_request()
                         time.sleep(poll_interval)
                     else:
@@ -293,7 +293,6 @@ class XMLRPCThread(threading.Thread):
 
             server.serve_forever()
         finally:
-            log("cba_main.py:269", "stopping")
             server.force_stop()
             server.server_close()
 
@@ -318,8 +317,12 @@ def main():
             commandserver = XMLRPCThread()
             commandserver.start()
 
-            #while True:
-            #    time.sleep(1)
+            while True:
+                if commandserver.isAlive():
+                    time.sleep(0.5)
+                else:
+                    break
+
         else:
             try:
                 cryptobox_command(options)
