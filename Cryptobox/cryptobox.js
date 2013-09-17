@@ -93,7 +93,6 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         }
       });
     };
-    _.each(memory.all_prefix("g_process"), killprocess);
     quit = function() {
       return gui.App.quit();
     };
