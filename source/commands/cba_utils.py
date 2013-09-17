@@ -108,7 +108,7 @@ def log(*arg):
     @type arg:
     """
     msg = " ".join([str(s) for s in arg]).strip(" ")
-    sys.stderr.write(msg)
+    sys.stderr.write(msg+"\n")
     sys.stderr.flush()
 
 
