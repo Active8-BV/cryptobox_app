@@ -374,6 +374,7 @@ def decrypt_and_build_filetree(memory, options):
 
     #noinspection PyUnusedLocal
 
+
     def done_decrypting(e):
         """
         @param e: event
@@ -404,5 +405,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:409"
+        print "cba_index.py:410"
     return memory
