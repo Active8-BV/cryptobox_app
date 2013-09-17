@@ -12,6 +12,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import os
 import socket
+import threading
 import time
 import multiprocessing
 import xmlrpclib
@@ -177,8 +178,8 @@ def cryptobox_command(options):
                 memory = decrypt_and_build_filetree(memory, options)
 
         check_and_clean_dir(options)
-        memory = SingletonMemory()
-        memory.set("last_ping", time.time())
+        smemory = SingletonMemory()
+        smemory.set("last_ping", time.time())
     finally:
         if memory.has("session"):
             memory.delete("session")
@@ -290,7 +291,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 ping from client
                 """
-                print "cba_main.py:295", "last_ping"
+                print "cba_main.py:296", "last_ping"
                 memory.set("last_ping", time.time())
                 return "ping received"
 
@@ -315,12 +316,20 @@ class XMLRPCThread(multiprocessing.Process):
                 t = time.time()
                 return t
 
+            def run_cb_command(options):
+                """
+                run_cb_command
+                @type options: dict
+                """
+                t1 = threading.Thread(target=cryptobox_command, args=(options,))
+                t1.start()
+
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
-            server.register_function(cryptobox_command, "cryptobox_command")
+            server.register_function(run_cb_command, "cryptobox_command")
             server.register_function(get_progress, "get_progress")
             server.register_function(reset_progress, "reset_progress")
 
@@ -333,7 +342,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:338", "bye xmlrpc server"
+            print "cba_main.py:347", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -361,22 +370,22 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:366", "kill it", ex
+                print "cba_main.py:375", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
                 break
-
 
     else:
         try:
             cryptobox_command(options)
         except ExitAppWarning, ex:
             exit_app_warning(str(ex))
+            return
 
 
 if strcmp(__name__, '__main__'):
     try:
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:383", "\nbye main"
+        print "cba_main.py:393", "\nbye main"
