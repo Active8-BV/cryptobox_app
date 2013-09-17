@@ -356,7 +356,7 @@ def del_local_file_history(memory, relative_path_name):
         memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
     return memory
 
-
+#noinspection PyUnreachableCode,PyUnresolvedReferences
 def update_memory_progress(p):
     """
     update_progress
@@ -368,10 +368,13 @@ def update_memory_progress(p):
     mem = SingletonMemory()
     mem.set("progress", p)
     return
+    #noinspection PyUnboundLocalVariable
     if mem.has("progress"):
+        #noinspection PyUnboundLocalVariable
         if mem.get("progress") <= p:
             mem.set("progress", p)
     else:
+        #noinspection PyUnboundLocalVariable
         mem.set("progress", p)
 
 

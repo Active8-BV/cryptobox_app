@@ -344,7 +344,7 @@ def main():
     (options, args) = add_options()
 
     if not options.cryptobox and not options.version:
-        #noinspection PyBroadException
+        #noinspection PyBroadException,PyUnusedLocal
         me = singleton.SingleInstance() # will sys.exit(-1) if other instance is running
         queue = multiprocessing.Queue()
         log("xmlrpc server up")
