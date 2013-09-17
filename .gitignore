@@ -1,3 +1,4 @@
+app.running
 nohup.out
 build
 build/*.log
