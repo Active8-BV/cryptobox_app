@@ -342,7 +342,7 @@ class XMLRPCThread(multiprocessing.Process): # ##^ class def 0
 #noinspection PyClassicStyleClass # ##^  scope 0
 
 
-def main(): # ##^ funct1on def python 0
+def main(): # ##^ funct1on def 0
     """ # ##^  1n 1n_python_comment 0
     @return: @rtype: ADDTYPES # ##^  after doc comment 1n 1n_python_comment 0
     """ # ##^  0
@@ -384,5 +384,6 @@ if strcmp(__name__, '__main__'): # ##^ ma1n -1
         main() # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch -1
     except KeyboardInterrupt: # ##^ except -1
         print "cba_main.py:388", "\nbye main" # ##^ debug statement -1
+ # ##^ global_class_declare -1 # ##^  -1
 
  # ##^ global_class_declare -1
