@@ -60,9 +60,11 @@ def cryptobox_command(options):
         return "0.1"
 
     if not options.numdownloadthreads:
-        options.numdownloadthreads = multiprocessing.cpu_count() * 2
+        options.numdownloadthreads = 2
     else:
         options.numdownloadthreads = int(options.numdownloadthreads)
+
+    log("downloadthreads", options.numdownloadthreads)
 
     if not options.dir:
         raise ExitAppWarning("Need DIR -f or --dir to continue")
@@ -290,14 +292,25 @@ class XMLRPCThread(threading.Thread):
             memory.set("last_ping", time.time())
             return True
 
+        def get_progress():
+            """
+            progress for the progress bar
+            """
+            if not memory.has("progress"):
+                return 0
+            return memory.get("progress")
+
         server.register_function(set_val, 'set_val')
         server.register_function(get_val, 'get_val')
         server.register_function(force_stop, 'force_stop')
         server.register_function(last_ping, 'last_ping')
         server.register_function(cryptobox_command, "cryptobox_command")
+        server.register_function(get_progress, "get_progress")
 
         try:
             memory.set("last_ping", time.time())
+            import random
+            memory.set("progress", int(random.random()*100))
 
             server.serve_forever()
         finally:

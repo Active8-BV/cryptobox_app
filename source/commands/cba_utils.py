@@ -6,6 +6,7 @@ import sys
 import time
 import multiprocessing
 import uuid as _uu
+from cba_memory import SingletonMemory
 g_lock = multiprocessing.Lock()
 DEBUG = True
 
@@ -239,8 +240,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:253", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:254", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:245", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:246", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -273,3 +274,24 @@ def get_uuid(size):
         unique_id = int(unique_id / alphabet_length)
 
     return output[0:size]
+
+
+def update_progress(p):
+    """
+    update_progress
+    """
+    mem = SingletonMemory()
+
+    if mem.has("progress"):
+        if mem.get("progress") < p:
+            mem.set("progress", p)
+    else:
+        mem.set("progress", p)
+
+
+def reset_progress():
+    """
+    reset_progress
+    """
+    mem = SingletonMemory()
+    mem.set("progress", 0)
