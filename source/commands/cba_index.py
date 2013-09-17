@@ -7,7 +7,7 @@ import shutil
 import base64
 import multiprocessing
 from Crypto import Random
-from cba_utils import cba_warning, strcmp, get_uuid, log
+from cba_utils import log, strcmp, get_uuid, log
 from cba_memory import Memory
 from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
@@ -124,7 +124,7 @@ def index_and_encrypt(memory, options, localindex_param):
     datadir = get_data_dir(options)
 
     if cryptobox_locked(memory):
-        cba_warning("cba_index.py:140", "cryptobox is locked, nothing can be added now first decrypt (-d)")
+        log("cba_index.py:140", "cryptobox is locked, nothing can be added now first decrypt (-d)")
         return None, None
 
     salt, secret = get_secret(memory, options)
@@ -340,7 +340,7 @@ def decrypt_and_build_filetree(memory, options):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        cba_warning("nothing to decrypt", datadir, "does not exists")
+        log("nothing to decrypt", datadir, "does not exists")
         return
 
     blobdir = os.path.join(datadir, "blobs")
