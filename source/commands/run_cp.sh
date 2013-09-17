@@ -18,5 +18,6 @@ on_change_path tests.py
 
 git commit -am "-" 
 nohup git push &
+sleep 0.2
 echo "done"
 
