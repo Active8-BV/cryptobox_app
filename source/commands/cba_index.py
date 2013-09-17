@@ -233,7 +233,6 @@ def restore_hidden_config(options):
         dsecret[s] = s
 
     for config in hidden_configs:
-
         #noinspection PyBroadException
         try:
             config_file_path = os.path.join(options.basedir, config)
@@ -404,5 +403,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:409"
+        print "cba_index.py:408"
     return memory

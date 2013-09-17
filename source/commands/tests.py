@@ -57,7 +57,6 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
-
     #noinspection PyPep8Naming
     def tearDown(self):
         """

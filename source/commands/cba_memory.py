@@ -21,7 +21,6 @@ class SingletonMemoryExpired(Exception):
 
 
 class SingletonMemory(object):
-
     #noinspection PyUnresolvedReferences
     """
     @param cls:
@@ -38,7 +37,6 @@ class SingletonMemory(object):
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-
             #noinspection PyAttributeOutsideInit,PyArgumentList
             cls._instance = super(SingletonMemory, cls).__new__(cls, *args, **kwargs)
         return cls._instance
@@ -205,7 +203,6 @@ class Memory(object):
         mempath = os.path.join(datadir, "memory.pickle")
 
         if os.path.exists(mempath):
-
             #noinspection PyAttributeOutsideInit
             self.data = unpickle_object(mempath)
 
