@@ -11,13 +11,15 @@ reload(sys)
 
 sys.setdefaultencoding("utf-8")
 import os
+import socket
 import time
-import threading
 import multiprocessing
 import xmlrpclib
+import httplib
 import SimpleXMLRPCServer
+from tendo import singleton
 from optparse import OptionParser
-from cba_memory import Memory, SingletonMemory
+from cba_memory import Memory, SingletonMemory, reset_memory_progress
 from cba_utils import strcmp, Dict2Obj, exit_app_warning, log
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
@@ -125,6 +127,7 @@ def cryptobox_command(options):
                 return
 
         localindex = make_local_index(options)
+        reset_memory_progress()
 
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
@@ -175,6 +178,8 @@ def cryptobox_command(options):
                 memory = decrypt_and_build_filetree(memory, options)
 
         check_and_clean_dir(options)
+        memory = SingletonMemory()
+        memory.set("last_ping", time.time())
     finally:
         if memory.has("session"):
             memory.delete("session")
@@ -188,7 +193,7 @@ def cryptobox_command(options):
     return True
 
 
-class XMLRPCThread(threading.Thread):
+class XMLRPCThread(multiprocessing.Process):
     """
     XMLRPCThread
     """
@@ -197,163 +202,250 @@ class XMLRPCThread(threading.Thread):
         """
         run
         """
-        memory = SingletonMemory()
-
-        #noinspection PyClassicStyleClass
-
-        class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
-            """
-            RequestHandler
-            """
-            rpc_paths = ('/RPC2',)
-
-        #noinspection PyClassicStyleClass
-
-        class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-            """
-            StoppableRPCServer
-            """
-            allow_reuse_address = True
-            stopped = False
-            timeout = 10
-
-            def __init__(self, *args, **kw):
-                SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, *args, **kw)
-                self.register_function(lambda: 'OK', 'ping')
-
-            def serve_forever(self, poll_interval=0.1):
-                """
-                :param poll_interval:
-                :return: :rtype:
-                """
-                while not self.stopped:
-                    tslp = time.time() - memory.get("last_ping")
-
-                    if int(tslp) < 20:
-                        self.handle_request()
-                        time.sleep(poll_interval)
-                    else:
-                        log("no ping received, stopping")
-                        self.force_stop()
-
-            def force_stop(self):
-                """
-                :return: :rtype:
-                """
-                self.server_close()
-
-                #noinspection PyAttributeOutsideInit
-                self.stopped = True
-
-                #noinspection PyBroadException
-                try:
-                    self.create_dummy_request()
-                except:
-                    pass
-
-            @staticmethod
-            def create_dummy_request():
-                """
-                create_dummy_request
-                """
-                xmlrpclib.ServerProxy("http://localhost:8654/RPC2").ping()
-
-        # Create server
-        server = StoppableRPCServer(("localhost", 8654), requestHandler=RequestHandler, allow_none=True)
-        server.register_introspection_functions()
-
-        def set_val(name, val):
-            """
-            set_val
-            @type name: str, unicode
-            @type val: str, unicode
-            """
-            memory.set(name, val)
-            return True
-
-        def get_val(name):
-            """
-            set_val
-            @type name: str, unicode
-            """
-            return memory.get(name)
-
-        def force_stop():
-            """
-            stop_server
-            """
-            server.force_stop()
-            return True
-
-        def last_ping():
-            """
-            ping from client
-            """
-            memory.set("last_ping", time.time())
-            return True
-
-        def get_progress():
-            """
-            progress for the progress bar
-            """
-            if not memory.has("progress"):
-                return 0
-            return memory.get("progress")
-
-        server.register_function(set_val, 'set_val')
-        server.register_function(get_val, 'get_val')
-        server.register_function(force_stop, 'force_stop')
-        server.register_function(last_ping, 'last_ping')
-        server.register_function(cryptobox_command, "cryptobox_command")
-        server.register_function(get_progress, "get_progress")
 
         try:
-            memory.set("last_ping", time.time())
-            import random
-            memory.set("progress", int(random.random()*100))
+            memory = SingletonMemory()
 
-            server.serve_forever()
-        finally:
-            server.force_stop()
-            server.server_close()
+            #noinspection PyClassicStyleClass
+
+            class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
+                """
+                RequestHandler
+                """
+                rpc_paths = ('/RPC2',)
+
+            #noinspection PyClassicStyleClass
+
+            class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+                """
+                StoppableRPCServer
+                """
+                allow_reuse_address = True
+                stopped = False
+                timeout = 1
+
+                def __init__(self, *args, **kw):
+                    SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, *args, **kw)
+
+                def serve_forever(self, poll_interval=0.01):
+                    """
+                    :param poll_interval:
+                    :return: :rtype:
+                    """
+                    while not self.stopped:
+                        tslp = time.time() - memory.get("last_ping")
+
+                        if int(tslp) < 20:
+                            self.handle_request()
+                            time.sleep(poll_interval)
+                        else:
+                            log("no ping received, stopping")
+                            self.force_stop()
+
+                def force_stop(self):
+                    """
+                    :return: :rtype:
+                    """
+                    self.server_close()
+
+                    #noinspection PyAttributeOutsideInit
+                    self.stopped = True
+
+                    #noinspection PyBroadException
+                    try:
+                        self.create_dummy_request()
+                    except:
+                        pass
+
+                @staticmethod
+                def create_dummy_request():
+                    """
+                    create_dummy_request
+                    """
+                    xmlrpclib.ServerProxy("http://localhost:8654/RPC2").ping()
+
+            # Create server
+            server = StoppableRPCServer(("localhost", 8654), requestHandler=RequestHandler, allow_none=True)
+            server.register_introspection_functions()
+
+            def set_val(name, val):
+                """
+                set_val
+                @type name: str, unicode
+                @type val: str, unicode
+                """
+                memory.set(name, val)
+                return True
+
+            def get_val(name):
+                """
+                set_val
+                @type name: str, unicode
+                """
+                return memory.get(name)
+
+            def force_stop():
+                """
+                stop_server
+                """
+                server.force_stop()
+                return True
+
+            def last_ping():
+                """
+                ping from client
+                """
+                print "cba_main.py:300", "last_ping"
+                memory.set("last_ping", time.time())
+                return "ping received"
+
+            def get_progress():
+                """
+                progress for the progress bar
+                """
+                if not memory.has("progress"):
+                    return 0
+                return memory.get("progress")
+
+            def reset_progress():
+                """
+                reset_progress
+                """
+                reset_memory_progress()
+
+            def ping():
+                """
+                simple ping
+                """
+                t = time.time()
+                return t
+
+            server.register_function(ping, 'ping')
+            server.register_function(set_val, 'set_val')
+            server.register_function(get_val, 'get_val')
+            server.register_function(force_stop, 'force_stop')
+            server.register_function(last_ping, 'last_ping')
+            server.register_function(cryptobox_command, "cryptobox_command")
+            server.register_function(get_progress, "get_progress")
+            server.register_function(reset_progress, "reset_progress")
+
+            try:
+                memory.set("last_ping", time.time())
+
+                reset_progress()
+                server.serve_forever()
+            finally:
+                server.force_stop()
+                server.server_close()
+        except KeyboardInterrupt:
+            print "cba_main.py:343", "bye xmlrpc server"
+
+#noinspection PyClassicStyleClass
+
+
+class TimeoutHTTPConnection(httplib.HTTPConnection):
+
+    def connect(self):
+        httplib.HTTPConnection.connect(self)
+        self.sock.settimeout(self.timeout)
+
+#noinspection PyClassicStyleClass
+
+
+class TimeoutHTTP(httplib.HTTP):
+    """
+    TimeoutHTTP
+    """
+    _connection_class = TimeoutHTTPConnection
+
+    def set_timeout(self, timeout):
+        """
+        set_timeout
+        """
+        self._conn.timeout = timeout
+
+    def getresponse(self, buffering):
+        """
+        getresponse
+        """
+        return self.getreply(buffering)
+
+#noinspection PyClassicStyleClass
+
+
+class TimeoutTransport(xmlrpclib.Transport):
+    """
+    TimeoutTransport
+    """
+
+    def __init__(self, timeout=10, *l, **kw):
+        """
+        __init__
+        """
+        xmlrpclib.Transport.__init__(self, *l, **kw)
+        self.timeout = timeout
+
+    def make_connection(self, host):
+        """
+        make_connection
+        """
+        conn = TimeoutHTTP(host)
+        conn.set_timeout(self.timeout)
+        return conn
+
+#noinspection PyClassicStyleClass
+
+
+class TimeoutServerProxy(xmlrpclib.ServerProxy):
+    """
+    TimeoutServerProxy
+    """
+
+    def __init__(self, uri, timeout=10, *l, **kw):
+        """
+        __init__
+        """
+        kw['transport'] = TimeoutTransport(timeout=timeout, use_datetime=kw.get('use_datetime', 0))
+        xmlrpclib.ServerProxy.__init__(self, uri, *l, **kw)
 
 
 def main():
     """
     @return: @rtype:
     """
+    (options, args) = add_options()
 
-    try:
-        (options, args) = add_options()
+    if not options.cryptobox and not options.version:
+        #noinspection PyBroadException
+        me = singleton.SingleInstance() # will sys.exit(-1) if other instance is running
+        queue = multiprocessing.Queue()
+        log("xmlrpc server up")
+        commandserver = XMLRPCThread(args=(queue,))
+        commandserver.start()
 
-        if not options.cryptobox and not options.version:
-            #noinspection PyBroadException
+        while True:
+            time.sleep(0.5)
+
             try:
-                SimpleXMLRPCServer.SimpleXMLRPCServer(("localhost", 8654))
-            except:
-                log("server already running")
-                return
+                if commandserver.is_alive():
+                    s = TimeoutServerProxy('http://localhost:8654/RPC2', timeout=1)
+                    s.ping()
+                pass
+            except socket.error:
+                commandserver.terminate()
 
-            log("xmlrpc server up")
-            commandserver = XMLRPCThread()
-            commandserver.start()
+            if not commandserver.is_alive():
+                break
 
-            while True:
-                if commandserver.isAlive():
-                    time.sleep(0.5)
-                else:
-                    break
-
-        else:
-            try:
-                cryptobox_command(options)
-            except ExitAppWarning, ex:
-                exit_app_warning(str(ex))
-
-    except KeyboardInterrupt:
-        server = xmlrpclib.ServerProxy("http://localhost:8654/RPC2")
-        server.force_stop()
+    else:
+        try:
+            cryptobox_command(options)
+        except ExitAppWarning, ex:
+            exit_app_warning(str(ex))
 
 
 if strcmp(__name__, '__main__'):
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "cba_main.py:453", "\nbye main"
