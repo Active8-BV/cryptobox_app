@@ -72,15 +72,15 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client.methodCall "force_stop",[], (e,v) ->
             print "cryptobox.cf:75", "force_stop", e, v
 
-        force_kill = =>
-            if cba_main?
-                if cba_main.pid?
-                    print "cryptobox.cf:80", "force kill!!!"
-                    process.kill(cba_main.pid);
+            force_kill = =>
+                if cba_main?
+                    if cba_main.pid?
+                        print "cryptobox.cf:80", "force kill!!!"
+                        process.kill(cba_main.pid);
 
-            gui.App.quit()
+                gui.App.quit()
 
-        _.defer(force_kill)
+            _.defer(force_kill)
 
     set_output_buffers = (cba_main_proc) ->
         if exist(cba_main_proc.stdout)
