@@ -1,0 +1,1 @@
+set PYTHONPATH=C:\WINDOWS\SYSTEM32\python27.zip;c:\Python27\DLLs;c:\Python27\lib;c:\Python27\lib\plat-win;c:\Python27\lib\lib-tk;c:\Python27;c:\Python27\lib\site-packages;c:\Python27\lib\site-packages\win32;c:\Python27\lib\site-packages\win32\lib;c:\Python27\lib\site-packages\Pythonwin;C:\Users\Erik\workspace\cryptobox_app\pyinstaller-2.0
