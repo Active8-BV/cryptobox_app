@@ -33,5 +33,5 @@ set_output_buffers = function(cba_main_proc) {
     }
   };
 spawn = require("child_process").spawn;
-cba_main = spawn(cmd_to_run, [""]);
-set_output_buffers(cba_main);
+#cba_main = spawn(cmd_to_run, [""]);
+#set_output_buffers(cba_main);
