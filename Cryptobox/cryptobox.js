@@ -82,24 +82,6 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.cba_version = 0.1;
   memory.set("g_running", true);
   cba_main = null;
-  $scope.on_exit = function() {
-    var client, force_kill;
-    print("cryptobox.cf:72", "cryptobox app on_exit");
-    client = get_rpc_client();
-    client.methodCall("force_stop", [], function(e, v) {
-      return print("cryptobox.cf:75", "force_stop", e, v);
-    });
-    force_kill = function() {
-      if (cba_main != null) {
-        if (cba_main.pid != null) {
-          print("cryptobox.cf:80", "force kill!!!");
-          process.kill(cba_main.pid);
-        }
-      }
-      return gui.App.quit();
-    };
-    return _.defer(force_kill);
-  };
   set_output_buffers = function(cba_main_proc) {
     if (exist(cba_main_proc.stdout)) {
       cba_main_proc.stdout.on("data", function(data) {
