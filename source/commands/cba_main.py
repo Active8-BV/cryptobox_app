@@ -19,7 +19,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_memory import Memory, SingletonMemory, reset_memory_progress
+from cba_memory import Memory, SingletonMemory, reset_memory_progress, update_memory_progress
 from cba_utils import strcmp, Dict2Obj, exit_app_warning, log
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
@@ -138,6 +138,7 @@ def cryptobox_command(options):
                         raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
 
                     ensure_directory(options.dir)
+                    update_memory_progress(100)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)

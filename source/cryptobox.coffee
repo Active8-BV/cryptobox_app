@@ -186,23 +186,37 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             if utils.exist(e)
                 print "cryptobox.cf:189", e
 
+    lock_buttons = false
+
+    $scope.lock_buttons = ->
+        if parseInt(progress_bar, 10) == 0
+            lock_buttons = false
+
+        if lock_buttons
+            return true
+        else
+            if parseInt(progress_bar, 10) == 0
+                return false
+            else
+                return true
+
     get_progress = =>
         client = get_rpc_client()
         client.methodCall "get_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:195", e, v
+                print "cryptobox.cf:209", e, v
             else
-                progress_bar = parseInt(v, 10)
+                progress = parseInt(v, 10)
 
-            if progress_bar > 0
-                print "cryptobox.cf:200", "progress", e, v
+            progress_bar = progress
 
             if progress_bar >= 100
-                utils.set_time_out("cryptobox.cf:203", reset_progress, 1)
+
+                _.defer(reset_progress)
 
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:207", get_progress, 1000, "get_progress")
+    utils.set_interval("cryptobox.cf:221", get_progress, 1000, "get_progress")
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -248,7 +262,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-                        print "cryptobox.cf:253", k, d.value
+                        print "cryptobox.cf:267", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -267,7 +281,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:272", err
+                print "cryptobox.cf:286", err
         )
 
     set_data_user_config = ->
@@ -305,7 +319,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:310", err
+                print "cryptobox.cf:324", err
         )
 
     $scope.file_input_change = (f) ->
@@ -315,7 +329,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:320", "run_command", cmd_to_run
+        print "cryptobox.cf:334", "run_command", cmd_to_run
         client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
@@ -350,6 +364,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         )
 
     $scope.check_btn = ->
+        lock_buttons = true
         clear_msg_buffer()
         add_output("checking changes")
         option = 
