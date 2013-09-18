@@ -37,7 +37,7 @@ print = function() {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var add_output, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_user_var, get_val, output, ping_client, progress_bar, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, spawn, start_interval, start_process, start_process_once, store_user_var, update_output,
+  var add_output, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_user_var, get_val, lock_buttons, output, ping_client, progress_bar, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, spawn, start_interval, start_process, start_process_once, store_user_var, update_output,
     _this = this;
   print("cryptobox.cf:28", "cryptobox_ctrl");
   get_rpc_client = function() {
@@ -221,25 +221,39 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       }
     });
   };
+  lock_buttons = false;
+  $scope.lock_buttons = function() {
+    if (parseInt(progress_bar, 10) === 0) {
+      lock_buttons = false;
+    }
+    if (lock_buttons) {
+      return true;
+    } else {
+      if (parseInt(progress_bar, 10) === 0) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  };
   get_progress = function() {
     var client;
     client = get_rpc_client();
     client.methodCall("get_progress", [], function(e, v) {
+      var progress;
       if (utils.exist(e)) {
-        print("cryptobox.cf:195", e, v);
+        print("cryptobox.cf:209", e, v);
       } else {
-        progress_bar = parseInt(v, 10);
+        progress = parseInt(v, 10);
       }
-      if (progress_bar > 0) {
-        print("cryptobox.cf:200", "progress", e, v);
-      }
+      progress_bar = progress;
       if (progress_bar >= 100) {
-        return utils.set_time_out("cryptobox.cf:203", reset_progress, 1);
+        return _.defer(reset_progress);
       }
     });
     return utils.force_digest($scope);
   };
-  utils.set_interval("cryptobox.cf:207", get_progress, 1000, "get_progress");
+  utils.set_interval("cryptobox.cf:221", get_progress, 1000, "get_progress");
   store_user_var = function(k, v) {
     var db, p, record;
     p = $q.defer();
@@ -291,7 +305,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
           return p.reject(e);
         } else {
           if (exist(d)) {
-            print("cryptobox.cf:253", k, d.value);
+            print("cryptobox.cf:267", k, d.value);
             p.resolve(d.value);
             return utils.force_digest($scope);
           } else {
@@ -310,7 +324,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         return $scope[name] = v;
       }
     }, function(err) {
-      return print("cryptobox.cf:272", err);
+      return print("cryptobox.cf:286", err);
     });
   };
   set_data_user_config = function() {
@@ -343,7 +357,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:310", err);
+      return print("cryptobox.cf:324", err);
     });
   };
   $scope.file_input_change = function(f) {
@@ -354,7 +368,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client, p;
     client = get_rpc_client();
     p = $q.defer();
-    print("cryptobox.cf:320", "run_command", cmd_to_run);
+    print("cryptobox.cf:334", "run_command", cmd_to_run);
     client.methodCall(command_name, command_arguments, function(error, value) {
       if (exist(error)) {
         p.reject(error);
@@ -392,6 +406,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   };
   $scope.check_btn = function() {
     var option;
+    lock_buttons = true;
     clear_msg_buffer();
     add_output("checking changes");
     option = {
