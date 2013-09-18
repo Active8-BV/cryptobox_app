@@ -20,8 +20,8 @@ import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
 from cba_memory import Memory, SingletonMemory, reset_memory_progress, update_memory_progress
-from cba_utils import strcmp, Dict2Obj, exit_app_warning, log
-from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, ExitAppWarning, check_and_clean_dir, decrypt_and_build_filetree
+from cba_utils import strcmp, Dict2Obj, log
+from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
@@ -69,10 +69,12 @@ def cryptobox_command(options):
     log("downloadthreads", options.numdownloadthreads)
 
     if not options.dir:
-        raise ExitAppWarning("Need DIR -f or --dir to continue")
+        log("Need DIR -f or --dir to continue")
+        return False
 
     if not options.cryptobox:
-        raise ExitAppWarning("No cryptobox given -b or --cryptobox")
+        log("No cryptobox given -b or --cryptobox")
+        return False
 
     options.basedir = options.dir
     ensure_directory(options.basedir)
@@ -99,32 +101,34 @@ def cryptobox_command(options):
     try:
         if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
-            return
+            return False
 
         if not options.check:
             if not options.encrypt and not options.decrypt:
                 log("No encrypt or decrypt directive given (-d or -e)")
+                return False
 
         if not options.password:
             log("No password given (-p or --password)")
+            return False
 
         if options.username or options.cryptobox:
             if not options.username:
                 log("No username given (-u or --username)")
-                return
+                return False
 
             if not options.cryptobox:
                 log("No cryptobox given (-b or --cryptobox)")
-                return
+                return False
 
         if options.sync:
             if not options.username:
                 log("No username given (-u or --username)")
-                return
+                return False
 
             if not options.password:
                 log("No password given (-p or --password)")
-                return
+                return False
 
         localindex = make_local_index(options)
         reset_memory_progress()
@@ -135,7 +139,8 @@ def cryptobox_command(options):
             if memory.get("authorized"):
                 if options.check:
                     if cryptobox_locked(memory):
-                        raise ExitAppWarning("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        log("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        return False
 
                     ensure_directory(options.dir)
                     update_memory_progress(100)
@@ -143,23 +148,23 @@ def cryptobox_command(options):
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
 
-                    log("files to download", "\n" + "\n".join([x["doc"]["m_path"] for x in file_downloads]), "\n")
-                    log("files to upload", "\n" + "\n".join([x["path"] for x in file_uploads]), "\n")
-                    log("dirs to delete server", "\n" + "\n".join(dir_del_server), "\n")
+                    log("\n".join([x["doc"]["m_path"] for x in file_downloads]), "files to download", "\n\n")
+                    log("\n".join([x["path"] for x in file_uploads]), "files to upload", "\n\n")
+                    log("\n".join(dir_del_server), "dirs to delete server", "\n\n")
+                    log("\n".join([x["name"] for x in dir_make_local]), "dirs to make local", "\n\n")
+                    log("\n".join([x["dirname"] for x in dir_make_server]), "dirs to make server", "\n\n")
+                    log("\n".join([x["dirname"] for x in dir_del_local]), "dirs to delete local", "\n\n")
+                    log("\n".join(file_del_server), "files to delete server", "\n\n")
+                    log("\n".join(file_del_local), "files to delete local", "\n\n")
 
-                    log("dirs to make local", "\n" + "\n".join([x["name"] for x in dir_make_local]), "\n")
-                    log("dirs to make server", "\n" + "\n".join([x["dirname"] for x in dir_make_server]), "\n")
-                    log("dirs to delete local", "\n" + "\n".join([x["dirname"] for x in dir_del_local]), "\n")
-                    log("files to delete server", "\n" + "\n".join(file_del_server), "\n")
-                    log("files to delete local", "\n" + "\n".join(file_del_local), "\n")
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
-                        return
+                        return False
 
                     if cryptobox_locked(memory):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
-                        return
+                        return False
 
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -173,7 +178,7 @@ def cryptobox_command(options):
         if options.decrypt:
             if options.remove:
                 log("option remove (-r) cannot be used together with decrypt (dataloss)")
-                return
+                return False
 
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
@@ -181,6 +186,7 @@ def cryptobox_command(options):
         check_and_clean_dir(options)
         smemory = SingletonMemory()
         smemory.set("last_ping", time.time())
+
     finally:
         if memory.has("session"):
             memory.delete("session")
@@ -292,7 +298,6 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 ping from client
                 """
-                print "cba_main.py:296", "last_ping"
                 memory.set("last_ping", time.time())
                 return "ping received"
 
@@ -378,11 +383,7 @@ def main():
                 break
 
     else:
-        try:
-            cryptobox_command(options)
-        except ExitAppWarning, ex:
-            exit_app_warning(str(ex))
-            return
+        cryptobox_command(options)
 
 
 if strcmp(__name__, '__main__'):

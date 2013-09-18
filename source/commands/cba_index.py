@@ -307,24 +307,19 @@ def hide_config(options, salt, secret):
         os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
-class ExitAppWarning(Exception):
-    """
-    ExitAppWarning
-    """
-    pass
-
-
 def check_and_clean_dir(options):
     """
     check_and_clean_dir
     @type options: instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        raise ExitAppWarning("check_and_clean_dir needs clear and encrypt option")
+        log("check_and_clean_dir needs clear and encrypt option")
+        return
 
     if options.clear == "1":
         if options.encrypt:
-            raise ExitAppWarning("clear options cannot be used together with encrypt, possible data loss")
+            log("clear options cannot be used together with encrypt, possible data loss")
+            return
 
         datadir = get_data_dir(options)
         shutil.rmtree(datadir, True)
