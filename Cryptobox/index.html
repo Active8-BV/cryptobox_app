@@ -33,16 +33,21 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12">
-                <div class="well">                     
+                <div class="well">
                     <button type="button" class="btn btn-default pull-right" ng-click="debug_btn()">debug console</button>
                     <button type="button" ng-disabled="lock_buttons()" class="btn btn-primary" ng-click="check_btn()">check changes</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-warning" ng-click="sync_btn()">download & upload changes</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-success" ng-click="encrypt_btn()">encrypt local files</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-danger" ng-click="decrypt_btn()">decrypt local files</button>
+                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-warning" ng-click="sync_btn()">sync</button>
+                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-success" ng-click="encrypt_btn()">lock (encrypt local)</button>
+                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-danger" ng-click="decrypt_btn()">unlock (decrypt local)</button>
                 </div>
                 <div class="progress">
                     <div class="progress-bar" role="progressbar" ng-style="get_progress()">
-                        <span class="sr-only">60% Complete</span>
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+                <div class="progress" ng-hide="get_progress_item_show()">
+                    <div class="progress-bar" role="progressbar" ng-style="get_progress_item()">
+                        <span class="sr-only"></span>
                     </div>
                 </div>
             </div>

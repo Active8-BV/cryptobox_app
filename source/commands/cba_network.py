@@ -176,13 +176,14 @@ def on_server(memory, options, method, payload, session, files=None):
 
     if not session:
         session = requests
-
+    verifyarg = "ca.cert"
+    verifyarg = False
     if not payload:
-        result = session.post(service, cookies=cookies, files=files, verify="ca.cert")
+        result = session.post(service, cookies=cookies, files=files, verify=verifyarg)
     elif files:
-        result = session.post(service, data=payload, cookies=cookies, files=files, verify="ca.cert")
+        result = session.post(service, data=payload, cookies=cookies, files=files, verify=verifyarg)
     else:
-        result = session.post(service, data=json.dumps(payload), cookies=cookies, verify="ca.cert")
+        result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg)
     try:
         return parse_http_result(result), memory
     except ServerForbidden, ex:
@@ -203,8 +204,28 @@ def download_server(memory, options, url):
 
     #log("download server:", URL)
     session = memory.get("session")
-    result = session.get(url, cookies=cookies, timeout=3600)
-    return parse_http_result(result), memory
+    result = session.get(url, timeout=3600, stream=True)
+    if result.status_code == 403:
+        raise ServerForbidden(result.reason)
+
+    if result.status_code == 500:
+        request_error(result)
+        raise ServerError(result.reason)
+    size = int(result.headers['Content-Length'].strip())
+
+    bytes = 0
+    fileb = []
+    for buf in result.iter_content(1024):
+        if buf:
+            fileb.append(buf)
+            bytes += len(buf)
+            print url, bytes, size, float(size) / 100
+            divider = float(size) / 100
+            if divider > 0:
+                print bytes, size, int(float(bytes) / divider)
+
+    content = b"".join(fileb)
+    return content, memory
 
 
 def server_time(memory, options):

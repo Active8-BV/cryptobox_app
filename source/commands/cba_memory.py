@@ -194,7 +194,7 @@ class Memory(object):
         """
         if os.path.exists(datadir):
             mempath = os.path.join(datadir, "memory.pickle")
-            pickle_object(mempath, self.data)
+            pickle_object(mempath, self.data, json_pickle=True)
 
     def load(self, datadir):
         """
