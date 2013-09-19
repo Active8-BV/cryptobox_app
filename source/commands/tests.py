@@ -7,7 +7,7 @@ import os
 import pickle
 import unittest
 from subprocess import Popen, PIPE
-from cba_main import ExitAppWarning, cryptobox_command
+from cba_main import cryptobox_command
 from cba_utils import Dict2Obj
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
@@ -57,6 +57,11 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
+        import sys
+        sys.stdout = open('stdout.txt', 'w')
+        sys.stderr = open('stderr.txt', 'w')
+
+
     #noinspection PyPep8Naming
     def tearDown(self):
         """
@@ -65,6 +70,10 @@ class CryptoboxAppTest(unittest.TestCase):
         if self.do_wait_for_tasks:
             wait_for_tasks(self.cbmemory, self.cboptions)
         self.cbmemory.save(get_data_dir(self.cboptions))
+        if os.path.exists('stdout.txt'):
+            os.remove('stdout.txt')
+        if os.path.exists('stderr.txt'):
+            os.remove('stderr.txt')
 
     @staticmethod
     def unzip_testfiles_clean():
@@ -130,8 +139,8 @@ class CryptoboxAppTest(unittest.TestCase):
         self.no_box_given = Dict2Obj(self.no_box_given)
         del self.no_box_given["cryptobox"]
 
-        with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
-            cryptobox_command(self.no_box_given)
+        #with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
+        self.assertFalse(cryptobox_command(self.no_box_given))
 
     def test_index_directory(self):
         """
