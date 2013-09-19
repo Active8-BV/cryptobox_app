@@ -60,6 +60,7 @@ def monkeypatch_popen():
                         else:
                             os.putenv('_MEIPASS2', '')
 
+        #noinspection PyUnusedLocal
         class Process(multiprocessing.Process):
             """
             Process
