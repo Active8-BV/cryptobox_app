@@ -1,4 +1,11 @@
+Cryptobox/images/Thumbs.db
 cba_main.spec
+cp.py.lnk
+kill_on_change_procs.py.lnk
+resource/Thumbs.db
+source/commands/cba_main.lnk
+source/commands/when_changed.py.lnk
+when_changed.py.lnk
 dist
 app.running
 nohup.out
