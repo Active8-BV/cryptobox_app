@@ -1,0 +1,3 @@
+SET VS90COMNTOOLS=%VS100COMNTOOLS%
+c:\python27\python.exe -O ./pyinstaller-2.0/pyinstaller.py --onefile --console --noupx ./source/commands/cba_main
+c:\python27\python.exe -O ./pyinstaller-2.0/pyinstaller.py cba_main.spec
