@@ -1,7 +1,7 @@
 package:
 	coffee -c -b ./source/cryptobox.coffee;
 	mv ./source/cryptobox.js ./Cryptobox
-	./buildcommands.sh cba_commander
+	./buildcommands.sh cba_main
 	cp ../www_cryptobox_nl/source/js/app_basic.min.js ./Cryptobox/js/
 	rm -rf ./build
 	mkdir ./build
