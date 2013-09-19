@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 test script
 """
@@ -9,7 +10,7 @@ url = "http://upload.wikimedia.org/wikipedia/commons/4/4e/Pleiades_large.jpg"
 #url = "http://download.thinkbroadband.com/1MB.zip"
 #url = "http://download.thinkbroadband.com/"
 
-r = requests.get(url, hooks=dict(response=print_url), stream=True)
+r = requests.get(url, stream=True)
 print r.headers
 size = int(r.headers['Content-Length'].strip())
 
