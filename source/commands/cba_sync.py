@@ -3,22 +3,19 @@
 sync functions
 """
 import os
-import sys
 import time
 import random
 import uuid
 import base64
 import urllib
 import shutil
-import requests
 from multiprocessing.dummy import Pool
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log
-from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, \
-    add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
+from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -34,7 +31,7 @@ def download_blob(memory, options, node):
     try:
         url = "download/" + node["doc"]["m_short_id"]
         result, memory = download_server(memory, options, url)
-        time.sleep(random.random()*2)
+        time.sleep(random.random() * 2)
         return {"url": url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result}
     except Exception, e:
         handle_exception(e)
@@ -140,15 +137,18 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
     dirs_del_local = []
 
     for node in local_dirs_not_on_server:
-        if float(os.stat(node["dirname"]).st_mtime) >= tree_timestamp:
+        if not os.path.exists(node["dirname"]):
             dirs_make_server.append(node)
-
-        have_hash_on_server, memory = have_serverhash(memory, node["dirname"])
-
-        if have_hash_on_server:
-            dirs_del_local.append(node)
         else:
-            dirs_make_server.append(node)
+            if float(os.stat(node["dirname"]).st_mtime) >= tree_timestamp:
+                dirs_make_server.append(node)
+
+            have_hash_on_server, memory = have_serverhash(memory, node["dirname"])
+
+            if have_hash_on_server:
+                dirs_del_local.append(node)
+            else:
+                dirs_make_server.append(node)
 
     dirs_make_server_unique = []
 
@@ -368,6 +368,42 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
         raise MultipleGuidsForPath(parent_path)
 
 
+class MultiplePathsForSID(Exception):
+    """
+    MultiplePathsForSID
+    """
+    pass
+
+
+class NoPathFound(Exception):
+    """
+    NoPathFound
+    """
+    pass
+
+
+def short_id_to_server_path(memory, serverindex, short_id):
+    """
+    @type memory: Memory
+    @param options:
+    @type options:
+    @param short_id:
+    @type short_id: str, unicode
+    @type serverindex: dict
+    @return: @rtype: @raise MultipleGuidsForPath:
+
+    """
+    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_short_id"], short_id)]
+
+    if len(result) == 0:
+        raise NoPathFound(short_id)
+
+    elif len(result) == 1:
+        return result[0], memory
+    else:
+        raise MultiplePathsForSID(short_id)
+
+
 def path_to_server_shortid(memory, options, serverindex, path):
     """
     @type memory: Memory
@@ -573,7 +609,6 @@ def upload_file(memory, options, file_object, parent):
     #result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
     import poster
     import urllib2
-    import cookielib
     server = options.server
     cryptobox = options.cryptobox
     session = memory.get("session")
@@ -584,7 +619,7 @@ def upload_file(memory, options, file_object, parent):
     datagen, headers = poster.encode.multipart_encode(params)
     request = urllib2.Request(service, datagen, headers)
     result = urllib2.urlopen(request)
-    print "cba_sync.py:589", result
+    print "cba_sync.py:624", result
     return memory
 
 
@@ -619,7 +654,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:624", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:659", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

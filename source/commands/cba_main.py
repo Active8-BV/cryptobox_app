@@ -181,14 +181,6 @@ def cryptobox_command(options):
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
-                    smemory.set("files_download", file_downloads)
-                    smemory.set("file_uploads", file_uploads)
-                    smemory.set("dir_del_server", dir_del_server)
-                    smemory.set("dir_make_local", dir_make_local)
-                    smemory.set("dir_make_server", dir_make_server)
-                    smemory.set("dir_del_local", dir_del_local)
-                    smemory.set("file_del_server", file_del_server)
-                    smemory.set("file_del_local", file_del_local)
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
@@ -385,7 +377,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:390", "bye xmlrpc server"
+            print "cba_main.py:382", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -413,7 +405,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:418", "kill it", ex
+                print "cba_main.py:410", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -432,4 +424,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:437", "\nbye main"
+        print "cba_main.py:429", "\nbye main"

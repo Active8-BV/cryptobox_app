@@ -59,8 +59,8 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = True
         import sys
 
-        sys.stdout = open('stdout.txt', 'w')
-        sys.stderr = open('stderr.txt', 'w')
+        #sys.stdout = open('stdout.txt', 'w')
+        #sys.stderr = open('stderr.txt', 'w')
     #noinspection PyPep8Naming
     def tearDown(self):
         """
@@ -453,11 +453,29 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(file_uploads), 1)
 
+    def test_find_short_ids(self):
+        """
+        test_find_short_ids
+        """
+
     def test_sync_delete_server_and_local_restore_folder(self):
         """
         test_sync_delete_server_and_local_restore_folder
         """
-        self.assertFalse(True)
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+        all_types, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types')
+        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [all_types])
+        os.system("rm -Rf testdata/testmap/all_types")
+        self.assertTrue(os.path.exists("testdata/testmap"))
+        self.assertFalse(os.path.exists("testdata/testmap/all_types"))
+        self.unzip_testfiles_clean()
+        localindex = make_local_index(self.cboptions)
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+        self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
+        self.assertEqual(len(file_uploads), 1)
 
 
 if __name__ == '__main__':
