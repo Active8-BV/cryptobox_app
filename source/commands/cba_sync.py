@@ -137,9 +137,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
     dirs_del_local = []
 
     for node in local_dirs_not_on_server:
-        if not os.path.exists(node["dirname"]):
-            dirs_make_server.append(node)
-        else:
+        if os.path.exists(node["dirname"]):
             if float(os.stat(node["dirname"]).st_mtime) >= tree_timestamp:
                 dirs_make_server.append(node)
 
@@ -269,16 +267,28 @@ def wait_for_tasks(memory, options):
                 time.sleep(2)
 
 
-def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
+def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
     """
     @type memory: Memory
     @type options: optparse.Values, instance
+    @type serverindex: dict
     @type short_node_ids_to_delete: list
     """
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
         result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
         memory = wait_for_tasks(memory, options)
+
+        for short_id in short_node_ids_to_delete:
+            path = short_id_to_server_path(memory, serverindex, short_id)
+            new_server_hash_history = set()
+
+            for serverhash_history_item in memory.get("serverhash_history"):
+                if path not in serverhash_history_item[0]:
+                    new_server_hash_history.add(serverhash_history_item)
+
+            memory.replace("serverhash_history", new_server_hash_history)
+
     return memory
 
 
@@ -307,7 +317,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
     for dir_name_rel in shortest_paths:
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
-    memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
+    memory = instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete)
     return memory
 
 
@@ -385,15 +395,13 @@ class NoPathFound(Exception):
 def short_id_to_server_path(memory, serverindex, short_id):
     """
     @type memory: Memory
-    @param options:
-    @type options:
     @param short_id:
     @type short_id: str, unicode
     @type serverindex: dict
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
-    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_short_id"], short_id)]
+    result = [x["doc"]["m_path"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_short_id"], short_id)]
 
     if len(result) == 0:
         raise NoPathFound(short_id)
@@ -619,7 +627,7 @@ def upload_file(memory, options, file_object, parent):
     datagen, headers = poster.encode.multipart_encode(params)
     request = urllib2.Request(service, datagen, headers)
     result = urllib2.urlopen(request)
-    print "cba_sync.py:624", result
+    print "cba_sync.py:632", result
     return memory
 
 
@@ -654,7 +662,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:659", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:667", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
@@ -693,8 +701,8 @@ def sync_server(memory, options):
         del_short_guid, memory = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
         del_server_items.append(del_short_guid)
 
-        # delete items
-    memory = instruct_server_to_delete_items(memory, options, del_server_items)
+    # delete items
+    memory = instruct_server_to_delete_items(memory, options, serverindex, del_server_items)
     memory = get_unique_content(memory, options, unique_content, file_downloads)
     memory = upload_files(memory, options, serverindex, file_uploads)
     remove_local_files(file_del_local)
