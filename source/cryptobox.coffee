@@ -2,9 +2,15 @@ child_process = require("child_process")
 path = require("path")
 gui = require('nw.gui')
 xmlrpc = require('xmlrpc')
+gui = require("nw.gui")
 
 
 winmain = gui.Window.get()
+
+# Create a tray icon
+tray = new gui.Tray(
+    icon: "images/icon-client-signed-in-idle.png"
+)
 
 
 print = (msg, others...) ->
@@ -23,7 +29,7 @@ print = (msg, others...) ->
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
-    print "cryptobox.cf:28", "cryptobox_ctrl"
+    print "cryptobox.cf:34", "cryptobox_ctrl"
 
     get_rpc_client = ->
         clientOptions = 
@@ -67,15 +73,15 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     cba_main = null
 
     $scope.on_exit = =>
-        print "cryptobox.cf:72", "cryptobox app on_exit"
+        print "cryptobox.cf:78", "cryptobox app on_exit"
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
-            print "cryptobox.cf:75", "force_stop", e, v
+            print "cryptobox.cf:81", "force_stop", e, v
 
             force_kill = =>
                 if cba_main?
                     if cba_main.pid?
-                        print "cryptobox.cf:80", "force kill!!!"
+                        print "cryptobox.cf:86", "force kill!!!"
                         process.kill(cba_main.pid);
 
                 gui.App.quit()
@@ -115,7 +121,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.cmd_output = msgs
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:120", update_output, 100, "update_output")
+    utils.set_interval("cryptobox.cf:126", update_output, 100, "update_output")
 
     add_output = (msgs) ->
         add_msg = (msg) ->
@@ -156,26 +162,33 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 set_output_buffers(cba_main)
 
     start_interval = ->
-        utils.set_interval("cryptobox.cf:161", ping_client, 5000, "ping_client")
+        utils.set_interval("cryptobox.cf:167", ping_client, 5000, "ping_client")
 
-    utils.set_time_out("cryptobox.cf:163", start_interval, 1000)
+    utils.set_time_out("cryptobox.cf:169", start_interval, 1000)
 
     start_process = =>
-        print "cryptobox.cf:166", "start_process"
+        print "cryptobox.cf:172", "start_process"
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
-            print "cryptobox.cf:169", "force_stop", e, v
             if utils.exist(v)
-                print "cryptobox.cf:171", "killed existing deamon"
+                print "cryptobox.cf:176", "killed existing deamon"
             else
-                print "cryptobox.cf:173", "starting deamon"
+                print "cryptobox.cf:178", "starting deamon"
             cba_main = spawn(cmd_to_run, [""])
             set_output_buffers(cba_main)
 
     start_process_once = _.once(start_process)
-    print "cryptobox.cf:178", cmd_to_run
+    print "cryptobox.cf:183", cmd_to_run
     start_process_once()
     progress_bar = 0
+    progress_bar_item = 0
+
+    $scope.get_progress_item_show = =>
+        return progress_bar_item != 0
+
+    $scope.get_progress_item = =>
+        width:
+            progress_bar_item + "%"
 
     $scope.get_progress = =>
         width:
@@ -185,7 +198,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         client.methodCall "reset_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:190", e
+                print "cryptobox.cf:203", e
 
     lock_buttons = false
 
@@ -205,7 +218,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         client.methodCall "get_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:210", e, v
+                print "cryptobox.cf:223", e, v
             else
                 progress = parseInt(v, 10)
 
@@ -217,7 +230,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:222", get_progress, 1000, "get_progress")
+    utils.set_interval("cryptobox.cf:235", get_progress, 1000, "get_progress")
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -263,7 +276,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-                        print "cryptobox.cf:268", k, d.value
+                        print "cryptobox.cf:281", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -282,7 +295,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:287", err
+                print "cryptobox.cf:300", err
         )
 
     set_data_user_config = ->
@@ -320,7 +333,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:325", err
+                print "cryptobox.cf:338", err
         )
 
     $scope.file_input_change = (f) ->
@@ -330,7 +343,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:335", "run_command", cmd_to_run
+        print "cryptobox.cf:348", "run_command", cmd_to_run
         client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
@@ -427,3 +440,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             (err) ->
                 add_output(err)
         )
+
+    menu = new gui.Menu()
+    menu.append new gui.MenuItem(
+        type: "checkbox"
+        label: "box1"
+    )
+    tray.menu = menu
+    tray.icon = "images/icon-client-signed-out.png"

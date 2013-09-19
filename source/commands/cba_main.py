@@ -83,6 +83,7 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
+    smemory = SingletonMemory()
     if isinstance(options, dict):
         options = Dict2Obj(options)
 
@@ -176,14 +177,14 @@ def cryptobox_command(options):
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
 
-                    log("\n".join([x["doc"]["m_path"] for x in file_downloads]), "files to download", "\n\n")
-                    log("\n".join([x["path"] for x in file_uploads]), "files to upload", "\n\n")
-                    log("\n".join(dir_del_server), "dirs to delete server", "\n\n")
-                    log("\n".join([x["name"] for x in dir_make_local]), "dirs to make local", "\n\n")
-                    log("\n".join([x["dirname"] for x in dir_make_server]), "dirs to make server", "\n\n")
-                    log("\n".join([x["dirname"] for x in dir_del_local]), "dirs to delete local", "\n\n")
-                    log("\n".join(file_del_server), "files to delete server", "\n\n")
-                    log("\n".join(file_del_local), "files to delete local", "\n\n")
+                    smemory.set("files_download", file_downloads)
+                    smemory.set("file_uploads", file_uploads)
+                    smemory.set("dir_del_server", dir_del_server)
+                    smemory.set("dir_make_local", dir_make_local)
+                    smemory.set("dir_make_server", dir_make_server)
+                    smemory.set("dir_del_local", dir_del_local)
+                    smemory.set("file_del_server", file_del_server)
+                    smemory.set("file_del_local", file_del_local)
 
                 elif options.sync:
                     if not options.encrypt:
@@ -212,7 +213,7 @@ def cryptobox_command(options):
                 memory = decrypt_and_build_filetree(memory, options)
 
         check_and_clean_dir(options)
-        smemory = SingletonMemory()
+
         smemory.set("last_ping", time.time())
 
     finally:
@@ -357,6 +358,12 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 t1 = threading.Thread(target=cryptobox_command, args=(options,))
                 t1.start()
+
+            def get_smemory(k):
+                """
+                """
+                smemory = SingletonMemory()
+                return smemory.get(k)
 
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')

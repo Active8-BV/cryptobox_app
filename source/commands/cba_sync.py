@@ -3,12 +3,14 @@
 sync functions
 """
 import os
+import sys
 import time
 import random
 import uuid
 import base64
 import urllib
 import shutil
+import requests
 from multiprocessing.dummy import Pool
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
@@ -33,7 +35,7 @@ def download_blob(memory, options, node):
         url = "download/" + node["doc"]["m_short_id"]
         result, memory = download_server(memory, options, url)
         time.sleep(random.random()*2)
-        return {"url": result.url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result.content}
+        return {"url": url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result}
     except Exception, e:
         handle_exception(e)
 
@@ -566,9 +568,25 @@ def upload_file(memory, options, file_object, parent):
     if not memory.has("session"):
         raise NotAuthorized("trying to upload without a session")
 
-    payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
-    files = {'file': file_object}
-    result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
+    #payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
+    #files = {'file': file_object}
+    #result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
+
+    import poster
+    import urllib2
+    import cookielib
+    server = options.server
+    cryptobox = options.cryptobox
+    session = memory.get("session")
+    opener = poster.streaminghttp.register_openers()
+    opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
+
+    service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
+    params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
+    datagen, headers = poster.encode.multipart_encode(params)
+    request = urllib2.Request(service, datagen, headers)
+    result = urllib2.urlopen(request)
+    print result
     return memory
 
 
@@ -598,8 +616,11 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
-        result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
-        upload_result.append(result)
+        if os.path.exists(uf["local_file_path"]):
+            result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
+            upload_result.append(result)
+        else:
+            print "can't fnd", uf["local_file_path"]
 
     pool.close()
     pool.join()
