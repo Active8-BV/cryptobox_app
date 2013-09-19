@@ -39,6 +39,7 @@ if sys.platform.startswith('win'):
                 # to get --onefile mode working.
                 # Last character is stripped in C-loader. We have to add
                 # '/' or '\\' at the end.
+                #noinspection PyProtectedMember,PyUnresolvedReferences
                 os.putenv('_MEIPASS2', sys._MEIPASS + os.sep)
 
             try:
@@ -56,6 +57,9 @@ if sys.platform.startswith('win'):
                         os.putenv('_MEIPASS2', '')
 
     class Process(multiprocessing.Process):
+        """
+        Process
+        """
         _Popen = _Popen
 
 
@@ -355,6 +359,7 @@ class XMLRPCThread(multiprocessing.Process):
             def get_smemory(k):
                 """
                 get_smemory
+                :param k:
                 """
                 smemory = SingletonMemory()
                 return smemory.get(k)
@@ -367,6 +372,7 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(run_cb_command, "cryptobox_command")
             server.register_function(get_progress, "get_progress")
             server.register_function(reset_progress, "reset_progress")
+            server.register_function(get_smemory, "get_smemory")
 
             try:
                 memory.set("last_ping", time.time())
@@ -377,7 +383,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:382", "bye xmlrpc server"
+            print "cba_main.py:388", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -405,7 +411,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:410", "kill it", ex
+                print "cba_main.py:416", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -424,4 +430,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:429", "\nbye main"
+        print "cba_main.py:435", "\nbye main"

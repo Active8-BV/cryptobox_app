@@ -177,7 +177,7 @@ def on_server(memory, options, method, payload, session, files=None):
     if not session:
         session = requests
 
-    verifyarg = "ca.cert"
+    #verifyarg = "ca.cert"
     verifyarg = False
 
     if not payload:
@@ -200,7 +200,6 @@ def download_server(memory, options, url):
     @type options: optparse.Values, instance
     @type url: str, unicode
     """
-    cookies = {}
     url = os.path.normpath(url)
     url = options.server + options.cryptobox + "/" + url
 
@@ -217,18 +216,18 @@ def download_server(memory, options, url):
         raise ServerError(result.reason)
 
     size = int(result.headers['Content-Length'].strip())
-    bytes = 0
+    downloaded_bytes = 0
     fileb = []
 
     for buf in result.iter_content(1024):
         if buf:
             fileb.append(buf)
-            bytes += len(buf)
-            print "cba_network.py:229", url, bytes, size, float(size) / 100
+            downloaded_bytes += len(buf)
+            print "cba_network.py:228", url, downloaded_bytes, size, float(size) / 100
             divider = float(size) / 100
 
             if divider > 0:
-                print "cba_network.py:233", bytes, size, int(float(bytes) / divider)
+                print "cba_network.py:232", downloaded_bytes, size, int(float(downloaded_bytes) / divider)
 
     content = b"".join(fileb)
     return content, memory

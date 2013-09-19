@@ -16,7 +16,7 @@ from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
     dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
     instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, \
-    remove_local_files, sync_server, get_sync_changes
+    remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
 
 
@@ -57,7 +57,6 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
-        import sys
 
         #sys.stdout = open('stdout.txt', 'w')
         #sys.stderr = open('stderr.txt', 'w')
@@ -403,7 +402,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         docpdf, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/document.pdf')
         bmppng, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/bmptest.png')
-        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [docpdf, bmppng])
+        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, serverindex, [docpdf, bmppng])
         self.assertFalse(self.files_synced())
 
         localindex = make_local_index(self.cboptions)
@@ -457,6 +456,13 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_find_short_ids
         """
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+        map1 = '/map1'
+        map1_short_id, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/map1')
+        map1_2, self.cbmemory = short_id_to_server_path(self.cbmemory, serverindex, map1_short_id)
+        self.assertEqual(map1, map1_2)
 
     def test_sync_delete_server_and_local_restore_folder(self):
         """
@@ -467,7 +473,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         all_types, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types')
-        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, [all_types])
+        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, serverindex, [all_types])
         os.system("rm -Rf testdata/testmap/all_types")
         self.assertTrue(os.path.exists("testdata/testmap"))
         self.assertFalse(os.path.exists("testdata/testmap/all_types"))
@@ -475,7 +481,9 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
-        self.assertEqual(len(file_uploads), 1)
+        self.assertEqual(len(file_uploads), 3)
+        self.assertEqual(len(dir_del_local), 0)
+        self.assertEqual(len(dir_make_server), 1)
 
 
 if __name__ == '__main__':
