@@ -26,8 +26,6 @@ from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
 import multiprocessing.forking
-import os
-import sys
 if sys.platform.startswith('win'):
 
     class _Popen(multiprocessing.forking.Popen):
@@ -383,7 +381,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:388", "bye xmlrpc server"
+            print "cba_main.py:386", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -411,7 +409,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:416", "kill it", ex
+                print "cba_main.py:414", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -430,4 +428,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:435", "\nbye main"
+        print "cba_main.py:433", "\nbye main"
