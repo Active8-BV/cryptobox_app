@@ -280,11 +280,12 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
         memory = wait_for_tasks(memory, options)
 
         for short_id in short_node_ids_to_delete:
-            path = short_id_to_server_path(memory, serverindex, short_id)
+            path, memory = short_id_to_server_path(memory, serverindex, short_id)
             new_server_hash_history = set()
 
             for serverhash_history_item in memory.get("serverhash_history"):
-                if path not in serverhash_history_item[0]:
+                serverhash_history_item_path = serverhash_history_item[0]
+                if path not in serverhash_history_item_path:
                     new_server_hash_history.add(serverhash_history_item)
 
             memory.replace("serverhash_history", new_server_hash_history)
