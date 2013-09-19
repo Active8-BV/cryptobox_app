@@ -25,24 +25,27 @@ from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory,
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
-
 import multiprocessing.forking
 import os
 import sys
-
 if sys.platform.startswith('win'):
+
     class _Popen(multiprocessing.forking.Popen):
+
         def __init__(self, *args, **kw):
             if hasattr(sys, 'frozen'):
+
                 # We have to set original _MEIPASS2 value from sys._MEIPASS
                 # to get --onefile mode working.
                 # Last character is stripped in C-loader. We have to add
                 # '/' or '\\' at the end.
                 os.putenv('_MEIPASS2', sys._MEIPASS + os.sep)
+
             try:
                 super(_Popen, self).__init__(*args, **kw)
             finally:
                 if hasattr(sys, 'frozen'):
+
                     # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                     # available. In those cases we cannot delete the variable
                     # but only set it to the empty string. The bootloader
@@ -54,6 +57,7 @@ if sys.platform.startswith('win'):
 
     class Process(multiprocessing.Process):
         _Popen = _Popen
+
 
 def add_options():
     """
@@ -84,6 +88,7 @@ def cryptobox_command(options):
     @rtype: bool
     """
     smemory = SingletonMemory()
+
     if isinstance(options, dict):
         options = Dict2Obj(options)
 
@@ -176,7 +181,6 @@ def cryptobox_command(options):
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
-
                     smemory.set("files_download", file_downloads)
                     smemory.set("file_uploads", file_uploads)
                     smemory.set("dir_del_server", dir_del_server)
@@ -185,7 +189,6 @@ def cryptobox_command(options):
                     smemory.set("dir_del_local", dir_del_local)
                     smemory.set("file_del_server", file_del_server)
                     smemory.set("file_del_local", file_del_local)
-
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
@@ -213,9 +216,7 @@ def cryptobox_command(options):
                 memory = decrypt_and_build_filetree(memory, options)
 
         check_and_clean_dir(options)
-
         smemory.set("last_ping", time.time())
-
     finally:
         if memory.has("session"):
             memory.delete("session")
@@ -361,6 +362,7 @@ class XMLRPCThread(multiprocessing.Process):
 
             def get_smemory(k):
                 """
+                get_smemory
                 """
                 smemory = SingletonMemory()
                 return smemory.get(k)
@@ -383,7 +385,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:347", "bye xmlrpc server"
+            print "cba_main.py:390", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -411,7 +413,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:375", "kill it", ex
+                print "cba_main.py:418", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -423,9 +425,11 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
+
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:393", "\nbye main"
+        print "cba_main.py:437", "\nbye main"

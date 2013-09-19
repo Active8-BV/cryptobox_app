@@ -176,8 +176,10 @@ def on_server(memory, options, method, payload, session, files=None):
 
     if not session:
         session = requests
+
     verifyarg = "ca.cert"
     verifyarg = False
+
     if not payload:
         result = session.post(service, cookies=cookies, files=files, verify=verifyarg)
     elif files:
@@ -205,24 +207,28 @@ def download_server(memory, options, url):
     #log("download server:", URL)
     session = memory.get("session")
     result = session.get(url, timeout=3600, stream=True)
+
     if result.status_code == 403:
         raise ServerForbidden(result.reason)
 
     if result.status_code == 500:
         request_error(result)
-        raise ServerError(result.reason)
-    size = int(result.headers['Content-Length'].strip())
 
+        raise ServerError(result.reason)
+
+    size = int(result.headers['Content-Length'].strip())
     bytes = 0
     fileb = []
+
     for buf in result.iter_content(1024):
         if buf:
             fileb.append(buf)
             bytes += len(buf)
-            print url, bytes, size, float(size) / 100
+            print "cba_network.py:229", url, bytes, size, float(size) / 100
             divider = float(size) / 100
+
             if divider > 0:
-                print bytes, size, int(float(bytes) / divider)
+                print "cba_network.py:233", bytes, size, int(float(bytes) / divider)
 
     content = b"".join(fileb)
     return content, memory

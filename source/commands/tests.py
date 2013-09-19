@@ -58,10 +58,9 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
         import sys
+
         sys.stdout = open('stdout.txt', 'w')
         sys.stderr = open('stderr.txt', 'w')
-
-
     #noinspection PyPep8Naming
     def tearDown(self):
         """
@@ -72,6 +71,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory.save(get_data_dir(self.cboptions))
         if os.path.exists('stdout.txt'):
             os.remove('stdout.txt')
+
         if os.path.exists('stderr.txt'):
             os.remove('stderr.txt')
 
@@ -452,6 +452,12 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(file_uploads), 1)
+
+    def test_sync_delete_server_and_local_restore_folder(self):
+        """
+        test_sync_delete_server_and_local_restore_folder
+        """
+        self.assertFalse(True)
 
 
 if __name__ == '__main__':

@@ -571,7 +571,6 @@ def upload_file(memory, options, file_object, parent):
     #payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     #files = {'file': file_object}
     #result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
-
     import poster
     import urllib2
     import cookielib
@@ -580,13 +579,12 @@ def upload_file(memory, options, file_object, parent):
     session = memory.get("session")
     opener = poster.streaminghttp.register_openers()
     opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
-
     service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
     params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     datagen, headers = poster.encode.multipart_encode(params)
     request = urllib2.Request(service, datagen, headers)
     result = urllib2.urlopen(request)
-    print result
+    print "cba_sync.py:589", result
     return memory
 
 
@@ -616,12 +614,12 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
+
         if os.path.exists(uf["local_file_path"]):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "can't fnd", uf["local_file_path"]
-
+            print "cba_sync.py:624", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
