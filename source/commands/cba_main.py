@@ -26,39 +26,48 @@ from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
 import multiprocessing.forking
-if sys.platform.startswith('win'):
 
-    class _Popen(multiprocessing.forking.Popen):
 
-        def __init__(self, *args, **kw):
-            if hasattr(sys, 'frozen'):
+def monkeypatch_popen():
+    """
+    hack for pyinstaller on windows
+    """
+    if sys.platform.startswith('win'):
 
-                # We have to set original _MEIPASS2 value from sys._MEIPASS
-                # to get --onefile mode working.
-                # Last character is stripped in C-loader. We have to add
-                # '/' or '\\' at the end.
-                #noinspection PyProtectedMember,PyUnresolvedReferences
-                os.putenv('_MEIPASS2', sys._MEIPASS + os.sep)
+        class _Popen(multiprocessing.forking.Popen):
 
-            try:
-                super(_Popen, self).__init__(*args, **kw)
-            finally:
+            def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
 
-                    # On some platforms (e.g. AIX) 'os.unsetenv()' is not
-                    # available. In those cases we cannot delete the variable
-                    # but only set it to the empty string. The bootloader
-                    # can handle this case.
-                    if hasattr(os, 'unsetenv'):
-                        os.unsetenv('_MEIPASS2')
-                    else:
-                        os.putenv('_MEIPASS2', '')
+                    # We have to set original _MEIPASS2 value from sys._MEIPASS
+                    # to get --onefile mode working.
+                    # Last character is stripped in C-loader. We have to add
+                    # '/' or '\\' at the end.
+                    #noinspection PyProtectedMember,PyUnresolvedReferences
+                    os.putenv('_MEIPASS2', sys._MEIPASS + os.sep)
 
-    class Process(multiprocessing.Process):
-        """
-        Process
-        """
-        _Popen = _Popen
+                try:
+                    super(_Popen, self).__init__(*args, **kw)
+                finally:
+                    if hasattr(sys, 'frozen'):
+
+                        # On some platforms (e.g. AIX) 'os.unsetenv()' is not
+                        # available. In those cases we cannot delete the variable
+                        # but only set it to the empty string. The bootloader
+                        # can handle this case.
+                        if hasattr(os, 'unsetenv'):
+                            os.unsetenv('_MEIPASS2')
+                        else:
+                            os.putenv('_MEIPASS2', '')
+
+        class Process(multiprocessing.Process):
+            """
+            Process
+            """
+            _Popen = _Popen
+
+
+monkeypatch_popen()
 
 
 def add_options():
@@ -381,7 +390,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:386", "bye xmlrpc server"
+            print "cba_main.py:395", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -409,7 +418,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:414", "kill it", ex
+                print "cba_main.py:423", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -428,4 +437,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:433", "\nbye main"
+        print "cba_main.py:442", "\nbye main"
