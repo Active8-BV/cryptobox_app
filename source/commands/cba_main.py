@@ -19,7 +19,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_memory import Memory, SingletonMemory, reset_memory_progress, update_memory_progress
+from cba_memory import Memory, SingletonMemory, reset_memory_progress, update_memory_progress, reset_file_progress
 from cba_utils import strcmp, Dict2Obj, log
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
@@ -179,6 +179,7 @@ def cryptobox_command(options):
 
         localindex = make_local_index(options)
         reset_memory_progress()
+        reset_file_progress()
 
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
@@ -232,6 +233,9 @@ def cryptobox_command(options):
         memory.save(datadir)
 
     hide_config(options, salt, secret)
+    reset_memory_progress()
+    reset_file_progress()
+
     return True
 
 
@@ -340,15 +344,28 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 progress for the progress bar
                 """
-                if not memory.has("progress"):
-                    return 0
-                return memory.get("progress")
+                pr = 0
+                fpr = 0
+
+                if memory.has("progress"):
+                    pr = memory.get("progress")
+
+                if memory.has("file_progress"):
+                    fpr = memory.get("file_progress")
+
+                return pr, fpr
 
             def reset_progress():
                 """
                 reset_progress
                 """
                 reset_memory_progress()
+
+            def do_reset_file_progress():
+                """
+                reset_file_progress
+                """
+                reset_file_progress()
 
             def ping():
                 """
@@ -382,17 +399,19 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(get_progress, "get_progress")
             server.register_function(reset_progress, "reset_progress")
             server.register_function(get_smemory, "get_smemory")
+            server.register_function(reset_file_progress, "do_reset_file_progress")
 
             try:
                 memory.set("last_ping", time.time())
 
                 reset_progress()
+                reset_file_progress()
                 server.serve_forever()
             finally:
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:397", "bye xmlrpc server"
+            print "cba_main.py:410", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -420,7 +439,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:425", "kill it", ex
+                print "cba_main.py:438", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -439,4 +458,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:444", "\nbye main"
+        print "cba_main.py:457", "\nbye main"

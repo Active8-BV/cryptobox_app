@@ -200,6 +200,12 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             if utils.exist(e)
                 print "cryptobox.cf:203", e
 
+    reset_file_progress = ->
+        client = get_rpc_client()
+        client.methodCall "reset_file_progress",[], (e,v) ->
+            if utils.exist(e)
+                print "cryptobox.cf:209", e
+
     lock_buttons = false
 
     $scope.lock_buttons = ->
@@ -218,19 +224,23 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         client.methodCall "get_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:223", e, v
+                print "cryptobox.cf:229", e, v
             else
-                progress = parseInt(v, 10)
+                progress = parseInt(v[0], 10)
+                file_progress = parseInt(v[1], 10)
 
             progress_bar = progress
+            progress_bar_item = file_progress
 
             if progress_bar >= 100
-
                 _.defer(reset_progress)
+
+            if progress_bar_item >= 100
+                _.defer(reset_file_progress)
 
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:235", get_progress, 1000, "get_progress")
+    utils.set_interval("cryptobox.cf:245", get_progress, 1000, "get_progress")
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -276,7 +286,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     p.reject(e)
                 else
                     if exist(d)
-                        print "cryptobox.cf:281", k, d.value
+                        print "cryptobox.cf:291", k, d.value
                         p.resolve(d.value)
                         utils.force_digest($scope)
                     else
@@ -295,7 +305,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:300", err
+                print "cryptobox.cf:310", err
         )
 
     set_data_user_config = ->
@@ -328,12 +338,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(
             ->
-
-                #print "cryptobox.cf:189", x
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:338", err
+                print "cryptobox.cf:346", err
         )
 
     $scope.file_input_change = (f) ->
@@ -343,7 +351,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:348", "run_command", cmd_to_run
+        print "cryptobox.cf:356", "run_command", cmd_to_run
         client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
@@ -440,6 +448,9 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             (err) ->
                 add_output(err)
         )
+
+    $scope.open_website = ->
+        gui.Shell.openExternal($scope.cb_server+$scope.cb_name)
 
     menu = new gui.Menu()
     menu.append new gui.MenuItem(
