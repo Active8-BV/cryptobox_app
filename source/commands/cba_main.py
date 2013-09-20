@@ -61,6 +61,7 @@ def monkeypatch_popen():
                             os.putenv('_MEIPASS2', '')
 
         #noinspection PyUnusedLocal
+
         class Process(multiprocessing.Process):
             """
             Process
@@ -391,7 +392,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:395", "bye xmlrpc server"
+            print "cba_main.py:397", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -419,7 +420,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:423", "kill it", ex
+                print "cba_main.py:425", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -438,4 +439,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:442", "\nbye main"
+        print "cba_main.py:444", "\nbye main"
