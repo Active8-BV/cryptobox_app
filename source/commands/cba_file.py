@@ -4,7 +4,7 @@ file operations
 """
 import os
 from cba_utils import handle_exception, strcmp, log
-from cba_crypto import encrypt, decrypt, pickle_object, unpickle_object, make_sha1_hash
+from cba_crypto import encrypt, decrypt, pickle_object, unpickle_object, make_sha1_hash, encrypt_file
 
 
 def ensure_directory(path):
@@ -37,30 +37,35 @@ def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
         os.chown(path, st_uid, st_gid)
 
 
-def read_file(path):
+def read_file(path, read_data=False):
     """
     @type path: str or unicode
+    @type read_data: bool
     @return: @rtype:
     """
-    data = open(path, "rb").read()
+    if read_data:
+        data = open(path, "rb").read()
+    else:
+        data = None
     stats = os.stat(path)
-    return data, stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid
+    return stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid, data
 
 
-def read_file_to_fdict(path):
+def read_file_to_fdict(path, read_data=False):
     """
     @type path: str or unicode
+    @type read_data: bool
     @return: @rtype:
     """
-    ft = read_file(path)
-    file_dict = {"data": ft[0],
-                 "st_ctime": int(ft[1]),
-                 "st_atime": int(ft[2]),
-                 "st_mtime": int(ft[3]),
-                 "st_mode": int(ft[4]),
-                 "st_uid": int(ft[5]),
-
-                 "st_gid": int(ft[6])}
+    ft = read_file(path, read_data)
+    file_dict = {"st_ctime": int(ft[0]),
+                 "st_atime": int(ft[1]),
+                 "st_mtime": int(ft[2]),
+                 "st_mode": int(ft[3]),
+                 "st_uid": int(ft[4]),
+                 "st_gid": int(ft[5])}
+    if read_data:
+        file_dict["data"] = ft[6]
 
     return file_dict
 
@@ -86,7 +91,15 @@ def read_and_encrypt_file(fpath, blobpath, salt, secret):
 
     try:
         file_dict = read_file_to_fdict(fpath)
-        encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
+        encrypted_file_dict = {}
+        def enc_callback(p):
+            print p
+        data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback)
+        encrypted_file_dict["data_hash"] = data_hash
+        encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s
+        encrypted_file_dict["chunk_sizes"] = chunk_sizes
+        encrypted_file_dict["encrypted_data"] = encrypted_data
+        #encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
         pickle_object(blobpath, encrypted_file_dict)
         return None
     except Exception, e:
@@ -150,7 +163,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @type localindex: dict
     @return: @rtype:
     """
-    file_dict = read_file_to_fdict(fpath)
+    file_dict = read_file_to_fdict(fpath, read_data=True)
     filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])

@@ -21,9 +21,14 @@ print = (msg, others...) ->
             console?.log others, msg
 
 
+tray = new gui.Tray(
+    icon: "images/icon-client-signed-in-idle.png"
+)
+
+
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
-    print "cryptobox.cf:28", "cryptobox_ctrl"
+    print "cryptobox.cf:33", "cryptobox_ctrl"
 
     get_rpc_client = ->
         clientOptions = 
@@ -67,15 +72,15 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     cba_main = null
 
     $scope.on_exit = =>
-        print "cryptobox.cf:72", "cryptobox app on_exit"
+        print "cryptobox.cf:77", "cryptobox app on_exit"
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
-            print "cryptobox.cf:75", "force_stop", e, v
+            print "cryptobox.cf:80", "force_stop", e, v
 
             force_kill = =>
                 if cba_main?
                     if cba_main.pid?
-                        print "cryptobox.cf:80", "force kill!!!"
+                        print "cryptobox.cf:85", "force kill!!!"
                         process.kill(cba_main.pid);
 
                 gui.App.quit()
@@ -116,7 +121,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.cmd_output = msgs
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:121", update_output, 100, "update_output")
+    utils.set_interval("cryptobox.cf:126", update_output, 100, "update_output")
 
     add_output = (msgs) ->
         add_msg = (msg) ->
@@ -157,23 +162,23 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 set_output_buffers(cba_main)
 
     start_interval = ->
-        utils.set_interval("cryptobox.cf:162", ping_client, 5000, "ping_client")
+        utils.set_interval("cryptobox.cf:167", ping_client, 5000, "ping_client")
 
-    utils.set_time_out("cryptobox.cf:164", start_interval, 1000)
+    utils.set_time_out("cryptobox.cf:169", start_interval, 1000)
 
     start_process = =>
-        print "cryptobox.cf:167", "start_process"
+        print "cryptobox.cf:172", "start_process"
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
             if utils.exist(v)
-                print "cryptobox.cf:171", "killed existing deamon"
+                print "cryptobox.cf:176", "killed existing deamon"
             else
-                print "cryptobox.cf:173", "starting deamon"
+                print "cryptobox.cf:178", "starting deamon"
             cba_main = spawn(cmd_to_run, [""])
             set_output_buffers(cba_main)
 
     start_process_once = _.once(start_process)
-    print "cryptobox.cf:178", cmd_to_run
+    print "cryptobox.cf:183", cmd_to_run
     start_process_once()
     progress_bar = 0
     progress_bar_item = 0
@@ -193,13 +198,13 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         client.methodCall "reset_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:198", e
+                print "cryptobox.cf:203", e
 
     reset_file_progress = ->
         client = get_rpc_client()
         client.methodCall "reset_file_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:204", e
+                print "cryptobox.cf:209", e
 
     lock_buttons = false
 
@@ -219,7 +224,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         client.methodCall "get_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:224", e, v
+                print "cryptobox.cf:229", e, v
             else
                 progress = parseInt(v[0], 10)
                 file_progress = parseInt(v[1], 10)
@@ -235,7 +240,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
         utils.force_digest($scope)
 
-    utils.set_interval("cryptobox.cf:240", get_progress, 1000, "get_progress")
+    utils.set_interval("cryptobox.cf:245", get_progress, 1000, "get_progress")
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -299,7 +304,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:304", err
+                print "cryptobox.cf:309", err
         )
 
     $scope.show_settings = false
@@ -344,7 +349,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:349", err
+                print "cryptobox.cf:354", err
         )
 
     $scope.file_input_change = (f) ->
@@ -354,7 +359,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:359", "run_command", cmd_to_run
+        print "cryptobox.cf:364", "run_command", cmd_to_run
         client.methodCall command_name, command_arguments, (error, value) ->
             if exist(error)
                 p.reject(error)
@@ -455,24 +460,42 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.open_website = ->
         gui.Shell.openExternal($scope.cb_server+$scope.cb_name)
 
-    traymenu = new gui.Menu()
-    menubar = new gui.Menu(
-        type: 'menubar'
-    )
-    tray = new gui.Tray(
-        icon: "images/icon-client-signed-in-idle.png"
-    )
-    menubar = new gui.Menu(type: "menubar")
-    actions = new gui.Menu()
+    trayactions = new gui.Menu()
+    tray.menu = trayactions
 
-    add_menu_item = (label, icon, method) =>
+    add_traymenu_item = (label, icon, method) =>
         trayitem = new gui.MenuItem(
             type: "normal"
             label: label
             icon: icon
             click: method
         )
-        traymenu.append trayitem
+        trayactions.append trayitem
+
+    add_checkbox_traymenu_item = (label, icon, method, enabled) =>
+        trayitem_cb = new gui.MenuItem(
+            type: "checkbox"
+            label: label
+            icon: icon
+            click: method
+            checked: enabled
+        )
+        trayactions.append trayitem_cb
+        return trayitem_cb
+
+    add_traymenu_seperator = () =>
+        traymenubaritem = new gui.MenuItem(
+            type: "separator"
+        )
+        trayactions.append traymenubaritem
+
+    menubar = new gui.Menu(
+        type: 'menubar'
+    )
+
+    actions = new gui.Menu()
+
+    add_menu_item = (label, icon, method) =>
         menubaritem = new gui.MenuItem(
             type: "normal"
             label: label
@@ -483,47 +506,38 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         return menubaritem
 
     add_checkbox_menu_item = (label, icon, method, enabled) =>
-        trayitem = new gui.MenuItem(
-            type: "normal"
-            label: label
-            icon: icon
-            click: method
-            checked: enabled
-        )
-        traymenu.append trayitem
-        menubaritem = new gui.MenuItem(
+        menubaritem_cb = new gui.MenuItem(
             type: "checkbox"
             label: label
             icon: icon
             click: method
-            checked: enabled
+            checked: true
         )
-        actions.append menubaritem
-        return menubaritem
+        actions.append menubaritem_cb
+        return menubaritem_cb
 
     add_menu_seperator = () =>
-        trayitem = new gui.MenuItem(
-            type: "separator"
-        )
-        traymenu.append trayitem
         menubaritem = new gui.MenuItem(
             type: "separator"
         )
         actions.append menubaritem
-
-    closewin = ->
-        winmain.close();
 
     $scope.toggle_settings = ->
         $scope.show_settings = !$scope.show_settings
         $scope.form_change()
 
-    settings_menu = add_checkbox_menu_item("Settings", "images/cog.png", $scope.toggle_settings, $scope.show_settings)
+    settings_menubaritem = add_checkbox_menu_item("Settings", "images/cog.png", $scope.toggle_settings, $scope.show_settings)
+    settings_menubar_tray = add_checkbox_traymenu_item("Settings", "images/cog.png", $scope.toggle_settings, $scope.show_settings)
 
-    #$scope.$watch "show_settings", =>
-    #    settings_menu.checked = $scope.show_settings
+    update_menu_checks = =>
+        settings_menubaritem.checked = $scope.show_settings
+        settings_menubar_tray.checked = $scope.show_settings
+    $scope.$watch "show_settings", update_menu_checks
     add_menu_seperator()
-    add_menu_item("Encrypt local", "images/lock.png", closewin)
+    add_traymenu_seperator()
+    add_menu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
+    add_traymenu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
+    add_menu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
+    add_traymenu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
     winmain.menu = menubar
     winmain.menu.insert(new gui.MenuItem({ label: 'Actions', submenu: actions}), 1);
-    tray.menu = traymenu

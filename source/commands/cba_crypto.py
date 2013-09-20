@@ -3,13 +3,16 @@
 crypto routines for the commandline tool
 """
 import re
+import os
 import json
 import base64
+import time
+import tempfile
 import cPickle
 import jsonpickle
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512, HMAC
-from Crypto.Cipher import Blowfish
+from Crypto.Cipher import Blowfish, AES
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import strcmp, DEBUG
 
@@ -73,9 +76,157 @@ def password_derivation(key, salt):
     """
 
     # 16, 24 or 32 bytes long (for AES-128, AES-196 and AES-256, respectively)
-    size = 32
+    size = 16
     return PBKDF2(key, salt, size)
 
+
+def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=0.5):
+    """
+    @param secret: generated secret pkdf2
+    @type secret: str
+    @param data_hash: hash of first chunk
+    @type data_hash: str
+    @param initialization_vector: init vector cipher
+    @type initialization_vector: str
+    @param chunk_sizes: sizes of the chunks
+    @type chunk_sizes: list, dict
+    @param encrypted_data: the encrypted data
+    @type encrypted_data: file
+    @param perc_callback: callback progress
+    @type perc_callback: function
+    @param perc_callback_freq: callback frequency
+    @type perc_callback_freq: float
+    @return: orignal data temporary file
+    @rtype: file
+    """
+    cnt = 0
+    padding = "{"
+
+    if not secret:
+        raise Exception("no secret in decrypt file")
+
+    if 16 != len(initialization_vector):
+        raise Exception("initialization_vector len is not 16")
+
+    lc_time = time.time()
+    dec_file = tempfile.TemporaryFile("r+w")
+    cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+
+    while True:
+        if cnt >= chunk_sizes["length"]:
+            break
+
+        if cnt < chunk_sizes["length"]:
+            decrypted_chunk = chunk_sizes["default"][0]
+            encrypted_chunk = chunk_sizes["default"][1]
+        else:
+            decrypted_chunk = chunk_sizes["last"][0]
+            encrypted_chunk = chunk_sizes["last"][1]
+
+        chunk = encrypted_data.read(encrypted_chunk)
+        dec_data = cipher.decrypt(chunk).rstrip(padding)
+        dec_data = dec_data[0:decrypted_chunk]
+        dec_file.write(dec_data)
+
+        if cnt <= 0:
+            calculated_hash = make_hash_str(dec_data, secret)
+
+            if data_hash != calculated_hash:
+                raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
+
+        cnt += 1
+
+        if perc_callback:
+            if time.time() - lc_time > perc_callback_freq:
+                perc_callback(cnt / (float(chunk_sizes["length"]) / 100))
+
+                lc_time = time.time()
+
+    dec_file.seek(0)
+
+    if perc_callback:
+        perc_callback(100.0)
+
+    return dec_file
+
+#noinspection PyDictCreation,PyPep8Naming
+
+
+def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=0.5):
+    """
+    @param secret: pkdf2 secre
+    @type secret: str
+    @param fin: file object
+    @type fin: file, FileIO
+    @param total: size of the object in bytes
+    @type total: int, None
+    @param perc_callback: progress callback
+    @type perc_callback: function
+    @param perc_callback_freq: time between progress calls
+    @type perc_callback_freq: float
+    @return: salt, hash, init, chunk sizes and encrypted data temp file
+    @rtype: tuple
+    """
+    cnt = 0
+    CHUNKSIZE = 1024 * 1024 * 10
+    lc_time = time.time()
+
+    if not total:
+        fin.seek(0, os.SEEK_END)
+        total = fin.tell()
+        fin.seek(0)
+    Random.atfork()
+    total = int(total)
+    fin.seek(0)
+    enc_file = tempfile.TemporaryFile("w+r")
+    data_hash = ""
+    padding = "{"
+    block_size = 32
+    pad = lambda s: s + (block_size - len(s) % block_size) * padding
+    initialization_vector = Random.new().read(AES.block_size)
+    cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    chunk_sizes_d = {}
+    chunk_sizes_d["length"] = 0
+    chunk_sizes_d["default"] = None
+    chunk_sizes_d["last"] = None
+    enc_data = ""
+    chunk = ""
+
+    while True:
+        pre_read_chunk = chunk
+        chunk = fin.read(CHUNKSIZE)
+
+        if chunk == "":
+            chunk_sizes_d["last"] = (len(pre_read_chunk), len(enc_data))
+            chunk_sizes_d["length"] = cnt
+            break
+
+        enc_data = cipher.encrypt(chunk)
+
+        if cnt <= 0:
+            data_hash = make_hash_str(chunk, secret)
+            chunk_sizes_d["last"] = chunk_sizes_d["default"] = (len(chunk), len(enc_data))
+
+        enc_file.write(enc_data)
+        cnt += 1
+
+        if perc_callback:
+            if (time.time() - lc_time) > perc_callback_freq:
+                perc_callback((cnt * CHUNKSIZE) / (float(total) / 100))
+
+                lc_time = time.time()
+
+        if len(chunk) == total:
+            chunk_sizes_d["last"] = (len(chunk), len(enc_data))
+            chunk_sizes_d["length"] = cnt
+            break
+
+    enc_file.seek(0)
+
+    if perc_callback:
+        perc_callback(100.0)
+
+    return data_hash, initialization_vector, chunk_sizes_d, enc_file, secret
 
 def encrypt(salt, secret, data):
     """
