@@ -43,7 +43,7 @@ print = function() {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var add_output, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_user_var, get_val, lock_buttons, menu, output, ping_client, progress_bar, progress_bar_item, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, spawn, start_interval, start_process, start_process_once, store_user_var, update_output,
+  var add_output, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_user_var, get_val, lock_buttons, menu, output, ping_client, progress_bar, progress_bar_item, reset_file_progress, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, spawn, start_interval, start_process, start_process_once, store_user_var, update_output,
     _this = this;
   print("cryptobox.cf:34", "cryptobox_ctrl");
   get_rpc_client = function() {
@@ -236,6 +236,15 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       }
     });
   };
+  reset_file_progress = function() {
+    var client;
+    client = get_rpc_client();
+    return client.methodCall("reset_file_progress", [], function(e, v) {
+      if (utils.exist(e)) {
+        return print("cryptobox.cf:209", e);
+      }
+    });
+  };
   lock_buttons = false;
   $scope.lock_buttons = function() {
     if (parseInt(progress_bar, 10) === 0) {
@@ -255,20 +264,25 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client;
     client = get_rpc_client();
     client.methodCall("get_progress", [], function(e, v) {
-      var progress;
+      var file_progress, progress;
       if (utils.exist(e)) {
-        print("cryptobox.cf:223", e, v);
+        print("cryptobox.cf:229", e, v);
       } else {
-        progress = parseInt(v, 10);
+        progress = parseInt(v[0], 10);
+        file_progress = parseInt(v[1], 10);
       }
       progress_bar = progress;
+      progress_bar_item = file_progress;
       if (progress_bar >= 100) {
-        return _.defer(reset_progress);
+        _.defer(reset_progress);
+      }
+      if (progress_bar_item >= 100) {
+        return _.defer(reset_file_progress);
       }
     });
     return utils.force_digest($scope);
   };
-  utils.set_interval("cryptobox.cf:235", get_progress, 1000, "get_progress");
+  utils.set_interval("cryptobox.cf:245", get_progress, 1000, "get_progress");
   store_user_var = function(k, v) {
     var db, p, record;
     p = $q.defer();
@@ -320,7 +334,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
           return p.reject(e);
         } else {
           if (exist(d)) {
-            print("cryptobox.cf:281", k, d.value);
+            print("cryptobox.cf:291", k, d.value);
             p.resolve(d.value);
             return utils.force_digest($scope);
           } else {
@@ -339,7 +353,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         return $scope[name] = v;
       }
     }, function(err) {
-      return print("cryptobox.cf:300", err);
+      return print("cryptobox.cf:310", err);
     });
   };
   set_data_user_config = function() {
@@ -372,7 +386,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:338", err);
+      return print("cryptobox.cf:346", err);
     });
   };
   $scope.file_input_change = function(f) {
@@ -383,7 +397,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client, p;
     client = get_rpc_client();
     p = $q.defer();
-    print("cryptobox.cf:348", "run_command", cmd_to_run);
+    print("cryptobox.cf:356", "run_command", cmd_to_run);
     client.methodCall(command_name, command_arguments, function(error, value) {
       if (exist(error)) {
         p.reject(error);
@@ -479,6 +493,9 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }, function(err) {
       return add_output(err);
     });
+  };
+  $scope.open_website = function() {
+    return gui.Shell.openExternal($scope.cb_server + $scope.cb_name);
   };
   menu = new gui.Menu();
   menu.append(new gui.MenuItem({

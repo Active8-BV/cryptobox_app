@@ -34,30 +34,50 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="well">
-                    <button type="button" class="btn btn-default pull-right" ng-click="debug_btn()">debug console</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-primary" ng-click="check_btn()">check changes</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-warning" ng-click="sync_btn()">sync</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-success" ng-click="encrypt_btn()">lock (encrypt local)</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-danger" ng-click="decrypt_btn()">unlock (decrypt local)</button>
+                    <form class="form-horizontal" role="form">
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-primary" ng-click="check_btn()">check changes</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-warning" ng-click="sync_btn()">sync</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-success" ng-click="encrypt_btn()">lock (encrypt local)</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-danger" ng-click="decrypt_btn()">unlock (decrypt local)</button>
+
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default pull-right" ng-click="debug_btn()">inspect</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default pull-right" ng-click="open_website()">website</button>
+
+                        <br/><br/>
+                        show:<br/>
+                        <label for="show_settings">settings: </label>
+                        <input id="show_settings" type="checkbox" ng-model="show_settings" ng-change="form_change()"><br/>
+                        <label for="show_debug">log: </label>
+                        <input id="show_debug" type="checkbox" ng-model="show_debug" ng-change="form_change()">
+
+                    </form>
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-1">
+                total:
+            </div>
+            <div class="col-sm-11">
                 <div class="progress">
                     <div class="progress-bar" role="progressbar" ng-style="get_progress()">
                         <span class="sr-only"></span>
                     </div>
                 </div>
-                <div class="progress" ng-hide="get_progress_item_show()">
+            </div>
+            <div class="col-sm-1">
+                item:
+            </div>
+            <div class="col-sm-11">
+                <div class="progress">
                     <div class="progress-bar" role="progressbar" ng-style="get_progress_item()">
                         <span class="sr-only"></span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="well">
-            <form>
-                <label for="show_settings">Show settings: </label>
-                <input id="show_settings" type="checkbox" ng-model="show_settings" ng-change="form_change()">
-            </form>
-            <form class="form-horizontal" role="form" ng-show="show_settings">
+        <div class="well" ng-show="show_settings">
+            <form class="form-horizontal" role="form">
                 <div class="form-group">
                     <label for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
 
@@ -95,14 +115,14 @@
                         <input type="text" class="form-control" ng-change="form_change()" id="cb_server" ng_model="cb_server" placeholder="cryptobox server">
                     </div>
                 </div>
-
             </form>
-
         </div>
         <div class="row">
-            <div class="col-sm-12">
+
+            <div class="col-sm-12" ng-show="show_debug">
                 <pre style="font-size: 12px;">{{ cmd_output }}</pre>
             </div>
+
         </div>
 
     </div>
