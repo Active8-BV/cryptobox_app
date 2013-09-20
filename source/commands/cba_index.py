@@ -125,7 +125,7 @@ def index_and_encrypt(memory, options, localindex_param):
 
     if cryptobox_locked(memory):
         log("cba_index.py:140", "cryptobox is locked, nothing can be added now first decrypt (-d)")
-        return None, None
+        return None, None, memory, localindex
 
     salt, secret = get_secret(memory, options)
     ensure_directory(datadir)

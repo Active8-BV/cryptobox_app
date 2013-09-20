@@ -9,6 +9,7 @@
     <title>Cryptobox</title>
 
     <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
     <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" src="js/angular.min.js"></script>
     <script type="text/javascript" src="js/md5.min.js"></script>
@@ -23,59 +24,55 @@
 
 <div ng-controller="cryptobox_ctrl">
 
-    <div class="well">
-        <blockquote>
-            <p class="lead">Cryptobox syncer</p>
-            <small>version: {{cba_version}} pre-alpha</small>
-        </blockquote>
-    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+                <blockquote>
+                    <p class="lead">Cryptobox syncer</p>
+                    <small>version: {{cba_version}} pre-alpha</small>
+                </blockquote>
+            </div>
 
+            <div class="col-sm-6">
+                <br/><br/>
+                <div class="progress" style="max-height: 10px;">
+                    <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress()">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+
+                <div class="progress" style="max-height: 10px;">
+                    <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress_item()">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <div class="row">
             <div class="col-sm-12">
-                <div class="well">
-                    <form class="form-horizontal" role="form">
-                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-primary" ng-click="check_btn()">check changes</button>
-                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-warning" ng-click="sync_btn()">sync</button>
-                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-success" ng-click="encrypt_btn()">lock (encrypt local)</button>
-                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-danger" ng-click="decrypt_btn()">unlock (decrypt local)</button>
+                <form class="form-horizontal" role="form">
+                    <div class="btn-group btn-group-lg pull-left">
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="sync_btn()"><i class="icon-refresh" style="margin-right: 4px"></i>sync</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="encrypt_btn()"><i class="icon-lock" style="margin-right: 4px"></i>encrypt local</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="decrypt_btn()"><i class="icon-unlock" style="margin-right: 4px"></i>decrypt local</button>
+                    </div>
 
-                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default pull-right" ng-click="debug_btn()">inspect</button>
-                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default pull-right" ng-click="open_website()">website</button>
-
-                        <br/><br/>
-                        show:<br/>
-                        <label for="show_settings">settings: </label>
-                        <input id="show_settings" type="checkbox" ng-model="show_settings" ng-change="form_change()"><br/>
-                        <label for="show_debug">log: </label>
-                        <input id="show_debug" type="checkbox" ng-model="show_debug" ng-change="form_change()">
-
-                    </form>
-                </div>
+                    <div class="btn-group btn-group-xs pull-right">
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="check_btn()"><i class="icon-refresh" style="margin-right: 4px"></i>check</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="debug_btn()"><i class="icon-search" style="margin-right: 4px"></i>inspect</button>
+                        <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="open_website()"><i class="icon-external-link" style="margin-right: 4px"></i>website</button>
+                    </div>
+                </form>
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-1">
-                total:
-            </div>
-            <div class="col-sm-11">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" ng-style="get_progress()">
-                        <span class="sr-only"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-1">
-                item:
-            </div>
-            <div class="col-sm-11">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" ng-style="get_progress_item()">
-                        <span class="sr-only"></span>
-                    </div>
-                </div>
+            <div class="col-sm-12">
+                <br/>
             </div>
         </div>
+
         <div class="well" ng-show="show_settings">
             <form class="form-horizontal" role="form">
                 <div class="form-group">
@@ -115,12 +112,21 @@
                         <input type="text" class="form-control" ng-change="form_change()" id="cb_server" ng_model="cb_server" placeholder="cryptobox server">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="show_debug">show log</label>
+
+                    <div class="col-sm-9" style="margin-top: 4px;">
+                        <input id="show_debug" type="checkbox" ng-model="show_debug" ng-change="form_change()">
+                        <button type="button" id="btn_donw" class="btn btn-default pull-right" ng-click="toggle_settings()">done</button>
+                    </div>
+                </div>
             </form>
         </div>
         <div class="row">
 
             <div class="col-sm-12" ng-show="show_debug">
-                <pre style="font-size: 12px;">{{ cmd_output }}</pre>
+                <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
+                <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
             </div>
 
         </div>
