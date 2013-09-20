@@ -357,14 +357,11 @@ def del_local_file_history(memory, relative_path_name):
     return memory
 
 
-#noinspection PyUnreachableCode,PyUnresolvedReferences
 def update_memory_progress(p):
     """
     update_progress
     @type p:int
     """
-    from cba_utils import log
-
     mem = SingletonMemory()
     mem.set("progress", p)
 
@@ -381,3 +378,37 @@ def reset_memory_progress():
     """
     mem = SingletonMemory()
     mem.set("progress", 0)
+
+
+def update_file_progress(p):
+    """
+    update_progress
+    @type p:int
+    """
+    mem = SingletonMemory()
+    mem.set("file_progress", p)
+
+    if mem.has("file_progress"):
+        if mem.get("file_progress") <= p:
+            mem.set("file_progress", p)
+    else:
+        mem.set("file_progress", p)
+
+
+def get_file_progress():
+    """
+    get_file_progress
+    """
+    mem = SingletonMemory()
+
+    if mem.has("file_progress"):
+        return mem.get("file_progress")
+    return 0
+
+
+def reset_file_progress():
+    """
+    reset_memory_file_progress
+    """
+    mem = SingletonMemory()
+    mem.set("file_progress", 0)

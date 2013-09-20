@@ -10,7 +10,7 @@ import subprocess
 import json
 import requests
 from cba_utils import log
-from cba_memory import Memory
+from cba_memory import Memory, update_file_progress, get_file_progress
 
 
 def get_b64mstyle():
@@ -223,11 +223,13 @@ def download_server(memory, options, url):
         if buf:
             fileb.append(buf)
             downloaded_bytes += len(buf)
-            print "cba_network.py:228", url, downloaded_bytes, size, float(size) / 100
             divider = float(size) / 100
 
             if divider > 0:
-                print "cba_network.py:232", downloaded_bytes, size, int(float(downloaded_bytes) / divider)
+                percentage = int(float(downloaded_bytes) / divider)
+                percentage += get_file_progress()
+                percentage /= options.numdownloadthreads
+                update_file_progress(percentage)
 
     content = b"".join(fileb)
     return content, memory

@@ -285,6 +285,7 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
 
             for serverhash_history_item in memory.get("serverhash_history"):
                 serverhash_history_item_path = serverhash_history_item[0]
+
                 if path not in serverhash_history_item_path:
                     new_server_hash_history.add(serverhash_history_item)
 
@@ -628,7 +629,6 @@ def upload_file(memory, options, file_object, parent):
     datagen, headers = poster.encode.multipart_encode(params)
     request = urllib2.Request(service, datagen, headers)
     result = urllib2.urlopen(request)
-    print "cba_sync.py:632", result
     return memory
 
 
@@ -663,7 +663,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:667", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:668", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

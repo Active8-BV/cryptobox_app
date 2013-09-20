@@ -344,6 +344,14 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(self.directories_synced())
         self.assertTrue(self.files_synced())
 
+    def test_upload(self):
+        """
+        test_upload
+        """
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        pass
+
     def files_synced(self):
         """
         files_synced
