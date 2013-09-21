@@ -76,7 +76,7 @@ def password_derivation(key, salt):
     """
 
     # 16, 24 or 32 bytes long (for AES-128, AES-196 and AES-256, respectively)
-    size = 16
+    size = 32
     return PBKDF2(key, salt, size)
 
 
@@ -169,7 +169,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
     @rtype: tuple
     """
     cnt = 0
-    CHUNKSIZE = 1024 * 1024 * 10
+    CHUNKSIZE = 1024 * 1024 * 1
     lc_time = time.time()
 
     if not total:
@@ -182,9 +182,6 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
     fin.seek(0)
     enc_file = tempfile.TemporaryFile("w+r")
     data_hash = ""
-    padding = "{"
-    block_size = 32
-    pad = lambda s: s + (block_size - len(s) % block_size) * padding
     initialization_vector = Random.new().read(AES.block_size)
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     chunk_sizes_d = {}
@@ -214,8 +211,12 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
 
         if perc_callback:
             if (time.time() - lc_time) > perc_callback_freq:
-                perc_callback((cnt * CHUNKSIZE) / (float(total) / 100))
+                perc = (cnt * CHUNKSIZE) / (float(total) / 100)
 
+                if perc > 100:
+                    perc = 100
+
+                perc_callback(perc)
                 lc_time = time.time()
 
         if len(chunk) == total:
