@@ -140,7 +140,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/200MB.zip"
+        fname = "testdata/5MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
 
         def pc(p):
@@ -148,7 +148,19 @@ class CryptoboxAppTest(unittest.TestCase):
             @type p: int
             """
             print "tests.py:152", p
+        import multiprocessing
 
+        stats = os.stat(fname)
+        chunksize = int(float(stats.st_size) / multiprocessing.cpu_count())
+        chunklist = []
+        with open(fname) as infile:
+            chunk = infile.read(chunksize)
+
+            while chunk:
+                chunklist.append(chunk)
+                chunk = infile.read(chunksize)
+
+        l = len(chunklist)
         data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
         enc_data = enc_file.read()
         org_data = (open(fname).read())
@@ -160,7 +172,7 @@ class CryptoboxAppTest(unittest.TestCase):
         org_data = (open(fname).read())
         self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
 
-        self.assertEqual(open(fname).read(), df.read())
+        #self.assertEqual(open(fname).read(), df.read())
 
     def ignore_test_index_no_box_given(self):
         """

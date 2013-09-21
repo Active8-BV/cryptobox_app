@@ -215,7 +215,6 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
 
                 #if perc > 100:
                 #    perc = 100
-
                 perc_callback(perc)
                 lc_time = time.time()
 
