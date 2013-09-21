@@ -18,6 +18,7 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
     instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, \
     remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
+from cba_crypto import encrypt_file
 
 
 def count_files_dir(fpath):
@@ -57,6 +58,12 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
+        testfile_sizes = ["100MB.zip", "20MB.zip", "5MB.zip", "1GB.zip", "50MB.zip"]
+        for tfn in testfile_sizes:
+            print "source/commands/testdata/" + tfn
+            if not os.path.exists(os.path.join("testdata", tfn)):
+                os.system("cd testdata; wget http://download.thinkbroadband.com/" + tfn)
+
 
         #sys.stdout = open('stdout.txt', 'w')
         #sys.stderr = open('stderr.txt', 'w')
@@ -129,6 +136,13 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
+    def test_encrypt_file(self):
+        """
+        test_encrypt_file
+        """
+        self.do_wait_for_tasks = False
+        fname = "testdata/"
+
     def ignore_test_index_no_box_given(self):
         """
         test_index
@@ -185,7 +199,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
-    def test_index_encrypt_decrypt_clean(self):
+    def ignore_test_index_encrypt_decrypt_clean(self):
         """
         test_index_encrypt_decrypt_clean
         """
