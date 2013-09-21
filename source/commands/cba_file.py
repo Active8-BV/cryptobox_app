@@ -47,6 +47,7 @@ def read_file(path, read_data=False):
         data = open(path, "rb").read()
     else:
         data = None
+
     stats = os.stat(path)
     return stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid, data
 
@@ -63,7 +64,9 @@ def read_file_to_fdict(path, read_data=False):
                  "st_mtime": int(ft[2]),
                  "st_mode": int(ft[3]),
                  "st_uid": int(ft[4]),
+
                  "st_gid": int(ft[5])}
+
     if read_data:
         file_dict["data"] = ft[6]
 
@@ -92,13 +95,16 @@ def read_and_encrypt_file(fpath, blobpath, salt, secret):
     try:
         file_dict = read_file_to_fdict(fpath)
         encrypted_file_dict = {}
+
         def enc_callback(p):
-            print p
+            print "cba_file.py:102", p
+
         data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback)
         encrypted_file_dict["data_hash"] = data_hash
         encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s
         encrypted_file_dict["chunk_sizes"] = chunk_sizes
         encrypted_file_dict["encrypted_data"] = encrypted_data
+
         #encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
         pickle_object(blobpath, encrypted_file_dict)
         return None

@@ -149,6 +149,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
 
     return dec_file
 
+
 #noinspection PyDictCreation,PyPep8Naming
 
 
@@ -175,6 +176,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         fin.seek(0, os.SEEK_END)
         total = fin.tell()
         fin.seek(0)
+
     Random.atfork()
     total = int(total)
     fin.seek(0)
@@ -227,6 +229,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         perc_callback(100.0)
 
     return data_hash, initialization_vector, chunk_sizes_d, enc_file, secret
+
 
 def encrypt(salt, secret, data):
     """

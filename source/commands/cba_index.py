@@ -363,7 +363,7 @@ def decrypt_and_build_filetree(memory, options):
                 if not os.path.exists(fpath):
                     hashes.add(cfile["hash"])
 
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    pool = multiprocessing.dummy.Pool(processes=multiprocessing.cpu_count())
     progressdata = {"processed_files": 0,
                     "numfiles": len(hashes)}
 
