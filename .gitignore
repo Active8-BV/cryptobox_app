@@ -1,3 +1,8 @@
+source/commands/testdata/100MB.zip
+source/commands/testdata/20MB.zip
+source/commands/testdata/5MB.zip
+source/commands/testdata/1GB.zip
+source/commands/testdata/50MB.zip
 Cryptobox/images/Thumbs.db
 cba_main.spec
 cp.py.lnk
