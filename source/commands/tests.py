@@ -6,9 +6,10 @@ __author__ = 'rabshakeh'
 import os
 import pickle
 import unittest
+import random
 from subprocess import Popen, PIPE
 from cba_main import cryptobox_command
-from cba_utils import Dict2Obj
+from cba_utils import Dict2Obj, run_in_pool
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
 from cba_blobs import get_blob_dir, get_data_dir
@@ -19,6 +20,13 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
     remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
 from cba_crypto import encrypt_file, decrypt_file, make_hash_str
+
+
+def add(a, b):
+    """
+    add
+    """
+    return a + b
 
 
 def count_files_dir(fpath):
@@ -62,7 +70,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         for tfn in testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
-                os.system("cd testdata; wget http://download.thinkbroadband.com/" + tfn)
+                os.system("cd testdata; nohup wget http://download.thinkbroadband.com/" + tfn + " &")
 
         #sys.stdout = open('stdout.txt', 'w')
         #sys.stderr = open('stderr.txt', 'w')
@@ -135,23 +143,31 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def test_encrypt_file(self):
+    def test_run_in_pool(self):
+        self.do_wait_for_tasks = False
+
+        items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
+        res_items = [x[0]+x[1] for x in items]
+        res_items2 = run_in_pool(4, items, "add", add)
+        self.assertEquals(res_items, res_items2)
+
+    def ignore_test_encrypt_file(self):
         """
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/5MB.zip"
+        fname = "testdata/50MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
 
         def pc(p):
             """
             @type p: int
             """
-            print "tests.py:152", p
+            print "tests.py:168", p
         import multiprocessing
 
         stats = os.stat(fname)
-        chunksize = int(float(stats.st_size) / multiprocessing.cpu_count())
+        chunksize = int(float(stats.st_size) / multiprocessing.cpu_count()) + 64
         chunklist = []
         with open(fname) as infile:
             chunk = infile.read(chunksize)
@@ -161,7 +177,13 @@ class CryptoboxAppTest(unittest.TestCase):
                 chunk = infile.read(chunksize)
 
         l = len(chunklist)
-        data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
+        from StringIO import StringIO
+
+        for chunk in chunklist:
+            data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, StringIO(chunk), perc_callback=pc)
+
+        return
+
         enc_data = enc_file.read()
         org_data = (open(fname).read())
         self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))

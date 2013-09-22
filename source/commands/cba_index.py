@@ -7,12 +7,11 @@ import shutil
 import base64
 import multiprocessing
 from Crypto import Random
-from cba_utils import log, strcmp, get_uuid
+from cba_utils import log, strcmp, get_uuid, update_progress
 from cba_memory import Memory
 from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
-from cba_feedback import update_progress
 
 
 class TreeLoadError(Exception):
@@ -398,5 +397,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:403"
+        print "cba_index.py:402"
     return memory

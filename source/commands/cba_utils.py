@@ -6,8 +6,90 @@ import sys
 import time
 import multiprocessing
 import uuid as _uu
+import math
+last_update_string_len = 0
+
+
 g_lock = multiprocessing.Lock()
 DEBUG = True
+from multiprocessing import Pool
+
+
+def update_progress(curr, total, msg, console=False):
+    """
+    @type curr: int
+    @type total: int
+    @type msg: str or unicode
+    @type console: bool
+    """
+    from cba_memory import update_memory_progress
+    global last_update_string_len
+    if total == 0:
+        return
+
+    progress = int(math.ceil(float(curr) / (float(total) / 100)))
+
+    if progress > 100:
+        progress = 100
+
+    update_memory_progress(progress)
+    msg = msg + " " + str(curr) + "/" + str(total)
+    update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
+
+    #update_string = "{0}% {1}".format(progress, msg)
+
+    if console:
+
+        #if len(update_string) < last_update_string_len:
+        #    sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
+        sys.stderr.write(update_string + "\n")
+        sys.stderr.flush()
+
+    last_update_string_len = len(update_string)
+
+
+def run_in_pool(num_procs, items, name, method, base_params=()):
+    """
+    @type num_procs: int
+    @type items: list
+    @type name: str, unicode
+    @type method: function
+    @type base_params: tuple
+    """
+    pool = Pool(processes=num_procs)
+    results = []
+
+    def done_proc(result_func):
+        """
+        done_downloading
+        @type result_func: object
+        """
+        print "cba_utils.py:69", result_func
+        results.append(result_func)
+        update_progress(len(results), len(items), name)
+
+    calculation_result = []
+
+    for item in items:
+        base_params_list = list(base_params)
+
+        for i in item:
+            base_params_list.append(i)
+
+        params = tuple(base_params_list)
+        result = pool.apply_async(method, params, callback=done_proc)
+        calculation_result.append(result)
+
+    pool.close()
+    pool.join()
+    calculation_result_values = []
+
+    for result in calculation_result:
+        if not result.successful():
+            calculation_result_values.append(result.get())
+
+    pool.terminate()
+    return calculation_result_values
 
 
 def exist(data):
@@ -99,7 +181,7 @@ def log(*arg):
     @type arg:
     """
     msg = " ".join([str(s) for s in arg]).strip(" ")
-    sys.stderr.write(msg+"\n")
+    sys.stderr.write(msg + "\n")
     sys.stderr.flush()
 
 
@@ -239,8 +321,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:244", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:245", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:326", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:327", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
