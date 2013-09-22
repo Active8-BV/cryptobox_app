@@ -20,6 +20,7 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
     remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
 from cba_crypto import encrypt_file, decrypt_file, make_hash_str
+from StringIO import StringIO
 
 
 def add(a, b):
@@ -27,6 +28,13 @@ def add(a, b):
     add
     """
     return a + b
+
+
+def pc(p):
+    """
+    @type p: int
+    """
+    print "tests.py:39", p
 
 
 def count_files_dir(fpath):
@@ -41,6 +49,13 @@ def count_files_dir(fpath):
             s.add(f)
 
     return len(s)
+
+
+def encrypt_a_file(secret, pc, chunk):
+    """
+    encrypt_a_file
+    """
+    return encrypt_file(secret, StringIO(chunk), perc_callback=pc)
 
 #noinspection PyPep8Naming
 
@@ -143,27 +158,21 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def test_run_in_pool(self):
+    def ignore_test_run_in_pool(self):
         self.do_wait_for_tasks = False
 
         items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
         res_items = [x[0]+x[1] for x in items]
-        res_items2 = run_in_pool(4, items, "add", add)
+        res_items2 = run_in_pool(items, "add", add)
         self.assertEquals(res_items, res_items2)
 
-    def ignore_test_encrypt_file(self):
+    def test_encrypt_file(self):
         """
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
         fname = "testdata/50MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
-
-        def pc(p):
-            """
-            @type p: int
-            """
-            print "tests.py:168", p
         import multiprocessing
 
         stats = os.stat(fname)
@@ -177,7 +186,9 @@ class CryptoboxAppTest(unittest.TestCase):
                 chunk = infile.read(chunksize)
 
         l = len(chunklist)
-        from StringIO import StringIO
+        x = run_in_pool(chunklist, "encrypt_file", encrypt_a_file, base_params=(secret, pc))
+        pass
+        return
 
         for chunk in chunklist:
             data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, StringIO(chunk), perc_callback=pc)
