@@ -79,8 +79,8 @@ def encrypt_file_smp(secret, fname):
     l = len(chunklist)
     x = run_in_pool(chunklist, encrypt_a_file, base_params=(secret, pc))
 
-#noinspection PyPep8Naming
 
+#noinspection PyPep8Naming
 class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
