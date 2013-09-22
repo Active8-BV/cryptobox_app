@@ -12,9 +12,8 @@ import shutil
 from multiprocessing.dummy import Pool
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
-from cba_feedback import update_progress
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress
 from cba_memory import have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
@@ -663,7 +662,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:668", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:667", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

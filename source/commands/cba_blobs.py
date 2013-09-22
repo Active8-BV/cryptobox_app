@@ -4,9 +4,8 @@ blob routines, loosely based on git
 """
 import os
 import multiprocessing
-from cba_utils import handle_exception, strcmp
+from cba_utils import handle_exception, strcmp, update_progress
 from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file
-from cba_feedback import update_progress
 from cba_memory import add_local_file_history, add_server_file_history
 
 
