@@ -36,12 +36,7 @@ def update_progress(curr, total, msg, console=False):
     msg = msg + " " + str(curr) + "/" + str(total)
     update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
 
-    #update_string = "{0}% {1}".format(progress, msg)
-
     if console:
-
-        #if len(update_string) < last_update_string_len:
-        #    sys.stderr.write("\r\033[94m{0}\033[0m".format(" " * 100))
         sys.stderr.write(update_string + "\n")
         sys.stderr.flush()
 
@@ -64,7 +59,7 @@ def run_in_pool(num_procs, items, name, method, base_params=()):
         done_downloading
         @type result_func: object
         """
-        print "cba_utils.py:69", result_func
+        print "cba_utils.py:64", result_func
         results.append(result_func)
         update_progress(len(results), len(items), name)
 
@@ -321,8 +316,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:326", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:327", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:321", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:322", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
