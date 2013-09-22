@@ -43,10 +43,9 @@ def update_progress(curr, total, msg, console=True):
     last_update_string_len = len(update_string)
 
 
-def run_in_pool(items, name, method, base_params=()):
+def run_in_pool(items, method, base_params=()):
     """
     @type items: list
-    @type name: str, unicode
     @type method: function
     @type base_params: tuple
     """
@@ -319,8 +318,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:325", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:323", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 

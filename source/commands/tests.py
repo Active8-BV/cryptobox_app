@@ -22,6 +22,7 @@ from cba_file import ensure_directory
 from cba_crypto import encrypt_file, decrypt_file, make_hash_str
 from StringIO import StringIO
 from Crypto import Random
+import multiprocessing
 
 
 def add(a, b):
@@ -35,7 +36,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:40", p
+    print "tests.py:41", p
 
 
 def count_files_dir(fpath):
@@ -58,6 +59,25 @@ def encrypt_a_file(secret, pc, chunk):
     """
     Random.atfork()
     return encrypt_file(secret, StringIO(chunk), perc_callback=pc)
+
+
+def encrypt_file_smp(secret, fname):
+    """
+    @type secret: str, unicode
+    @type fname: str, unicode
+    """
+    stats = os.stat(fname)
+    chunksize = int(float(stats.st_size) / multiprocessing.cpu_count()) + 64
+    chunklist = []
+    with open(fname) as infile:
+        chunk = infile.read(chunksize)
+
+        while chunk:
+            chunklist.append(chunk)
+            chunk = infile.read(chunksize)
+
+    l = len(chunklist)
+    x = run_in_pool(chunklist, encrypt_a_file, base_params=(secret, pc))
 
 #noinspection PyPep8Naming
 
@@ -170,31 +190,26 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def itest_encrypt_file(self):
         self.do_wait_for_tasks = False
-        fname = "testdata/50MB.zip"
+        fname = "testdata/1MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
+        enc_data = enc_file.read()
+        org_data = (open(fname).read())
+        self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))
+
+        enc_file.seek(0)
+        df = decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
+        dec_data = df.read()
+        org_data = (open(fname).read())
+        self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
 
     def test_encrypt_file_smp(self):
         """
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/20MB.zip"
+        fname = "testdata/1MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
-        import multiprocessing
-
-        stats = os.stat(fname)
-        chunksize = int(float(stats.st_size) / multiprocessing.cpu_count()) + 64
-        chunklist = []
-        with open(fname) as infile:
-            chunk = infile.read(chunksize)
-
-            while chunk:
-                chunklist.append(chunk)
-                chunk = infile.read(chunksize)
-
-        l = len(chunklist)
-        x = run_in_pool(chunklist, "encrypt_file", encrypt_a_file, base_params=(secret, pc))
         pass
         return
 
