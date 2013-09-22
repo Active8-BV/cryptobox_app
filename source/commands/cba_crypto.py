@@ -260,7 +260,6 @@ def encrypt(salt, secret, data):
 
     return encrypted_data_dict
 
-
 class EncryptionHashMismatch(Exception):
     """
     raised when the hash of the decrypted data doesn't match the hash of the original data

@@ -117,20 +117,17 @@ def request_error(result):
     os.remove("error.html")
     return
 
-
 class ServerForbidden(Exception):
     """
     ServerForbidden
     """
     pass
 
-
 class ServerError(Exception):
     """
     ServerError
     """
     pass
-
 
 class NotAuthorized(Exception):
     """
@@ -244,7 +241,6 @@ def server_time(memory, options):
     result, memory = on_server(memory, options, "clock", payload=None, session=None)
     stime = float(result[0])
     return stime, memory
-
 
 class PasswordException(Exception):
     """

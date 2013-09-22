@@ -95,7 +95,6 @@ def have_blob(options, blob_hash):
     blobpath = os.path.join(blobdir, blob_hash[2:])
     return os.path.exists(blobpath)
 
-
 class NoTimeStamp(Exception):
     """
     NoTimeStamp
