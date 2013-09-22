@@ -55,6 +55,7 @@ def encrypt_a_file(secret, pc, chunk):
     """
     encrypt_a_file
     """
+    Random.at_fork()
     return encrypt_file(secret, StringIO(chunk), perc_callback=pc)
 
 #noinspection PyPep8Naming
