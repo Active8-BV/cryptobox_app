@@ -83,7 +83,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
-        testfile_sizes = ["200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "1GB.zip", "50MB.zip"]
+        testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "1GB.zip", "50MB.zip"]
 
         for tfn in testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
