@@ -8,7 +8,6 @@ on_change_path cba_main.py
 on_change_path cba_utils.py
 on_change_path cba_crypto.py
 on_change_path cba_memory.py
-on_change_path cba_feedback.py
 on_change_path cba_blobs.py
 on_change_path cba_index.py
 on_change_path cba_network.py
