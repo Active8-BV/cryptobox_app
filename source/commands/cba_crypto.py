@@ -211,10 +211,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
 
         if perc_callback:
             if (time.time() - lc_time) > perc_callback_freq:
-                perc = (cnt * CHUNKSIZE) / (float(total) / 100)
-
-                #if perc > 100:
-                #    perc = 100
+                perc = ((cnt * CHUNKSIZE) / (float(total) / 100))
                 perc_callback(perc)
                 lc_time = time.time()
 
