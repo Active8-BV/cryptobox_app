@@ -43,15 +43,14 @@ def update_progress(curr, total, msg, console=False):
     last_update_string_len = len(update_string)
 
 
-def run_in_pool(num_procs, items, name, method, base_params=()):
+def run_in_pool(items, name, method, base_params=()):
     """
-    @type num_procs: int
     @type items: list
     @type name: str, unicode
     @type method: function
     @type base_params: tuple
     """
-    pool = Pool(processes=num_procs)
+    pool = Pool(processes=multiprocessing.cpu_count())
     results = []
 
     def done_proc(result_func):
@@ -59,9 +58,10 @@ def run_in_pool(num_procs, items, name, method, base_params=()):
         done_downloading
         @type result_func: object
         """
-        print "cba_utils.py:64", result_func
+        print "cba_utils.py:63", result_func
         results.append(result_func)
         update_progress(len(results), len(items), name)
+        return result_func
 
     calculation_result = []
 
@@ -81,6 +81,8 @@ def run_in_pool(num_procs, items, name, method, base_params=()):
 
     for result in calculation_result:
         if not result.successful():
+            result.get()
+        else:
             calculation_result_values.append(result.get())
 
     pool.terminate()
@@ -316,8 +318,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:321", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:322", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:323", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
