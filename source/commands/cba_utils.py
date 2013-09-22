@@ -15,7 +15,7 @@ DEBUG = True
 from multiprocessing import Pool
 
 
-def update_progress(curr, total, msg, console=False):
+def update_progress(curr, total, msg, console=True):
     """
     @type curr: int
     @type total: int
@@ -58,9 +58,7 @@ def run_in_pool(items, name, method, base_params=()):
         done_downloading
         @type result_func: object
         """
-        print "cba_utils.py:63", result_func
         results.append(result_func)
-        update_progress(len(results), len(items), name)
         return result_func
 
     calculation_result = []
@@ -68,8 +66,11 @@ def run_in_pool(items, name, method, base_params=()):
     for item in items:
         base_params_list = list(base_params)
 
-        for i in item:
-            base_params_list.append(i)
+        if isinstance(item, tuple):
+            for i in item:
+                base_params_list.append(i)
+        else:
+            base_params_list.append(item)
 
         params = tuple(base_params_list)
         result = pool.apply_async(method, params, callback=done_proc)
@@ -318,8 +319,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:323", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:325", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 

@@ -21,6 +21,7 @@ from cba_sync import get_server_index, parse_serverindex, instruct_server_to_del
 from cba_file import ensure_directory
 from cba_crypto import encrypt_file, decrypt_file, make_hash_str
 from StringIO import StringIO
+from Crypto import Random
 
 
 def add(a, b):
@@ -34,7 +35,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:39", p
+    print "tests.py:40", p
 
 
 def count_files_dir(fpath):
@@ -55,7 +56,7 @@ def encrypt_a_file(secret, pc, chunk):
     """
     encrypt_a_file
     """
-    Random.at_fork()
+    Random.atfork()
     return encrypt_file(secret, StringIO(chunk), perc_callback=pc)
 
 #noinspection PyPep8Naming
@@ -167,12 +168,18 @@ class CryptoboxAppTest(unittest.TestCase):
         res_items2 = run_in_pool(items, "add", add)
         self.assertEquals(res_items, res_items2)
 
-    def test_encrypt_file(self):
+    def itest_encrypt_file(self):
+        self.do_wait_for_tasks = False
+        fname = "testdata/50MB.zip"
+        secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
+        data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
+
+    def test_encrypt_file_smp(self):
         """
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/50MB.zip"
+        fname = "testdata/20MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         import multiprocessing
 
