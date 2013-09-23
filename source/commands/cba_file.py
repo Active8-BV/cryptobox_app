@@ -64,8 +64,7 @@ def read_file_to_fdict(path, read_data=False): # ##^ funct1on def python 0
                  "st_mtime": int(ft[2]), # ##^ funct1on call 0
                  "st_mode": int(ft[3]), # ##^ funct1on call 0
                  "st_uid": int(ft[4]), # ##^ funct1on call 0
-
-                 "st_gid": int(ft[5])} # ##^ methodcall not after ass1gnment 0
+                 "st_gid": int(ft[5])} # ##^ methodcallnested method call 0
 
     if read_data: # ##^  scope 1
         file_dict["data"] = ft[6] # ##^ ass1gnment 1
@@ -181,5 +180,6 @@ def make_cryptogit_hash(fpath, datadir, localindex): # ##^ funct1on def python -
     del file_dict["data"] # ##^  scope -2
     localindex["filestats"][fpath] = file_dict # ##^ ass1gnment -2
     return filedata, localindex # ##^ retrn |  -2
+ # ##^ global_class_declare -2 # ##^  -2
 
  # ##^ global_class_declare -2
