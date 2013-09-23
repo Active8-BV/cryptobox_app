@@ -233,11 +233,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             last_progress_bar_item = progress_bar_item
 
             if progress == 0
-                if last_progress_bar != 0
+                if last_progress_bar > 60
                     progress_bar = 100
 
             if progress_item == 0
-                if last_progress_bar_item != 0
+                if last_progress_bar_item > 60
                     progress_bar_item = 100
 
             if progress > parseInt(progress_bar, 10)

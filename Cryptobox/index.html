@@ -133,12 +133,36 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
+                <table class="table" ng-show="file_downloads">                    
+                    <tr class="success">
+                        <td>files to download</td>
+                    </tr>                    
+                    <tr ng-repeat="f in file_downloads">
+                        <td>{{ cb_folder_text }}{{ f.doc.m_path }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
                 <table class="table" ng-show="file_uploads">                    
                     <tr class="success">
                         <td>files to upload</td>
                     </tr>                    
                     <tr ng-repeat="f in file_uploads">
                         <td>{{ f.local_file_path }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="table" ng-show="dir_del_server">                    
+                    <tr class="warning">
+                        <td>folders to delete on server</td>
+                    </tr>                    
+                    <tr ng-repeat="f in dir_del_server">
+                        <td>{{ f }}</td>
                     </tr>
                 </table>
             </div>

@@ -417,31 +417,32 @@ def main():
     """
     (options, args) = add_options()
 
-    #noinspection PyBroadException,PyUnusedLocal
-    me = singleton.SingleInstance()
-    queue = multiprocessing.Queue()
-    log("xmlrpc server up")
-    commandserver = XMLRPCThread(args=(queue,))
-    commandserver.start()
-    if options.cryptobox or options.version:
+    if not options.cryptobox and not options.version:
+        #noinspection PyBroadException,PyUnusedLocal
+        me = singleton.SingleInstance()
+        queue = multiprocessing.Queue()
+        log("xmlrpc server up")
+        commandserver = XMLRPCThread(args=(queue,))
+        commandserver.start()
+
+        while True:
+            time.sleep(5)
+
+            try:
+                if commandserver.is_alive():
+                    s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+                    socket.setdefaulttimeout(60)
+                    s.ping()
+                    socket.setdefaulttimeout(None)
+            except socket.error, ex:
+                print "cba_main.py:438", "kill it", ex
+                commandserver.terminate()
+
+            if not commandserver.is_alive():
+                break
+
+    else:
         cryptobox_command(options)
-        commandserver.terminate()
-
-    while True:
-        time.sleep(5)
-
-        try:
-            if commandserver.is_alive():
-                s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                socket.setdefaulttimeout(60)
-                s.ping()
-                socket.setdefaulttimeout(None)
-        except socket.error, ex:
-            print "cba_main.py:440", "kill it", ex
-            commandserver.terminate()
-
-        if not commandserver.is_alive():
-            break
 
 
 if strcmp(__name__, '__main__'):
@@ -452,4 +453,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:455", "\nbye main"
+        print "cba_main.py:456", "\nbye main"
