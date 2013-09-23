@@ -4,7 +4,7 @@ file operations
 """
 import os
 from cba_utils import handle_exception, strcmp, log
-from cba_crypto import pickle_object, unpickle_object, make_sha1_hash, encrypt_file
+from cba_crypto import pickle_object, unpickle_object, make_sha1_hash, decrypt_file_smp, encrypt_file_smp
 
 
 def ensure_directory(path):
@@ -86,25 +86,12 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     """
     @type fpath: str or unicode
     @type blobpath: str or unicode
-    @type salt: str or unicode
     @type secret: str or unicode
     @return: @rtype:
     """
-
     try:
-
-        #file_dict = read_file_to_fdict(fpath)
-        encrypted_file_dict = {}
-        data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback)
-
-        #encrypt_file_smp
-        encrypted_file_dict["data_hash"] = data_hash
-        encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s
-        encrypted_file_dict["chunk_sizes"] = chunk_sizes
-        encrypted_file_dict["encrypted_data"] = encrypted_data
-
-        #encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
-        pickle_object(blobpath, encrypted_file_dict)
+        enc_file_struct = encrypt_file_smp(secret, fpath)
+        pickle_object(blobpath, enc_file_struct)
         return None
     except Exception, e:
         handle_exception(e)
@@ -117,11 +104,10 @@ def decrypt_file_and_write(fpath, unenc_path, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
-
     try:
-        encrypted_file_dict = unpickle_object(fpath)
-        unencrypted_file_dict = decrypt(secret, encrypted_file_dict)
-        open(unenc_path, "wb").write(unencrypted_file_dict)
+        enc_file_struct = unpickle_object(fpath)
+        dec_file = decrypt_file_smp(secret, enc_file_struct)
+        open(unenc_path, "wb").write(dec_file.read())
         return None
     except Exception, e:
         handle_exception(e)
@@ -138,8 +124,9 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     @param secret: str or unicode
     @type secret:
     """
+    
     blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
-    file_blob = {"data": decrypt(secret, blob_enc)}
+    file_blob = {"data": decrypt_file_smp(secret, blob_enc).read()}
     paths = []
 
     for dirhash in cryptobox_index["dirnames"]:
@@ -167,6 +154,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @type localindex: dict
     @return: @rtype:
     """
+
     file_dict = read_file_to_fdict(fpath, read_data=True)
     filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
