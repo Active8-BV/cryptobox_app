@@ -158,7 +158,7 @@ class CryptoboxAppTest(unittest.TestCase):
         res_items2 = run_in_pool(items, add)
         self.assertEquals(res_items, res_items2)
 
-    def itest_encrypt_file(self):
+    def ignore_test_encrypt_file(self):
         self.do_wait_for_tasks = False
         fname = "testdata/200MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
@@ -173,7 +173,7 @@ class CryptoboxAppTest(unittest.TestCase):
         org_data = (open(fname).read())
         self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
 
-    def test_encrypt_file_smp(self):
+    def ignore_test_encrypt_file_smp(self):
         """
         test_encrypt_file
         """
@@ -245,13 +245,12 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
-    def ignore_test_index_encrypt_decrypt_clean(self):
+    def test_index_encrypt_decrypt_clean(self):
         """
         test_index_encrypt_decrypt_clean
         """
-        self.complete_reset()
-        self.reset_cb_db_clean()
         self.do_wait_for_tasks = False
+        self.complete_reset()
         self.unzip_testfiles_clean()
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
 
