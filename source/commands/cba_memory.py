@@ -5,17 +5,20 @@ memory singleton which get written to disk
 import os
 from cba_crypto import pickle_object, unpickle_object, make_sha1_hash
 
+
 class SingletonMemoryNoKey(Exception):
     """
     SingletonMemoryNoKey
     """
     pass
 
+
 class SingletonMemoryExpired(Exception):
     """
     SingletonMemoryExpired
     """
     pass
+
 
 class SingletonMemory(object):
     #noinspection PyUnresolvedReferences
@@ -87,11 +90,13 @@ class SingletonMemory(object):
         """
         return len(self.data)
 
+
 class MemoryNoKey(Exception):
     """
     MemoryNoKey
     """
     pass
+
 
 class MemoryExpired(Exception):
     """
@@ -99,11 +104,13 @@ class MemoryExpired(Exception):
     """
     pass
 
+
 class ListNameClash(Exception):
     """
     ListNameClash
     """
     pass
+
 
 class ListDoesNotExist(Exception):
     """
@@ -111,11 +118,13 @@ class ListDoesNotExist(Exception):
     """
     pass
 
+
 class MemoryCorruption(Exception):
     """
     MemoryCorruption
     """
     pass
+
 
 class Memory(object):
     """

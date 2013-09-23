@@ -7,14 +7,15 @@ import os
 import json
 import base64
 import time
-import tempfile
+import multiprocessing
 import cPickle
+from StringIO import StringIO
 import jsonpickle
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512, HMAC
-from Crypto.Cipher import Blowfish, AES
+from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import strcmp, DEBUG
+from cba_utils import run_in_pool, DEBUG
 
 
 def make_sha1_hash(data):
@@ -80,6 +81,13 @@ def password_derivation(key, salt):
     return PBKDF2(key, salt, size)
 
 
+class EncryptionHashMismatch(Exception):
+    """
+    EncryptionHashMismatch
+    """
+    pass
+
+
 def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=0.5):
     """
     @param secret: generated secret pkdf2
@@ -91,7 +99,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
     @param chunk_sizes: sizes of the chunks
     @type chunk_sizes: list, dict
     @param encrypted_data: the encrypted data
-    @type encrypted_data: file
+    @type encrypted_data: file, StringIO
     @param perc_callback: callback progress
     @type perc_callback: function
     @param perc_callback_freq: callback frequency
@@ -100,7 +108,6 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
     @rtype: file
     """
     cnt = 0
-    padding = "{"
 
     if not secret:
         raise Exception("no secret in decrypt file")
@@ -109,7 +116,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
         raise Exception("initialization_vector len is not 16")
 
     lc_time = time.time()
-    dec_file = tempfile.TemporaryFile("r+w")
+    dec_file = StringIO()
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
 
     while True:
@@ -124,7 +131,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
             encrypted_chunk = chunk_sizes["last"][1]
 
         chunk = encrypted_data.read(encrypted_chunk)
-        dec_data = cipher.decrypt(chunk).rstrip(padding)
+        dec_data = cipher.decrypt(chunk)
         dec_data = dec_data[0:decrypted_chunk]
         dec_file.write(dec_data)
 
@@ -180,7 +187,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
     Random.atfork()
     total = int(total)
     fin.seek(0)
-    enc_file = tempfile.TemporaryFile("w+r")
+    enc_file = StringIO()
     data_hash = ""
     initialization_vector = Random.new().read(AES.block_size)
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
@@ -228,70 +235,57 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
     return data_hash, initialization_vector, chunk_sizes_d, enc_file, secret
 
 
-def encrypt(salt, secret, data):
+def progress_file_cryption(p):
     """
-    @param salt: str or unicode
-    @type salt:
-    @param secret: str or unicode
-    @type secret:
-    @param data:
-    @type data:
-    @return: @rtype: @raise:
+    @type p: int
+    """
+    print "cba_crypto.py:244", "tests.py:77", p
 
+
+def encrypt_a_file(secret, perc_callback, chunk):
+    """
+    encrypt_a_file
+    @type secret: str, unicode
+    @type perc_callback: function
+    @type chunk: unicode, str
     """
     Random.atfork()
-    initialization_vector = Random.new().read(Blowfish.block_size)
-    cipher = Blowfish.new(secret, Blowfish.MODE_CBC, initialization_vector)
-    pad = lambda s: s + (8 - len(s) % 8) * "{"
-    data_hash = make_hash_str(data, secret)
-    encoded_data = cipher.encrypt(pad(data))
-    encoded_hash = make_hash_str(encoded_data, secret)
-    encrypted_data_dict = {
-        "salt": salt,
-        "hash": data_hash,
-        "initialization_vector": initialization_vector,
-        "encoded_data": encoded_data
-    }
-    if strcmp(encoded_hash, data_hash) and len(data.strip()) > 0:
-        raise Exception("data is not encrypted")
+    return encrypt_file(secret, StringIO(chunk), perc_callback=perc_callback)
 
-    return encrypted_data_dict
 
-class EncryptionHashMismatch(Exception):
+def encrypt_file_smp(secret, fname):
     """
-    raised when the hash of the decrypted data doesn't match the hash of the original data
-
+    @type secret: str, unicode
+    @type fname: str, unicode
     """
-    pass
+    stats = os.stat(fname)
+    chunksize = int(float(stats.st_size) / multiprocessing.cpu_count()) + 64
+    chunklist = []
+    with open(fname) as infile:
+        chunk = infile.read(chunksize)
+
+        while chunk:
+            chunklist.append(chunk)
+            chunk = infile.read(chunksize)
+
+    encrypted_file_chunks = run_in_pool(chunklist, encrypt_a_file, base_params=(secret, progress_file_cryption))
+    return encrypted_file_chunks
 
 
-#noinspection PyArgumentEqualDefault
-def decrypt(secret, encrypted_data_dict, hashcheck=True):
+def decrypt_file_smp(secret, enc_file_chunks):
     """
-    encrypt data or a list of data with the password (key)
-    @type secret: string, unicode
-    @type hashcheck: bool
-    @param encrypted_data_dict: encrypted data
-    @type encrypted_data_dict: dict
-    @return: the data
-    @rtype: list, bytearray
+    @type secret: str, unicode
+    @type enc_file_chunks: list
     """
-    if not isinstance(encrypted_data_dict, dict):
-        pass
+    dec_file = StringIO()
 
-    if 8 != len(encrypted_data_dict["initialization_vector"]):
-        raise Exception("initialization_vector len is not 16")
+    chunks_param_sorted = [(secret, chunk[3], chunk[0], chunk[1], chunk[2], progress_file_cryption) for chunk in enc_file_chunks]
+    dec_file_chunks = run_in_pool(chunks_param_sorted, decrypt_file)
 
-    cipher = Blowfish.new(secret, Blowfish.MODE_CBC, encrypted_data_dict["initialization_vector"])
-    decoded = cipher.decrypt(encrypted_data_dict["encoded_data"]).rstrip("{")
-    data_hash = make_hash_str(decoded, secret)
-
-    if "hash" in encrypted_data_dict and hashcheck:
-        if len(decoded) > 0:
-            if data_hash != encrypted_data_dict["hash"]:
-                raise EncryptionHashMismatch("the decryption went wrong, hash didn't match")
-
-    return decoded
+    for chunk_dec_file in dec_file_chunks:
+        dec_file.write(chunk_dec_file.read())
+    dec_file.seek(0)
+    return dec_file
 
 
 def json_object(path, targetobject):

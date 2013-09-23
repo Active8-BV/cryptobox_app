@@ -13,6 +13,7 @@ from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, enc
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
 
+
 class TreeLoadError(Exception):
     """
     TreeLoadError
@@ -29,6 +30,7 @@ def get_cryptobox_index(memory):
         return memory.get("cryptobox_index")
     else:
         return dict()
+
 
 class NoLocalIndex(Exception):
     """
@@ -395,5 +397,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:400"
+        print "cba_index.py:402"
     return memory

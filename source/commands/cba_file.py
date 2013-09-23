@@ -93,13 +93,11 @@ def read_and_encrypt_file(fpath, blobpath, salt, secret):
     """
 
     try:
-        file_dict = read_file_to_fdict(fpath)
+
+        #file_dict = read_file_to_fdict(fpath)
         encrypted_file_dict = {}
-
-        def enc_callback(p):
-            print "cba_file.py:102", p
-
         data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback)
+        encrypt_file_smp
         encrypted_file_dict["data_hash"] = data_hash
         encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s
         encrypted_file_dict["chunk_sizes"] = chunk_sizes

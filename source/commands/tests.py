@@ -8,28 +8,15 @@ import pickle
 import unittest
 import random
 from subprocess import Popen, PIPE
-from StringIO import StringIO
-import multiprocessing
-from Crypto import Random
 from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, run_in_pool
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
-from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, \
-    dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, \
-    instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, \
-    remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
+from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
-from cba_crypto import encrypt_file, decrypt_file, make_hash_str
-
-
-def add(a, b):
-    """
-    add
-    """
-    return a + b
+from cba_crypto import encrypt_file, decrypt_file, make_hash_str, encrypt_file_smp, decrypt_file_smp
 
 
 def count_files_dir(fpath):
@@ -45,60 +32,9 @@ def count_files_dir(fpath):
 
     return len(s)
 
-
-def encrypt_a_file(secret, perc_callback, chunk):
-    """
-    encrypt_a_file
-    @type secret: str, unicode
-    @type perc_callback: function
-    @type chunk: unicode, str
-    """
-    Random.atfork()
-    return encrypt_file(secret, StringIO(chunk), perc_callback=perc_callback)
-
-
-def encrypt_a_file(secret, perc_callback, chunk):
-    """
-    encrypt_a_file
-    @type secret: str, unicode
-    @type perc_callback: function
-    @type chunk: unicode, str
-    """
-    Random.atfork()
-    return encrypt_file(secret, StringIO(chunk), perc_callback=perc_callback)
-
-
-def pc(p):
-    """
-    @type p: int
-    """
-    print "tests.py:77", p
-
-
-def encrypt_file_smp(secret, fname):
-    """
-    @type secret: str, unicode
-    @type fname: str, unicode
-    """
-    stats = os.stat(fname)
-    chunksize = int(float(stats.st_size) / multiprocessing.cpu_count()) + 64
-    chunklist = []
-    with open(fname) as infile:
-        chunk = infile.read(chunksize)
-
-        while chunk:
-            chunklist.append(chunk)
-            chunk = infile.read(chunksize)
-
-    encrypted_file_chunks = run_in_pool(chunklist, encrypt_a_file, base_params=(secret, pc))
-    return encrypted_file_chunks
-
-
-def decrypt_file_smp(secret, enc_file_chunk):
-    decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
-
-
 #noinspection PyPep8Naming
+
+
 class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -208,7 +144,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def itest_encrypt_file(self):
         self.do_wait_for_tasks = False
-        fname = "testdata/20MB.zip"
+        fname = "testdata/200MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
         enc_data = enc_file.read()
@@ -226,20 +162,16 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/1MB.zip"
+        fname = "testdata/200MB.zip"
+
+        #fname = "test.js"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file_struct = encrypt_file_smp(secret, fname)
         dec_file = decrypt_file_smp(secret, enc_file_struct)
-        """
-        enc_data = enc_file.read()
-        org_data = (open(fname).read())
-        self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))
-        enc_file.seek(0)
-        df = decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
-        dec_data = df.read()
+        dec_file.seek(0)
+        dec_data = dec_file.read()
         org_data = (open(fname).read())
         self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
-        """
 
     def ignore_test_index_no_box_given(self):
         """
