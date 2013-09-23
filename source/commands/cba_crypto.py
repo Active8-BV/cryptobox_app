@@ -347,6 +347,7 @@ def decrypt_object(secret, obj_string, key=None, give_secret_cb=None): # ##^ fun
             give_secret_cb(secret) # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch 2
 
     return cPickle.loads(decrypt(secret, data, hashcheck=False)) # ##^  wh1tespace |  0
+ # ##^ global_class_declare 0 # ##^  0 # ##^  0
  # ##^ global_class_declare 0 # ##^  0
 
  # ##^ global_class_declare 0
