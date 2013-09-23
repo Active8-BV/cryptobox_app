@@ -41,6 +41,7 @@ def monkeypatch_popen():
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
                     # '/' or '\\' at the end.
+
                     #noinspection PyProtectedMember,PyUnresolvedReferences
                     os.putenv('_MEIPASS2', sys._MEIPASS + os.sep)
 
@@ -248,6 +249,7 @@ class XMLRPCThread(multiprocessing.Process):
 
         try:
             memory = SingletonMemory()
+
             #noinspection PyClassicStyleClass
 
             class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
@@ -255,6 +257,7 @@ class XMLRPCThread(multiprocessing.Process):
                 RequestHandler
                 """
                 rpc_paths = ('/RPC2',)
+
             #noinspection PyClassicStyleClass
 
             class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
@@ -288,8 +291,10 @@ class XMLRPCThread(multiprocessing.Process):
                     :return: :rtype:
                     """
                     self.server_close()
+
                     #noinspection PyAttributeOutsideInit
                     self.stopped = True
+
                     #noinspection PyBroadException
                     try:
                         self.create_dummy_request()
@@ -408,7 +413,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:413", "bye xmlrpc server"
+            print "cba_main.py:418", "bye xmlrpc server"
 
 #noinspection PyClassicStyleClass
 def main():
@@ -435,7 +440,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:440", "kill it", ex
+                print "cba_main.py:445", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -454,4 +459,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:459", "\nbye main"
+        print "cba_main.py:464", "\nbye main"

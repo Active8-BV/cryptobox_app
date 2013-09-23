@@ -50,6 +50,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
+
     #noinspection PyUnusedLocal
     def done_downloading(result_async_method):
         """
@@ -662,7 +663,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:667", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:668", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

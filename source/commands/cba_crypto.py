@@ -156,7 +156,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
 
     return dec_file # ##^  wh1tespace |  0
 
-#noinspection PyDictCreation,PyPep8Naming # ##^ no-1nspect1on 0
+#noinspection PyDictCreation,PyPep8Naming # ##^ pycharm d1rect1ve 0
 def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=0.5): # ##^ global method call 0
     """ # ##^  1n 1n_python_comment 0
     @param secret: pkdf2 secre ADDTYPES # ##^  1n 1n_python_comment 0
@@ -345,6 +345,7 @@ def decrypt_object(secret, obj_string, key=None, give_secret_cb=None): # ##^ fun
             give_secret_cb(secret) # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch 2
 
     return cPickle.loads(decrypt(secret, data, hashcheck=False)) # ##^  wh1tespace |  0
+ # ##^ global_class_declare 0 # ##^  0 # ##^  0 # ##^  0 # ##^  0
  # ##^ global_class_declare 0 # ##^  0 # ##^  0 # ##^  0
  # ##^ global_class_declare 0 # ##^  0 # ##^  0
  # ##^ global_class_declare 0 # ##^  0
