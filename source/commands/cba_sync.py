@@ -333,11 +333,13 @@ def save_encode_b64(s):
     s = s.replace("=", "-")
     return s
 
+
 class MultipleGuidsForPath(Exception):
     """
     MultipleGuidsForPath
     """
     pass
+
 
 class NoParentFound(Exception):
     """
@@ -376,11 +378,13 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     else:
         raise MultipleGuidsForPath(parent_path)
 
+
 class MultiplePathsForSID(Exception):
     """
     MultiplePathsForSID
     """
     pass
+
 
 class NoPathFound(Exception):
     """
@@ -658,7 +662,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:663", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:667", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

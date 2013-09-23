@@ -125,6 +125,7 @@ def exist(data):
         return False
     return True
 
+
 class Dict2Obj(dict):
     """
     Dict2Obj
@@ -317,8 +318,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:322", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:323", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:323", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
