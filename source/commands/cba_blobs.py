@@ -56,14 +56,12 @@ def encrypt_new_blobs(salt, secret, new_blobs):
                                   callback=done_encrypting)
 
         encrypt_results.append(result)
-
     pool.close()
     pool.join()
 
     for result in encrypt_results:
         if not result.successful():
             result.get()
-
     pool.terminate()
 
 

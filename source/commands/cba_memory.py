@@ -179,7 +179,6 @@ class Memory(object):
         """
         if self.has(key):
             self.delete(key)
-
         self.set(key, value)
 
     def size(self):
@@ -364,7 +363,6 @@ def update_memory_progress(p):
     """
     mem = SingletonMemory()
     mem.set("progress", p)
-
     if mem.has("progress"):
         if mem.get("progress") <= p:
             mem.set("progress", p)
@@ -387,7 +385,6 @@ def update_file_progress(p):
     """
     mem = SingletonMemory()
     mem.set("file_progress", p)
-
     if mem.has("file_progress"):
         if mem.get("file_progress") <= p:
             mem.set("file_progress", p)

@@ -31,7 +31,6 @@ def update_progress(curr, total, msg, console=True):
 
     if progress > 100:
         progress = 100
-
     update_memory_progress(progress)
     msg = msg + " " + str(curr) + "/" + str(total)
     update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
@@ -74,7 +73,6 @@ def run_in_pool(items, method, base_params=()):
         params = tuple(base_params_list)
         result = pool.apply_async(method, params, callback=done_proc)
         calculation_result.append(result)
-
     pool.close()
     pool.join()
     calculation_result_values = []
@@ -84,7 +82,6 @@ def run_in_pool(items, method, base_params=()):
             result.get()
         else:
             calculation_result_values.append(result.get())
-
     pool.terminate()
     return calculation_result_values
 
@@ -229,7 +226,6 @@ def stack_trace(depth=6, line_num_only=False):
     @type line_num_only: only return the line number of the ecxeption
     """
     import traceback
-
     stack = traceback.format_stack()
     stack.reverse()
     space = ""
@@ -298,7 +294,6 @@ def handle_exception(exc, again=True, ret_err=False):
 
             if ls > linenumsize:
                 linenumsize = ls
-
         items.reverse()
 
         for line in items:
@@ -318,8 +313,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:323", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:324", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:318", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:319", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 

@@ -66,20 +66,17 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     for node in unique_nodes:
         result = pool.apply_async(download_blob, (memory, options, node), callback=done_downloading)
         download_results.append(result)
-
     pool.close()
     pool.join()
 
     for result in download_results:
         if not result.successful():
             result.get()
-
     pool.terminate()
     log("writing files")
 
     for result in downloaded_files:
         memory = write_blobs_to_filepaths(memory, options, local_file_paths, result["content"], result["content_hash"])
-
     log("done writing files")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
@@ -261,7 +258,6 @@ def wait_for_tasks(memory, options):
             time.sleep(0.2)
         else:
             time.sleep(1)
-
             if num_tasks > 4:
                 log("waiting for tasks", num_tasks)
                 time.sleep(2)
@@ -288,7 +284,6 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
 
                 if path not in serverhash_history_item_path:
                     new_server_hash_history.add(serverhash_history_item)
-
             memory.replace("serverhash_history", new_server_hash_history)
 
     return memory
@@ -485,7 +480,6 @@ def parse_serverindex(serverindex):
 
         node["dirname_of_path"] = dirname_of_path
         unique_dirs.add(dirname_of_path)
-
         if node["content_hash_latest_timestamp"]:
             unique_content[node["content_hash_latest_timestamp"][0]] = node
             fnodes.append(node)
@@ -493,7 +487,6 @@ def parse_serverindex(serverindex):
         if dirname_of_path not in checked_dirnames:
             dirname_hash = make_sha1_hash(dirname_of_path.replace(os.path.sep, "/"))
             dirname_hashes_server[dirname_hash] = node
-
         checked_dirnames.append(dirname_of_path)
 
     return dirname_hashes_server, fnodes, unique_content, unique_dirs
@@ -658,19 +651,17 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
-
         if os.path.exists(uf["local_file_path"]):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:668", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:660", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
     for result in upload_result:
         if not result.successful():
             result.get()
-
     pool.terminate()
 
     #for uf in file_uploads:

@@ -112,7 +112,6 @@ def request_error(result):
     @type result: str, unicode
     """
     open("error.html", "w").write(result.text)
-
     subprocess.call(["lynx", "error.html"])
     os.remove("error.html")
     return

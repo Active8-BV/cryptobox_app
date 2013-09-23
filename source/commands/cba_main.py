@@ -67,7 +67,6 @@ def monkeypatch_popen():
             """
             _Popen = _Popen
 
-
 monkeypatch_popen()
 
 
@@ -111,9 +110,7 @@ def cryptobox_command(options):
         options.numdownloadthreads = 2
     else:
         options.numdownloadthreads = int(options.numdownloadthreads)
-
     log("downloadthreads", options.numdownloadthreads)
-
     if not options.dir:
         log("Need DIR -f or --dir to continue")
         return False
@@ -132,12 +129,10 @@ def cryptobox_command(options):
 
     if not os.path.exists(datadir):
         log("datadir does not exists")
-
     restore_hidden_config(options)
     memory = Memory()
     memory.load(datadir)
     memory.replace("cryptobox_folder", options.dir)
-
     if memory.has("session"):
         memory.delete("session")
 
@@ -179,16 +174,13 @@ def cryptobox_command(options):
         localindex = make_local_index(options)
         reset_memory_progress()
         reset_file_progress()
-
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
-
             if memory.get("authorized"):
                 if options.check:
                     if cryptobox_locked(memory):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
-
                     ensure_directory(options.dir)
                     update_memory_progress(100)
                     serverindex, memory = get_server_index(memory, options)
@@ -202,7 +194,6 @@ def cryptobox_command(options):
                     if cryptobox_locked(memory):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
-
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
 
@@ -219,7 +210,6 @@ def cryptobox_command(options):
 
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
-
         check_and_clean_dir(options)
         smemory.set("last_ping", time.time())
     finally:
@@ -228,9 +218,7 @@ def cryptobox_command(options):
 
         if memory.has("authorized"):
             memory.delete("authorized")
-
         memory.save(datadir)
-
     hide_config(options, salt, secret)
     reset_memory_progress()
     reset_file_progress()
@@ -391,7 +379,6 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 smemory = SingletonMemory()
                 return smemory.get(k)
-
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')
@@ -405,7 +392,6 @@ class XMLRPCThread(multiprocessing.Process):
 
             try:
                 memory.set("last_ping", time.time())
-
                 reset_progress()
                 reset_file_progress()
                 server.serve_forever()
@@ -413,7 +399,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:418", "bye xmlrpc server"
+            print "cba_main.py:404", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -441,7 +427,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:446", "kill it", ex
+                print "cba_main.py:432", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -457,7 +443,6 @@ if strcmp(__name__, '__main__'):
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
-
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:465", "\nbye main"
+        print "cba_main.py:450", "\nbye main"
