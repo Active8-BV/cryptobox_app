@@ -9,11 +9,14 @@ import uuid
 import base64
 import urllib
 import shutil
+import urllib2
 from multiprocessing.dummy import Pool
+import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, have_serverhash, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, have_serverhash, Memory, add_server_file_history, in_server_file_history, \
+    add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -609,8 +612,16 @@ def upload_file(memory, options, file_object, parent):
     #payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     #files = {'file': file_object}
     #result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
-    import poster
-    import urllib2
+
+    def prog_callback(param, current, total):
+        """
+        prog_callback
+        """
+        percentage = 100 - ((total - current ) * 100 ) / (total)
+        update_item_progress(percentage)
+
+        #print "Upload progress: %s " % percentage
+
     server = options.server
     cryptobox = options.cryptobox
     session = memory.get("session")
@@ -618,7 +629,7 @@ def upload_file(memory, options, file_object, parent):
     opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
     service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
     params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
-    datagen, headers = poster.encode.multipart_encode(params)
+    datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
     request = urllib2.Request(service, datagen, headers)
 
     #noinspection PyUnusedLocal
@@ -656,7 +667,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:659", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:670", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

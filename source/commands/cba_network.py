@@ -175,7 +175,9 @@ def on_server(memory, options, method, payload, session, files=None):
     if not session:
         session = requests
 
-    #verifyarg = "ca.cert"
+    verifyarg = os.path.join(os.getcwd(), "ca.cert")
+    print "cba_network.py:179", verifyarg
+
     verifyarg = False
 
     if not payload:
@@ -203,7 +205,7 @@ def download_server(memory, options, url):
 
     #log("download server:", URL)
     session = memory.get("session")
-    result = session.get(url, timeout=3600, stream=True)
+    result = session.get(url, timeout=3600, stream=True, verify=False)
 
     if result.status_code == 403:
         raise ServerForbidden(result.reason)
@@ -225,8 +227,9 @@ def download_server(memory, options, url):
 
             if divider > 0:
                 percentage = int(float(downloaded_bytes) / divider)
-                percentage += get_item_progress()
-                percentage /= options.numdownloadthreads
+
+                #percentage += get_item_progress()
+                #percentage /= options.numdownloadthreads
                 update_item_progress(percentage)
 
     content = b"".join(fileb)

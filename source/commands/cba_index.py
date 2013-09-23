@@ -351,5 +351,4 @@ def decrypt_and_build_filetree(memory, options):
 
     cryptobox_index["locked"] = False
     memory = store_cryptobox_index(memory, cryptobox_index)
-
     return memory
