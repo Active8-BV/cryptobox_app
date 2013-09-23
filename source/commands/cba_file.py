@@ -180,6 +180,7 @@ def make_cryptogit_hash(fpath, datadir, localindex): # ##^ funct1on def python -
     del file_dict["data"] # ##^  scope -2
     localindex["filestats"][fpath] = file_dict # ##^ ass1gnment -2
     return filedata, localindex # ##^ retrn |  -2
+ # ##^ global_class_declare -2 # ##^  -2 # ##^  -2
  # ##^ global_class_declare -2 # ##^  -2
 
  # ##^ global_class_declare -2
