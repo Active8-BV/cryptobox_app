@@ -17,7 +17,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, update_memory_progress, reset_file_progress
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, update_memory_progress, reset_item_progress
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -172,7 +172,7 @@ def cryptobox_command(options):
 
         localindex = make_local_index(options)
         reset_memory_progress()
-        reset_file_progress()
+        reset_item_progress()
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
             if memory.get("authorized"):
@@ -220,7 +220,7 @@ def cryptobox_command(options):
         memory.save(datadir)
     hide_config(options, salt, secret)
     reset_memory_progress()
-    reset_file_progress()
+    reset_item_progress()
     return True
 
 
@@ -339,8 +339,8 @@ class XMLRPCThread(multiprocessing.Process):
                 if memory.has("progress"):
                     pr = memory.get("progress")
 
-                if memory.has("file_progress"):
-                    fpr = memory.get("file_progress")
+                if memory.has("item_progress"):
+                    fpr = memory.get("item_progress")
 
                 return pr, fpr
 
@@ -350,11 +350,11 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 reset_memory_progress()
 
-            def do_reset_file_progress():
+            def do_reset_item_progress():
                 """
-                reset_file_progress
+                reset_item_progress
                 """
-                reset_file_progress()
+                reset_item_progress()
 
             def ping():
                 """
@@ -376,10 +376,16 @@ class XMLRPCThread(multiprocessing.Process):
                 get_smemory
                 :param k:
                 """
-                log("get_smemory", k)
                 smemory = SingletonMemory()
                 return smemory.get(k)
 
+            def set_smemory(k, v):
+                """
+                set_smemory
+                :param k:
+                """
+                smemory = SingletonMemory()
+                return smemory.set(k, v)
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')
@@ -387,27 +393,22 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(last_ping, 'last_ping')
             server.register_function(run_cb_command, "cryptobox_command")
             server.register_function(get_progress, "get_progress")
-            server.register_function(do_reset_file_progress, "reset_progress")
+            server.register_function(do_reset_item_progress, "reset_progress")
             server.register_function(get_smemory, "get_smemory")
-            server.register_function(reset_file_progress, "do_reset_file_progress")
+            server.register_function(set_smemory, "set_smemory")
+            server.register_function(do_reset_item_progress, "reset_item_progress")
 
             try:
                 memory.set("last_ping", time.time())
                 reset_progress()
-                reset_file_progress()
+                reset_item_progress()
                 server.serve_forever()
             finally:
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:404", "bye xmlrpc server"
+            print "cba_main.py:410", "bye xmlrpc server"
 
-class monitor(threading.Thread):
-    def run(self):
-        memory = SingletonMemory()
-        while True:
-            print memory.get("file_progress")
-            time.sleep(0.5)
 
 #noinspection PyClassicStyleClass
 def main():
@@ -416,34 +417,31 @@ def main():
     """
     (options, args) = add_options()
 
-    if not options.cryptobox and not options.version:
-        #noinspection PyBroadException,PyUnusedLocal
-        me = singleton.SingleInstance()
-        queue = multiprocessing.Queue()
-        log("xmlrpc server up")
-        commandserver = XMLRPCThread(args=(queue,))
-        commandserver.start()
-
-        while True:
-            time.sleep(5)
-
-            try:
-                if commandserver.is_alive():
-                    s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                    socket.setdefaulttimeout(60)
-                    s.ping()
-                    socket.setdefaulttimeout(None)
-            except socket.error, ex:
-                print "cba_main.py:432", "kill it", ex
-                commandserver.terminate()
-
-            if not commandserver.is_alive():
-                break
-
-    else:
-        m = monitor()
-        m.start()
+    #noinspection PyBroadException,PyUnusedLocal
+    me = singleton.SingleInstance()
+    queue = multiprocessing.Queue()
+    log("xmlrpc server up")
+    commandserver = XMLRPCThread(args=(queue,))
+    commandserver.start()
+    if options.cryptobox or options.version:
         cryptobox_command(options)
+        commandserver.terminate()
+
+    while True:
+        time.sleep(5)
+
+        try:
+            if commandserver.is_alive():
+                s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+                socket.setdefaulttimeout(60)
+                s.ping()
+                socket.setdefaulttimeout(None)
+        except socket.error, ex:
+            print "cba_main.py:440", "kill it", ex
+            commandserver.terminate()
+
+        if not commandserver.is_alive():
+            break
 
 
 if strcmp(__name__, '__main__'):
@@ -454,4 +452,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:450", "\nbye main"
+        print "cba_main.py:455", "\nbye main"

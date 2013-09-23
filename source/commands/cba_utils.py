@@ -2,20 +2,26 @@
 """
 some utility functions
 """
+import os
 import sys
+import math
 import time
+import xmlrpclib
 import multiprocessing
 import uuid as _uu
 import cPickle
+import json
+import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
+
 
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
 
 
-def make_sha1_hash(data):
+def make_sha1_hash_utils(data):
     """ make hash
     @param data:
     @type data:
@@ -24,6 +30,15 @@ def make_sha1_hash(data):
     sha.update(data)
     return sha.hexdigest()
 
+
+def json_object(path, targetobject):
+    """
+    @type path: str or unicode
+    @type targetobject: object
+    """
+    if DEBUG:
+        jsonproxy = json.loads(jsonpickle.encode(targetobject))
+        json.dump(jsonproxy, open(path + ".json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def pickle_object(path, targetobject, json_pickle=False):
@@ -149,6 +164,7 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
+
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -203,7 +219,6 @@ def timestamp_to_string(ts, short=False):
     @type short: bool
     """
     monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
     year, month, day, hh, mm, ss, x, y, z = time.localtime(ts)
 
     if short:
@@ -316,8 +331,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:318", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:319", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:334", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:335", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -619,7 +634,7 @@ def have_serverhash(memory, node_path):
     @type node_path: str, unicode
     """
     node_path_relative, memory = path_to_relative_path_unix_style(memory, node_path)
-    return memory.set_have_value("serverhash_history", (node_path_relative, make_sha1_hash(node_path_relative))), memory
+    return memory.set_have_value("serverhash_history", (node_path_relative, make_sha1_hash_utils(node_path_relative))), memory
 
 
 def in_server_file_history(memory, relative_path_name):
@@ -640,7 +655,7 @@ def add_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
-    memory.set_add_value("serverhash_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    memory.set_add_value("serverhash_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
     return memory
 
 
@@ -652,8 +667,8 @@ def del_serverhash(memory, relative_path_name):
     """
     relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
 
-    if memory.set_have_value("serverhash_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style))):
-        memory.set_delete_value("serverhash_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    if memory.set_have_value("serverhash_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style))):
+        memory.set_delete_value("serverhash_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
     return memory
 
 
@@ -675,7 +690,7 @@ def add_local_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_hash, memory = path_to_relative_path_unix_style(memory, relative_path_name)
-    memory.set_add_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
+    memory.set_add_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash)))
     return memory
 
 
@@ -686,7 +701,7 @@ def in_local_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     fnode_hash, memory = path_to_relative_path_unix_style(memory, relative_path_name)
-    return memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))), memory
+    return memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash))), memory
 
 
 def del_local_file_history(memory, relative_path_name):
@@ -697,8 +712,8 @@ def del_local_file_history(memory, relative_path_name):
     """
     fnode_hash, memory = path_to_relative_path_unix_style(memory, relative_path_name)
 
-    if memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))):
-        memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
+    if memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash))):
+        memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash)))
     return memory
 
 
@@ -719,33 +734,37 @@ def reset_memory_progress():
     mem.set("progress", 0)
 
 
-def update_file_progress(p):
+def update_item_progress(p, server=False):
     """
     update_progress
+    @type server:bool
     @type p:int
     """
+    if server:
+        s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+        s.set_smemory("item_progress", p)
+    else:
+        mem = SingletonMemory()
+        mem.set("item_progress", p)
 
-    mem = SingletonMemory()
-    mem.set("file_progress", p)
 
-
-def get_file_progress():
+def get_item_progress():
     """
-    get_file_progress
+    get_item_progress
     """
     mem = SingletonMemory()
 
-    if mem.has("file_progress"):
-        return mem.get("file_progress")
+    if mem.has("item_progress"):
+        return mem.get("item_progress")
     return 0
 
 
-def reset_file_progress():
+def reset_item_progress():
     """
-    reset_memory_file_progress
+    reset_memory_item_progress
     """
     mem = SingletonMemory()
-    mem.set("file_progress", 0)
+    mem.set("item_progress", 0)
 
 
 def update_progress(curr, total, msg, console=False):
@@ -755,7 +774,6 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-
     global last_update_string_len
     if total == 0:
         return

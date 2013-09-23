@@ -4,18 +4,26 @@ crypto routines for the commandline tool
 """
 import re
 import os
-import json
 import base64
 import time
 import multiprocessing
 import cPickle
 from cStringIO import StringIO
-import jsonpickle
 from Crypto import Random
-from Crypto.Hash import SHA512, HMAC
+from Crypto.Hash import SHA, SHA512, HMAC
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import smp_all_cpu_apply, DEBUG, update_file_progress, make_sha1_hash
+from cba_utils import smp_all_cpu_apply, update_item_progress
+
+
+def make_sha1_hash(data):
+    """ make hash
+    @param data:
+    @type data:
+    """
+    sha = SHA.new()
+    sha.update(data)
+    return sha.hexdigest()
 
 
 def make_hash(data):
@@ -77,7 +85,7 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=0.5):
+def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=2.0):
     """
     @param secret: generated secret pkdf2
     @type secret: str
@@ -110,6 +118,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     total_data_size = (chunk_sizes["default"][0] * chunk_sizes["length"] - 1) + chunk_sizes["last"][0]
     current_data_read = 0
+
     while True:
         if cnt >= chunk_sizes["length"]:
             break
@@ -147,7 +156,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
 
 
 #noinspection PyDictCreation,PyPep8Naming
-def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=0.5):
+def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=2.0):
     """
     @param secret: pkdf2 secre
     @type secret: str
@@ -198,6 +207,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         if cnt <= 0:
             data_hash = make_hash_str(chunk, secret)
             chunk_sizes_d["last"] = chunk_sizes_d["default"] = (len(chunk), len(enc_data))
+
         total_enc_data += enc_data
         cnt += 1
 
@@ -222,8 +232,7 @@ def progress_file_cryption(p):
     """
     @type p: int
     """
-
-    update_file_progress(p)
+    update_item_progress(p, True)
 
 
 def encrypt_a_file(secret, perc_callback, chunk):
@@ -257,10 +266,14 @@ def encrypt_file_smp(secret, fname=None, strobj=None):
 
         fobj = strobj
 
+    max_single_cpu_size = (5 * (2 ** 20))
 
-    chunksize = int(datasize / multiprocessing.cpu_count()) + 64
+    if datasize < max_single_cpu_size:
+        chunksize = int(datasize) + 1
+    else:
+        chunksize = int(datasize / multiprocessing.cpu_count()) + 64
+
     chunklist = []
-
     chunk = fobj.read(chunksize)
 
     while chunk:
@@ -287,18 +300,6 @@ def decrypt_file_smp(secret, enc_file_chunks):
     return dec_file
 
 
-def json_object(path, targetobject):
-    """
-    @type path: str or unicode
-    @type targetobject: object
-    """
-    if DEBUG:
-        jsonproxy = json.loads(jsonpickle.encode(targetobject))
-        json.dump(jsonproxy, open(path + ".json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
-
-
-
-
 def encrypt_object(secret, obj):
     """
     @type secret: str or unicode
@@ -323,6 +324,6 @@ def decrypt_object(secret, obj_string, key=None, salt=None):
     if key:
         if not salt:
             raise Exception("no salt")
-        secret = password_derivation(key, salt)
 
+        secret = password_derivation(key, salt)
     return cPickle.load(decrypt_file_smp(secret, data)), secret
