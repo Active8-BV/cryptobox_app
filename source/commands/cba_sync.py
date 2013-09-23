@@ -621,6 +621,8 @@ def upload_file(memory, options, file_object, parent):
     params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     datagen, headers = poster.encode.multipart_encode(params)
     request = urllib2.Request(service, datagen, headers)
+
+    #noinspection PyUnusedLocal
     result = urllib2.urlopen(request)
     return memory
 
@@ -655,7 +657,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:660", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:662", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

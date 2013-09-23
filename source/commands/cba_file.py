@@ -49,7 +49,7 @@ def read_file(path, read_data=False):
         data = None
 
     stats = os.stat(path)
-    return stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid, data
+    return stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid, stats.st_size, data
 
 
 def read_file_to_fdict(path, read_data=False):
@@ -64,10 +64,11 @@ def read_file_to_fdict(path, read_data=False):
                  "st_mtime": int(ft[2]),
                  "st_mode": int(ft[3]),
                  "st_uid": int(ft[4]),
-                 "st_gid": int(ft[5])}
+                 "st_gid": int(ft[5]),
+                 "st_size": int(ft[6])}
 
     if read_data:
-        file_dict["data"] = ft[6]
+        file_dict["data"] = ft[7]
 
     return file_dict
 
@@ -89,6 +90,7 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
+
     try:
         enc_file_struct = encrypt_file_smp(secret, fpath)
         pickle_object(blobpath, enc_file_struct)
@@ -104,6 +106,7 @@ def decrypt_file_and_write(fpath, unenc_path, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
+
     try:
         enc_file_struct = unpickle_object(fpath)
         dec_file = decrypt_file_smp(secret, enc_file_struct)
@@ -124,7 +127,6 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     @param secret: str or unicode
     @type secret:
     """
-    
     blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
     file_blob = {"data": decrypt_file_smp(secret, blob_enc).read()}
     paths = []
@@ -154,9 +156,8 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @type localindex: dict
     @return: @rtype:
     """
-
     file_dict = read_file_to_fdict(fpath, read_data=True)
-    filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
+    filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
     filedata = {"filehash": filehash,

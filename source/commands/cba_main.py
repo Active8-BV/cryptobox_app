@@ -386,7 +386,7 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(last_ping, 'last_ping')
             server.register_function(run_cb_command, "cryptobox_command")
             server.register_function(get_progress, "get_progress")
-            server.register_function(reset_progress, "reset_progress")
+            server.register_function(do_reset_file_progress, "reset_progress")
             server.register_function(get_smemory, "get_smemory")
             server.register_function(reset_file_progress, "do_reset_file_progress")
 
