@@ -152,13 +152,13 @@ def index_and_encrypt(memory, options, localindex_param):
                     new_objects += 1
 
                 if len(new_blobs) > 1500:
-                    encrypt_new_blobs(salt, secret, new_blobs)
+                    encrypt_new_blobs(secret, new_blobs)
                     new_blobs = {}
             update_progress(file_cnt, numfiles, "check " + file_path)
 
     if len(new_blobs) > 0:
         if len(new_blobs) > 0:
-            encrypt_new_blobs(salt, secret, new_blobs)
+            encrypt_new_blobs(secret, new_blobs)
 
     if options.remove:
         localindex["locked"] = True
@@ -218,30 +218,14 @@ def restore_hidden_config(options):
     """
     hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
     hidden_configs_dict = {}
-    dsecret = {}
-    def return_secret(s):
-        """
-        @param s:
-        @type s:
-        """
-        dsecret[s] = s
-
-    for config in hidden_configs:
-        #noinspection PyBroadException
-        try:
-            config_file_path = os.path.join(options.basedir, config)
-            config_stat = os.stat(config_file_path)
-            obj = unpickle_object(config_file_path)
-            obj = decrypt_object("", key=options.password, obj_string=obj, give_secret_cb=return_secret)
-            hidden_configs_dict[config_stat.st_mtime] = (obj, config)
-        except:
-            pass
-
     secret = None
 
-    if len(dsecret) > 0:
-        for k in dsecret:
-            secret = dsecret[k]
+    for config in hidden_configs:
+        config_file_path = os.path.join(options.basedir, config)
+        config_stat = os.stat(config_file_path)
+        obj = unpickle_object(config_file_path)
+        obj, secret = decrypt_object("", key=options.password, obj_string=obj["encrypted_name"], salt=obj["salt"])
+        hidden_configs_dict[config_stat.st_mtime] = (obj, config)
 
     sorted_keys = sorted(hidden_configs_dict.keys())
     sorted_keys.reverse()
@@ -296,7 +280,7 @@ def hide_config(options, salt, secret):
             hidden_name = get_uuid(3)
 
         encrypted_name = encrypt_object(secret, options.cryptobox)
-        pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), encrypted_name)
+        pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
         os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
@@ -329,7 +313,7 @@ def decrypt_and_build_filetree(memory, options):
 
     if not os.path.exists(datadir):
         log("nothing to decrypt", datadir, "does not exists")
-        return
+        return memory
 
     blobdir = os.path.join(datadir, "blobs")
     cryptobox_index = get_cryptobox_index(memory)

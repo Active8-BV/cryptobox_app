@@ -377,8 +377,10 @@ class XMLRPCThread(multiprocessing.Process):
                 get_smemory
                 :param k:
                 """
+                log("get_smemory", k)
                 smemory = SingletonMemory()
                 return smemory.get(k)
+
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')

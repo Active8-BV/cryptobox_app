@@ -149,36 +149,42 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def ignore_test_smp_all_cpu_apply(self):
+    def test_reset_all(self):
+        """
+        test_reset_all
+        """
+        self.do_wait_for_tasks = False
+        self.complete_reset()
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+
+    def test_smp_all_cpu_apply(self):
         self.do_wait_for_tasks = False
 
         items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
         res_items = [x[0] + x[1] for x in items]
-        res_items2 = smp_all_cpu_apply(items, add)
+        res_items2 = smp_all_cpu_apply(add, items)
         self.assertEquals(res_items, res_items2)
 
-    def ignore_test_encrypt_file(self):
+    def test_encrypt_file(self):
         self.do_wait_for_tasks = False
-        fname = "testdata/200MB.zip"
+        fname = "testdata/20MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
-        enc_data = enc_file.read()
+        enc_data = enc_file
         org_data = (open(fname).read())
         self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))
-        enc_file.seek(0)
-        df = decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
-        dec_data = df.read()
+
+        dec_data = decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
         org_data = (open(fname).read())
         self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
 
-    def ignore_test_encrypt_file_smp(self):
+    def test_encrypt_file_smp(self):
         """
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/200MB.zip"
-
-        #fname = "test.js"
+        fname = "testdata/20MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file_struct = encrypt_file_smp(secret, fname)
         dec_file = decrypt_file_smp(secret, enc_file_struct)
@@ -187,7 +193,7 @@ class CryptoboxAppTest(unittest.TestCase):
         org_data = (open(fname).read())
         self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
 
-    def ignore_test_index_no_box_given(self):
+    def test_index_no_box_given(self):
         """
         test_index
         """
@@ -199,7 +205,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #with self.assertRaisesRegexp(ExitAppWarning, "No cryptobox given -b or --cryptobox"):
         self.assertFalse(cryptobox_command(self.no_box_given))
 
-    def ignore_test_index_directory(self):
+    def test_index_directory(self):
         """
         test_index
         """
@@ -213,7 +219,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
-    def ignore_test_index_and_encrypt(self):
+    def test_index_and_encrypt(self):
         """
         test_index_and_encrypt
         """
@@ -283,7 +289,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex2 = remove_atime(localindex2)
         self.assertEquals(localindex1["filestats"], localindex2["filestats"])
 
-    def ignore_test_index_clear(self):
+    def test_index_clear(self):
         self.do_wait_for_tasks = False
         self.unzip_testfiles_clean()
         localindex = make_local_index(self.cboptions)
@@ -305,7 +311,7 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
 
-    def ignore_test_connection(self):
+    def test_connection(self):
         """
         test_connection
         """
@@ -316,7 +322,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = authorized(self.cbmemory, self.cboptions)
         self.assertTrue(self.cbmemory.get("authorized"))
 
-    def ignore_test_compare_server_tree_with_local_tree_folders(self):
+    def test_compare_server_tree_with_local_tree_folders(self):
         """
         test_compare_server_tree_with_local_tree_folders
         """
@@ -359,7 +365,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = instruct_server_to_make_folders(self.cbmemory, self.cboptions, dir_make_server)
         self.assertTrue(self.directories_synced())
 
-    def ignore_test_compare_server_tree_with_local_tree_method_folders(self):
+    def test_compare_server_tree_with_local_tree_method_folders(self):
         """
         test_compare_server_tree_with_local_tree_method_folders
         """
@@ -383,7 +389,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
 
-    def ignore_test_sync_clean_tree(self):
+    def test_sync_clean_tree(self):
         """
         test_sync_clean_tree
         """
@@ -396,13 +402,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(self.directories_synced())
         self.assertTrue(self.files_synced())
 
-    def ignore_test_upload(self):
-        """
-        test_upload
-        """
-        self.reset_cb_db_clean()
-        self.unzip_testfiles_clean()
-        pass
 
     def files_synced(self):
         """
@@ -417,10 +416,11 @@ class CryptoboxAppTest(unittest.TestCase):
                 return False
         return True
 
-    def ignore_test_sync_synced_tree_mutations_local(self):
+    def test_sync_synced_tree_mutations_local(self):
         """
         test_sync_synced_tree_mutations_local
         """
+
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
         self.cbmemory.load(get_data_dir(self.cboptions))
@@ -445,7 +445,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_local), 0)
         self.assertEqual(len(file_del_local), 0)
 
-    def ignore_test_sync_synced_tree_mutations_server(self):
+    def test_sync_synced_tree_mutations_server(self):
         """
         test_sync_synced_tree_mutations_server
         """
@@ -484,7 +484,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_server), 0)
         self.assertEqual(len(dir_del_local), 0)
 
-    def ignore_test_sync_method_clean_tree(self):
+    def test_sync_method_clean_tree(self):
         """
         test_sync_method_clean_tree
         """
@@ -495,7 +495,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("ls > testdata/testmap/all_types/test.txt")
         self.assertFalse(self.files_synced())
 
-    def ignore_test_sync_conflict_folder(self):
+    def test_sync_conflict_folder(self):
         """
         remove a folder on server and add same folder locally
         """
@@ -508,7 +508,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(file_uploads), 1)
 
-    def ignore_test_find_short_ids(self):
+    def test_find_short_ids(self):
         """
         test_find_short_ids
         """
@@ -520,7 +520,7 @@ class CryptoboxAppTest(unittest.TestCase):
         map1_2, self.cbmemory = short_id_to_server_path(self.cbmemory, serverindex, map1_short_id)
         self.assertEqual(map1, map1_2)
 
-    def ignore_test_sync_delete_server_and_local_restore_folder(self):
+    def test_sync_delete_server_and_local_restore_folder(self):
         """
         test_sync_delete_server_and_local_restore_folder
         """

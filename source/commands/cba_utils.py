@@ -42,7 +42,7 @@ def update_progress(curr, total, msg, console=True):
     last_update_string_len = len(update_string)
 
 
-def smp_all_cpu_apply(items, method, base_params=()):
+def smp_all_cpu_apply(method, items, base_params=()):
     """
     @type items: list
     @type method: function
