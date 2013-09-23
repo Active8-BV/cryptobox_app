@@ -7,8 +7,6 @@ import sys
 reload(sys)
 
 #noinspection PyUnresolvedReferences
-
-
 sys.setdefaultencoding("utf-8")
 import os
 import socket
@@ -410,7 +408,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:415", "bye xmlrpc server"
+            print "cba_main.py:413", "bye xmlrpc server"
 
 #noinspection PyClassicStyleClass
 def main():
@@ -437,7 +435,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:442", "kill it", ex
+                print "cba_main.py:440", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -456,4 +454,4 @@ if strcmp(__name__, '__main__'):
 
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:461", "\nbye main"
+        print "cba_main.py:459", "\nbye main"
