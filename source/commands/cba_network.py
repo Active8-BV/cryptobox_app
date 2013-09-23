@@ -9,8 +9,7 @@ import urllib
 import subprocess
 import json
 import requests
-from cba_utils import log
-from cba_memory import Memory, update_file_progress, get_file_progress
+from cba_utils import log, Memory, update_file_progress, get_file_progress
 
 
 def get_b64mstyle():

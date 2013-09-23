@@ -17,8 +17,7 @@ import xmlrpclib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_memory import Memory, SingletonMemory, reset_memory_progress, update_memory_progress, reset_file_progress
-from cba_utils import strcmp, Dict2Obj, log
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, update_memory_progress, reset_file_progress
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -403,6 +402,12 @@ class XMLRPCThread(multiprocessing.Process):
         except KeyboardInterrupt:
             print "cba_main.py:404", "bye xmlrpc server"
 
+class monitor(threading.Thread):
+    def run(self):
+        memory = SingletonMemory()
+        while True:
+            print memory.get("file_progress")
+            time.sleep(0.5)
 
 #noinspection PyClassicStyleClass
 def main():
@@ -436,6 +441,8 @@ def main():
                 break
 
     else:
+        m = monitor()
+        m.start()
         cryptobox_command(options)
 
 

@@ -269,8 +269,9 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     client = get_rpc_client();
     client.methodCall("get_progress", [], function(e, v) {
       var file_progress, progress;
+      print("cryptobox.cf:225", v);
       if (utils.exist(e)) {
-        print("cryptobox.cf:226", e, v);
+        print("cryptobox.cf:227", e, v);
       } else {
         progress = parseInt(v[0], 10);
         file_progress = parseInt(v[1], 10);
@@ -286,7 +287,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     });
     return utils.force_digest($scope);
   };
-  utils.set_interval("cryptobox.cf:240", get_progress, 1000, "get_progress");
+  utils.set_interval("cryptobox.cf:241", get_progress, 1000, "get_progress");
   store_user_var = function(k, v) {
     var db, p, record;
     p = $q.defer();
@@ -356,7 +357,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         return $scope[name] = v;
       }
     }, function(err) {
-      return print("cryptobox.cf:304", err);
+      return print("cryptobox.cf:305", err);
     });
   };
   $scope.show_settings = false;
@@ -397,7 +398,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings, p_show_debug]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return print("cryptobox.cf:348", err);
+      return print("cryptobox.cf:349", err);
     });
   };
   $scope.file_input_change = function(f) {
@@ -408,9 +409,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client, p;
     client = get_rpc_client();
     p = $q.defer();
-    print("cryptobox.cf:358", command_name, command_arguments);
     client.methodCall(command_name, command_arguments, function(error, value) {
-      print("cryptobox.cf:360", error, value);
       if (exist(error)) {
         p.reject(error);
         return utils.force_digest($scope);
@@ -478,7 +477,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return run_command("cryptobox_command", [option]).then(function(res) {
       add_output(res);
       add_output("check done");
-      return utils.set_time_out("cryptobox.cf:427", get_sync_state, 500);
+      return utils.set_time_out("cryptobox.cf:426", get_sync_state, 500);
     }, function(err) {
       return add_output(err);
     });

@@ -6,40 +6,46 @@ import sys
 import time
 import multiprocessing
 import uuid as _uu
-import math
+import cPickle
+from Crypto.Hash import SHA
 last_update_string_len = 0
-
 
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
 
 
-def update_progress(curr, total, msg, console=True):
+def make_sha1_hash(data):
+    """ make hash
+    @param data:
+    @type data:
     """
-    @type curr: int
-    @type total: int
-    @type msg: str or unicode
-    @type console: bool
+    sha = SHA.new()
+    sha.update(data)
+    return sha.hexdigest()
+
+
+
+def pickle_object(path, targetobject, json_pickle=False):
     """
-    from cba_memory import update_memory_progress
-    global last_update_string_len
-    if total == 0:
-        return
+    @type path: str or unicode
+    @type targetobject: object
+    @type json_pickle: bool
+    """
+    cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
+    if json_pickle:
+        if isinstance(targetobject, dict):
+            json_object(path, targetobject)
+        else:
+            json_object(path, targetobject)
 
-    progress = int(math.ceil(float(curr) / (float(total) / 100)))
 
-    if progress > 100:
-        progress = 100
-    update_memory_progress(progress)
-    msg = msg + " " + str(curr) + "/" + str(total)
-    update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
-
-    if console:
-        sys.stderr.write(update_string + "\n")
-        sys.stderr.flush()
-
-    last_update_string_len = len(update_string)
+def unpickle_object(path):
+    """
+    @type path: str or unicode
+    @return: @rtype:
+    """
+    return cPickle.load(open(path, "rb"))
 
 
 def smp_all_cpu_apply(method, items, base_params=()):
@@ -143,7 +149,6 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
-
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -197,9 +202,7 @@ def timestamp_to_string(ts, short=False):
     @param short: display format
     @type short: bool
     """
-    monthname = [None,
-                 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     year, month, day, hh, mm, ss, x, y, z = time.localtime(ts)
 
@@ -347,3 +350,426 @@ def get_uuid(size):
         unique_id = int(unique_id / alphabet_length)
 
     return output[0:size]
+
+
+class SingletonMemoryNoKey(Exception):
+    """
+    SingletonMemoryNoKey
+    """
+    pass
+
+
+class SingletonMemoryExpired(Exception):
+    """
+    SingletonMemoryExpired
+    """
+    pass
+
+
+class SingletonMemory(object):
+    #noinspection PyUnresolvedReferences
+    """
+    @param cls:
+    @type cls:
+    @param args:
+    @type args:
+    @param kwargs:
+    @type kwargs:
+    @return:
+    @rtype:
+    """
+    _instance = None
+    data = {}
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            #noinspection PyAttributeOutsideInit,PyArgumentList
+            cls._instance = super(SingletonMemory, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def set(self, key, value):
+        """
+        @param key:
+        @type key:
+        @param value:
+        @type value:
+        """
+        self.data[key] = value
+
+    def has(self, key):
+        """
+        @param key:
+        @type key:
+        @return: @rtype: @raise SingletonMemoryExpired:
+
+        """
+        return key in self.data
+
+    def get(self, key):
+        """
+        @param key:
+        @type key:
+        @return: @rtype: @raise SingletonMemoryNoKey:
+
+        """
+        if self.has(key):
+            return self.data[key]
+        else:
+            return ""
+
+    def delete(self, key):
+        """
+        @param key:
+        @type key:
+        @raise SingletonMemoryNoKey:
+
+        """
+        if self.has(key):
+            del self.data[key]
+            return True
+        else:
+            raise SingletonMemoryNoKey(str(key))
+
+    def size(self):
+        """
+        @return: @rtype:
+        """
+        return len(self.data)
+
+
+class MemoryNoKey(Exception):
+    """
+    MemoryNoKey
+    """
+    pass
+
+
+class MemoryExpired(Exception):
+    """
+    MemoryExpired
+    """
+    pass
+
+
+class ListNameClash(Exception):
+    """
+    ListNameClash
+    """
+    pass
+
+
+class ListDoesNotExist(Exception):
+    """
+    ListDoesNotExist
+    """
+    pass
+
+
+class MemoryCorruption(Exception):
+    """
+    MemoryCorruption
+    """
+    pass
+
+
+class Memory(object):
+    """
+    Memory
+    """
+
+    def __init__(self):
+        """
+        @return: Memory instance
+        @rtype: Memory
+        """
+        self.data = {}
+
+    def set(self, key, value):
+        """
+        @type key: string, unicode
+        @type value: string, unicode
+        """
+        if key in self.data:
+            raise MemoryCorruption("overwrite of " + str(key))
+
+        self.data[key] = value
+
+    def get(self, key):
+        """
+        @type key: string, unicode
+        """
+        if self.has(key):
+            return self.data[key]
+        else:
+            raise MemoryNoKey(str(key))
+
+    def delete(self, key):
+        """
+        @type key: string, unicode
+        """
+        if self.has(key):
+            del self.data[key]
+        else:
+            raise MemoryNoKey(str(key))
+
+    def has(self, key):
+        """
+        @type key: string, unicode
+        """
+        return key in self.data
+
+    def replace(self, key, value):
+        """
+        @type key: string, unicode
+        @type value: string, unicode
+        """
+        if self.has(key):
+            self.delete(key)
+        self.set(key, value)
+
+    def size(self):
+        """
+        size
+        """
+        return len(self.data)
+
+    def save(self, datadir):
+        """
+        @type datadir: string, unicode
+        """
+        if os.path.exists(datadir):
+            mempath = os.path.join(datadir, "memory.pickle")
+            pickle_object(mempath, self.data, json_pickle=True)
+
+    def load(self, datadir):
+        """
+        @type datadir: string, unicode
+        """
+        mempath = os.path.join(datadir, "memory.pickle")
+
+        if os.path.exists(mempath):
+            #noinspection PyAttributeOutsideInit
+            self.data = unpickle_object(mempath)
+
+            for k in self.data.copy():
+                try:
+                    self.has(k)
+                except MemoryExpired:
+                    pass
+
+    def set_add_value(self, list_name, value):
+        """
+        @type list_name: string, unicode
+        @type value: string, unicode
+        """
+        if not self.has(list_name):
+            self.set(list_name, set())
+
+        collection = self.get(list_name)
+
+        if not isinstance(collection, set):
+            raise ListNameClash(collection + " is not a list")
+
+        collection.add(value)
+
+    def set_have_value(self, list_name, value):
+        """
+        @type list_name: string, unicode
+        @type value: string, unicode
+        """
+        if not self.has(list_name):
+            self.set(list_name, set())
+            return False
+
+        collection = self.get(list_name)
+
+        for v in collection:
+            if value == v:
+                return True
+        return False
+
+    def set_delete_value(self, list_name, value):
+        """
+        @type list_name: string, unicode
+        @type value: string, unicode
+        """
+        if not self.has(list_name):
+            return False
+
+        collection = self.get(list_name)
+        collection.remove(value)
+        return True
+
+
+def path_to_relative_path_unix_style(memory, relative_path_name):
+    """
+    path_to_relative_path_unix_style
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_name = relative_path_name.replace(memory.get("cryptobox_folder"), "")
+    relative_path_unix_style = relative_path_name.replace(os.path.sep, "/")
+    return relative_path_unix_style, memory
+
+
+def have_serverhash(memory, node_path):
+    """
+    have_serverhash
+    @type memory: Memory
+    @type node_path: str, unicode
+    """
+    node_path_relative, memory = path_to_relative_path_unix_style(memory, node_path)
+    return memory.set_have_value("serverhash_history", (node_path_relative, make_sha1_hash(node_path_relative))), memory
+
+
+def in_server_file_history(memory, relative_path_name):
+    """
+    in_server_file_history
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+    has_server_hash, memory = have_serverhash(memory, relative_path_unix_style)
+    return has_server_hash, memory
+
+
+def add_server_file_history(memory, relative_path_name):
+    """
+    add_server_file_history
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+    memory.set_add_value("serverhash_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    return memory
+
+
+def del_serverhash(memory, relative_path_name):
+    """
+    del_serverhash
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+
+    if memory.set_have_value("serverhash_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style))):
+        memory.set_delete_value("serverhash_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    return memory
+
+
+def del_server_file_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    del_server_file_history
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+    memory = del_serverhash(memory, relative_path_name)
+    return memory
+
+
+def add_local_file_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    add_local_file_history
+    @type relative_path_name: str, unicode
+    """
+    fnode_hash, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+    memory.set_add_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
+    return memory
+
+
+def in_local_file_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    in_local_file_history
+    @type relative_path_name: str, unicode
+    """
+    fnode_hash, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+    return memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))), memory
+
+
+def del_local_file_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    del_local_file_history
+    @type relative_path_name: str, unicode
+    """
+    fnode_hash, memory = path_to_relative_path_unix_style(memory, relative_path_name)
+
+    if memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash))):
+        memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash(fnode_hash)))
+    return memory
+
+
+def update_memory_progress(p):
+    """
+    update_progress
+    @type p:int
+    """
+    mem = SingletonMemory()
+    mem.set("progress", p)
+
+
+def reset_memory_progress():
+    """
+    reset_memory_progress
+    """
+    mem = SingletonMemory()
+    mem.set("progress", 0)
+
+
+def update_file_progress(p):
+    """
+    update_progress
+    @type p:int
+    """
+
+    mem = SingletonMemory()
+    mem.set("file_progress", p)
+
+
+def get_file_progress():
+    """
+    get_file_progress
+    """
+    mem = SingletonMemory()
+
+    if mem.has("file_progress"):
+        return mem.get("file_progress")
+    return 0
+
+
+def reset_file_progress():
+    """
+    reset_memory_file_progress
+    """
+    mem = SingletonMemory()
+    mem.set("file_progress", 0)
+
+
+def update_progress(curr, total, msg, console=False):
+    """
+    @type curr: int
+    @type total: int
+    @type msg: str or unicode
+    @type console: bool
+    """
+
+    global last_update_string_len
+    if total == 0:
+        return
+
+    progress = int(math.ceil(float(curr) / (float(total) / 100)))
+
+    if progress > 100:
+        progress = 100
+    update_memory_progress(progress)
+    msg = msg + " " + str(curr) + "/" + str(total)
+    update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
+
+    if console:
+        sys.stderr.write(update_string + "\n")
+        sys.stderr.flush()
+
+    last_update_string_len = len(update_string)
