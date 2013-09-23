@@ -1,184 +1,185 @@
-# coding=utf-8
-"""
-file operations
-"""
-import os
-from cba_utils import handle_exception, strcmp, log
-from cba_crypto import encrypt, decrypt, pickle_object, unpickle_object, make_sha1_hash, encrypt_file
+# coding=utf-8 # ##^ comment 0
+""" # ##^  1n 1n_python_comment 0
+file operations # ##^  1n 1n_python_comment 0
+""" # ##^  0
+import os # ##^  0
+from cba_utils import handle_exception, strcmp, log # ##^ except 0
+from cba_crypto import pickle_object, unpickle_object, make_sha1_hash, encrypt_file # ##^  0
 
 
-def ensure_directory(path):
-    """
-    @type path: str or unicode or unicode
-    """
-    if not os.path.exists(path):
-        log("making", path)
-        os.makedirs(path)
+def ensure_directory(path): # ##^ funct1on def python 0
+    """ # ##^  1n 1n_python_comment 0
+    @type path: str or unicode or unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment 0
+    """ # ##^  0
+    if not os.path.exists(path): # ##^  1f statement on same scope 1
+        log("making", path) # ##^ methodcallnested method call 1
+        os.makedirs(path) # ##^ methodcallnested method call 1
 
 
-def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
-    """
-    @type path: unicode
-    @type data: str or unicode
-    @type a_time: int
-    @type m_time: int
-    @type st_mode: __builtin__.NoneType
-    @type st_uid: __builtin__.NoneType
-    @type st_gid: __builtin__.NoneType
-    """
-    fout = open(path, "wb")
-    fout.write(data)
-    fout.close()
-    os.utime(path, (a_time, m_time))
-    if st_mode:
-        os.chmod(path, st_mode)
+def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid): # ##^ funct1on def python -1
+    """ # ##^  1n 1n_python_comment -1
+    @type path: unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment -1
+    @type data: str or unicode # ##^ property  1n 1n_python_comment -1
+    @type a_time: int # ##^ property  1n 1n_python_comment -1
+    @type m_time: int # ##^ property  1n 1n_python_comment -1
+    @type st_mode: __builtin__.NoneType # ##^ property  1n 1n_python_comment -1
+    @type st_uid: __builtin__.NoneType # ##^ property  1n 1n_python_comment -1
+    @type st_gid: __builtin__.NoneType # ##^ property  1n 1n_python_comment -1
+    """ # ##^  -1
+    fout = open(path, "wb") # ##^ methodcall and ass1gned  after  -1
+    fout.write(data) # ##^ methodcallnested method call -1
+    fout.close() # ##^ methodcallnested method call -1
+    os.utime(path, (a_time, m_time)) # ##^  -1
+    if st_mode: # ##^  1f statement on same scope 0
+        os.chmod(path, st_mode) # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch 0
 
-    if st_uid and st_gid:
-        os.chown(path, st_uid, st_gid)
-
-
-def read_file(path, read_data=False):
-    """
-    @type path: str or unicode
-    @type read_data: bool
-    @return: @rtype:
-    """
-    if read_data:
-        data = open(path, "rb").read()
-    else:
-        data = None
-
-    stats = os.stat(path)
-    return stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid, data
+    if st_uid and st_gid: # ##^  1f statement scope change 1
+        os.chown(path, st_uid, st_gid) # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch 1
 
 
-def read_file_to_fdict(path, read_data=False):
-    """
-    @type path: str or unicode
-    @type read_data: bool
-    @return: @rtype:
-    """
-    ft = read_file(path, read_data)
-    file_dict = {"st_ctime": int(ft[0]),
-                 "st_atime": int(ft[1]),
-                 "st_mtime": int(ft[2]),
-                 "st_mode": int(ft[3]),
-                 "st_uid": int(ft[4]),
+def read_file(path, read_data=False): # ##^ funct1on def python -1
+    """ # ##^  1n 1n_python_comment -1
+    @type path: str or unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment -1
+    @type read_data: bool # ##^ property  1n 1n_python_comment -1
+    @return: @rtype: # ##^ retrn |  1n 1n_python_comment -1
+    """ # ##^  -1
+    if read_data: # ##^  1f statement on same scope 0
+        data = open(path, "rb").read() # ##^ ass1gnment 0
+    else: # ##^  0
+        data = None # ##^ ass1gnment 0
 
-                 "st_gid": int(ft[5])}
-
-    if read_data:
-        file_dict["data"] = ft[6]
-
-    return file_dict
+    stats = os.stat(path) # ##^ methodcall and ass1gned  scope change 0
+    return stats.st_ctime, stats.st_atime, stats.st_mtime, stats.st_mode, stats.st_uid, stats.st_gid, data # ##^ retrn |  0
 
 
-def write_fdict_to_file(fdict, path):
-    """
-    @param fdict: dict
-    @type fdict:
-    @param path: str or unicode
-    @type path:
-    """
-    write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
+def read_file_to_fdict(path, read_data=False): # ##^ funct1on def python 0
+    """ # ##^  1n 1n_python_comment 0
+    @type path: str or unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment 0
+    @type read_data: bool # ##^ property  1n 1n_python_comment 0
+    @return: @rtype: ADDTYPES # ##^ retrn |  1n 1n_python_comment 0
+    """ # ##^  0
+    ft = read_file(path, read_data) # ##^ methodcall and ass1gned  after  0
+    file_dict = {"st_ctime": int(ft[0]), # ##^ ass1gnment 0
+                 "st_atime": int(ft[1]), # ##^ funct1on call 0
+                 "st_mtime": int(ft[2]), # ##^ funct1on call 0
+                 "st_mode": int(ft[3]), # ##^ funct1on call 0
+                 "st_uid": int(ft[4]), # ##^ funct1on call 0
+
+                 "st_gid": int(ft[5])} # ##^ methodcall not after ass1gnment 0
+
+    if read_data: # ##^  scope 1
+        file_dict["data"] = ft[6] # ##^ ass1gnment 1
+
+    return file_dict # ##^  wh1tespace |  0
 
 
-def read_and_encrypt_file(fpath, blobpath, secret):
-    """
-    @type fpath: str or unicode
-    @type blobpath: str or unicode
-    @type salt: str or unicode
-    @type secret: str or unicode
-    @return: @rtype:
-    """
-
-    try:
-
-        #file_dict = read_file_to_fdict(fpath)
-        encrypted_file_dict = {}
-        data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback)
-
-        #encrypt_file_smp
-        encrypted_file_dict["data_hash"] = data_hash
-        encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s
-        encrypted_file_dict["chunk_sizes"] = chunk_sizes
-        encrypted_file_dict["encrypted_data"] = encrypted_data
-
-        #encrypted_file_dict = encrypt(salt, secret, file_dict["data"])
-        pickle_object(blobpath, encrypted_file_dict)
-        return None
-    except Exception, e:
-        handle_exception(e)
+def write_fdict_to_file(fdict, path): # ##^ funct1on def python 0
+    """ # ##^  1n 1n_python_comment 0
+    @param fdict: dict # ##^  1n 1n_python_comment 0
+    @type fdict: # ##^ property  1n 1n_python_comment 0
+    @param path: str or unicode # ##^  1n 1n_python_comment 0
+    @type path: # ##^ property  1n 1n_python_comment 0
+    """ # ##^  0
+    write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"]) # ##^ methodcall after  0
 
 
-def decrypt_file_and_write(fpath, unenc_path, secret):
-    """
-    @type fpath: str or unicode
-    @type unenc_path: str or unicode
-    @type secret: str or unicode
-    @return: @rtype:
-    """
+def read_and_encrypt_file(fpath, blobpath, secret): # ##^ funct1on def python 0
+    """ # ##^  1n 1n_python_comment 0
+    @type fpath: str or unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment 0
+    @type blobpath: str or unicode # ##^ property  1n 1n_python_comment 0
+    @type salt: str or unicode # ##^ property  1n 1n_python_comment 0
+    @type secret: str or unicode # ##^ property  1n 1n_python_comment 0
+    @return: @rtype: # ##^ retrn |  1n 1n_python_comment 0
+    """ # ##^  0
 
-    try:
-        encrypted_file_dict = unpickle_object(fpath)
-        unencrypted_file_dict = decrypt(secret, encrypted_file_dict)
-        open(unenc_path, "wb").write(unencrypted_file_dict)
-        return None
-    except Exception, e:
-        handle_exception(e)
+    try: # ##^ try 0
 
+        #file_dict = read_file_to_fdict(fpath) # ##^ comment -> methodcall and ass1gned  not after ass1gnmentmethod call after 1f 3lse or wtch 0
+        encrypted_file_dict = {} # ##^ ass1gnment 0
+        data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback) # ##^ ass1gnment 0
 
-def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
-    """
-    @param cryptobox_index: dict
-    @type cryptobox_index:
-    @param fdir: str or unicode
-    @type fdir:
-    @param fhash: str or unicode
-    @type fhash:
-    @param secret: str or unicode
-    @type secret:
-    """
-    blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
-    file_blob = {"data": decrypt(secret, blob_enc)}
-    paths = []
+        #encrypt_file_smp # ##^ comment 0
+        encrypted_file_dict["data_hash"] = data_hash # ##^ ass1gnment 0
+        encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s # ##^ ass1gnment 0
+        encrypted_file_dict["chunk_sizes"] = chunk_sizes # ##^ ass1gnment 0
+        encrypted_file_dict["encrypted_data"] = encrypted_data # ##^ ass1gnment 0
 
-    for dirhash in cryptobox_index["dirnames"]:
-        for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
-            if strcmp(fhash, cfile["hash"]):
-                fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
-
-                if not os.path.exists(fpath):
-                    ft = cryptobox_index["filestats"][fpath]
-                    file_blob["st_atime"] = int(ft["st_atime"])
-                    file_blob["st_mtime"] = int(ft["st_mtime"])
-                    file_blob["st_mode"] = int(ft["st_mode"])
-                    file_blob["st_uid"] = int(ft["st_uid"])
-                    file_blob["st_gid"] = int(ft["st_gid"])
-                    write_fdict_to_file(file_blob, fpath)
-                    paths.append(fpath)
-
-    return paths
+        #encrypted_file_dict = encrypt(salt, secret, file_dict["data"]) # ##^ comment -> methodcall and ass1gned  after ass1gnment 0
+        pickle_object(blobpath, encrypted_file_dict) # ##^ methodcallnested method call 0
+        return None # ##^ retrn |  0
+    except Exception, e: # ##^ except 0
+        handle_exception(e) # ##^ methodcall after except 0
 
 
-def make_cryptogit_hash(fdata, fpath, datadir, localindex):
-    """
-    @type fdata: StringIO
-    @type fpath: str or unicode
-    @type datadir: str or unicode
-    @type localindex: dict
-    @return: @rtype:
-    """
-    fdata.seek(0)
-    fdata = fdata.read()
-    filehash = make_sha1_hash("blob " + str(len(fdata)) + "\0" + str(fdata))
-    blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
-    blobpath = os.path.join(blobdir, filehash[2:])
-    filedata = {"filehash": filehash,
-                "fpath": fpath,
-                "blobpath": blobpath,
-                "blobdir": blobdir,
-                "blob_exists": os.path.exists(blobpath)}
+def decrypt_file_and_write(fpath, unenc_path, secret): # ##^ funct1on def python 0
+    """ # ##^  1n 1n_python_comment 0
+    @type fpath: str or unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment 0
+    @type unenc_path: str or unicode # ##^ property  1n 1n_python_comment 0
+    @type secret: str or unicode # ##^ property  1n 1n_python_comment 0
+    @return: @rtype: # ##^ retrn |  1n 1n_python_comment 0
+    """ # ##^  0
 
-    localindex["filestats"][fpath] = file_dict
-    return filedata, localindex
+    try: # ##^ try 0
+        encrypted_file_dict = unpickle_object(fpath) # ##^ methodcall and ass1gned  not after ass1gnmentmethod call after 1f 3lse or wtch 0
+        unencrypted_file_dict = decrypt(secret, encrypted_file_dict) # ##^ methodcall and ass1gned nested method call 0
+        open(unenc_path, "wb").write(unencrypted_file_dict) # ##^  0
+        return None # ##^ retrn |  0
+    except Exception, e: # ##^ except 0
+        handle_exception(e) # ##^ methodcall after except 0
+
+
+def decrypt_write_file(cryptobox_index, fdir, fhash, secret): # ##^ funct1on def python 0
+    """ # ##^  1n 1n_python_comment 0
+    @param cryptobox_index: dict # ##^  1n 1n_python_comment 0
+    @type cryptobox_index: # ##^ property  1n 1n_python_comment 0
+    @param fdir: str or unicode # ##^  1n 1n_python_comment 0
+    @type fdir: # ##^ property  1n 1n_python_comment 0
+    @param fhash: str or unicode # ##^  1n 1n_python_comment 0
+    @type fhash: # ##^ property  1n 1n_python_comment 0
+    @param secret: str or unicode # ##^  1n 1n_python_comment 0
+    @type secret: # ##^ property  1n 1n_python_comment 0
+    """ # ##^  0
+    blob_enc = unpickle_object(os.path.join(fdir, fhash[2:])) # ##^ ass1gnment 0
+    file_blob = {"data": decrypt(secret, blob_enc)} # ##^ methodcall and ass1gned  after ass1gnment 0
+    paths = [] # ##^ ass1gnment 0
+
+    for dirhash in cryptobox_index["dirnames"]: # ##^ for statement 0
+        for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]: # ##^  0
+            if strcmp(fhash, cfile["hash"]): # ##^  1f statement 1
+                fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"]) # ##^ methodcall and ass1gned nested method call 1
+
+                if not os.path.exists(fpath): # ##^  1f statement on same scope after ass1gnement after method call 2
+                    ft = cryptobox_index["filestats"][fpath] # ##^ ass1gnment 2
+                    file_blob["st_atime"] = int(ft["st_atime"]) # ##^ methodcall and ass1gned  after ass1gnment 2
+                    file_blob["st_mtime"] = int(ft["st_mtime"]) # ##^ methodcall and ass1gned nested method call 2
+                    file_blob["st_mode"] = int(ft["st_mode"]) # ##^ methodcall and ass1gned nested method call 2
+                    file_blob["st_uid"] = int(ft["st_uid"]) # ##^ methodcall and ass1gned nested method call 2
+                    file_blob["st_gid"] = int(ft["st_gid"]) # ##^ methodcall and ass1gned nested method call 2
+                    write_fdict_to_file(file_blob, fpath) # ##^ methodcallnested method call 2
+                    paths.append(fpath) # ##^ methodcallnested method call 2
+
+    return paths # ##^  scope -2
+
+
+def make_cryptogit_hash(fpath, datadir, localindex): # ##^ funct1on def python -2
+    """ # ##^  1n 1n_python_comment -2
+    @type fpath: str or unicode # ##^ member 1n1t1al1zat1on 1n 1n_python_comment -2
+    @type datadir: str or unicode # ##^ property  1n 1n_python_comment -2
+    @type localindex: dict # ##^ property  1n 1n_python_comment -2
+    @return: @rtype: # ##^ retrn |  1n 1n_python_comment -2
+    """ # ##^  -2
+    file_dict = read_file_to_fdict(fpath, read_data=True) # ##^ methodcall and ass1gned  after  -2
+    filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"])) # ##^ ass1gnment -2
+    blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2]) # ##^ ass1gnment -2
+    blobpath = os.path.join(blobdir, filehash[2:]) # ##^ methodcall and ass1gned  after ass1gnment -2
+    filedata = {"filehash": filehash, # ##^ ass1gnment -2
+                "fpath": fpath, # ##^ member 1n1t1al1zat1on -2
+                "blobpath": blobpath, # ##^ member 1n1t1al1zat1on -2
+                "blobdir": blobdir, # ##^ member 1n1t1al1zat1on -2
+                "blob_exists": os.path.exists(blobpath)} # ##^ member 1n1t1al1zat1on -2
+
+    del file_dict["data"] # ##^  scope -2
+    localindex["filestats"][fpath] = file_dict # ##^ ass1gnment -2
+    return filedata, localindex # ##^ retrn |  -2
+
+ # ##^ global_class_declare -2
