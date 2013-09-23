@@ -9,7 +9,7 @@ import base64
 import time
 import multiprocessing
 import cPickle
-from StringIO import StringIO
+from cStringIO import StringIO
 import jsonpickle
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512, HMAC
