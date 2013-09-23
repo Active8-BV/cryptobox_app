@@ -9,7 +9,7 @@ import urllib
 import subprocess
 import json
 import requests
-from cba_utils import log, Memory, update_file_progress, get_file_progress
+from cba_utils import log, Memory, update_item_progress, get_item_progress
 
 
 def get_b64mstyle():
@@ -225,9 +225,9 @@ def download_server(memory, options, url):
 
             if divider > 0:
                 percentage = int(float(downloaded_bytes) / divider)
-                percentage += get_file_progress()
+                percentage += get_item_progress()
                 percentage /= options.numdownloadthreads
-                update_file_progress(percentage)
+                update_item_progress(percentage)
 
     content = b"".join(fileb)
     return content, memory

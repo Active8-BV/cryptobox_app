@@ -591,7 +591,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
     sm.set("dir_del_local", dir_del_local)
     sm.set("file_del_local", file_del_local)
     sm.set("file_del_server", file_del_server)
-
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
@@ -657,7 +656,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:662", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:659", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 

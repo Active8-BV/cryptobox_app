@@ -30,7 +30,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:36", p
+    print "tests.py:33", p
 
 
 def count_files_dir(fpath):
@@ -173,7 +173,6 @@ class CryptoboxAppTest(unittest.TestCase):
         enc_data = enc_file
         org_data = (open(fname).read())
         self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))
-
         dec_data = decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
         org_data = (open(fname).read())
         self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
@@ -183,8 +182,15 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/20MB.zip"
+        fname = "testdata/1MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
+        enc_file_struct = encrypt_file_smp(secret, fname)
+        dec_file = decrypt_file_smp(secret, enc_file_struct)
+        dec_file.seek(0)
+        dec_data = dec_file.read()
+        org_data = (open(fname).read())
+        self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
+        fname = "testdata/20MB.zip"
         enc_file_struct = encrypt_file_smp(secret, fname)
         dec_file = decrypt_file_smp(secret, enc_file_struct)
         dec_file.seek(0)
@@ -401,7 +407,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(self.directories_synced())
         self.assertTrue(self.files_synced())
 
-
     def files_synced(self):
         """
         files_synced
@@ -419,7 +424,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_synced_tree_mutations_local
         """
-
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
         self.cbmemory.load(get_data_dir(self.cboptions))
