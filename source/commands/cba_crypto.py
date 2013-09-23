@@ -243,15 +243,23 @@ def encrypt_a_file(secret, perc_callback, chunk):
     return encrypt_file(secret, StringIO(chunk), perc_callback=perc_callback)
 
 
-def encrypt_file_smp(secret, fname):
+def encrypt_file_smp(secret, fname=None, strobj=None):
     """
     @type secret: str, unicode
     @type fname: str, unicode
+    @type strobj: StringIO, None
     """
-    stats = os.stat(fname)
-    chunksize = int(float(stats.st_size) / multiprocessing.cpu_count()) + 64
+    if not strobj:
+        stats = os.stat(fname)
+        datasize = float(stats.st_size)
+        fobj = open(fname)
+    else:
+        datasize = float(strobj.len)
+        fobj = strobj
+
+    chunksize = int(datasize / multiprocessing.cpu_count()) + 64
     chunklist = []
-    with open(fname) as infile:
+    with fobj as infile:
         chunk = infile.read(chunksize)
 
         while chunk:
@@ -310,14 +318,13 @@ def unpickle_object(path):
     return cPickle.load(open(path, "rb"))
 
 
-def encrypt_object(salt, secret, obj):
+def encrypt_object(secret, obj):
     """
-    @type salt: str or unicode
     @type secret: str or unicode
     @type obj: str or unicode
     @return: @rtype:
     """
-    encrypted_dict = encrypt_file(salt, secret, cPickle.dump(obj, cPickle.HIGHEST_PROTOCOL))
+    encrypted_dict = encrypt_file_smp(secret, strobj=cPickle.dump(obj, cPickle.HIGHEST_PROTOCOL))
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
@@ -337,4 +344,4 @@ def decrypt_object(secret, obj_string, key=None, give_secret_cb=None):
         if give_secret_cb:
             give_secret_cb(secret)
 
-    return cPickle.load(decrypt_file(secret, data))
+    return cPickle.load(decrypt_file_smp(secret, data).read())

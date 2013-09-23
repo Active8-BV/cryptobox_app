@@ -5,7 +5,6 @@ indexing routines
 import os
 import shutil
 import base64
-import multiprocessing
 from Crypto import Random
 from cba_utils import log, strcmp, get_uuid, update_progress
 from cba_memory import Memory
@@ -289,14 +288,14 @@ def hide_config(options, salt, secret):
     if options.encrypt and options.remove and salt and secret:
         datadir = get_data_dir(options)
         mempath = os.path.join(datadir, "memory.pickle")
-        read_and_encrypt_file(mempath, mempath + ".enc", salt, secret)
+        read_and_encrypt_file(mempath, mempath + ".enc", secret)
         os.remove(mempath)
         hidden_name = get_uuid(3)
 
         while hidden_name in os.listdir(options.dir):
             hidden_name = get_uuid(3)
 
-        encrypted_name = encrypt_object(salt, secret, options.cryptobox)
+        encrypted_name = encrypt_object(secret, options.cryptobox)
         pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), encrypted_name)
         os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
@@ -357,39 +356,18 @@ def decrypt_and_build_filetree(memory, options):
                 if not os.path.exists(fpath):
                     hashes.add(cfile["hash"])
 
-    pool = multiprocessing.dummy.Pool(processes=multiprocessing.cpu_count())
-    progressdata = {"processed_files": 0,
-                    "numfiles": len(hashes)}
-
-    #noinspection PyUnusedLocal
-    def done_decrypting(e):
-        """
-        @param e: event
-        @type e:
-        """
-        progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"], "decrypting " + "\n\t"+"\n\t".join(e))
-
+    processed_files = 0
+    numfiles = len(hashes)
     secret = password_derivation(password, base64.decodestring(cryptobox_index["salt_b64"]))
-    decrypt_results = []
 
     for fhash in hashes:
-        result = pool.apply_async(decrypt_blob_to_filepaths, (blobdir, cryptobox_index, fhash, secret), callback=done_decrypting)
-        decrypt_results.append(result)
-    pool.close()
-    pool.join()
-    successfull_decryption = True
+        paths = decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret)
+        processed_files += 1
+        update_progress(processed_files, numfiles, "decrypting " + "\n\t"+"\n\t".join(paths))
 
-    for result in decrypt_results:
-        if not result.successful():
-            result.get()
-            successfull_decryption = False
-
-    if successfull_decryption:
-        cryptobox_index["locked"] = False
-
+    cryptobox_index["locked"] = False
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:396"
+        print "cba_index.py:374"
     return memory
