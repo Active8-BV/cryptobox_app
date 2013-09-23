@@ -32,37 +32,14 @@ def encrypt_new_blobs(salt, secret, new_blobs):
     @type secret: str or unicode
     @type new_blobs: dict
     """
-    num_cores = multiprocessing.cpu_count()
-    progressdata = {"processed_files": 0, "numfiles": len(new_blobs)}
-
-    #noinspection PyUnusedLocal
-    def done_encrypting(e):
-        """
-        @param e: event
-        @type e:
-        """
-        progressdata["processed_files"] += 1
-        update_progress(progressdata["processed_files"], progressdata["numfiles"], "encrypting")
-
-    pool = multiprocessing.Pool(processes=num_cores)
-    counter = 0
-    encrypt_results = []
+    processed_files = 0
+    numfiles = len(new_blobs)
 
     for fhash in new_blobs:
-        counter += 1
         ensure_directory(new_blobs[fhash]["blobdir"])
-        result = pool.apply_async(read_and_encrypt_file,
-                                  (new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret),
-                                  callback=done_encrypting)
-
-        encrypt_results.append(result)
-    pool.close()
-    pool.join()
-
-    for result in encrypt_results:
-        if not result.successful():
-            result.get()
-    pool.terminate()
+        read_and_encrypt_file(new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret)
+        processed_files += 1
+        update_progress(processed_files, numfiles, "encrypting")
 
 
 def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):

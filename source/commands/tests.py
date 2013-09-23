@@ -9,7 +9,7 @@ import unittest
 import random
 from subprocess import Popen, PIPE
 from cba_main import cryptobox_command
-from cba_utils import Dict2Obj, run_in_pool
+from cba_utils import Dict2Obj, smp_all_cpu_apply
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_memory import Memory, del_local_file_history, del_server_file_history
 from cba_blobs import get_blob_dir, get_data_dir
@@ -149,12 +149,12 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
 
-    def ignore_test_run_in_pool(self):
+    def ignore_test_smp_all_cpu_apply(self):
         self.do_wait_for_tasks = False
 
         items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
         res_items = [x[0] + x[1] for x in items]
-        res_items2 = run_in_pool(items, add)
+        res_items2 = smp_all_cpu_apply(items, add)
         self.assertEquals(res_items, res_items2)
 
     def ignore_test_encrypt_file(self):
