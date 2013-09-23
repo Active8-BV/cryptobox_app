@@ -83,7 +83,7 @@ def write_fdict_to_file(fdict, path):
     write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
 
 
-def read_and_encrypt_file(fpath, blobpath, salt, secret):
+def read_and_encrypt_file(fpath, blobpath, secret):
     """
     @type fpath: str or unicode
     @type blobpath: str or unicode
@@ -97,7 +97,8 @@ def read_and_encrypt_file(fpath, blobpath, salt, secret):
         #file_dict = read_file_to_fdict(fpath)
         encrypted_file_dict = {}
         data_hash, initialization_vector_p64s, chunk_sizes, encrypted_data, secret = encrypt_file(secret, open(fpath), perc_callback=enc_callback)
-        encrypt_file_smp
+
+        #encrypt_file_smp
         encrypted_file_dict["data_hash"] = data_hash
         encrypted_file_dict["initialization_vector_p64s"] = initialization_vector_p64s
         encrypted_file_dict["chunk_sizes"] = chunk_sizes
@@ -160,15 +161,17 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     return paths
 
 
-def make_cryptogit_hash(fpath, datadir, localindex):
+def make_cryptogit_hash(fdata, fpath, datadir, localindex):
     """
+    @type fdata: StringIO
     @type fpath: str or unicode
     @type datadir: str or unicode
     @type localindex: dict
     @return: @rtype:
     """
-    file_dict = read_file_to_fdict(fpath, read_data=True)
-    filehash = make_sha1_hash("blob " + str(len(file_dict["data"])) + "\0" + str(file_dict["data"]))
+    fdata.seek(0)
+    fdata = fdata.read()
+    filehash = make_sha1_hash("blob " + str(len(fdata)) + "\0" + str(fdata))
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
     filedata = {"filehash": filehash,
@@ -177,6 +180,5 @@ def make_cryptogit_hash(fpath, datadir, localindex):
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
 
-    del file_dict["data"]
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex

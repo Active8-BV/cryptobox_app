@@ -19,6 +19,21 @@ from cba_file import ensure_directory
 from cba_crypto import encrypt_file, decrypt_file, make_hash_str, encrypt_file_smp, decrypt_file_smp
 
 
+def add(a, b):
+    """
+    @type a: int
+    @type b: int
+    """
+    return a + b
+
+
+def pc(p):
+    """
+    @type p: int
+    """
+    print "tests.py:36", p
+
+
 def count_files_dir(fpath):
     """
     count_files_dir
@@ -140,7 +155,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
         res_items = [x[0] + x[1] for x in items]
-        res_items2 = run_in_pool(items, "add", add)
+        res_items2 = run_in_pool(items, add)
         self.assertEquals(res_items, res_items2)
 
     def itest_encrypt_file(self):
