@@ -400,6 +400,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
+        os.system("cp testdata/20MB.zip testdata/testmap/all_types/")
 
         # build directories locally and on server
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
