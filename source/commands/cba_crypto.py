@@ -15,7 +15,7 @@ from Crypto import Random
 from Crypto.Hash import SHA, SHA512, HMAC
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import run_in_pool, DEBUG
+from cba_utils import smp_all_cpu_apply, DEBUG
 
 
 def make_sha1_hash(data):
@@ -266,7 +266,7 @@ def encrypt_file_smp(secret, fname=None, strobj=None):
             chunklist.append(chunk)
             chunk = infile.read(chunksize)
 
-    encrypted_file_chunks = run_in_pool(chunklist, encrypt_a_file, base_params=(secret, progress_file_cryption))
+    encrypted_file_chunks = smp_all_cpu_apply(chunklist, encrypt_a_file, base_params=(secret, progress_file_cryption))
     return encrypted_file_chunks
 
 
@@ -278,7 +278,7 @@ def decrypt_file_smp(secret, enc_file_chunks):
     dec_file = StringIO()
 
     chunks_param_sorted = [(secret, chunk[3], chunk[0], chunk[1], chunk[2], progress_file_cryption) for chunk in enc_file_chunks]
-    dec_file_chunks = run_in_pool(chunks_param_sorted, decrypt_file)
+    dec_file_chunks = smp_all_cpu_apply(chunks_param_sorted, decrypt_file)
 
     for chunk_dec_file in dec_file_chunks:
         dec_file.write(chunk_dec_file.read())
