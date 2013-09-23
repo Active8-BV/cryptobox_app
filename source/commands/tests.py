@@ -64,6 +64,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
                 #sys.stdout = open('stdout.txt', 'w')
                 #sys.stderr = open('stderr.txt', 'w')
+
                 #noinspection PyPep8Naming
 
     def tearDown(self):
