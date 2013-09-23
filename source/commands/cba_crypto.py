@@ -53,7 +53,6 @@ def make_hash_str(data, secret):
             data2[key] = str(data[key])
 
         data = data2
-
     elif isinstance(data, list):
         data = data[0]
 
@@ -134,7 +133,6 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
         dec_data = cipher.decrypt(chunk)
         dec_data = dec_data[0:decrypted_chunk]
         dec_file.write(dec_data)
-
         if cnt <= 0:
             calculated_hash = make_hash_str(dec_data, secret)
 
@@ -146,11 +144,9 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
         if perc_callback:
             if time.time() - lc_time > perc_callback_freq:
                 perc_callback(cnt / (float(chunk_sizes["length"]) / 100))
-
                 lc_time = time.time()
 
     dec_file.seek(0)
-
     if perc_callback:
         perc_callback(100.0)
 
@@ -181,7 +177,6 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         fin.seek(0, os.SEEK_END)
         total = fin.tell()
         fin.seek(0)
-
     Random.atfork()
     total = int(total)
     fin.seek(0)
@@ -210,7 +205,6 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         if cnt <= 0:
             data_hash = make_hash_str(chunk, secret)
             chunk_sizes_d["last"] = chunk_sizes_d["default"] = (len(chunk), len(enc_data))
-
         enc_file.write(enc_data)
         cnt += 1
 
@@ -224,9 +218,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
             chunk_sizes_d["last"] = (len(chunk), len(enc_data))
             chunk_sizes_d["length"] = cnt
             break
-
     enc_file.seek(0)
-
     if perc_callback:
         perc_callback(100.0)
 
@@ -237,7 +229,7 @@ def progress_file_cryption(p):
     """
     @type p: int
     """
-    print "cba_crypto.py:242", p
+    print "cba_crypto.py:234", p
 
 
 def encrypt_a_file(secret, perc_callback, chunk):

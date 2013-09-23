@@ -128,7 +128,6 @@ def index_and_encrypt(memory, options, localindex_param):
 
     salt, secret = get_secret(memory, options)
     ensure_directory(datadir)
-
     if len(localindex["dirnames"]) > 0:
         numfiles = reduce(lambda dirname, y: dirname + y, [len(localindex["dirnames"][x]["filenames"]) for x in localindex["dirnames"]])
     else:
@@ -149,7 +148,6 @@ def index_and_encrypt(memory, options, localindex_param):
                 filedata, localindex = make_cryptogit_hash(file_path, datadir, localindex)
                 fname["hash"] = filedata["filehash"]
                 hash_set_on_disk.add(filedata["filehash"])
-
                 if not filedata["blob_exists"]:
                     new_blobs[filedata["filehash"]] = filedata
                     new_objects += 1
@@ -157,7 +155,6 @@ def index_and_encrypt(memory, options, localindex_param):
                 if len(new_blobs) > 1500:
                     encrypt_new_blobs(salt, secret, new_blobs)
                     new_blobs = {}
-
             update_progress(file_cnt, numfiles, "check " + file_path)
 
     if len(new_blobs) > 0:
@@ -168,6 +165,7 @@ def index_and_encrypt(memory, options, localindex_param):
         localindex["locked"] = True
     else:
         localindex["locked"] = False
+
     localindex["salt_b64"] = base64.encodestring(salt)
     memory = store_cryptobox_index(memory, localindex)
 
@@ -178,7 +176,6 @@ def index_and_encrypt(memory, options, localindex_param):
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
             log("delete", fpath)
-
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
             else:
@@ -206,7 +203,6 @@ def index_and_encrypt(memory, options, localindex_param):
         blob_dir = os.path.join(blob_dirs, f_hash[:2])
         blob_path = os.path.join(blob_dir, f_hash[2:])
         os.remove(blob_path)
-
         if os.path.isdir(blob_dir):
             blob_entries = [f for f in os.listdir(blob_dir) if not f.startswith('.')]
 
@@ -250,7 +246,6 @@ def restore_hidden_config(options):
 
     sorted_keys = sorted(hidden_configs_dict.keys())
     sorted_keys.reverse()
-
     if len(sorted_keys) > 0:
         hidden_config = hidden_configs_dict[sorted_keys[0]]
         sorted_keys.remove(sorted_keys[0])
@@ -381,7 +376,6 @@ def decrypt_and_build_filetree(memory, options):
     for fhash in hashes:
         result = pool.apply_async(decrypt_blob_to_filepaths, (blobdir, cryptobox_index, fhash, secret), callback=done_decrypting)
         decrypt_results.append(result)
-
     pool.close()
     pool.join()
     successfull_decryption = True
@@ -397,5 +391,5 @@ def decrypt_and_build_filetree(memory, options):
     memory = store_cryptobox_index(memory, cryptobox_index)
 
     if len(hashes) > 0:
-        print "cba_index.py:402"
+        print "cba_index.py:396"
     return memory
