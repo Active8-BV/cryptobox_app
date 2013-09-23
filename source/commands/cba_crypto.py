@@ -156,7 +156,6 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
 
     return dec_file # ##^  wh1tespace |  0
 
-
 #noinspection PyDictCreation,PyPep8Naming # ##^ no-1nspect1on 0
 
 
@@ -239,7 +238,7 @@ def progress_file_cryption(p): # ##^ funct1on def python 0
     """ # ##^  1n 1n_python_comment 0
     @type p: int # ##^ member 1n1t1al1zat1on 1n 1n_python_comment 0
     """ # ##^  0
-    print "cba_crypto.py:244", p # ##^ debug statement 0
+    print "cba_crypto.py:243", p # ##^ debug statement 0
 
 
 def encrypt_a_file(secret, perc_callback, chunk): # ##^ funct1on def python 0
@@ -348,5 +347,6 @@ def decrypt_object(secret, obj_string, key=None, give_secret_cb=None): # ##^ fun
             give_secret_cb(secret) # ##^ methodcall not after ass1gnmentmethod call after 1f 3lse or wtch 2
 
     return cPickle.loads(decrypt(secret, data, hashcheck=False)) # ##^  wh1tespace |  0
+ # ##^ global_class_declare 0 # ##^  0
 
  # ##^ global_class_declare 0
