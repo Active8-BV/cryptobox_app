@@ -12,20 +12,10 @@ import cPickle
 from cStringIO import StringIO
 import jsonpickle
 from Crypto import Random
-from Crypto.Hash import SHA, SHA512, HMAC
+from Crypto.Hash import SHA512, HMAC
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import smp_all_cpu_apply, DEBUG
-
-
-def make_sha1_hash(data):
-    """ make hash
-    @param data:
-    @type data:
-    """
-    sha = SHA.new()
-    sha.update(data)
-    return sha.hexdigest()
+from cba_utils import smp_all_cpu_apply, DEBUG, update_file_progress, make_sha1_hash
 
 
 def make_hash(data):
@@ -232,7 +222,8 @@ def progress_file_cryption(p):
     """
     @type p: int
     """
-    print "cba_crypto.py:234", p
+
+    update_file_progress(p)
 
 
 def encrypt_a_file(secret, perc_callback, chunk):
@@ -306,26 +297,6 @@ def json_object(path, targetobject):
         json.dump(jsonproxy, open(path + ".json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
 
-def pickle_object(path, targetobject, json_pickle=False):
-    """
-    @type path: str or unicode
-    @type targetobject: object
-    @type json_pickle: bool
-    """
-    cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
-    if json_pickle:
-        if isinstance(targetobject, dict):
-            json_object(path, targetobject)
-        else:
-            json_object(path, targetobject)
-
-
-def unpickle_object(path):
-    """
-    @type path: str or unicode
-    @return: @rtype:
-    """
-    return cPickle.load(open(path, "rb"))
 
 
 def encrypt_object(secret, obj):

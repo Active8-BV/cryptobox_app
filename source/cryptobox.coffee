@@ -220,8 +220,9 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     get_progress = =>
         client = get_rpc_client()
         client.methodCall "get_progress",[], (e,v) ->
+            print "cryptobox.cf:225", v
             if utils.exist(e)
-                print "cryptobox.cf:226", e, v
+                print "cryptobox.cf:227", e, v
             else
                 progress = parseInt(v[0], 10)
                 file_progress = parseInt(v[1], 10)
@@ -235,7 +236,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             if progress_bar_item >= 100
                 _.defer(reset_file_progress)
         utils.force_digest($scope)
-    utils.set_interval("cryptobox.cf:240", get_progress, 1000, "get_progress")
+    utils.set_interval("cryptobox.cf:241", get_progress, 1000, "get_progress")
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -299,7 +300,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:304", err
+                print "cryptobox.cf:305", err
         )
 
     $scope.show_settings = false
@@ -343,7 +344,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:348", err
+                print "cryptobox.cf:349", err
         )
 
     $scope.file_input_change = (f) ->
@@ -353,9 +354,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:358", command_name, command_arguments
         client.methodCall command_name, command_arguments, (error, value) ->
-            print "cryptobox.cf:360", error, value
             if exist(error)
                 p.reject(error)
                 utils.force_digest($scope)
@@ -422,7 +421,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             (res) ->
                 add_output(res)
                 add_output("check done")
-                utils.set_time_out("cryptobox.cf:427", get_sync_state, 500)
+                utils.set_time_out("cryptobox.cf:426", get_sync_state, 500)
 
             (err) ->
                 add_output(err)

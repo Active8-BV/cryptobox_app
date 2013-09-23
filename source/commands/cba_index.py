@@ -6,9 +6,8 @@ import os
 import shutil
 import base64
 from Crypto import Random
-from cba_utils import log, strcmp, get_uuid, update_progress
-from cba_memory import Memory
-from cba_crypto import password_derivation, make_sha1_hash, unpickle_object, encrypt_object, pickle_object, decrypt_object
+from cba_utils import log, strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object
+from cba_crypto import password_derivation, make_sha1_hash, encrypt_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
 
@@ -322,7 +321,8 @@ def decrypt_and_build_filetree(memory, options):
         cb_locked = cryptobox_locked(memory)
 
         if not cb_locked:
-            return
+            log("cryptobox is locked")
+            return memory
     else:
         cryptobox_index = None
 
