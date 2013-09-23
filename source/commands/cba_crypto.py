@@ -325,7 +325,7 @@ def encrypt_object(salt, secret, obj):
     @type obj: str or unicode
     @return: @rtype:
     """
-    encrypted_dict = encrypt(salt, secret, cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL))
+    encrypted_dict = encrypt_file(salt, secret, cPickle.dump(obj, cPickle.HIGHEST_PROTOCOL))
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
@@ -345,4 +345,4 @@ def decrypt_object(secret, obj_string, key=None, give_secret_cb=None):
         if give_secret_cb:
             give_secret_cb(secret)
 
-    return cPickle.loads(decrypt(secret, data, hashcheck=False))
+    return cPickle.load(decrypt_file(secret, data))

@@ -44,7 +44,7 @@ def encrypt_new_blobs(salt, secret, new_blobs):
         progressdata["processed_files"] += 1
         update_progress(progressdata["processed_files"], progressdata["numfiles"], "encrypting")
 
-    pool = multiprocessing.dummy.Pool(processes=num_cores)
+    pool = multiprocessing.Pool(processes=num_cores)
     counter = 0
     encrypt_results = []
 
