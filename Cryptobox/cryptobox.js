@@ -41,7 +41,7 @@ tray = new gui.Tray({
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var actions, add_checkbox_menu_item, add_checkbox_traymenu_item, add_menu_item, add_menu_seperator, add_output, add_traymenu_item, add_traymenu_seperator, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_user_var, get_val, lock_buttons, menubar, output, ping_client, progress_bar, progress_bar_item, reset_file_progress, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, settings_menubar_tray, settings_menubaritem, spawn, start_interval, start_process, start_process_once, store_user_var, trayactions, update_menu_checks, update_output, winmain,
+  var actions, add_checkbox_menu_item, add_checkbox_traymenu_item, add_menu_item, add_menu_seperator, add_output, add_traymenu_item, add_traymenu_seperator, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_sync_state, get_user_var, get_val, lock_buttons, menubar, output, ping_client, progress_bar, progress_bar_item, reset_file_progress, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, settings_menubar_tray, settings_menubaritem, spawn, start_interval, start_process, start_process_once, store_user_var, trayactions, update_menu_checks, update_output, winmain,
     _this = this;
   print("cryptobox.cf:34", "cryptobox_ctrl");
   get_rpc_client = function() {
@@ -408,8 +408,9 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client, p;
     client = get_rpc_client();
     p = $q.defer();
-    print("cryptobox.cf:358", "run_command", cmd_to_run);
+    print("cryptobox.cf:358", command_name, command_arguments);
     client.methodCall(command_name, command_arguments, function(error, value) {
+      print("cryptobox.cf:360", error, value);
       if (exist(error)) {
         p.reject(error);
         return utils.force_digest($scope);
@@ -419,6 +420,23 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       }
     });
     return p.promise;
+  };
+  $scope.file_downloads = [];
+  $scope.file_uploads = [];
+  $scope.dir_del_server = [];
+  $scope.dir_make_local = [];
+  $scope.dir_make_server = [];
+  $scope.dir_del_local = [];
+  $scope.file_del_local = [];
+  $scope.file_del_server = [];
+  get_sync_state = function() {
+    $scope.file_downloads = run_command("get_smemory", ["file_downloads"]);
+    $scope.file_uploads = run_command("get_smemory", ["file_uploads"]);
+    $scope.dir_del_server = run_command("get_smemory", ["dir_del_server"]);
+    $scope.dir_make_local = run_command("get_smemory", ["dir_make_local"]);
+    $scope.dir_del_local = run_command("get_smemory", ["dir_del_local"]);
+    $scope.file_del_local = run_command("get_smemory", ["file_del_local"]);
+    return $scope.file_del_server = run_command("get_smemory", ["file_del_server"]);
   };
   $scope.sync_btn = function() {
     var option;
@@ -459,7 +477,8 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     };
     return run_command("cryptobox_command", [option]).then(function(res) {
       add_output(res);
-      return add_output("check done");
+      add_output("check done");
+      return utils.set_time_out("cryptobox.cf:427", get_sync_state, 500);
     }, function(err) {
       return add_output(err);
     });

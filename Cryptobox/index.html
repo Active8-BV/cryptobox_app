@@ -35,6 +35,7 @@
 
             <div class="col-sm-6">
                 <br/><br/>
+
                 <div class="progress" style="max-height: 10px;">
                     <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress()">
                         <span class="sr-only"></span>
@@ -74,6 +75,8 @@
         </div>
 
         <div class="well" ng-show="show_settings">
+            <button type="button" class="close" ng-click="toggle_settings()" aria-hidden="true" style="margin-top: -12px; margin-right: -8px;">&times;</button>
+            <br/>
             <form class="form-horizontal" role="form">
                 <div class="form-group">
                     <label for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
@@ -123,12 +126,22 @@
             </form>
         </div>
         <div class="row">
-
             <div class="col-sm-12" ng-show="show_debug">
                 <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
                 <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
             </div>
-
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <table class="table" ng-show="file_uploads">                    
+                    <tr class="success">
+                        <td>files to upload</td>
+                    </tr>                    
+                    <tr ng-repeat="f in file_uploads">
+                        <td>{{ f.local_file_path }}</td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
     </div>

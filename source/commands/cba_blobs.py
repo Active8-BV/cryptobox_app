@@ -3,7 +3,6 @@
 blob routines, loosely based on git
 """
 import os
-import multiprocessing
 from cba_utils import handle_exception, strcmp, update_progress
 from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file
 from cba_memory import add_local_file_history, add_server_file_history
@@ -26,9 +25,8 @@ def get_blob_dir(options):
     return os.path.join(datadir, "blobs")
 
 
-def encrypt_new_blobs(salt, secret, new_blobs):
+def encrypt_new_blobs(secret, new_blobs):
     """
-    @type salt: str or unicode
     @type secret: str or unicode
     @type new_blobs: dict
     """
@@ -37,7 +35,7 @@ def encrypt_new_blobs(salt, secret, new_blobs):
 
     for fhash in new_blobs:
         ensure_directory(new_blobs[fhash]["blobdir"])
-        read_and_encrypt_file(new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], salt, secret)
+        read_and_encrypt_file(new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], secret)
         processed_files += 1
         update_progress(processed_files, numfiles, "encrypting")
 

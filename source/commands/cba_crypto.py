@@ -107,6 +107,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
     @rtype: file
     """
     cnt = 0
+    encrypted_data = StringIO(encrypted_data)
 
     if not secret:
         raise Exception("no secret in decrypt file")
@@ -117,7 +118,8 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
     lc_time = time.time()
     dec_file = StringIO()
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
-
+    total_data_size = (chunk_sizes["default"][0] * chunk_sizes["length"] - 1) + chunk_sizes["last"][0]
+    current_data_read = 0
     while True:
         if cnt >= chunk_sizes["length"]:
             break
@@ -130,6 +132,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
             encrypted_chunk = chunk_sizes["last"][1]
 
         chunk = encrypted_data.read(encrypted_chunk)
+        current_data_read += encrypted_chunk
         dec_data = cipher.decrypt(chunk)
         dec_data = dec_data[0:decrypted_chunk]
         dec_file.write(dec_data)
@@ -143,14 +146,14 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
 
         if perc_callback:
             if time.time() - lc_time > perc_callback_freq:
-                perc_callback(cnt / (float(chunk_sizes["length"]) / 100))
+                perc_callback(float(current_data_read) / (float(total_data_size) / 100))
                 lc_time = time.time()
 
     dec_file.seek(0)
     if perc_callback:
         perc_callback(100.0)
 
-    return dec_file
+    return dec_file.read()
 
 
 #noinspection PyDictCreation,PyPep8Naming
@@ -180,7 +183,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
     Random.atfork()
     total = int(total)
     fin.seek(0)
-    enc_file = StringIO()
+    total_enc_data = ""
     data_hash = ""
     initialization_vector = Random.new().read(AES.block_size)
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
@@ -205,12 +208,12 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         if cnt <= 0:
             data_hash = make_hash_str(chunk, secret)
             chunk_sizes_d["last"] = chunk_sizes_d["default"] = (len(chunk), len(enc_data))
-        enc_file.write(enc_data)
+        total_enc_data += enc_data
         cnt += 1
 
         if perc_callback:
             if (time.time() - lc_time) > perc_callback_freq:
-                perc = ((cnt * CHUNKSIZE) / (float(total) / 100))
+                perc = (float(cnt * CHUNKSIZE) / (float(total) / 100))
                 perc_callback(perc)
                 lc_time = time.time()
 
@@ -218,11 +221,11 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
             chunk_sizes_d["last"] = (len(chunk), len(enc_data))
             chunk_sizes_d["length"] = cnt
             break
-    enc_file.seek(0)
+
     if perc_callback:
         perc_callback(100.0)
 
-    return data_hash, initialization_vector, chunk_sizes_d, enc_file, secret
+    return data_hash, initialization_vector, chunk_sizes_d, total_enc_data
 
 
 def progress_file_cryption(p):
@@ -254,19 +257,26 @@ def encrypt_file_smp(secret, fname=None, strobj=None):
         datasize = float(stats.st_size)
         fobj = open(fname)
     else:
-        datasize = float(strobj.len)
+        if hasattr(strobj, "len"):
+            datasize = float(strobj.len)
+        else:
+            strobj.seek(0, os.SEEK_END)
+            datasize = strobj.tell()
+            strobj.seek(0)
+
         fobj = strobj
+
 
     chunksize = int(datasize / multiprocessing.cpu_count()) + 64
     chunklist = []
-    with fobj as infile:
-        chunk = infile.read(chunksize)
 
-        while chunk:
-            chunklist.append(chunk)
-            chunk = infile.read(chunksize)
+    chunk = fobj.read(chunksize)
 
-    encrypted_file_chunks = smp_all_cpu_apply(chunklist, encrypt_a_file, base_params=(secret, progress_file_cryption))
+    while chunk:
+        chunklist.append(chunk)
+        chunk = fobj.read(chunksize)
+
+    encrypted_file_chunks = smp_all_cpu_apply(encrypt_a_file, chunklist, base_params=(secret, progress_file_cryption))
     return encrypted_file_chunks
 
 
@@ -278,10 +288,10 @@ def decrypt_file_smp(secret, enc_file_chunks):
     dec_file = StringIO()
 
     chunks_param_sorted = [(secret, chunk[3], chunk[0], chunk[1], chunk[2], progress_file_cryption) for chunk in enc_file_chunks]
-    dec_file_chunks = smp_all_cpu_apply(chunks_param_sorted, decrypt_file)
+    dec_file_chunks = smp_all_cpu_apply(decrypt_file, chunks_param_sorted)
 
     for chunk_dec_file in dec_file_chunks:
-        dec_file.write(chunk_dec_file.read())
+        dec_file.write(chunk_dec_file)
     dec_file.seek(0)
     return dec_file
 
@@ -324,24 +334,24 @@ def encrypt_object(secret, obj):
     @type obj: str or unicode
     @return: @rtype:
     """
-    encrypted_dict = encrypt_file_smp(secret, strobj=cPickle.dump(obj, cPickle.HIGHEST_PROTOCOL))
+    pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
+    encrypted_dict = encrypt_file_smp(secret, strobj=StringIO(pickle_data))
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
-def decrypt_object(secret, obj_string, key=None, give_secret_cb=None):
+def decrypt_object(secret, obj_string, key=None, salt=None):
     """
     @type secret: str or unicode
     @type obj_string: str
     @type key: str or unicode
-    @type give_secret_cb: __builtin__.function
-    @return: @rtype:
+    @type salt: str
+    @return: @rtype: object, str
     """
     data = cPickle.loads(base64.b64decode(obj_string))
 
     if key:
-        secret = password_derivation(key, data["salt"])
+        if not salt:
+            raise Exception("no salt")
+        secret = password_derivation(key, salt)
 
-        if give_secret_cb:
-            give_secret_cb(secret)
-
-    return cPickle.load(decrypt_file_smp(secret, data).read())
+    return cPickle.load(decrypt_file_smp(secret, data)), secret

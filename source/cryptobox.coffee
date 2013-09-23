@@ -353,8 +353,9 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     run_command = (command_name, command_arguments) ->
         client = get_rpc_client()
         p = $q.defer()
-        print "cryptobox.cf:358", "run_command", cmd_to_run
+        print "cryptobox.cf:358", command_name, command_arguments
         client.methodCall command_name, command_arguments, (error, value) ->
+            print "cryptobox.cf:360", error, value
             if exist(error)
                 p.reject(error)
                 utils.force_digest($scope)
@@ -362,6 +363,24 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 p.resolve(value)
                 utils.force_digest($scope)
         p.promise
+
+    $scope.file_downloads = []
+    $scope.file_uploads = []
+    $scope.dir_del_server = []
+    $scope.dir_make_local = []
+    $scope.dir_make_server = []
+    $scope.dir_del_local = []
+    $scope.file_del_local = []
+    $scope.file_del_server = []
+
+    get_sync_state = ->
+        $scope.file_downloads = run_command("get_smemory", ["file_downloads"])
+        $scope.file_uploads = run_command("get_smemory", ["file_uploads"])
+        $scope.dir_del_server = run_command("get_smemory", ["dir_del_server"])
+        $scope.dir_make_local = run_command("get_smemory", ["dir_make_local"])
+        $scope.dir_del_local = run_command("get_smemory", ["dir_del_local"])
+        $scope.file_del_local = run_command("get_smemory", ["file_del_local"])
+        $scope.file_del_server = run_command("get_smemory", ["file_del_server"])
 
     $scope.sync_btn = ->
         clear_msg_buffer()
@@ -403,6 +422,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             (res) ->
                 add_output(res)
                 add_output("check done")
+                utils.set_time_out("cryptobox.cf:427", get_sync_state, 500)
 
             (err) ->
                 add_output(err)
