@@ -181,7 +181,6 @@ def cryptobox_command(options):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
                     ensure_directory(options.dir)
-                    update_memory_progress(100)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
@@ -221,6 +220,7 @@ def cryptobox_command(options):
     hide_config(options, salt, secret)
     reset_memory_progress()
     reset_item_progress()
+    log("done")
     return True
 
 

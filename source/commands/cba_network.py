@@ -177,7 +177,6 @@ def on_server(memory, options, method, payload, session, files=None):
 
     verifyarg = os.path.join(os.getcwd(), "ca.cert")
     print "cba_network.py:179", verifyarg
-
     verifyarg = False
 
     if not payload:
