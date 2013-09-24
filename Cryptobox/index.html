@@ -29,8 +29,8 @@
     <div class="row">
         <div class="col-sm-6">
             <blockquote>
-                <p class="lead">Cryptobox syncer</p>
-                <small>version: {{cba_version}} pre-alpha</small>
+                <p class="lead"><i class="icon-lock" style="color:#fe7474;" ng-show="cryptobox_locked"></i>&nbsp;Cryptobox <span ng-show="cryptobox_locked">local data encrypted</span></p>
+                <small>cb:{{cba_version}} {{ motivation }} </small>
             </blockquote>
         </div>
 
@@ -56,14 +56,14 @@
         <div class="col-sm-12">
             <form class="form-horizontal" role="form">
                 <div class="btn-group btn-group pull-left">
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="sync_btn()"><i class="icon-refresh" style="margin-right: 4px"></i>sync</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="encrypt_btn()"><i class="icon-lock" style="margin-right: 4px"></i>encrypt local</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="decrypt_btn()"><i class="icon-unlock" style="margin-right: 4px"></i>decrypt local</button>
+                    <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-default" ng-click="sync_btn()"><i class="icon-refresh" style="margin-right: 4px"></i>sync</button>
+                    <button type="button" ng-disabled="get_lock_buttons()||disable_encrypt_button" class="btn btn-default" ng-click="encrypt_btn()"><i class="icon-lock" style="margin-right: 4px"></i>encrypt local</button>
+                    <button type="button" ng-disabled="get_lock_buttons()||disable_decrypt_button" class="btn btn-default" ng-click="decrypt_btn()"><i class="icon-unlock" style="margin-right: 4px"></i>decrypt local</button>
                 </div>
 
                 <div class="btn-group btn-group-xs pull-right">
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="debug_btn()"><i class="icon-search" style="margin-right: 4px"></i>inspect</button>
-                    <button type="button" ng-disabled="lock_buttons()" class="btn btn-default" ng-click="open_website()"><i class="icon-external-link" style="margin-right: 4px"></i>website</button>
+                    <button type="button" ng-disabled="get_lock_buttons()" class="btn btn-default" ng-click="debug_btn()"><i class="icon-search" style="margin-right: 4px"></i>inspect</button>
+                    <button type="button" ng-disabled="get_lock_buttons()" class="btn btn-default" ng-click="open_website()"><i class="icon-external-link" style="margin-right: 4px"></i>website</button>
                 </div>
             </form>
         </div>
@@ -127,7 +127,7 @@
         </form>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="file_downloads">
                 <tr class="success">
@@ -140,7 +140,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="file_uploads">
                 <tr class="success">
@@ -153,20 +153,20 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="dir_make_local">
-                <tr class="succes">
+                <tr class="success">
                     <td><i class="icon-folder-close"></i>&nbsp;folders make local</td>
                 </tr>
                 <tr ng-repeat="f in dir_make_local">
-                    <td>{{ f }}</td>
+                    <td>{{ f.name }}</td>
                 </tr>
             </table>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="dir_make_server">
                 <tr class="success">
@@ -179,7 +179,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="dir_del_server">
                 <tr class="danger">
@@ -192,7 +192,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="dir_del_local">
                 <tr class="danger">
@@ -205,7 +205,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="file_del_server">
                 <tr class="danger">
@@ -219,7 +219,7 @@
     </div>
 
 
-    <div class="row">
+    <div class="row" ng-hide="cryptobox_locked">
         <div class="col-sm-12">
             <table class="table" ng-show="file_del_local">
                 <tr class="danger">
@@ -231,9 +231,12 @@
             </table>
         </div>
     </div>
+
     <div class="row">
         <div class="col-sm-12" ng-show="show_debug">
             <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
+            <button type="button" class="close" ng-click="clear_msg_buffer()" aria-hidden="true" style="margin: 8px;"><i class="icon-trash"></i></button>
+
             <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
         </div>
     </div>
