@@ -73,18 +73,18 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.on_exit = =>
         print "cryptobox.cf:75", "cryptobox app on_exit"
+        gui.App.quit()
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
-            print "cryptobox.cf:78", "force_stop", e, v
+            print "cryptobox.cf:79", "force_stop", e, v
 
             force_kill = =>
                 if cba_main?
                     if cba_main.pid?
-                        print "cryptobox.cf:83", "force kill!!!"
+                        print "cryptobox.cf:84", "force kill!!!"
                         process.kill(cba_main.pid);
-                gui.App.quit()
 
-            _.defer(force_kill)
+            utils.set_time_out("cryptobox.cf:87", force_kill, 2000)
 
     set_output_buffers = (cba_main_proc) ->
         if exist(cba_main_proc.stdout)
@@ -102,12 +102,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     cmd_to_run = path.join(cmd_to_run, "cba_main")
     output = []
 
-    clear_msg_buffer = ->
+    $scope.clear_msg_buffer = ->
         output = []
         utils.force_digest($scope)
 
     $scope.debug_btn = ->
-        clear_msg_buffer()
         require('nw.gui').Window.get().showDevTools()
 
     update_output = ->
@@ -118,7 +117,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         _.each(output, make_stream)
         $scope.cmd_output = msgs
         utils.force_digest($scope)
-    utils.set_interval("cryptobox.cf:121", update_output, 100, "update_output")
+    utils.set_interval("cryptobox.cf:120", update_output, 100, "update_output")
 
     add_output = (msgs) ->
         add_msg = (msg) ->
@@ -150,6 +149,35 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 output.push(utils.format_time(utils.get_local_time()) + ": " + msgs)
         update_output()
 
+    warning = (ln, w) ->
+        if w?
+            if w?.trim?
+                w = w.trim()
+        else
+            return
+
+        if utils.exist(w)
+            if w.faultString?
+                print "cryptobox.cf:161", ln, w.faultString
+                add_output(w.faultString)
+            else if w.message
+                print "cryptobox.cf:164", ln, w.faultString
+                add_output(w.faultString)
+            else
+                print "cryptobox.cf:167", ln, w
+                add_output(w)
+
+    motivation = ""
+
+    get_motivation = ->
+        client = get_rpc_client()
+        client.methodCall "get_motivation", [], (error, value) ->
+            print "cryptobox.cf:175", error, value
+            if utils.exist(value)
+                $scope.motivation = value
+
+    utils.set_time_out("cryptobox.cf:179", get_motivation, 5000)
+
     ping_client = ->
         utils.force_digest($scope)
         client = get_rpc_client()
@@ -157,25 +185,28 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             if utils.exist(error)
                 cba_main = spawn(cmd_to_run, [""])
                 set_output_buffers(cba_main)
+            else
+                $scope.rpc_server_started = true
 
     start_interval = ->
-        utils.set_interval("cryptobox.cf:162", ping_client, 5000, "ping_client")
-    utils.set_time_out("cryptobox.cf:163", start_interval, 1000)
+        utils.set_interval("cryptobox.cf:192", ping_client, 10000, "ping_client")
+    utils.set_time_out("cryptobox.cf:193", start_interval, 3000)
+    $scope.rpc_server_started = false
 
     start_process = =>
-        print "cryptobox.cf:166", "start_process"
+        print "cryptobox.cf:197", "start_process"
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
             if utils.exist(v)
-                print "cryptobox.cf:170", "killed existing deamon"
+                print "cryptobox.cf:201", "killed existing deamon"
             else
-                print "cryptobox.cf:172", "starting deamon"
+                print "cryptobox.cf:203", "starting deamon"
 
             cba_main = spawn(cmd_to_run, [""])
             set_output_buffers(cba_main)
 
     start_process_once = _.once(start_process)
-    print "cryptobox.cf:178", cmd_to_run
+    print "cryptobox.cf:209", cmd_to_run
     start_process_once()
     progress_bar = 0
     progress_bar_item = 0
@@ -195,36 +226,39 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         client.methodCall "reset_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:198", e
+                warning "cryptobox.cf:229", e
 
     reset_item_progress = ->
         client = get_rpc_client()
         client.methodCall "reset_item_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:204", e
+                warning "cryptobox.cf:235", e
 
-    lock_buttons = false
+    $scope.lock_buttons = false
 
-    $scope.lock_buttons = ->
-        if parseInt(progress_bar, 10) == 0
-            lock_buttons = false
+    $scope.get_lock_buttons = ->
+        return $scope.lock_buttons
 
-        if lock_buttons
-            return true
-        else
-            if parseInt(progress_bar, 10) == 0
-                return false
+    get_working_state = ->
+        client = get_rpc_client()
+        client.methodCall "get_smemory",["working"], (e,v) ->
+            if utils.exist(e)
+                warning "cryptobox.cf:246", e
             else
-                return true
+                $scope.lock_buttons = v
 
+    utils.set_interval("cryptobox.cf:250", get_working_state, 1000, "get_working_state")
     last_progress_bar = 0
     last_progress_bar_item = 0
 
     get_progress = =>
+        if not $scope.rpc_server_started
+            return
+
         client = get_rpc_client()
         client.methodCall "get_progress",[], (e,v) ->
             if utils.exist(e)
-                print "cryptobox.cf:227", e, v
+                warning "cryptobox.cf:261", e
             else
                 progress = parseInt(v[0], 10)
                 progress_item = parseInt(v[1], 10)
@@ -251,16 +285,16 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 reset_progress_bar = ->
                     progress_bar = 0
                     reset_progress()
-                utils.set_time_out("cryptobox.cf:254", reset_progress_bar, 500)
+                utils.set_time_out("cryptobox.cf:288", reset_progress_bar, 500)
 
             if progress_bar_item >= 100
 
                 reset_progress_bar_item = ->
                     progress_bar_item = 0
                     reset_item_progress()
-                utils.set_time_out("cryptobox.cf:261", reset_progress_bar_item, 500)
+                utils.set_time_out("cryptobox.cf:295", reset_progress_bar_item, 500)
         utils.force_digest($scope)
-    utils.set_interval("cryptobox.cf:263", get_progress, 1000, "get_progress")
+    utils.set_interval("cryptobox.cf:297", get_progress, 1000, "get_progress")
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -324,7 +358,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope[name] = v
 
             (err) ->
-                print "cryptobox.cf:327", err
+                warning "cryptobox.cf:361", err
         )
 
     $scope.show_settings = false
@@ -368,7 +402,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                print "cryptobox.cf:371", err
+                warning "cryptobox.cf:405", err
         )
 
     $scope.file_input_change = (f) ->
@@ -379,7 +413,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         p = $q.defer()
         client.methodCall command_name, command_arguments, (error, value) ->
+
+            #print "cryptobox.cf:382", command_name, value
             if exist(error)
+                warning "cryptobox.cf:419", error
                 p.reject(error)
                 utils.force_digest($scope)
             else
@@ -396,9 +433,30 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.file_del_local = []
     $scope.file_del_server = []
 
+    cryptobox_locked_status_change = =>
+        run_command("get_cryptobox_lock_status", []).then(
+            (r) =>
+                $scope.cryptobox_locked = r
+
+                if $scope.cryptobox_locked
+                    tray.icon = "images/icon-client-signed-out.png"
+                    $scope.disable_encrypt_button = true
+                    $scope.disable_decrypt_button = false
+                    $scope.disable_sync_button = true
+                    encrypt_tray_item.enabled = false
+                else
+                    tray.icon = "images/icon-client-signed-in-idle.png"
+                    $scope.disable_encrypt_button = false
+                    $scope.disable_decrypt_button = true
+                    $scope.disable_sync_button = false
+                    encrypt_tray_item.enabled = true
+
+            (e) ->
+                warning "cryptobox.cf:455", e
+        )
+
     get_sync_state = ->
-        clear_msg_buffer()
-        add_output("checking changes")
+        print "cryptobox.cf:459", "get_sync_state"
         option = 
             dir: $scope.cb_folder_text
             username: $scope.cb_username
@@ -410,12 +468,13 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         run_command("cryptobox_command", [option]).then(
             (res) ->
                 add_output(res)
+                cryptobox_locked_status_change()
 
             (err) ->
-                add_output(err)
+                warning "cryptobox.cf:474", err
         )
-    utils.set_interval("cryptobox.cf:417", get_sync_state, 5000, "get_sync_state")
-    utils.set_time_out("cryptobox.cf:418", get_sync_state, 1500)
+    utils.set_interval("cryptobox.cf:476", get_sync_state, 5000, "get_sync_state")
+    utils.set_time_out("cryptobox.cf:477", get_sync_state, 1500)
 
     update_sync_state = ->
         run_command("get_smemory", ["file_downloads"]).then(
@@ -423,7 +482,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.file_downloads = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:485", e
         )
 
         run_command("get_smemory", ["file_uploads"]).then(
@@ -431,7 +490,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.file_uploads = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:493", e
         )
 
         run_command("get_smemory", ["dir_del_server"]).then(
@@ -439,7 +498,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.dir_del_server = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:501", e
         )
 
         run_command("get_smemory", ["dir_make_local"]).then(
@@ -447,7 +506,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.dir_make_local = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:509", e
         )
 
         run_command("get_smemory", ["dir_make_server"]).then(
@@ -455,7 +514,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.dir_make_server = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:517", e
         )
 
         run_command("get_smemory", ["dir_del_local"]).then(
@@ -463,7 +522,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.dir_del_local = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:525", e
         )
 
         run_command("get_smemory", ["file_del_local"]).then(
@@ -471,7 +530,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.file_del_local = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:533", e
         )
 
         run_command("get_smemory", ["file_del_server"]).then(
@@ -479,12 +538,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.file_del_server = r
 
             (e) ->
-                add_output(e)
+                warning "cryptobox.cf:541", e
         )
-    utils.set_interval("cryptobox.cf:484", update_sync_state, 1000, "update_sync_state")
+    utils.set_interval("cryptobox.cf:543", update_sync_state, 1000, "update_sync_state")
 
     $scope.sync_btn = ->
-        clear_msg_buffer()
         add_output("syncing data")
         option = 
             dir: $scope.cb_folder_text
@@ -504,11 +562,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     add_output("done syncing")
 
             (err) ->
-                add_output(err)
+                warning "cryptobox.cf:565", err
         )
 
     $scope.encrypt_btn = ->
-        clear_msg_buffer()
         add_output("sync encrypt remove data")
         option = 
             dir: $scope.cb_folder_text
@@ -523,14 +580,13 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         run_command("cryptobox_command", [option]).then(
             (res) ->
                 add_output(res)
-                add_output("done encrypting")
+                utils.set_time_out("cryptobox.cf:583", get_sync_state, 100, "get_sync_state")
 
             (err) ->
-                add_output(err)
+                warning "cryptobox.cf:586", err
         )
 
     $scope.decrypt_btn = ->
-        clear_msg_buffer()
         add_output("decrypt local data")
         option = 
             dir: $scope.cb_folder_text
@@ -545,9 +601,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             (res) ->
                 add_output(res)
                 add_output("done decrypting")
+                utils.set_time_out("cryptobox.cf:604", get_sync_state, 100, "get_sync_state")
 
             (err) ->
-                add_output(err)
+                warning "cryptobox.cf:607", err
         )
 
     $scope.open_website = ->
@@ -564,6 +621,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             click: method
         )
         trayactions.append trayitem
+        return trayitem
 
     add_checkbox_traymenu_item = (label, icon, method, enabled) =>
         trayitem_cb = new gui.MenuItem(
@@ -581,6 +639,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             type: "separator"
         )
         trayactions.append traymenubaritem
+        return traymenubaritem
 
     menubar = new gui.Menu(
         type: 'menubar'
@@ -603,7 +662,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             label: label
             icon: icon
             click: method
-            checked: true
+            checked: enabled
         )
         actions.append menubaritem_cb
         return menubaritem_cb
@@ -628,8 +687,12 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     add_menu_seperator()
     add_traymenu_seperator()
     add_menu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
-    add_traymenu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
+    encrypt_tray_item = add_traymenu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
+    print "cryptobox.cf:691", $scope.encrypt_tray_item
     add_menu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
     add_traymenu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
     winmain.menu = menubar
     winmain.menu.insert(new gui.MenuItem({ label: 'Actions', submenu: actions}), 1);
+    $scope.disable_encrypt_button = false
+    $scope.disable_decrypt_button = false
+    $scope.disable_sync_button = false

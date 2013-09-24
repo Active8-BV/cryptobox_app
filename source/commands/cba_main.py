@@ -12,12 +12,13 @@ import os
 import socket
 import threading
 import time
+import urllib2
 import multiprocessing
 import xmlrpclib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, update_memory_progress, reset_item_progress
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, handle_exception, reset_item_progress
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -97,48 +98,46 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-    smemory = SingletonMemory()
-
-    if isinstance(options, dict):
-        options = Dict2Obj(options)
-
-    if options.version:
-        return "0.1"
-
-    if not options.numdownloadthreads:
-        options.numdownloadthreads = 2
-    else:
-        options.numdownloadthreads = int(options.numdownloadthreads)
-    log("downloadthreads", options.numdownloadthreads)
-    if not options.dir:
-        log("Need DIR -f or --dir to continue")
-        return False
-
-    if not options.cryptobox:
-        log("No cryptobox given -b or --cryptobox")
-        return False
-
-    options.basedir = options.dir
-    ensure_directory(options.basedir)
-    options.dir = os.path.join(options.dir, options.cryptobox)
-    datadir = get_data_dir(options)
-
-    if not datadir:
-        log("datadir is None")
-
-    if not os.path.exists(datadir):
-        log("datadir does not exists")
-    restore_hidden_config(options)
-    memory = Memory()
-    memory.load(datadir)
-    memory.replace("cryptobox_folder", options.dir)
-    if memory.has("session"):
-        memory.delete("session")
-
-    if memory.has("authorized"):
-        memory.replace("authorized", False)
 
     try:
+        smemory = SingletonMemory()
+        smemory.set("working", False)
+        if isinstance(options, dict):
+            options = Dict2Obj(options)
+
+        if options.version:
+            return "0.1"
+
+        if not options.numdownloadthreads:
+            options.numdownloadthreads = 4
+        else:
+            options.numdownloadthreads = int(options.numdownloadthreads)
+
+        if not options.dir:
+            log("Need DIR -f or --dir to continue")
+            return False
+
+        if not options.cryptobox:
+            log("No cryptobox given -b or --cryptobox")
+            return False
+
+        options.basedir = options.dir
+        ensure_directory(options.basedir)
+        options.dir = os.path.join(options.dir, options.cryptobox)
+        datadir = get_data_dir(options)
+
+        if not datadir:
+            log("datadir is None")
+        restore_hidden_config(options)
+        memory = Memory()
+        memory.load(datadir)
+        memory.replace("cryptobox_folder", options.dir)
+        if memory.has("session"):
+            memory.delete("session")
+
+        if memory.has("authorized"):
+            memory.replace("authorized", False)
+
         if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
             return False
@@ -173,12 +172,12 @@ def cryptobox_command(options):
         localindex = make_local_index(options)
         reset_memory_progress()
         reset_item_progress()
+        smemory.set("cryptobox_locked", cryptobox_locked(memory))
         if options.password and options.username and options.cryptobox:
             authorize_user(memory, options)
             if memory.get("authorized"):
                 if options.check:
                     if cryptobox_locked(memory):
-                        log("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
@@ -193,12 +192,14 @@ def cryptobox_command(options):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
                     ensure_directory(options.dir)
+                    smemory.set("working", True)
                     localindex, memory = sync_server(memory, options)
 
         salt = None
         secret = None
 
         if options.encrypt:
+            smemory.set("working", True)
             salt, secret, memory, localindex = index_and_encrypt(memory, options, localindex)
 
         if options.decrypt:
@@ -207,20 +208,26 @@ def cryptobox_command(options):
                 return False
 
             if not options.clear == "1":
+                smemory.set("working", True)
                 memory = decrypt_and_build_filetree(memory, options)
         check_and_clean_dir(options)
         smemory.set("last_ping", time.time())
-    finally:
+        hide_config(options, salt, secret)
+        reset_memory_progress()
+        reset_item_progress()
         if memory.has("session"):
             memory.delete("session")
 
         if memory.has("authorized"):
             memory.delete("authorized")
+        smemory.set("cryptobox_locked", cryptobox_locked(memory))
         memory.save(datadir)
-    hide_config(options, salt, secret)
-    reset_memory_progress()
-    reset_item_progress()
-    log("done")
+    #except Exception, e:
+    #    handle_exception(e)
+    finally:
+        smemory = SingletonMemory()
+        smemory.set("working", False)
+
     return True
 
 
@@ -266,7 +273,7 @@ class XMLRPCThread(multiprocessing.Process):
                     while not self.stopped:
                         tslp = time.time() - memory.get("last_ping")
 
-                        if int(tslp) < 20:
+                        if int(tslp) < 60:
                             self.handle_request()
                             time.sleep(poll_interval)
                         else:
@@ -386,6 +393,22 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 smemory = SingletonMemory()
                 return smemory.set(k, v)
+            def get_cryptobox_lock_status():
+                """
+                get_cryptobox_lock_status
+                """
+                smemory = SingletonMemory()
+                return smemory.get("cryptobox_locked")
+            def get_motivation():
+                """
+                get_motivation
+                """
+                try:
+                    import urllib2
+                    response = urllib2.urlopen('https://api.github.com/zen')
+                    return response.read()
+                except:
+                    pass
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')
@@ -397,6 +420,8 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(get_smemory, "get_smemory")
             server.register_function(set_smemory, "set_smemory")
             server.register_function(do_reset_item_progress, "reset_item_progress")
+            server.register_function(get_cryptobox_lock_status, "get_cryptobox_lock_status")
+            server.register_function(get_motivation, "get_motivation")
 
             try:
                 memory.set("last_ping", time.time())
@@ -407,7 +432,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:410", "bye xmlrpc server"
+            print "cba_main.py:415", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -430,12 +455,14 @@ def main():
 
             try:
                 if commandserver.is_alive():
-                    s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                    socket.setdefaulttimeout(60)
-                    s.ping()
-                    socket.setdefaulttimeout(None)
+
+                    #s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+                    #socket.setdefaulttimeout(20)
+                    #s.ping()
+                    #socket.setdefaulttimeout(None)
+                    pass
             except socket.error, ex:
-                print "cba_main.py:438", "kill it", ex
+                print "cba_main.py:445", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -443,6 +470,9 @@ def main():
 
     else:
         cryptobox_command(options)
+        smemory = SingletonMemory()
+        x = smemory.get("cryptobox_locked")
+        pass
 
 
 if strcmp(__name__, '__main__'):
@@ -453,4 +483,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:456", "\nbye main"
+        print "cba_main.py:463", "\nbye main"

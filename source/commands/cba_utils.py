@@ -8,6 +8,7 @@ import math
 import time
 import xmlrpclib
 import multiprocessing
+import threading
 import uuid as _uu
 import cPickle
 import json
@@ -41,18 +42,13 @@ def json_object(path, targetobject):
         json.dump(jsonproxy, open(path + ".json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
 
-def pickle_object(path, targetobject, json_pickle=False):
+def pickle_object(path, targetobject):
     """
     @type path: str or unicode
     @type targetobject: object
-    @type json_pickle: bool
     """
-    cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
-    if json_pickle:
-        if isinstance(targetobject, dict):
-            json_object(path, targetobject)
-        else:
-            json_object(path, targetobject)
+    json_object(path, targetobject)
+    #cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
 
 
 def unpickle_object(path):
@@ -60,7 +56,7 @@ def unpickle_object(path):
     @type path: str or unicode
     @return: @rtype:
     """
-    return cPickle.load(open(path, "rb"))
+    return jsonpickle.decode(open(path+".json", "r").read())
 
 
 def smp_all_cpu_apply(method, items, base_params=()):
@@ -331,8 +327,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:334", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:335", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:335", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:336", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -734,6 +730,30 @@ def reset_memory_progress():
     mem.set("progress", 0)
 
 
+class AsyncUpdateProgressItem(threading.Thread):
+    """
+    AsyncUpdateProgressItem
+    """
+
+    def __init__(self, p):
+        """
+        @type p: int
+        """
+        self.p = p
+        super(AsyncUpdateProgressItem, self).__init__()
+
+    def run(self):
+        """
+        run
+        """
+
+        try:
+            s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+            s.set_smemory("item_progress", self.p)
+        except Exception, e:
+            print "cba_utils.py:759", "update_item_progress exception", str(e)
+
+
 def update_item_progress(p, server=False):
     """
     update_progress
@@ -741,8 +761,11 @@ def update_item_progress(p, server=False):
     @type p:int
     """
     if server:
-        s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-        s.set_smemory("item_progress", p)
+        try:
+            api = AsyncUpdateProgressItem(p)
+            api.start()
+        except Exception, e:
+            print "cba_utils.py:773", "AsyncUpdateProgressItem exception", str(e)
     else:
         mem = SingletonMemory()
         mem.set("item_progress", p)

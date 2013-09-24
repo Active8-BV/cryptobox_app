@@ -52,12 +52,18 @@ def cryptobox_locked(memory):
     cryptobox_locked
     @type memory: Memory
     """
+    locked = True
     current_cryptobox_index = get_cryptobox_index(memory)
 
-    if current_cryptobox_index:
-        if current_cryptobox_index["locked"] is True:
-            return True
-    return False
+    if not "dirnames" in current_cryptobox_index:
+        locked = False
+    else:
+        for dirname in current_cryptobox_index["dirnames"]:
+            if not strcmp(current_cryptobox_index["dirnames"][dirname]["dirname"], memory.get("cryptobox_folder")):
+                if os.path.exists(current_cryptobox_index["dirnames"][dirname]["dirname"]):
+                    locked = False
+
+    return locked
 
 
 def get_secret(memory, options):
@@ -157,11 +163,6 @@ def index_and_encrypt(memory, options, localindex_param):
     if len(new_blobs) > 0:
         if len(new_blobs) > 0:
             encrypt_new_blobs(secret, new_blobs)
-
-    if options.remove:
-        localindex["locked"] = True
-    else:
-        localindex["locked"] = False
 
     localindex["salt_b64"] = base64.encodestring(salt)
     memory = store_cryptobox_index(memory, localindex)
@@ -270,16 +271,17 @@ def hide_config(options, salt, secret):
     if options.encrypt and options.remove and salt and secret:
         datadir = get_data_dir(options)
         mempath = os.path.join(datadir, "memory.pickle")
-        read_and_encrypt_file(mempath, mempath + ".enc", secret)
-        os.remove(mempath)
-        hidden_name = get_uuid(3)
-
-        while hidden_name in os.listdir(options.dir):
+        if os.path.exists(mempath):
+            read_and_encrypt_file(mempath, mempath + ".enc", secret)
+            os.remove(mempath)
             hidden_name = get_uuid(3)
 
-        encrypted_name = encrypt_object(secret, options.cryptobox)
-        pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
-        os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
+            while hidden_name in os.listdir(options.dir):
+                hidden_name = get_uuid(3)
+
+            encrypted_name = encrypt_object(secret, options.cryptobox)
+            pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
+            os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
 def check_and_clean_dir(options):
@@ -348,6 +350,5 @@ def decrypt_and_build_filetree(memory, options):
         processed_files += 1
         update_progress(processed_files, numfiles, "decrypting " + "\n\t"+"\n\t".join(paths))
 
-    cryptobox_index["locked"] = False
     memory = store_cryptobox_index(memory, cryptobox_index)
     return memory
