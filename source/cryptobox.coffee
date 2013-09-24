@@ -233,11 +233,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             last_progress_bar_item = progress_bar_item
 
             if progress == 0
-                if last_progress_bar > 60
+                if last_progress_bar > 10
                     progress_bar = 100
 
             if progress_item == 0
-                if last_progress_bar_item > 60
+                if last_progress_bar_item > 10
                     progress_bar_item = 100
 
             if progress > parseInt(progress_bar, 10)
@@ -397,13 +397,91 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.file_del_server = []
 
     get_sync_state = ->
-        $scope.file_downloads = run_command("get_smemory", ["file_downloads"])
-        $scope.file_uploads = run_command("get_smemory", ["file_uploads"])
-        $scope.dir_del_server = run_command("get_smemory", ["dir_del_server"])
-        $scope.dir_make_local = run_command("get_smemory", ["dir_make_local"])
-        $scope.dir_del_local = run_command("get_smemory", ["dir_del_local"])
-        $scope.file_del_local = run_command("get_smemory", ["file_del_local"])
-        $scope.file_del_server = run_command("get_smemory", ["file_del_server"])
+        clear_msg_buffer()
+        add_output("checking changes")
+        option = 
+            dir: $scope.cb_folder_text
+            username: $scope.cb_username
+            password: $scope.cb_password
+            cryptobox: $scope.cb_name
+            server: $scope.cb_server
+            check: "1"
+
+        run_command("cryptobox_command", [option]).then(
+            (res) ->
+                add_output(res)
+
+            (err) ->
+                add_output(err)
+        )
+    utils.set_interval("cryptobox.cf:417", get_sync_state, 5000, "get_sync_state")
+    utils.set_time_out("cryptobox.cf:418", get_sync_state, 1500)
+
+    update_sync_state = ->
+        run_command("get_smemory", ["file_downloads"]).then(
+            (r) ->
+                $scope.file_downloads = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["file_uploads"]).then(
+            (r) ->
+                $scope.file_uploads = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["dir_del_server"]).then(
+            (r) ->
+                $scope.dir_del_server = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["dir_make_local"]).then(
+            (r) ->
+                $scope.dir_make_local = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["dir_make_server"]).then(
+            (r) ->
+                $scope.dir_make_server = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["dir_del_local"]).then(
+            (r) ->
+                $scope.dir_del_local = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["file_del_local"]).then(
+            (r) ->
+                $scope.file_del_local = r
+
+            (e) ->
+                add_output(e)
+        )
+
+        run_command("get_smemory", ["file_del_server"]).then(
+            (r) ->
+                $scope.file_del_server = r
+
+            (e) ->
+                add_output(e)
+        )
+    utils.set_interval("cryptobox.cf:484", update_sync_state, 1000, "update_sync_state")
 
     $scope.sync_btn = ->
         clear_msg_buffer()
@@ -424,28 +502,6 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     add_output(res)
                 else
                     add_output("done syncing")
-
-            (err) ->
-                add_output(err)
-        )
-
-    $scope.check_btn = ->
-        lock_buttons = true
-        clear_msg_buffer()
-        add_output("checking changes")
-        option = 
-            dir: $scope.cb_folder_text
-            username: $scope.cb_username
-            password: $scope.cb_password
-            cryptobox: $scope.cb_name
-            server: $scope.cb_server
-            check: "1"
-
-        run_command("cryptobox_command", [option]).then(
-            (res) ->
-                add_output(res)
-                add_output("check done")
-                utils.set_time_out("cryptobox.cf:448", get_sync_state, 500)
 
             (err) ->
                 add_output(err)

@@ -585,12 +585,13 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     #local files
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
+    file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
     sm = SingletonMemory()
     sm.set("file_downloads", file_downloads)
     sm.set("file_uploads", file_uploads)
     sm.set("dir_del_server", dir_del_server)
     sm.set("dir_make_local", dir_make_local)
-    sm.set("dir_make_server", dir_make_local)
+    sm.set("dir_make_server", dir_make_server)
     sm.set("dir_del_local", dir_del_local)
     sm.set("file_del_local", file_del_local)
     sm.set("file_del_server", file_del_server)
@@ -667,7 +668,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:670", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:671", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
@@ -718,4 +719,14 @@ def sync_server(memory, options):
     for fpath in file_del_local:
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
+
+    sm = SingletonMemory()
+    sm.set("file_downloads", [])
+    sm.set("file_uploads", [])
+    sm.set("dir_del_server", [])
+    sm.set("dir_make_local", [])
+    sm.set("dir_make_server", [])
+    sm.set("dir_del_local", [])
+    sm.set("file_del_local", [])
+    sm.set("file_del_server", [])
     return localindex, memory

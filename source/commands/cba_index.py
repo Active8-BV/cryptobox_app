@@ -153,7 +153,6 @@ def index_and_encrypt(memory, options, localindex_param):
                 if len(new_blobs) > 1500:
                     encrypt_new_blobs(secret, new_blobs)
                     new_blobs = {}
-            update_progress(file_cnt, numfiles, "check " + file_path)
 
     if len(new_blobs) > 0:
         if len(new_blobs) > 0:

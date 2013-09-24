@@ -41,7 +41,7 @@ tray = new gui.Tray({
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var actions, add_checkbox_menu_item, add_checkbox_traymenu_item, add_menu_item, add_menu_seperator, add_output, add_traymenu_item, add_traymenu_seperator, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_sync_state, get_user_var, get_val, last_progress_bar, last_progress_bar_item, lock_buttons, menubar, output, ping_client, progress_bar, progress_bar_item, reset_item_progress, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, settings_menubar_tray, settings_menubaritem, spawn, start_interval, start_process, start_process_once, store_user_var, trayactions, update_menu_checks, update_output, winmain,
+  var actions, add_checkbox_menu_item, add_checkbox_traymenu_item, add_menu_item, add_menu_seperator, add_output, add_traymenu_item, add_traymenu_seperator, cba_main, clear_msg_buffer, cmd_to_run, get_progress, get_rpc_client, get_sync_state, get_user_var, get_val, last_progress_bar, last_progress_bar_item, lock_buttons, menubar, output, ping_client, progress_bar, progress_bar_item, reset_item_progress, reset_progress, run_command, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, set_val, settings_menubar_tray, settings_menubaritem, spawn, start_interval, start_process, start_process_once, store_user_var, trayactions, update_menu_checks, update_output, update_sync_state, winmain,
     _this = this;
   print("cryptobox.cf:32", "cryptobox_ctrl");
   get_rpc_client = function() {
@@ -280,12 +280,12 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       last_progress_bar = progress_bar;
       last_progress_bar_item = progress_bar_item;
       if (progress === 0) {
-        if (last_progress_bar > 60) {
+        if (last_progress_bar > 10) {
           progress_bar = 100;
         }
       }
       if (progress_item === 0) {
-        if (last_progress_bar_item > 60) {
+        if (last_progress_bar_item > 10) {
           progress_bar_item = 100;
         }
       }
@@ -454,14 +454,68 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   $scope.file_del_local = [];
   $scope.file_del_server = [];
   get_sync_state = function() {
-    $scope.file_downloads = run_command("get_smemory", ["file_downloads"]);
-    $scope.file_uploads = run_command("get_smemory", ["file_uploads"]);
-    $scope.dir_del_server = run_command("get_smemory", ["dir_del_server"]);
-    $scope.dir_make_local = run_command("get_smemory", ["dir_make_local"]);
-    $scope.dir_del_local = run_command("get_smemory", ["dir_del_local"]);
-    $scope.file_del_local = run_command("get_smemory", ["file_del_local"]);
-    return $scope.file_del_server = run_command("get_smemory", ["file_del_server"]);
+    var option;
+    clear_msg_buffer();
+    add_output("checking changes");
+    option = {
+      dir: $scope.cb_folder_text,
+      username: $scope.cb_username,
+      password: $scope.cb_password,
+      cryptobox: $scope.cb_name,
+      server: $scope.cb_server,
+      check: "1"
+    };
+    return run_command("cryptobox_command", [option]).then(function(res) {
+      return add_output(res);
+    }, function(err) {
+      return add_output(err);
+    });
   };
+  utils.set_interval("cryptobox.cf:417", get_sync_state, 5000, "get_sync_state");
+  utils.set_time_out("cryptobox.cf:418", get_sync_state, 1500);
+  update_sync_state = function() {
+    run_command("get_smemory", ["file_downloads"]).then(function(r) {
+      return $scope.file_downloads = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    run_command("get_smemory", ["file_uploads"]).then(function(r) {
+      return $scope.file_uploads = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    run_command("get_smemory", ["dir_del_server"]).then(function(r) {
+      return $scope.dir_del_server = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    run_command("get_smemory", ["dir_make_local"]).then(function(r) {
+      return $scope.dir_make_local = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    run_command("get_smemory", ["dir_make_server"]).then(function(r) {
+      return $scope.dir_make_server = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    run_command("get_smemory", ["dir_del_local"]).then(function(r) {
+      return $scope.dir_del_local = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    run_command("get_smemory", ["file_del_local"]).then(function(r) {
+      return $scope.file_del_local = r;
+    }, function(e) {
+      return add_output(e);
+    });
+    return run_command("get_smemory", ["file_del_server"]).then(function(r) {
+      return $scope.file_del_server = r;
+    }, function(e) {
+      return add_output(e);
+    });
+  };
+  utils.set_interval("cryptobox.cf:484", update_sync_state, 1000, "update_sync_state");
   $scope.sync_btn = function() {
     var option;
     clear_msg_buffer();
@@ -482,27 +536,6 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       } else {
         return add_output("done syncing");
       }
-    }, function(err) {
-      return add_output(err);
-    });
-  };
-  $scope.check_btn = function() {
-    var option;
-    lock_buttons = true;
-    clear_msg_buffer();
-    add_output("checking changes");
-    option = {
-      dir: $scope.cb_folder_text,
-      username: $scope.cb_username,
-      password: $scope.cb_password,
-      cryptobox: $scope.cb_name,
-      server: $scope.cb_server,
-      check: "1"
-    };
-    return run_command("cryptobox_command", [option]).then(function(res) {
-      add_output(res);
-      add_output("check done");
-      return utils.set_time_out("cryptobox.cf:448", get_sync_state, 500);
     }, function(err) {
       return add_output(err);
     });
