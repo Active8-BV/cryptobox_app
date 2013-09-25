@@ -132,10 +132,6 @@ def index_and_encrypt(memory, options, localindex_param):
 
     salt, secret = get_secret(memory, options)
     ensure_directory(datadir)
-    if len(localindex["dirnames"]) > 0:
-        numfiles = reduce(lambda dirname, y: dirname + y, [len(localindex["dirnames"][x]["filenames"]) for x in localindex["dirnames"]])
-    else:
-        numfiles = 0
 
     new_blobs = {}
     file_cnt = 0

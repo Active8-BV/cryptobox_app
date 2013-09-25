@@ -12,13 +12,12 @@ import os
 import socket
 import threading
 import time
-import urllib2
 import multiprocessing
 import xmlrpclib
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, handle_exception, reset_item_progress
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -390,6 +389,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 set_smemory
                 :param k:
+                :param v:
                 """
                 smemory = SingletonMemory()
                 return smemory.set(k, v)
@@ -403,6 +403,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 get_motivation
                 """
+                #noinspection PyBroadException
                 try:
                     import urllib2
                     response = urllib2.urlopen('https://api.github.com/zen')
@@ -470,9 +471,6 @@ def main():
 
     else:
         cryptobox_command(options)
-        smemory = SingletonMemory()
-        x = smemory.get("cryptobox_locked")
-        pass
 
 
 if strcmp(__name__, '__main__'):

@@ -85,7 +85,7 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=2.0):
+def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=0.5):
     """
     @param secret: generated secret pkdf2
     @type secret: str
@@ -156,7 +156,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
 
 
 #noinspection PyDictCreation,PyPep8Naming
-def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=2.0):
+def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=0.5):
     """
     @param secret: pkdf2 secre
     @type secret: str

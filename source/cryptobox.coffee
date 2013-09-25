@@ -32,7 +32,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     print "cryptobox.cf:32", "cryptobox_ctrl"
 
     get_rpc_client = ->
-        clientOptions = 
+        clientOptions =
             host: "localhost"
             port: 8654
             path: "/RPC2"
@@ -303,7 +303,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         if not exist(db)
             p.reject("no db")
         else
-            record = 
+            record =
                 _id: k
                 value: v
             db.get k, (e, d) ->
@@ -413,10 +413,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client = get_rpc_client()
         p = $q.defer()
         client.methodCall command_name, command_arguments, (error, value) ->
-
-            #print "cryptobox.cf:382", command_name, value
             if exist(error)
-                warning "cryptobox.cf:419", error
                 p.reject(error)
                 utils.force_digest($scope)
             else
@@ -457,7 +454,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     get_sync_state = ->
         print "cryptobox.cf:459", "get_sync_state"
-        option = 
+        option =
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
@@ -544,7 +541,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.sync_btn = ->
         add_output("syncing data")
-        option = 
+        option =
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
@@ -567,7 +564,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.encrypt_btn = ->
         add_output("sync encrypt remove data")
-        option = 
+        option =
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
@@ -588,7 +585,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.decrypt_btn = ->
         add_output("decrypt local data")
-        option = 
+        option =
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
