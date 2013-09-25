@@ -9,7 +9,7 @@ import urllib
 import subprocess
 import json
 import requests
-from cba_utils import log, Memory, update_item_progress, get_item_progress
+from cba_utils import log, Memory, update_item_progress
 
 
 def get_b64mstyle():
@@ -175,7 +175,7 @@ def on_server(memory, options, method, payload, session, files=None):
     if not session:
         session = requests
 
-    verifyarg = os.path.join(os.getcwd(), "ca.cert")
+    #verifyarg = os.path.join(os.getcwd(), "ca.cert")
     verifyarg = False
 
     if not payload:

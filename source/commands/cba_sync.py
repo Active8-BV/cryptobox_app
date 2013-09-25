@@ -616,9 +616,13 @@ def upload_file(memory, options, file_object, parent):
 
     def prog_callback(param, current, total):
         """
+        @type param:
+        @type current:
+        @type total:
         prog_callback
         """
-        percentage = 100 - ((total - current ) * 100 ) / (total)
+        print param
+        percentage = 100 - ((total - current ) * 100 ) / total
         update_item_progress(percentage)
 
         #print "Upload progress: %s " % percentage

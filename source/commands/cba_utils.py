@@ -10,9 +10,9 @@ import xmlrpclib
 import multiprocessing
 import threading
 import uuid as _uu
-import cPickle
 import json
 import jsonpickle
+import cPickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
 
@@ -32,14 +32,17 @@ def make_sha1_hash_utils(data):
     return sha.hexdigest()
 
 
-def json_object(path, targetobject):
+def unpickle_json(path):
+    return jsonpickle.decode(open(path).read())
+
+def pickle_json(path, targetobject):
     """
     @type path: str or unicode
     @type targetobject: object
     """
     if DEBUG:
         jsonproxy = json.loads(jsonpickle.encode(targetobject))
-        json.dump(jsonproxy, open(path + ".json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
+        json.dump(jsonproxy, open(path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
 
 def pickle_object(path, targetobject):
@@ -47,8 +50,7 @@ def pickle_object(path, targetobject):
     @type path: str or unicode
     @type targetobject: object
     """
-    json_object(path, targetobject)
-    #cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
+    cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
 
 
 def unpickle_object(path):
@@ -56,7 +58,7 @@ def unpickle_object(path):
     @type path: str or unicode
     @return: @rtype:
     """
-    return jsonpickle.decode(open(path+".json", "r").read())
+    return cPickle.load(open(path, "rb"))
 
 
 def smp_all_cpu_apply(method, items, base_params=()):
@@ -550,7 +552,7 @@ class Memory(object):
         """
         if os.path.exists(datadir):
             mempath = os.path.join(datadir, "memory.pickle")
-            pickle_object(mempath, self.data, json_pickle=True)
+            pickle_json(mempath, self.data)
 
     def load(self, datadir):
         """
@@ -560,7 +562,7 @@ class Memory(object):
 
         if os.path.exists(mempath):
             #noinspection PyAttributeOutsideInit
-            self.data = unpickle_object(mempath)
+            self.data = unpickle_json(mempath)
 
             for k in self.data.copy():
                 try:
@@ -751,7 +753,7 @@ class AsyncUpdateProgressItem(threading.Thread):
             s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
             s.set_smemory("item_progress", self.p)
         except Exception, e:
-            print "cba_utils.py:759", "update_item_progress exception", str(e)
+            print "progress:", self.p
 
 
 def update_item_progress(p, server=False):
@@ -760,6 +762,7 @@ def update_item_progress(p, server=False):
     @type server:bool
     @type p:int
     """
+    print p
     if server:
         try:
             api = AsyncUpdateProgressItem(p)
