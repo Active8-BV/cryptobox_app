@@ -32,9 +32,8 @@ cblogo/
 .DS_Store
 *.pyo
 *.pyc
-*.dump
 *.lock
 create_*.sh
 
 
-git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch create_*.sh' --prune-empty --tag-name-filter cat -- --all
+#git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch create_*.sh' --prune-empty --tag-name-filter cat -- --all

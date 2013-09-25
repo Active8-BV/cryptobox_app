@@ -169,7 +169,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         fname = "testdata/20MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
-        data_hash, initialization_vector, chunk_sizes_d, enc_file, secret = encrypt_file(secret, open(fname), perc_callback=pc)
+        data_hash, initialization_vector, chunk_sizes_d, enc_file = encrypt_file(secret, open(fname), perc_callback=pc)
         enc_data = enc_file
         org_data = (open(fname).read())
         self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))
@@ -228,13 +228,14 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index_and_encrypt
         """
-        self.unzip_testfiles_clean()
+        self.complete_reset()
+        self.unzip_testfiles_synced()
         self.do_wait_for_tasks = False
         localindex = make_local_index(self.cboptions)
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 7)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
         # add a new file
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
@@ -242,7 +243,7 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 9)
 
         # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
@@ -250,7 +251,7 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 9)
 
     def test_index_encrypt_decrypt_clean(self):
         """
@@ -327,48 +328,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = authorized(self.cbmemory, self.cboptions)
         self.assertTrue(self.cbmemory.get("authorized"))
 
-    def test_compare_server_tree_with_local_tree_folders(self):
-        """
-        test_compare_server_tree_with_local_tree_folders
-        """
-        self.complete_reset()
-        self.reset_cb_db_clean()
-        localindex = make_local_index(self.cboptions)
-        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-        self.assertEqual(len(dirname_hashes_server), 4)
-        self.assertEqual(len(fnodes), 5)
-        self.assertEqual(len(unique_content), 4)
-
-        # mirror the server structure to local
-        dir_del_server, dir_make_local, self.cbmemory = dirs_on_server(self.cbmemory, self.cboptions, unique_dirs)
-        self.assertEqual(len(dir_del_server), 0)
-        self.assertEqual(len(dir_make_local), 3)
-
-        # make dirs
-        self.cbmemory = make_directories_local(self.cbmemory, self.cboptions, localindex, dir_make_local)
-        self.assertTrue(self.directories_synced())
-
-        # mirror the local structure to server, remove a local directory
-        os.system("rm -Rf testdata/testmap/map1")
-        dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-        dir_del_server, dir_make_local, self.cbmemory = dirs_on_server(self.cbmemory, self.cboptions, unique_dirs)
-        self.assertEqual(len(dir_del_server), 2)
-        self.assertEqual(len(dir_make_local), 0)
-        self.cbmemory.save(get_data_dir(self.cboptions))
-        self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, dir_del_server)
-
-        # check if we are the same now
-        self.assertTrue(self.directories_synced())
-
-        # unzip test files and make them on server
-        self.unzip_testfiles_clean()
-        localindex = make_local_index(self.cboptions)
-        dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-        dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
-        self.assertFalse(self.directories_synced())
-        serverindex, self.cbmemory = instruct_server_to_make_folders(self.cbmemory, self.cboptions, dir_make_server)
-        self.assertTrue(self.directories_synced())
 
     def test_compare_server_tree_with_local_tree_method_folders(self):
         """
@@ -427,13 +386,12 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-        self.cbmemory.load(get_data_dir(self.cboptions))
-        self.cbmemory.delete("session")
-        self.cbmemory.delete("authorized")
-        os.system("date > testdata/testmap/map1/date.txt")
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+
+        os.system("date > testdata/testmap/all_types/date.txt")
         os.system("mkdir testdata/testmap/map3")
-        os.system("rm -Rf testdata/testmap/map2")
-        os.system("rm -Rf testdata/testmap/all_types/word.docx")
+        os.system("rm -Rf testdata/testmap/all_types/document.pdf")
+        os.system("rm -Rf testdata/testmap/smalltest")
         if not self.cbmemory.has("session"):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
 
@@ -456,8 +414,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
         self.cbmemory.load(get_data_dir(self.cboptions))
-        self.cbmemory.delete("session")
-        self.cbmemory.delete("authorized")
         if not self.cbmemory.has("session"):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
 
@@ -516,11 +472,11 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_find_short_ids
         """
-        self.reset_cb_db_clean()
-        self.unzip_testfiles_clean()
+        self.reset_cb_db_synced()
+        self.unzip_testfiles_synced()
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        map1 = '/map1'
-        map1_short_id, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/map1')
+        map1 = '/smalltest'
+        map1_short_id, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/smalltest')
         map1_2, self.cbmemory = short_id_to_server_path(self.cbmemory, serverindex, map1_short_id)
         self.assertEqual(map1, map1_2)
 
