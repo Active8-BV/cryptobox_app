@@ -281,12 +281,13 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
             path, memory = short_id_to_server_path(memory, serverindex, short_id)
             new_server_hash_history = set()
 
-            for serverhash_history_item in memory.get("serverhash_history"):
-                serverhash_history_item_path = serverhash_history_item[0]
+            if memory.has("serverhash_history"):
+                for serverhash_history_item in memory.get("serverhash_history"):
+                    serverhash_history_item_path = serverhash_history_item[0]
 
-                if path not in serverhash_history_item_path:
-                    new_server_hash_history.add(serverhash_history_item)
-            memory.replace("serverhash_history", new_server_hash_history)
+                    if path not in serverhash_history_item_path:
+                        new_server_hash_history.add(serverhash_history_item)
+                memory.replace("serverhash_history", new_server_hash_history)
 
     return memory
 
@@ -446,6 +447,7 @@ def get_server_index(memory, options):
         if memory.has("authorized"):
             memory.delete("authorized")
 
+    if not memory.has("session"):
         memory = authorize_user(memory, options)
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
@@ -621,7 +623,7 @@ def upload_file(memory, options, file_object, parent):
         @type total:
         prog_callback
         """
-        print param
+        #print param
         percentage = 100 - ((total - current ) * 100 ) / total
         update_item_progress(percentage)
 
@@ -698,6 +700,14 @@ def sync_server(memory, options):
         return
 
     serverindex, memory = get_server_index(memory, options)
+    # update seen server history files
+    serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in serverindex["doclist"]]))
+    for sd in serverdirs:
+        memory = add_server_file_history(memory, sd)
+    serverfiles = list(set([i["doc"]["m_path"] for i in serverindex["doclist"]]))
+    for sf in serverfiles:
+        memory = add_server_file_history(memory, sf)
+
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
     serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
