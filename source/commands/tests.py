@@ -172,10 +172,10 @@ class CryptoboxAppTest(unittest.TestCase):
         data_hash, initialization_vector, chunk_sizes_d, enc_file = encrypt_file(secret, open(fname), perc_callback=pc)
         enc_data = enc_file
         org_data = (open(fname).read())
-        self.assertNotEqual(make_hash_str(enc_data, "1"), make_hash_str(org_data, "1"))
+        self.assertNotEqual(make_checksum(enc_data), make_checksum(org_data))
         dec_data = decrypt_file(secret, enc_file, data_hash, initialization_vector, chunk_sizes_d, perc_callback=pc)
         org_data = (open(fname).read())
-        self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
+        self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
 
     def test_encrypt_file_smp(self):
         """
@@ -189,14 +189,14 @@ class CryptoboxAppTest(unittest.TestCase):
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())
-        self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
+        self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
         fname = "testdata/20MB.zip"
         enc_file_struct = encrypt_file_smp(secret, fname)
         dec_file = decrypt_file_smp(secret, enc_file_struct)
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())
-        self.assertEqual(make_hash_str(dec_data, "1"), make_hash_str(org_data, "1"))
+        self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
 
     def test_index_no_box_given(self):
         """
