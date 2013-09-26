@@ -15,7 +15,7 @@ from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
-from cba_crypto import encrypt_file, decrypt_file, make_hash_str, encrypt_file_smp, decrypt_file_smp
+from cba_crypto import encrypt_file, decrypt_file, make_checksum, encrypt_file_smp, decrypt_file_smp
 
 
 def add(a, b):
