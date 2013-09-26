@@ -616,6 +616,7 @@ def upload_file(memory, options, file_object, parent):
     #files = {'file': file_object}
     #result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
 
+    #noinspection PyUnusedLocal
     def prog_callback(param, current, total):
         """
         @type param:

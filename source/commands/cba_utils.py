@@ -749,10 +749,11 @@ class AsyncUpdateProgressItem(threading.Thread):
         run
         """
 
+        #noinspection PyBroadException
         try:
             s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
             s.set_smemory("item_progress", self.p)
-        except Exception, e:
+        except Exception:
             print "progress:", self.p
 
 

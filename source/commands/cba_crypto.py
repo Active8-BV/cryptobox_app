@@ -2,15 +2,15 @@
 """
 crypto routines for the commandline tool
 """
-import re
 import os
 import base64
 import time
 import multiprocessing
 import cPickle
+import zlib
 from cStringIO import StringIO
 from Crypto import Random
-from Crypto.Hash import SHA, SHA512, HMAC
+from Crypto.Hash import SHA, SHA512
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import smp_all_cpu_apply, update_item_progress
@@ -35,32 +35,16 @@ def make_hash(data):
     return sha.hexdigest()
 
 
-def make_hash_str(data, secret):
-    """ make hash
-    @param data: data to hash
-    @type data: dict, list, str, unicode
-    @param secret: secret used for hmac
-    @type secret: dict, list, str, unicode
+def make_checksum(data):
     """
-    if isinstance(data, dict):
-        sortedkeys = data.keys()
-        sortedkeys.sort()
-        data2 = {}
-
-        for key in sortedkeys:
-            data2[key] = str(data[key])
-
-        data = data2
-    elif isinstance(data, list):
-        data = data[0]
-
-    if len(data) > 100:
-        data = data[:100]
-
-    data = re.sub('[\Waouiae]+', "", str(data).lower())
-    hmac = HMAC.new(secret, digestmod=SHA512)
-    hmac.update(str(data))
-    return hmac.hexdigest()
+    @type data: str, unicode
+    @rtype: str, unicode
+    """
+    try:
+        crc = base64.encodestring(str(zlib.adler32(data)))
+        return crc.strip().rstrip("=")
+    except OverflowError:
+        return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
 
 
 def password_derivation(key, salt):
@@ -136,7 +120,7 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
         dec_data = dec_data[0:decrypted_chunk]
         dec_file.write(dec_data)
         if cnt <= 0:
-            calculated_hash = make_hash_str(dec_data, secret)
+            calculated_hash = make_checksum(dec_data)
 
             if data_hash != calculated_hash:
                 raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
@@ -153,7 +137,6 @@ def decrypt_file(secret, encrypted_data, data_hash, initialization_vector, chunk
         perc_callback(100.0)
 
     return dec_file.read()
-
 
 #noinspection PyDictCreation,PyPep8Naming
 def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq=0.5):
@@ -205,7 +188,7 @@ def encrypt_file(secret, fin, total=None, perc_callback=None, perc_callback_freq
         enc_data = cipher.encrypt(chunk)
 
         if cnt <= 0:
-            data_hash = make_hash_str(chunk, secret)
+            data_hash = make_checksum(chunk)
             chunk_sizes_d["last"] = chunk_sizes_d["default"] = (len(chunk), len(enc_data))
 
         total_enc_data += enc_data
