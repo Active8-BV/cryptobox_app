@@ -13,7 +13,7 @@ from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory, del_local_file_histor
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
-from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_server, make_directories_local, dirs_on_local, instruct_server_to_make_folders, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
+from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
 from cba_crypto import encrypt_file, decrypt_file, make_hash_str, encrypt_file_smp, decrypt_file_smp
 
