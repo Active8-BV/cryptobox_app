@@ -143,9 +143,10 @@ def cryptobox_command(options):
             log("No cryptobox given -b or --cryptobox")
             return False
 
-        options.dir = options.dir
-        ensure_directory(options.dir)
+        options.basedir = options.dir
+        ensure_directory(options.basedir)
         options.dir = os.path.join(options.dir, options.cryptobox)
+        ensure_directory(options.dir)
         datadir = get_data_dir(options)
 
         if not datadir:
@@ -160,7 +161,7 @@ def cryptobox_command(options):
         if memory.has("authorized"):
             memory.replace("authorized", False)
 
-        if not os.path.exists(options.dir):
+        if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
             return False
 
