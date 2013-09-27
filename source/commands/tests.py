@@ -64,10 +64,15 @@ class CryptoboxAppTest(unittest.TestCase):
         #server = "https://www.cryptobox.nl/"
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 2}
+
         self.cboptions = Dict2Obj(self.options_d)
+
         self.cbmemory = Memory()
+
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
+
         ensure_directory(self.cboptions.dir)
+
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
         testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "1GB.zip", "50MB.zip"]
@@ -85,6 +90,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         tearDown
         """
+
         if self.do_wait_for_tasks:
             wait_for_tasks(self.cbmemory, self.cboptions)
         self.cbmemory.save(get_data_dir(self.cboptions))
@@ -500,6 +506,24 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(file_uploads), 3)
         self.assertEqual(len(dir_del_local), 0)
         self.assertEqual(len(dir_make_server), 1)
+
+    def test_sync_method_clean_tree_remove_local_folder(self):
+        """
+        test_sync_method_clean_tree_remove_local_folder
+        """
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        self.assertTrue(self.files_synced())
+        os.system("rm -Rf testdata/testmap/")
+        self.cbmemory = Memory()
+        self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
+        localindex = make_local_index(self.cboptions)
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+        self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
+        self.assertEqual(len(dir_del_server), 0)
+        self.assertEqual(len(dir_make_local), 3)
+        self.assertEqual(len(file_downloads), 5)
 
 
 if __name__ == '__main__':

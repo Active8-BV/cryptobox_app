@@ -167,7 +167,7 @@ def cryptobox_command(options):
         if not options.check:
             if not options.encrypt and not options.decrypt:
                 log("No encrypt or decrypt directive given (-d or -e)")
-                return False
+                return False 
 
         if not options.password:
             log("No password given (-p or --password)")

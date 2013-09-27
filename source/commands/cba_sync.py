@@ -461,6 +461,7 @@ def get_server_index(memory, options):
             raise TreeLoadError()
 
     serverindex = result[1]
+    serverindex["dirlist"] = list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]]))
     memory.replace("serverindex", serverindex)
     return serverindex, memory
 
@@ -701,13 +702,6 @@ def sync_server(memory, options):
         return
 
     serverindex, memory = get_server_index(memory, options)
-    # update seen server history files
-    serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in serverindex["doclist"]]))
-    for sd in serverdirs:
-        memory = add_server_file_history(memory, sd)
-    serverfiles = list(set([i["doc"]["m_path"] for i in serverindex["doclist"]]))
-    for sf in serverfiles:
-        memory = add_server_file_history(memory, sf)
 
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
