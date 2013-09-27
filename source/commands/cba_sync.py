@@ -702,6 +702,7 @@ def sync_server(memory, options):
         return
 
     serverindex, memory = get_server_index(memory, options)
+    # update seen server history files
 
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
@@ -728,6 +729,14 @@ def sync_server(memory, options):
     for fpath in file_del_local:
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
+
+
+    serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in dir_make_local]))
+    for sd in serverdirs:
+        memory = add_server_file_history(memory, sd)
+    serverfiles = list(set([i["doc"]["m_path"] for i in file_downloads]))
+    for sf in serverfiles:
+        memory = add_server_file_history(memory, sf)
 
     sm = SingletonMemory()
     sm.set("file_downloads", [])

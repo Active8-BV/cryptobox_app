@@ -143,8 +143,8 @@ def cryptobox_command(options):
             log("No cryptobox given -b or --cryptobox")
             return False
 
-        options.basedir = options.dir
-        ensure_directory(options.basedir)
+        options.dir = options.dir
+        ensure_directory(options.dir)
         options.dir = os.path.join(options.dir, options.cryptobox)
         datadir = get_data_dir(options)
 
@@ -160,14 +160,14 @@ def cryptobox_command(options):
         if memory.has("authorized"):
             memory.replace("authorized", False)
 
-        if not os.path.exists(options.basedir):
+        if not os.path.exists(options.dir):
             log("DIR [", options.dir, "] does not exist")
             return False
 
         if not options.check:
             if not options.encrypt and not options.decrypt:
                 log("No encrypt or decrypt directive given (-d or -e)")
-                return False 
+                return False
 
         if not options.password:
             log("No password given (-p or --password)")
@@ -234,6 +234,7 @@ def cryptobox_command(options):
                 memory = decrypt_and_build_filetree(memory, options)
         check_and_clean_dir(options)
         smemory.set("last_ping", time.time())
+        memory.save(datadir)
         hide_config(options, salt, secret)
         reset_memory_progress()
         reset_item_progress()
@@ -243,7 +244,7 @@ def cryptobox_command(options):
         if memory.has("authorized"):
             memory.delete("authorized")
         smemory.set("cryptobox_locked", cryptobox_locked(memory))
-        memory.save(datadir)
+
     #except Exception, e:
     #    handle_exception(e)
     finally:

@@ -211,12 +211,12 @@ def restore_hidden_config(options):
     @param options:
     @type options:
     """
-    hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
+    hidden_configs = [x for x in os.listdir(options.dir) if x.endswith(".cryptoboxfolder")]
     hidden_configs_dict = {}
     secret = None
 
     for config in hidden_configs:
-        config_file_path = os.path.join(options.basedir, config)
+        config_file_path = os.path.join(options.dir, config)
         config_stat = os.stat(config_file_path)
         obj = unpickle_object(config_file_path)
         obj, secret = decrypt_object("", key=options.password, obj_string=obj["encrypted_name"], salt=obj["salt"])
@@ -232,21 +232,21 @@ def restore_hidden_config(options):
             old_config = hidden_configs_dict[cf]
             guid = old_config[1].split(".")[1]
 
-            if os.path.exists(os.path.join(options.basedir, old_config[1])):
-                os.remove(os.path.join(options.basedir, old_config[1]))
+            if os.path.exists(os.path.join(options.dir, old_config[1])):
+                os.remove(os.path.join(options.dir, old_config[1]))
 
-            if os.path.exists(os.path.join(options.basedir, guid)):
-                shutil.rmtree(os.path.join(options.basedir, guid), True)
+            if os.path.exists(os.path.join(options.dir, guid)):
+                shutil.rmtree(os.path.join(options.dir, guid), True)
 
         guid = hidden_config[1].split(".")[1]
 
-        if os.path.exists(os.path.join(options.basedir, guid)):
-            p1 = os.path.join(options.basedir, guid)
-            p2 = os.path.join(options.basedir, hidden_config[0])
+        if os.path.exists(os.path.join(options.dir, guid)):
+            p1 = os.path.join(options.dir, guid)
+            p2 = os.path.join(options.dir, hidden_config[0])
             os.rename(p1, p2)
 
-        if os.path.exists(os.path.join(options.basedir, hidden_config[1])):
-            os.remove(os.path.join(options.basedir, hidden_config[1]))
+        if os.path.exists(os.path.join(options.dir, hidden_config[1])):
+            os.remove(os.path.join(options.dir, hidden_config[1]))
 
     if secret:
         datadir = get_data_dir(options)
@@ -272,7 +272,7 @@ def hide_config(options, salt, secret):
 
         if os.path.exists(mempath):
             read_and_encrypt_file(mempath, mempath + ".enc", secret)
-            print "mempath", mempath
+
             os.remove(mempath)
             hidden_name = "." + get_uuid(3)
 
@@ -280,7 +280,7 @@ def hide_config(options, salt, secret):
                 hidden_name = "." + get_uuid(3)
 
             encrypted_name = encrypt_object(secret, options.cryptobox)
-            pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
+            pickle_object(os.path.join(options.dir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
             os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
