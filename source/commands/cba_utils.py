@@ -11,11 +11,11 @@ import multiprocessing
 import threading
 import uuid as _uu
 import json
-import jsonpickle
 import cPickle
+
+import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
-
 
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -34,6 +34,7 @@ def make_sha1_hash_utils(data):
 
 def unpickle_json(path):
     return jsonpickle.decode(open(path).read())
+
 
 def pickle_json(path, targetobject):
     """
@@ -162,7 +163,6 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
-
         # Enhanced to handle key not found.
         if key in self:
             return self[key]

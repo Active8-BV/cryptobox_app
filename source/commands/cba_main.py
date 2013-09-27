@@ -10,10 +10,12 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import os
 import socket
+import cPickle
 import threading
 import time
 import multiprocessing
 import xmlrpclib
+import random
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
@@ -30,12 +32,9 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
-
         class _Popen(multiprocessing.forking.Popen):
-
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -48,7 +47,6 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
-
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -65,6 +63,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -90,6 +89,29 @@ def add_options():
     return parser.parse_args()
 
 
+def consoledict(*args):
+    """
+    @param args:
+    @type args:
+    @return: @rtype:
+    """
+    dbs = ""
+
+    for s in args:
+        if s:
+            if isinstance(s, dict):
+                dbs += "--- dict ---\n"
+
+                for i in s:
+                    dbs += " " + str(i) + " : " + str(s[i]) + "\n"
+
+                dbs += "------------\n"
+            else:
+                dbs += " " + str(s)
+
+    log(dbs)
+
+
 def cryptobox_command(options):
     """
     @param options: dictionary with options
@@ -101,6 +123,7 @@ def cryptobox_command(options):
     try:
         smemory = SingletonMemory()
         smemory.set("working", False)
+        consoledict(options)
         if isinstance(options, dict):
             options = Dict2Obj(options)
 
@@ -393,23 +416,24 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 smemory = SingletonMemory()
                 return smemory.set(k, v)
+
             def get_cryptobox_lock_status():
                 """
                 get_cryptobox_lock_status
                 """
                 smemory = SingletonMemory()
                 return smemory.get("cryptobox_locked")
+
             def get_motivation():
                 """
                 get_motivation
                 """
                 #noinspection PyBroadException
-                try:
-                    import urllib2
-                    response = urllib2.urlopen('https://api.github.com/zen')
-                    return response.read()
-                except:
-                    pass
+                qlist = cPickle.load(open("quotes.list"))
+                q = qlist[random.randint(0, len(qlist))]
+                return q[0] + "<br/><br/>- " + q[1]
+
+
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')
@@ -435,7 +459,6 @@ class XMLRPCThread(multiprocessing.Process):
         except KeyboardInterrupt:
             print "cba_main.py:415", "bye xmlrpc server"
 
-
 #noinspection PyClassicStyleClass
 def main():
     """
@@ -456,12 +479,10 @@ def main():
 
             try:
                 if commandserver.is_alive():
-
-                    #s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                    #socket.setdefaulttimeout(20)
-                    #s.ping()
-                    #socket.setdefaulttimeout(None)
-                    pass
+                    s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+                    socket.setdefaulttimeout(20)
+                    s.ping()
+                    socket.setdefaulttimeout(None)
             except socket.error, ex:
                 print "cba_main.py:445", "kill it", ex
                 commandserver.terminate()
@@ -475,7 +496,6 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()

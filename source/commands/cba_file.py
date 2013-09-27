@@ -3,7 +3,7 @@
 file operations
 """
 import os
-from cba_utils import handle_exception, strcmp, log, pickle_object, unpickle_object
+from cba_utils import strcmp, log, pickle_object, unpickle_object
 from cba_crypto import make_sha1_hash, decrypt_file_smp, encrypt_file_smp
 
 
@@ -59,13 +59,7 @@ def read_file_to_fdict(path, read_data=False):
     @return: @rtype:
     """
     ft = read_file(path, read_data)
-    file_dict = {"st_ctime": int(ft[0]),
-                 "st_atime": int(ft[1]),
-                 "st_mtime": int(ft[2]),
-                 "st_mode": int(ft[3]),
-                 "st_uid": int(ft[4]),
-                 "st_gid": int(ft[5]),
-                 "st_size": int(ft[6])}
+    file_dict = {"st_ctime": int(ft[0]), "st_atime": int(ft[1]), "st_mtime": int(ft[2]), "st_mode": int(ft[3]), "st_uid": int(ft[4]), "st_gid": int(ft[5]), "st_size": int(ft[6])}
 
     if read_data:
         file_dict["data"] = ft[7]
@@ -90,13 +84,9 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
-
-    try:
-        enc_file_struct = encrypt_file_smp(secret, fpath)
-        pickle_object(blobpath, enc_file_struct)
-        return None
-    except Exception, e:
-        handle_exception(e)
+    enc_file_struct = encrypt_file_smp(secret, fpath)
+    pickle_object(blobpath, enc_file_struct)
+    return True
 
 
 def decrypt_file_and_write(fpath, unenc_path, secret):
@@ -106,14 +96,10 @@ def decrypt_file_and_write(fpath, unenc_path, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
-
-    try:
-        enc_file_struct = unpickle_object(fpath)
-        dec_file = decrypt_file_smp(secret, enc_file_struct)
-        open(unenc_path, "wb").write(dec_file.read())
-        return None
-    except Exception, e:
-        handle_exception(e)
+    enc_file_struct = unpickle_object(fpath)
+    dec_file = decrypt_file_smp(secret, enc_file_struct)
+    open(unenc_path, "wb").write(dec_file.read())
+    return True
 
 
 def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
@@ -160,11 +146,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
-    filedata = {"filehash": filehash,
-                "fpath": fpath,
-                "blobpath": blobpath,
-                "blobdir": blobdir,
-                "blob_exists": os.path.exists(blobpath)}
+    filedata = {"filehash": filehash, "fpath": fpath, "blobpath": blobpath, "blobdir": blobdir, "blob_exists": os.path.exists(blobpath)}
 
     del file_dict["data"]
     localindex["filestats"][fpath] = file_dict
