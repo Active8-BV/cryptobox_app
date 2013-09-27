@@ -763,7 +763,6 @@ def update_item_progress(p, server=False):
     @type server:bool
     @type p:int
     """
-    print p
     if server:
         try:
             api = AsyncUpdateProgressItem(p)
