@@ -29,9 +29,10 @@
     <div class="row">
         <div class="col-sm-6">
             <blockquote>
-                <p class="lead"><i class="icon-lock" style="color:#fe7474;" ng-show="cryptobox_locked"></i>&nbsp;Cryptobox <span ng-show="cryptobox_locked">local data encrypted</span></p>
-                <small>cb:{{cba_version}} {{ motivation }} </small>
+                <p class="lead">Cryptobox<span ng-show="cryptobox_locked" > local data encrypted <i class="icon-lock" style="color:#fe7474;"></i></span></p>
+                <h6 ng-bind-html-unsafe="motivation"></h6>
             </blockquote>
+            
         </div>
 
         <div class="col-sm-6">
@@ -99,7 +100,7 @@
                 <label class="col-sm-3 control-label" for="cb_password">password</label>
 
                 <div class="col-sm-9">
-                    <input type="password" class="form-control" ng-change="form_change()" id="cb_password" ng_model="cb_password" placeholder="password">
+                    <input type="text" class="form-control" ng-change="form_change()" id="cb_password" ng_model="cb_password" placeholder="password">
                 </div>
             </div>
             <div class="form-group">

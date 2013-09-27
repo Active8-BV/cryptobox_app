@@ -28,6 +28,6 @@ python -OO when_changed.py ./source/commands/cba_index.py -c "./buildcommands.sh
 python kill_restart.py &
 python -OO kill_on_change_procs.py
 rm app.running
-#killall Python
-#killall python
+killall Python
+killall python
 

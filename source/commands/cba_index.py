@@ -241,7 +241,9 @@ def restore_hidden_config(options):
         guid = hidden_config[1].split(".")[1]
 
         if os.path.exists(os.path.join(options.basedir, guid)):
-            os.rename(os.path.join(options.basedir, guid), os.path.join(options.basedir, hidden_config[0]))
+            p1 = os.path.join(options.basedir, guid)
+            p2 = os.path.join(options.basedir, hidden_config[0])
+            os.rename(p1, p2)
 
         if os.path.exists(os.path.join(options.basedir, hidden_config[1])):
             os.remove(os.path.join(options.basedir, hidden_config[1]))
@@ -267,13 +269,15 @@ def hide_config(options, salt, secret):
     if options.encrypt and options.remove and salt and secret:
         datadir = get_data_dir(options)
         mempath = os.path.join(datadir, "memory.pickle")
+
         if os.path.exists(mempath):
             read_and_encrypt_file(mempath, mempath + ".enc", secret)
+            print "mempath", mempath
             os.remove(mempath)
-            hidden_name = get_uuid(3)
+            hidden_name = "." + get_uuid(3)
 
             while hidden_name in os.listdir(options.dir):
-                hidden_name = get_uuid(3)
+                hidden_name = "." + get_uuid(3)
 
             encrypted_name = encrypt_object(secret, options.cryptobox)
             pickle_object(os.path.join(options.basedir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
