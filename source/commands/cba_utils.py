@@ -10,9 +10,8 @@ import xmlrpclib
 import multiprocessing
 import threading
 import uuid as _uu
-import json
 import cPickle
-
+import json
 import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
@@ -32,26 +31,28 @@ def make_sha1_hash_utils(data):
     return sha.hexdigest()
 
 
-def unpickle_json(path):
-    return jsonpickle.decode(open(path).read())
-
-
-def pickle_json(path, targetobject):
+def json_object(path, targetobject):
     """
     @type path: str or unicode
     @type targetobject: object
     """
     if DEBUG:
         jsonproxy = json.loads(jsonpickle.encode(targetobject))
-        json.dump(jsonproxy, open(path, "w"), sort_keys=True, indent=4, separators=(',', ': '))
+        json.dump(jsonproxy, open(path + ".json", "w"), sort_keys=True, indent=4, separators=(',', ': '))
 
 
-def pickle_object(path, targetobject):
+def pickle_object(path, targetobject, json_pickle=False):
     """
     @type path: str or unicode
     @type targetobject: object
+    @type json_pickle: bool
     """
     cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
+    if json_pickle:
+        if isinstance(targetobject, dict):
+            json_object(path, targetobject)
+        else:
+            json_object(path, targetobject)
 
 
 def unpickle_object(path):
@@ -552,7 +553,7 @@ class Memory(object):
         """
         if os.path.exists(datadir):
             mempath = os.path.join(datadir, "memory.pickle")
-            pickle_json(mempath, self.data)
+            pickle_object(mempath, self.data, json_pickle=True)
 
     def load(self, datadir):
         """
@@ -562,7 +563,7 @@ class Memory(object):
 
         if os.path.exists(mempath):
             #noinspection PyAttributeOutsideInit
-            self.data = unpickle_json(mempath)
+            self.data = unpickle_object(mempath)
 
             for k in self.data.copy():
                 try:
@@ -760,7 +761,7 @@ class AsyncUpdateProgressItem(threading.Thread):
 def update_item_progress(p, server=False):
     """
     update_progress
-    @type server:bool
+    @type server:bool 
     @type p:int
     """
     if server:
