@@ -761,7 +761,7 @@ class AsyncUpdateProgressItem(threading.Thread):
 def update_item_progress(p, server=False):
     """
     update_progress
-    @type server:bool 
+    @type server:bool
     @type p:int
     """
     if server:
