@@ -731,12 +731,12 @@ def sync_server(memory, options):
         memory = del_local_file_history(memory, fpath)
 
 
-    serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in dir_make_local]))
-    for sd in serverdirs:
-        memory = add_server_file_history(memory, sd)
-    serverfiles = list(set([i["doc"]["m_path"] for i in file_downloads]))
-    for sf in serverfiles:
-        memory = add_server_file_history(memory, sf)
+    #serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in dir_make_local]))
+    #for sd in serverdirs:
+    #    memory = add_server_file_history(memory, sd)
+    #serverfiles = list(set([i["doc"]["m_path"] for i in file_downloads]))
+    #for sf in serverfiles:
+    #    memory = add_server_file_history(memory, sf)
 
     sm = SingletonMemory()
     sm.set("file_downloads", [])
