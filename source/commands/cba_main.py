@@ -19,7 +19,7 @@ import random
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception, open_folder
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -437,6 +437,11 @@ class XMLRPCThread(multiprocessing.Process):
                 q = qlist[random.randint(0, len(qlist))]
                 return q[0] + "<br/><br/>- " + q[1]
 
+            def do_open_folder(folder_path, servername):
+                """
+                """
+
+                open_folder(os.path.join(folder_path, servername))
 
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
@@ -451,6 +456,7 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(do_reset_item_progress, "reset_item_progress")
             server.register_function(get_cryptobox_lock_status, "get_cryptobox_lock_status")
             server.register_function(get_motivation, "get_motivation")
+            server.register_function(do_open_folder, "do_open_folder")
 
             try:
                 memory.set("last_ping", time.time())
