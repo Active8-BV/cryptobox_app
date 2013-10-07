@@ -21,7 +21,7 @@ from tendo import singleton
 from optparse import OptionParser
 from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception, open_folder
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
-from cba_network import authorize_user
+from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
 import multiprocessing.forking
@@ -32,9 +32,12 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
+
         class _Popen(multiprocessing.forking.Popen):
+
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -47,6 +50,7 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
+
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -63,7 +67,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -83,6 +86,8 @@ def add_options():
     parser.add_option("-b", "--cryptobox", dest="cryptobox", help="cryptobox slug", metavar="CRYPTOBOX")
     parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
     parser.add_option("-o", "--check", dest="check", action='store_true', help="check with server", metavar="CHECK")
+    parser.add_option("-t", "--treeseq", dest="treeseq", action='store_true', help="check tree sequence", metavar="TREESEQ")
+    parser.add_option("-l", "--logout", dest="logout", action='store_true', help="log session out", metavar="LOGOUT")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
     parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
     parser.add_option("-v", "--version", dest="version", action='store_true', help="client version", metavar="VERSION")
@@ -123,7 +128,7 @@ def cryptobox_command(options):
     try:
         smemory = SingletonMemory()
         smemory.set("working", False)
-        consoledict(options)
+
         if isinstance(options, dict):
             options = Dict2Obj(options)
 
@@ -146,7 +151,6 @@ def cryptobox_command(options):
         options.basedir = options.dir
         ensure_directory(options.basedir)
         options.dir = os.path.join(options.dir, options.cryptobox)
-
         restore_hidden_config(options)
         ensure_directory(options.dir)
         datadir = get_data_dir(options)
@@ -157,17 +161,12 @@ def cryptobox_command(options):
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
-        if memory.has("session"):
-            memory.delete("session")
-
-        if memory.has("authorized"):
-            memory.replace("authorized", False)
 
         if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
             return False
 
-        if not options.check:
+        if not options.check and not options.treeseq and not options.logout:
             if not options.encrypt and not options.decrypt:
                 log("No encrypt or decrypt directive given (-d or -e)")
                 return False
@@ -198,8 +197,17 @@ def cryptobox_command(options):
         reset_memory_progress()
         reset_item_progress()
         smemory.set("cryptobox_locked", cryptobox_locked(memory))
-        if options.password and options.username and options.cryptobox:
-            authorize_user(memory, options)
+        if options.logout:
+            result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
+            return result[0]
+        if options.treeseq:
+            if memory.has("session"):
+                clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
+                smemory = SingletonMemory()
+                smemory.set("tree_sequence", clock_tree_seq[1])
+                print smemory.get("tree_sequence")
+        elif options.password and options.username and options.cryptobox:
+            memory = authorize_user(memory, options)
             if memory.get("authorized"):
                 if options.check:
                     if cryptobox_locked(memory):
@@ -241,13 +249,7 @@ def cryptobox_command(options):
         hide_config(options, salt, secret)
         reset_memory_progress()
         reset_item_progress()
-        if memory.has("session"):
-            memory.delete("session")
-
-        if memory.has("authorized"):
-            memory.delete("authorized")
         smemory.set("cryptobox_locked", cryptobox_locked(memory))
-
     except Exception, e:
         handle_exception(e)
     finally:
@@ -432,6 +434,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 get_motivation
                 """
+
                 #noinspection PyBroadException
                 qlist = cPickle.load(open("quotes.list"))
                 q = qlist[random.randint(0, len(qlist))]
@@ -439,10 +442,12 @@ class XMLRPCThread(multiprocessing.Process):
 
             def do_open_folder(folder_path, servername):
                 """
+                do_open_folder
                 """
-
                 open_folder(os.path.join(folder_path, servername))
 
+            def get_tree_sequence(options):
+                pass
             server.register_function(ping, 'ping')
             server.register_function(set_val, 'set_val')
             server.register_function(get_val, 'get_val')
@@ -467,7 +472,8 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:415", "bye xmlrpc server"
+            print "cba_main.py:475", "bye xmlrpc server"
+
 
 #noinspection PyClassicStyleClass
 def main():
@@ -494,7 +500,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:445", "kill it", ex
+                print "cba_main.py:503", "kill it", ex
                 commandserver.terminate()
 
             if not commandserver.is_alive():
@@ -506,9 +512,10 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:463", "\nbye main"
+        print "cba_main.py:521", "\nbye main"

@@ -456,6 +456,7 @@ def get_server_index(memory, options):
             raise TreeLoadError()
 
     serverindex = result[1]
+
     serverindex["dirlist"] = list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]]))
     memory.replace("serverindex", serverindex)
     return serverindex, memory
@@ -621,6 +622,7 @@ def upload_file(memory, options, file_object, parent):
         @type total:
         prog_callback
         """
+
         #print param
         percentage = 100 - ((total - current ) * 100 ) / total
         update_item_progress(percentage)
@@ -672,7 +674,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:671", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:677", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
@@ -698,8 +700,8 @@ def sync_server(memory, options):
         return
 
     serverindex, memory = get_server_index(memory, options)
-    # update seen server history files
 
+    # update seen server history files
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
     serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
@@ -726,14 +728,12 @@ def sync_server(memory, options):
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
 
-
     #serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in dir_make_local]))
     #for sd in serverdirs:
     #    memory = add_server_file_history(memory, sd)
     #serverfiles = list(set([i["doc"]["m_path"] for i in file_downloads]))
     #for sf in serverfiles:
     #    memory = add_server_file_history(memory, sf)
-
     sm = SingletonMemory()
     sm.set("file_downloads", [])
     sm.set("file_uploads", [])

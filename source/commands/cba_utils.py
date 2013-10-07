@@ -13,10 +13,10 @@ import uuid as _uu
 import cPickle
 import json
 import subprocess
-
 import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
+
 
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -175,6 +175,7 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
+
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -341,8 +342,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:335", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:336", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:345", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:346", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -766,7 +767,7 @@ class AsyncUpdateProgressItem(threading.Thread):
             s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
             s.set_smemory("item_progress", self.p)
         except Exception:
-            print "progress:", self.p
+            print "cba_utils.py:770", "progress:", self.p
 
 
 def update_item_progress(p, server=False):
@@ -780,7 +781,7 @@ def update_item_progress(p, server=False):
             api = AsyncUpdateProgressItem(p)
             api.start()
         except Exception, e:
-            print "cba_utils.py:773", "AsyncUpdateProgressItem exception", str(e)
+            print "cba_utils.py:784", "AsyncUpdateProgressItem exception", str(e)
     else:
         mem = SingletonMemory()
         mem.set("item_progress", p)

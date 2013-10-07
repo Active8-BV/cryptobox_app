@@ -64,15 +64,10 @@ class CryptoboxAppTest(unittest.TestCase):
         #server = "https://www.cryptobox.nl/"
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 2}
-
         self.cboptions = Dict2Obj(self.options_d)
-
         self.cbmemory = Memory()
-
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
-
         ensure_directory(self.cboptions.dir)
-
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
         testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "1GB.zip", "50MB.zip"]
@@ -90,7 +85,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         tearDown
         """
-
         if self.do_wait_for_tasks:
             wait_for_tasks(self.cbmemory, self.cboptions)
         self.cbmemory.save(get_data_dir(self.cboptions))
@@ -325,7 +319,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = authorized(self.cbmemory, self.cboptions)
         self.assertTrue(self.cbmemory.get("authorized"))
 
-
     def test_compare_server_tree_with_local_tree_method_folders(self):
         """
         test_compare_server_tree_with_local_tree_method_folders
@@ -384,7 +377,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_synced()
         self.unzip_testfiles_clean()
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-
         os.system("date > testdata/testmap/all_types/date.txt")
         os.system("mkdir testdata/testmap/map3")
         os.system("rm -Rf testdata/testmap/all_types/document.pdf")

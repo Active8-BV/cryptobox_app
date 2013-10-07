@@ -187,7 +187,6 @@ def on_server(memory, options, method, payload, session, files=None):
     try:
         return parse_http_result(result), memory
     except ServerForbidden, ex:
-        log("unauthorized exit", ex)
         return (None, None), memory
 
 
@@ -273,7 +272,6 @@ def authorize(memory, options):
         raise PasswordException(options.username)
 
 
-
 def authorize_user(memory, options):
     """
     authorize_user
@@ -286,14 +284,8 @@ def authorize_user(memory, options):
             if memory.get("authorized"):
                 return memory
 
-        if memory.has("session"):
-            memory.replace("authorized", True)
-            return memory
-
         session, results, memory = authorize(memory, options)
-        memory.set("session", session)
-
-
+        memory.replace("session", session)
         memory.replace("authorized", True)
         return memory
     except PasswordException, p:
