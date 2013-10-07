@@ -273,26 +273,6 @@ def authorize(memory, options):
         raise PasswordException(options.username)
 
 
-def check_otp(memory, options, session, results):
-    """
-    @type memory: Memory
-    @type options: optparse.Values, instance
-    @type session: requests.sessions.Session
-    @type results: dict, instance
-    """
-    if not "otp" in results:
-        return True
-    else:
-        payload = results["payload"]
-
-        if "trust_computer" in payload:
-            return True
-
-        payload["otp"] = results["otp"]
-        results, memory = on_server(memory, options, "checkotp", payload=payload, session=session)
-        results = results.json()
-        return results, memory
-
 
 def authorize_user(memory, options):
     """
@@ -313,11 +293,8 @@ def authorize_user(memory, options):
         session, results, memory = authorize(memory, options)
         memory.set("session", session)
 
-        #if check_otp(memory, options, session, results):
-        memory.replace("authorized", True)
 
-        #else:
-        #    memory.replace("authorized", False)
+        memory.replace("authorized", True)
         return memory
     except PasswordException, p:
         log(p, "not authorized")

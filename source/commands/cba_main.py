@@ -19,7 +19,7 @@ import random
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception
 from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
 from cba_network import authorize_user
 from cba_sync import sync_server, get_server_index, get_sync_changes
@@ -131,7 +131,7 @@ def cryptobox_command(options):
             return "0.1"
 
         if not options.numdownloadthreads:
-            options.numdownloadthreads = 4
+            options.numdownloadthreads = 1
         else:
             options.numdownloadthreads = int(options.numdownloadthreads)
 
@@ -146,12 +146,14 @@ def cryptobox_command(options):
         options.basedir = options.dir
         ensure_directory(options.basedir)
         options.dir = os.path.join(options.dir, options.cryptobox)
+
+        restore_hidden_config(options)
         ensure_directory(options.dir)
         datadir = get_data_dir(options)
-
+        ensure_directory(datadir)
         if not datadir:
             log("datadir is None")
-        restore_hidden_config(options)
+
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
@@ -246,8 +248,8 @@ def cryptobox_command(options):
             memory.delete("authorized")
         smemory.set("cryptobox_locked", cryptobox_locked(memory))
 
-    #except Exception, e:
-    #    handle_exception(e)
+    except Exception, e:
+        handle_exception(e)
     finally:
         smemory = SingletonMemory()
         smemory.set("working", False)

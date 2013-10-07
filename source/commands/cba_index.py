@@ -62,6 +62,14 @@ def cryptobox_locked(memory):
             if not strcmp(current_cryptobox_index["dirnames"][dirname]["dirname"], memory.get("cryptobox_folder")):
                 if os.path.exists(current_cryptobox_index["dirnames"][dirname]["dirname"]):
                     locked = False
+    if locked:
+        try:
+
+            mempath = os.path.join(os.path.join(memory.get("cryptobox_folder"), ".cryptobox", "memory.pickle"))
+            unpickle_object(mempath)
+            locked = False
+        except Exception, e:
+            log(str(e))
 
     return locked
 
@@ -206,55 +214,49 @@ def index_and_encrypt(memory, options, localindex_param):
     return salt, secret, memory, localindex
 
 
+def get_hidden_configs(options):
+    dirs_base_folder = os.listdir(options.basedir)
+    hidden_configs = []
+    for base_folder in dirs_base_folder:
+        dirpath = os.path.join(options.basedir, base_folder)
+        if os.path.isdir(dirpath):
+            for fpath in os.listdir(dirpath):
+                if fpath.endswith(".cryptoboxfolder"):
+                    hidden_configs.append((base_folder, fpath))
+
+    return hidden_configs
+
+
 def restore_hidden_config(options):
     """
     @param options:
     @type options:
     """
-    hidden_configs = [x for x in os.listdir(options.basedir) if x.endswith(".cryptoboxfolder")]
-    hidden_configs_dict = {}
-    secret = None
+    hidden_configs = get_hidden_configs(options)
 
     for config in hidden_configs:
-        config_file_path = os.path.join(options.basedir, config)
-        config_stat = os.stat(config_file_path)
-        obj = unpickle_object(config_file_path)
-        obj, secret = decrypt_object("", key=options.password, obj_string=obj["encrypted_name"], salt=obj["salt"])
-        hidden_configs_dict[config_stat.st_mtime] = (obj, config)
+        config_file_path = os.path.join(options.basedir, config[0])
+        config_file_path = os.path.join(config_file_path, config[1])
 
-    sorted_keys = sorted(hidden_configs_dict.keys())
-    sorted_keys.reverse()
-    if len(sorted_keys) > 0:
-        hidden_config = hidden_configs_dict[sorted_keys[0]]
-        sorted_keys.remove(sorted_keys[0])
+        cryptoboxname = unpickle_object(config_file_path)
+        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
 
-        for cf in sorted_keys:
-            old_config = hidden_configs_dict[cf]
-            guid = old_config[1].split(".")[1]
+        if strcmp(cryptoboxname, options.cryptobox):
+            if os.path.exists(config_file_path):
+                os.remove(config_file_path)
 
-            if os.path.exists(os.path.join(options.basedir, old_config[1])):
-                os.remove(os.path.join(options.basedir, old_config[1]))
-
-            if os.path.exists(os.path.join(options.basedir, guid)):
-                shutil.rmtree(os.path.join(options.basedir, guid), True)
-
-        guid = hidden_config[1].split(".")[1]
-
-        if os.path.exists(os.path.join(options.basedir, guid)):
-            p1 = os.path.join(options.basedir, guid)
-            p2 = os.path.join(options.basedir, hidden_config[0])
+            p1 = os.path.dirname(config_file_path)
+            p2 = os.path.join(options.basedir, cryptoboxname)
             os.rename(p1, p2)
 
-        if os.path.exists(os.path.join(options.basedir, hidden_config[1])):
-            os.remove(os.path.join(options.basedir, hidden_config[1]))
+            if secret:
+                datadir = get_data_dir(options)
+                mempath = os.path.join(datadir, "memory.pickle")
 
-    if secret:
-        datadir = get_data_dir(options)
-        mempath = os.path.join(datadir, "memory.pickle")
-
-        if os.path.exists(mempath + ".enc"):
-            decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
-            os.remove(mempath + ".enc")
+                if os.path.exists(mempath + ".enc"):
+                    decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
+                    os.remove(mempath + ".enc")
+            return
 
 
 def hide_config(options, salt, secret):
@@ -280,7 +282,7 @@ def hide_config(options, salt, secret):
                 hidden_name = "." + get_uuid(3)
 
             encrypted_name = encrypt_object(secret, options.cryptobox)
-            pickle_object(os.path.join(options.dir, "." + hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
+            pickle_object(os.path.join(options.dir, hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
             os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
@@ -322,7 +324,6 @@ def decrypt_and_build_filetree(memory, options):
         cb_locked = cryptobox_locked(memory)
 
         if not cb_locked:
-            log("cryptobox is locked")
             return memory
     else:
         cryptobox_index = None
