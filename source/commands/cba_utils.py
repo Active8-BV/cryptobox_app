@@ -813,6 +813,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
+    print curr, total, msg
     global last_update_string_len
     if total == 0:
         return
