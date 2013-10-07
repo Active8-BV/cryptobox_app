@@ -15,7 +15,7 @@ import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, have_serverhash, Memory, add_server_file_history, in_server_file_history, \
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_file_history, in_server_file_history, \
     add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
@@ -139,13 +139,8 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
         if os.path.exists(node["dirname"]):
             if float(os.stat(node["dirname"]).st_mtime) >= tree_timestamp:
                 dirs_make_server.append(node)
-
-            have_hash_on_server, memory = have_serverhash(memory, node["dirname"])
-
-            if have_hash_on_server:
-                dirs_del_local.append(node)
             else:
-                dirs_make_server.append(node)
+                dirs_del_local.append(node)
 
     dirs_make_server_unique = []
 
@@ -520,6 +515,7 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
                 file_del_server.append(server_path_to_local)
             else:
                 file_downloads.append(fnode)
+                memory = add_local_file_history(memory, fnode["doc"]["m_path"])
 
     dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip(os.path.sep)) for d in dirs_scheduled_for_removal]
     file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dirs_scheduled_for_removal]

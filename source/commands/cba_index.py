@@ -64,12 +64,11 @@ def cryptobox_locked(memory):
                     locked = False
     if locked:
         try:
-
             mempath = os.path.join(os.path.join(memory.get("cryptobox_folder"), ".cryptobox", "memory.pickle"))
             unpickle_object(mempath)
             locked = False
         except Exception, e:
-            log(str(e))
+            pass
 
     return locked
 
@@ -319,14 +318,6 @@ def decrypt_and_build_filetree(memory, options):
 
     blobdir = os.path.join(datadir, "blobs")
     cryptobox_index = get_cryptobox_index(memory)
-
-    if cryptobox_index:
-        cb_locked = cryptobox_locked(memory)
-
-        if not cb_locked:
-            return memory
-    else:
-        cryptobox_index = None
 
     hashes = set()
 
