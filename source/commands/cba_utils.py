@@ -12,6 +12,8 @@ import threading
 import uuid as _uu
 import cPickle
 import json
+import subprocess
+
 import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
@@ -19,6 +21,15 @@ last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
+
+
+def open_folder(path):
+    if sys.platform == 'darwin':
+        subprocess.check_call(['open', '--', path])
+    elif sys.platform == 'linux2':
+        subprocess.check_call(['gnome-open', '--', path])
+    elif sys.platform == 'windows':
+        subprocess.check_call(['explorer', path])
 
 
 def make_sha1_hash_utils(data):
