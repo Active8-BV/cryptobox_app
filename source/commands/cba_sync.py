@@ -586,6 +586,13 @@ def get_sync_changes(memory, options, localindex, serverindex):
     #local files
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
+
+    file_upload_dirs = set([os.path.dirname(x["local_file_path"]) for x in file_uploads])
+    dir_del_local_paths = set([x["dirname"] for x in dir_del_local])
+    for fup in file_upload_dirs:
+        if fup in dir_del_local_paths:
+            dir_del_local = [x for x in dir_del_local if x["dirname"]!=fup]
+
     sm = SingletonMemory()
     sm.set("file_downloads", file_downloads)
     sm.set("file_uploads", file_uploads)
@@ -627,7 +634,7 @@ def upload_file(memory, options, file_object, parent):
         percentage = 100 - ((total - current ) * 100 ) / total
         update_item_progress(percentage)
 
-        #print "Upload progress: %s " % percentage
+        print "Upload progress: %s " % percentage
 
     server = options.server
     cryptobox = options.cryptobox
@@ -683,8 +690,6 @@ def upload_files(memory, options, serverindex, file_uploads):
             result.get()
     pool.terminate()
 
-    #for uf in file_uploads:
-    #    memory = upload_file(memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"])
     return memory
 
 
