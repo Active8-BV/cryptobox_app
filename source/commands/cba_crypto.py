@@ -39,6 +39,7 @@ def make_checksum(data):
     @type data: str, unicode
     @rtype: str, unicode
     """
+
     try:
         crc = base64.encodestring(str(zlib.adler32(data)))
         return crc.strip().rstrip("=")
@@ -205,6 +206,7 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
         perc_callback(100.0)
 
     return dec_file.read()
+
 
 def progress_file_cryption(p):
     """

@@ -62,6 +62,7 @@ def cryptobox_locked(memory):
             if not strcmp(current_cryptobox_index["dirnames"][dirname]["dirname"], memory.get("cryptobox_folder")):
                 if os.path.exists(current_cryptobox_index["dirnames"][dirname]["dirname"]):
                     locked = False
+
     if locked:
         try:
             mempath = os.path.join(os.path.join(memory.get("cryptobox_folder"), ".cryptobox", "memory.pickle"))
@@ -69,7 +70,6 @@ def cryptobox_locked(memory):
             locked = False
         except Exception, e:
             pass
-
     return locked
 
 
@@ -139,7 +139,6 @@ def index_and_encrypt(memory, options, localindex_param):
 
     salt, secret = get_secret(memory, options)
     ensure_directory(datadir)
-
     new_blobs = {}
     file_cnt = 0
     new_objects = 0
@@ -216,8 +215,10 @@ def index_and_encrypt(memory, options, localindex_param):
 def get_hidden_configs(options):
     dirs_base_folder = os.listdir(options.basedir)
     hidden_configs = []
+
     for base_folder in dirs_base_folder:
         dirpath = os.path.join(options.basedir, base_folder)
+
         if os.path.isdir(dirpath):
             for fpath in os.listdir(dirpath):
                 if fpath.endswith(".cryptoboxfolder"):
@@ -236,7 +237,6 @@ def restore_hidden_config(options):
     for config in hidden_configs:
         config_file_path = os.path.join(options.basedir, config[0])
         config_file_path = os.path.join(config_file_path, config[1])
-
         cryptoboxname = unpickle_object(config_file_path)
         cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
 
@@ -247,7 +247,6 @@ def restore_hidden_config(options):
             p1 = os.path.dirname(config_file_path)
             p2 = os.path.join(options.basedir, cryptoboxname)
             os.rename(p1, p2)
-
             if secret:
                 datadir = get_data_dir(options)
                 mempath = os.path.join(datadir, "memory.pickle")
@@ -255,6 +254,7 @@ def restore_hidden_config(options):
                 if os.path.exists(mempath + ".enc"):
                     decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
                     os.remove(mempath + ".enc")
+
             return
 
 
@@ -273,7 +273,6 @@ def hide_config(options, salt, secret):
 
         if os.path.exists(mempath):
             read_and_encrypt_file(mempath, mempath + ".enc", secret)
-
             os.remove(mempath)
             hidden_name = "." + get_uuid(3)
 
@@ -318,7 +317,6 @@ def decrypt_and_build_filetree(memory, options):
 
     blobdir = os.path.join(datadir, "blobs")
     cryptobox_index = get_cryptobox_index(memory)
-
     hashes = set()
 
     if cryptobox_index:
