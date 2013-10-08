@@ -9,6 +9,7 @@ reload(sys)
 #noinspection PyUnresolvedReferences
 sys.setdefaultencoding("utf-8")
 import os
+import threading
 import socket
 import cPickle
 import threading
@@ -124,8 +125,9 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-
+    lock = threading.Lock()
     try:
+        lock.acquire()
         smemory = SingletonMemory()
         smemory.set("working", False)
 
@@ -200,7 +202,7 @@ def cryptobox_command(options):
         if options.logout:
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
-        if options.treeseq:
+        elif options.treeseq:
             if memory.has("session"):
                 clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
                 smemory = SingletonMemory()
@@ -255,7 +257,7 @@ def cryptobox_command(options):
     finally:
         smemory = SingletonMemory()
         smemory.set("working", False)
-
+        lock.release()
     return True
 
 
@@ -293,7 +295,7 @@ class XMLRPCThread(multiprocessing.Process):
                 def __init__(self, *args, **kw):
                     SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, *args, **kw)
 
-                def serve_forever(self, poll_interval=0.01):
+                def serve_forever(self, poll_interval=0.1):
                     """
                     :param poll_interval:
                     :return: :rtype:
@@ -301,7 +303,7 @@ class XMLRPCThread(multiprocessing.Process):
                     while not self.stopped:
                         tslp = time.time() - memory.get("last_ping")
 
-                        if int(tslp) < 60:
+                        if int(tslp) < 20:
                             self.handle_request()
                             time.sleep(poll_interval)
                         else:
@@ -334,26 +336,11 @@ class XMLRPCThread(multiprocessing.Process):
             server = StoppableRPCServer(("localhost", 8654), requestHandler=RequestHandler, allow_none=True)
             server.register_introspection_functions()
 
-            def set_val(name, val):
-                """
-                set_val
-                @type name: str, unicode
-                @type val: str, unicode
-                """
-                memory.set(name, val)
-                return True
-
-            def get_val(name):
-                """
-                set_val
-                @type name: str, unicode
-                """
-                return memory.get(name)
-
             def force_stop():
                 """
                 stop_server
                 """
+                log("force_stop")
                 server.force_stop()
                 return True
 
@@ -361,40 +348,29 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 ping from client
                 """
+                log("last_ping")
                 memory.set("last_ping", time.time())
                 return "ping received"
-
-            def get_progress():
-                """
-                progress for the progress bar
-                """
-                pr = 0
-                fpr = 0
-
-                if memory.has("progress"):
-                    pr = memory.get("progress")
-
-                if memory.has("item_progress"):
-                    fpr = memory.get("item_progress")
-
-                return pr, fpr
 
             def reset_progress():
                 """
                 reset_progress
                 """
+                log("reset_progress")
                 reset_memory_progress()
 
             def do_reset_item_progress():
                 """
                 reset_item_progress
                 """
+                log("do_reset_item_progress")
                 reset_item_progress()
 
             def ping():
                 """
                 simple ping
                 """
+                #log("ping")
                 t = time.time()
                 return t
 
@@ -403,16 +379,18 @@ class XMLRPCThread(multiprocessing.Process):
                 run_cb_command
                 @type options: dict
                 """
+                log("run_cb_command")
                 t1 = threading.Thread(target=cryptobox_command, args=(options,))
                 t1.start()
 
-            def get_smemory(k):
+            def get_all_smemory():
                 """
                 get_smemory
                 :param k:
                 """
+                #log("get_all_smemory")
                 smemory = SingletonMemory()
-                return smemory.get(k)
+                return smemory.data
 
             def set_smemory(k, v):
                 """
@@ -420,21 +398,15 @@ class XMLRPCThread(multiprocessing.Process):
                 :param k:
                 :param v:
                 """
+                log("set_smemory")
                 smemory = SingletonMemory()
                 return smemory.set(k, v)
-
-            def get_cryptobox_lock_status():
-                """
-                get_cryptobox_lock_status
-                """
-                smemory = SingletonMemory()
-                return smemory.get("cryptobox_locked")
 
             def get_motivation():
                 """
                 get_motivation
                 """
-
+                log("get_motivation")
                 #noinspection PyBroadException
                 qlist = cPickle.load(open("quotes.list"))
                 q = qlist[random.randint(0, len(qlist))]
@@ -444,24 +416,24 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 do_open_folder
                 """
+                log("do_open_folder")
                 open_folder(os.path.join(folder_path, servername))
 
             def get_tree_sequence(options):
-                pass
+                log("get_tree_sequence")
+                return cryptobox_command(options)
+
             server.register_function(ping, 'ping')
-            server.register_function(set_val, 'set_val')
-            server.register_function(get_val, 'get_val')
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
             server.register_function(run_cb_command, "cryptobox_command")
-            server.register_function(get_progress, "get_progress")
-            server.register_function(do_reset_item_progress, "reset_progress")
-            server.register_function(get_smemory, "get_smemory")
-            server.register_function(set_smemory, "set_smemory")
+            server.register_function(reset_progress, "reset_progress")
             server.register_function(do_reset_item_progress, "reset_item_progress")
-            server.register_function(get_cryptobox_lock_status, "get_cryptobox_lock_status")
+            server.register_function(set_smemory, "set_smemory")
+            server.register_function(get_all_smemory, "get_all_smemory")
             server.register_function(get_motivation, "get_motivation")
             server.register_function(do_open_folder, "do_open_folder")
+            server.register_function(get_tree_sequence, "get_tree_sequence")
 
             try:
                 memory.set("last_ping", time.time())
@@ -491,17 +463,16 @@ def main():
         commandserver.start()
 
         while True:
-            time.sleep(5)
-
+            time.sleep(10)
             try:
                 if commandserver.is_alive():
                     s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                    socket.setdefaulttimeout(20)
+                    socket.setdefaulttimeout(2)
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
                 print "cba_main.py:503", "kill it", ex
-                commandserver.terminate()
+                #commandserver.terminate()
 
             if not commandserver.is_alive():
                 break
@@ -512,7 +483,6 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()

@@ -549,6 +549,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
             if not seen_local_file_before:
                 upload_file_object = {"local_file_path": local_file_path, "parent_short_id": None, "path": local_file_path}
                 file_uploads.append(upload_file_object)
+                memory = add_local_file_history(memory, upload_file_object["local_file_path"])
 
     file_del_local = []
 
@@ -588,7 +589,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
     file_upload_dirs = set([os.path.dirname(x["local_file_path"]) for x in file_uploads])
-    dir_del_local_paths = set([x["dirname"] for x in dir_del_local])
+    dir_del_local_paths = list(set([x["dirname"] for x in dir_del_local]))
     for fup in file_upload_dirs:
         if fup in dir_del_local_paths:
             dir_del_local = [x for x in dir_del_local if x["dirname"]!=fup]
