@@ -5,7 +5,7 @@ blob routines, loosely based on git
 import os
 from cba_utils import handle_exception, strcmp, update_progress
 from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file
-from cba_utils import add_local_file_history, add_server_file_history
+from cba_utils import add_local_file_history, add_server_path_history
 
 
 def get_data_dir(options):
@@ -112,7 +112,7 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
             files_same_hash.append(sfile)
 
     for fnode in files_same_hash:
-        memory = add_server_file_history(memory, fnode["doc"]["m_path"])
+        memory = add_server_path_history(memory, fnode["doc"]["m_path"])
         write_blob_to_filepath(memory, fnode, options, data)
 
     return memory

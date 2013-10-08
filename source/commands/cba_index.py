@@ -64,11 +64,12 @@ def cryptobox_locked(memory):
                     locked = False
 
     if locked:
+        #noinspection PyBroadException
         try:
             mempath = os.path.join(os.path.join(memory.get("cryptobox_folder"), ".cryptobox", "memory.pickle"))
             unpickle_object(mempath)
             locked = False
-        except Exception, e:
+        except:
             pass
     return locked
 

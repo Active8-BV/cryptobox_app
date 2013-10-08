@@ -9,11 +9,11 @@ import unittest
 import random
 from subprocess import Popen, PIPE
 from cba_main import cryptobox_command
-from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory, del_local_file_history, del_server_file_history
+from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user, authorized
-from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, instruct_server_to_delete_items, path_to_server_shortid, wait_for_tasks, remove_local_files, sync_server, get_sync_changes, short_id_to_server_path
+from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path
 from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
 
@@ -307,7 +307,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         localindex = make_local_index(self.cboptions)
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
-        dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
+        dir_make_server, dir_del_local = dirs_on_local(self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
 
     def test_connection(self):
@@ -450,6 +450,12 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
+        os.mkdir("testdata/testmap/all_types/foo")
+        os.mkdir("testdata/testmap/all_types/foo2")
+        os.mkdir("testdata/testmap/all_types/foo2/bar")
+        os.system("ls > testdata/testmap/all_types/foo/test.txt")
+        os.system("ls > testdata/testmap/all_types/foo2/test2.txt")
+        os.system("ls > testdata/testmap/all_types/foo2/bar/test3.txt")
 
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 

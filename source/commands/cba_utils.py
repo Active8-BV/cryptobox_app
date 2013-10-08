@@ -645,7 +645,7 @@ def have_serverhash(memory, node_path):
     @type node_path: str, unicode
     """
     node_path_relative = path_to_relative_path_unix_style(memory, node_path)
-    return memory.set_have_value("serverhash_history", (node_path_relative, make_sha1_hash_utils(node_path_relative))), memory
+    return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash_utils(node_path_relative))), memory
 
 
 def in_server_file_history(memory, relative_path_name):
@@ -659,14 +659,14 @@ def in_server_file_history(memory, relative_path_name):
     return has_server_hash, memory
 
 
-def add_server_file_history(memory, relative_path_name):
+def add_server_path_history(memory, relative_path_name):
     """
-    add_server_file_history
+    add_server_path_history
     @type memory: Memory
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
-    memory.set_add_value("serverhash_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
+    memory.set_add_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
     return memory
 
 
@@ -678,8 +678,8 @@ def del_serverhash(memory, relative_path_name):
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
 
-    if memory.set_have_value("serverhash_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style))):
-        memory.set_delete_value("serverhash_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
+    if memory.set_have_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style))):
+        memory.set_delete_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
     return memory
 
 
