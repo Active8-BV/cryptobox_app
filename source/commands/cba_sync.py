@@ -6,6 +6,7 @@ import os
 import time
 import random
 import uuid
+import cPickle
 import base64
 import urllib
 import shutil
@@ -556,6 +557,11 @@ def diff_files_locally(memory, options, localindex, serverindex):
     return file_uploads, file_del_local, memory
 
 
+def print_pickle_variable_for_debugging(var, varname):
+    print varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+
+
+
 def get_sync_changes(memory, options, localindex, serverindex):
     """
     get_sync_changes
@@ -565,6 +571,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @type serverindex: dict
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content): tuple
     """
+
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
     # server dirs
