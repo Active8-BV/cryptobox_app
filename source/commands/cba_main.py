@@ -339,8 +339,8 @@ class XMLRPCThread(multiprocessing.Process):
                 stop_server
                 """
                 log("force_stop")
-                log("force_stop DISABLED")
-                return False
+                #log("force_stop DISABLED")
+                #return False
                 server.force_stop()
                 return True
 
