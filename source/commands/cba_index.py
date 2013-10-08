@@ -281,7 +281,7 @@ def hide_config(options, salt, secret):
 
             encrypted_name = encrypt_object(secret, options.cryptobox)
             pickle_object(os.path.join(options.dir, hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
-            os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
+            os.rename(os.path.join(options.dir, options.cryptobox), os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
 def check_and_clean_dir(options):

@@ -138,7 +138,7 @@ def cryptobox_command(options):
             return "0.1"
 
         if not options.numdownloadthreads:
-            options.numdownloadthreads = 1
+            options.numdownloadthreads = 8
         else:
             options.numdownloadthreads = int(options.numdownloadthreads)
 
@@ -303,12 +303,11 @@ class XMLRPCThread(multiprocessing.Process):
                     while not self.stopped:
                         tslp = time.time() - memory.get("last_ping")
 
-                        if int(tslp) < 20:
+                        if int(tslp) < 30:
                             self.handle_request()
                             time.sleep(poll_interval)
                         else:
-                            log("no ping received, stopping")
-                            self.force_stop()
+                            log("no ping received for 30 seconds")
 
                 def force_stop(self):
                     """
@@ -341,6 +340,8 @@ class XMLRPCThread(multiprocessing.Process):
                 stop_server
                 """
                 log("force_stop")
+                log("force_stop DISABLED")
+                return False
                 server.force_stop()
                 return True
 
