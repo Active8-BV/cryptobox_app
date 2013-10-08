@@ -272,17 +272,21 @@ def authorize(memory, options):
         raise PasswordException(options.username)
 
 
-def authorize_user(memory, options):
+def authorize_user(memory, options, force=False):
     """
     authorize_user
     @type memory: Memory
     @type options: optparse.Values, instance
+    @type force: bool
     """
 
     try:
         if memory.has("authorized"):
-            if memory.get("authorized"):
-                return memory
+            if force:
+                memory.replace("authorized", False)
+            else:
+                if memory.get("authorized"):
+                    return memory
 
         session, results, memory = authorize(memory, options)
         memory.replace("session", session)
