@@ -356,15 +356,11 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
 
     result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
 
+    #if len(result) == 0:
+    #    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
+
     if len(result) == 0:
-        result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
-
-        if len(result) == 0:
-            raise NoParentFound(parent_path)
-
-        else:
-            return result[0], parent_path, memory
-
+        raise NoParentFound(parent_path)
     elif len(result) == 1:
         return result[0], parent_path, memory
     else:
@@ -641,7 +637,7 @@ def upload_file(memory, options, file_path, parent):
     file_object = open(file_path, "rb")
     rel_path = ""
     if parent.strip() == "":
-        rel_path, memory = path_to_relative_path_unix_style(memory, file_path)
+        rel_path = path_to_relative_path_unix_style(memory, file_path)
         rel_path = save_encode_b64(rel_path)
     params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
     datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
@@ -661,8 +657,12 @@ def upload_files(memory, options, serverindex, file_uploads):
     @type serverindex: dict
     @type file_uploads: list
     """
+
     for uf in file_uploads:
-        uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_file_path"])
+        try:
+            uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_file_path"])
+        except NoParentFound:
+            uf["parent_short_id"] = uf["parent_path"] = ""
 
     pool = Pool(processes=options.numdownloadthreads)
     uploaded_files = []
@@ -683,6 +683,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
+            apply(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]))
             result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
@@ -696,6 +697,8 @@ def upload_files(memory, options, serverindex, file_uploads):
     pool.terminate()
     for file_path in file_upload_completed:
         memory = add_local_file_history(memory, file_path)
+        rel_unix_path = path_to_relative_path_unix_style(memory, os.path.dirname(file_path))
+
 
     return memory
 

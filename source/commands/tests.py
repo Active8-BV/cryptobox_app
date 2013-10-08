@@ -63,7 +63,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
         #server = "https://www.cryptobox.nl/"
         server = "http://127.0.01:8000/"
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 2}
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
         self.cboptions = Dict2Obj(self.options_d)
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
@@ -137,6 +137,8 @@ class CryptoboxAppTest(unittest.TestCase):
         reset_cb_db_synced
         """
         os.system("cp testdata/test_synced.dump testdata/test.dump")
+        os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null; cd crypto_docs; cp * /Users/rabshakeh/workspace/cloudfiles/crypto_docs; cd ..; rm -Rf crypto_docs")
+
         self.reset_cb_db()
 
     def complete_reset(self):
@@ -394,43 +396,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_local), 0)
         self.assertEqual(len(file_del_local), 0)
 
-    def test_sync_synced_tree_mutations_server(self):
-        """
-        test_sync_synced_tree_mutations_server
-        """
-        self.reset_cb_db_synced()
-        self.unzip_testfiles_synced()
-        self.cbmemory.load(get_data_dir(self.cboptions))
-        if not self.cbmemory.has("session"):
-            self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
-
-        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        docpdf, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/document.pdf')
-        bmppng, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types/bmptest.png')
-        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, serverindex, [docpdf, bmppng])
-        self.assertFalse(self.files_synced())
-        localindex = make_local_index(self.cboptions)
-        self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
-
-        # remove local files
-        remove_local_files(file_del_local)
-
-        for fpath in file_del_server:
-            self.cbmemory = del_server_file_history(self.cbmemory, fpath)
-            self.cbmemory = del_local_file_history(self.cbmemory, fpath)
-
-        for fpath in file_del_local:
-            self.cbmemory = del_server_file_history(self.cbmemory, fpath)
-            self.cbmemory = del_local_file_history(self.cbmemory, fpath)
-        self.assertEqual(len(file_del_server), 0)
-        self.assertEqual(len(file_del_local), 0)
-        self.assertEqual(len(file_downloads), 0)
-        self.assertEqual(len(file_uploads), 0)
-        self.assertEqual(len(dir_del_server), 0)
-        self.assertEqual(len(dir_make_local), 0)
-        self.assertEqual(len(dir_make_server), 0)
-        self.assertEqual(len(dir_del_local), 0)
-
     def test_sync_method_clean_tree(self):
         """
         test_sync_method_clean_tree
@@ -479,19 +444,21 @@ class CryptoboxAppTest(unittest.TestCase):
         map1_2, self.cbmemory = short_id_to_server_path(self.cbmemory, serverindex, map1_short_id)
         self.assertEqual(map1, map1_2)
 
-    def test_sync_delete_server_and_local_restore_folder(self):
+    def test_sync_delete_local_folder(self):
         """
-        test_sync_delete_server_and_local_restore_folder
+        test_sync_delete_local_folder
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
+
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        all_types, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/all_types')
-        self.cbmemory = instruct_server_to_delete_items(self.cbmemory, self.cboptions, serverindex, [all_types])
+
         os.system("rm -Rf testdata/testmap/all_types")
         self.assertTrue(os.path.exists("testdata/testmap"))
         self.assertFalse(os.path.exists("testdata/testmap/all_types"))
+
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+
         self.unzip_testfiles_clean()
         localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
