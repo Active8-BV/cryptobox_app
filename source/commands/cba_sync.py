@@ -549,7 +549,6 @@ def diff_files_locally(memory, options, localindex, serverindex):
             if not seen_local_file_before:
                 upload_file_object = {"local_file_path": local_file_path, "parent_short_id": None, "path": local_file_path}
                 file_uploads.append(upload_file_object)
-                memory = add_local_file_history(memory, upload_file_object["local_file_path"])
 
     file_del_local = []
 
@@ -606,11 +605,11 @@ def get_sync_changes(memory, options, localindex, serverindex):
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
-def upload_file(memory, options, file_object, parent):
+def upload_file(memory, options, file_path, parent):
     """
     @type memory: Memory
     @type options: instance
-    @type file_object: file
+    @type file_path: str, unicode
     @type parent: str, unicode
     @raise NotAuthorized:
 
@@ -643,13 +642,15 @@ def upload_file(memory, options, file_object, parent):
     opener = poster.streaminghttp.register_openers()
     opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
     service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
+    file_object = open(file_path, "rb")
     params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
     datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
     request = urllib2.Request(service, datagen, headers)
 
     #noinspection PyUnusedLocal
     result = urllib2.urlopen(request)
-    return memory
+
+    return file_path
 
 
 def upload_files(memory, options, serverindex, file_uploads):
@@ -665,21 +666,23 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     pool = Pool(processes=options.numdownloadthreads)
     uploaded_files = []
-
-    def done_downloading(download_result):
+    memory_list = [memory]
+    def done_downloading(file_path):
         """
         done_downloading
         @type download_result: dict
         """
-        uploaded_files.append(download_result)
+        uploaded_files.append(file_path)
+
         update_progress(len(uploaded_files), len(file_uploads), "uploading")
+        memory_list[0] = add_local_file_history(memory_list[0], file_path)
 
     upload_result = []
 
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
-            result = pool.apply_async(upload_file, (memory, options, open(uf["local_file_path"], "rb"), uf["parent_short_id"]), callback=done_downloading)
+            result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
             print "cba_sync.py:677", "can't fnd", uf["local_file_path"]
@@ -690,7 +693,7 @@ def upload_files(memory, options, serverindex, file_uploads):
         if not result.successful():
             result.get()
     pool.terminate()
-
+    memory = memory_list[0]
     return memory
 
 
