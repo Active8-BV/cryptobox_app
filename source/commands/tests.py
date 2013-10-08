@@ -349,8 +349,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-        os.system("cp testdata/20MB.zip testdata/testmap/all_types/")
-
         # build directories locally and on server
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
@@ -444,7 +442,20 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("ls > testdata/testmap/all_types/test.txt")
         self.assertFalse(self.files_synced())
 
-    def test_sync_conflict_folder(self):
+    def all_changes_asserted_zero(self):
+        localindex = make_local_index(self.cboptions)
+        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
+        self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
+        self.assertEqual(len(file_del_server), 0)
+        self.assertEqual(len(file_del_local), 0)
+        self.assertEqual(len(file_downloads), 0)
+        self.assertEqual(len(file_uploads), 0)
+        self.assertEqual(len(dir_del_server), 0)
+        self.assertEqual(len(dir_make_local), 0)
+        self.assertEqual(len(dir_make_server), 0)
+        self.assertEqual(len(dir_del_local), 0)
+
+    def test_sync_new_file(self):
         """
         remove a folder on server and add same folder locally
         """
@@ -454,8 +465,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         os.system("ls > testdata/testmap/all_types/listing.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        self.cbmemory, self.cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
-        self.assertEqual(len(file_uploads), 1)
+        self.all_changes_asserted_zero()
 
     def test_find_short_ids(self):
         """

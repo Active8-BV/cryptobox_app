@@ -15,8 +15,7 @@ import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_file_history, in_server_file_history, \
-    add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -324,7 +323,6 @@ def save_encode_b64(s):
     """
     s = urllib.quote(s)
     s = base64.encodestring(s)
-    s = s.replace("=", "-")
     return s
 
 
@@ -591,7 +589,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_del_local_paths = list(set([x["dirname"] for x in dir_del_local]))
     for fup in file_upload_dirs:
         if fup in dir_del_local_paths:
-            dir_del_local = [x for x in dir_del_local if x["dirname"]!=fup]
+            dir_del_local = [x for x in dir_del_local if x["dirname"] != fup]
 
     sm = SingletonMemory()
     sm.set("file_downloads", file_downloads)
@@ -616,11 +614,7 @@ def upload_file(memory, options, file_path, parent):
     """
     if not memory.has("session"):
         raise NotAuthorized("trying to upload without a session")
-
-    #payload = {"uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
-    #files = {'file': file_object}
-    #result, memory = on_server(memory, options, "docs/upload", payload=payload, session=memory.get("session"), files=files)
-
+    last_progress = [0]
     #noinspection PyUnusedLocal
     def prog_callback(param, current, total):
         """
@@ -633,8 +627,10 @@ def upload_file(memory, options, file_path, parent):
         #print param
         percentage = 100 - ((total - current ) * 100 ) / total
         update_item_progress(percentage)
-
-        print "Upload progress: %s " % percentage
+        if percentage % 25 == 0:
+            if percentage != last_progress[0]:
+                print "Upload progress: %s%%" % percentage
+                last_progress[0] = percentage
 
     server = options.server
     cryptobox = options.cryptobox
@@ -643,7 +639,11 @@ def upload_file(memory, options, file_path, parent):
     opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
     service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
     file_object = open(file_path, "rb")
-    params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": ""}
+    rel_path = ""
+    if parent.strip() == "":
+        rel_path, memory = path_to_relative_path_unix_style(memory, file_path)
+        rel_path = save_encode_b64(rel_path)
+    params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
     datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
     request = urllib2.Request(service, datagen, headers)
 
@@ -666,7 +666,8 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     pool = Pool(processes=options.numdownloadthreads)
     uploaded_files = []
-    memory_list = [memory]
+    file_upload_completed = []
+
     def done_downloading(file_path):
         """
         done_downloading
@@ -675,7 +676,7 @@ def upload_files(memory, options, serverindex, file_uploads):
         uploaded_files.append(file_path)
 
         update_progress(len(uploaded_files), len(file_uploads), "uploading")
-        memory_list[0] = add_local_file_history(memory_list[0], file_path)
+        file_upload_completed.append(file_path)
 
     upload_result = []
 
@@ -693,7 +694,9 @@ def upload_files(memory, options, serverindex, file_uploads):
         if not result.successful():
             result.get()
     pool.terminate()
-    memory = memory_list[0]
+    for file_path in file_upload_completed:
+        memory = add_local_file_history(memory, file_path)
+
     return memory
 
 
@@ -737,12 +740,6 @@ def sync_server(memory, options):
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
 
-    #serverdirs = list(set([os.path.dirname(i["doc"]["m_path"]) for i in dir_make_local]))
-    #for sd in serverdirs:
-    #    memory = add_server_file_history(memory, sd)
-    #serverfiles = list(set([i["doc"]["m_path"] for i in file_downloads]))
-    #for sf in serverfiles:
-    #    memory = add_server_file_history(memory, sf)
     sm = SingletonMemory()
     sm.set("file_downloads", [])
     sm.set("file_uploads", [])
