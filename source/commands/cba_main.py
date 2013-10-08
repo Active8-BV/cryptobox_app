@@ -12,7 +12,6 @@ import os
 import threading
 import socket
 import cPickle
-import threading
 import time
 import multiprocessing
 import xmlrpclib
@@ -386,8 +385,7 @@ class XMLRPCThread(multiprocessing.Process):
 
             def get_all_smemory():
                 """
-                get_smemory
-                :param k:
+                get_all_smemory
                 """
                 #log("get_all_smemory")
                 smemory = SingletonMemory()

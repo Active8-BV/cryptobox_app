@@ -15,7 +15,7 @@ import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_file_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -102,9 +102,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     return memory
 
 
-def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex):
+def dirs_on_local(options, localindex, dirname_hashes_server, serverindex):
     """
-    @type memory: Memory
     @param dirname_hashes_server: folders on server
     @type dirname_hashes_server: dict
     @type serverindex: dict
@@ -162,7 +161,7 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     """
     payload = {"foldernames": [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_make_server]}
     for dir_name in payload["foldernames"]:
-        add_server_file_history(memory, dir_name)
+        add_server_path_history(memory, dir_name)
 
     if len(payload["foldernames"]) > 0:
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
@@ -198,7 +197,7 @@ def make_directories_local(memory, options, localindex, folders):
     """
     for f in folders:
         ensure_directory(f["name"])
-        memory = add_server_file_history(memory, f["relname"])
+        memory = add_server_path_history(memory, f["relname"])
         arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
@@ -275,13 +274,13 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
             path, memory = short_id_to_server_path(memory, serverindex, short_id)
             new_server_hash_history = set()
 
-            if memory.has("serverhash_history"):
-                for serverhash_history_item in memory.get("serverhash_history"):
-                    serverhash_history_item_path = serverhash_history_item[0]
+            if memory.has("serverpath_history"):
+                for serverpath_history_item in memory.get("serverpath_history"):
+                    serverpath_history_item_path = serverpath_history_item[0]
 
-                    if path not in serverhash_history_item_path:
-                        new_server_hash_history.add(serverhash_history_item)
-                memory.replace("serverhash_history", new_server_hash_history)
+                    if path not in serverpath_history_item_path:
+                        new_server_hash_history.add(serverpath_history_item)
+                memory.replace("serverpath_history", new_server_hash_history)
 
     return memory
 
@@ -572,7 +571,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_del_server, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
 
     #local dirs
-    dir_make_server, dir_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
+    dir_make_server, dir_del_local = dirs_on_local(options, localindex, dirname_hashes_server, serverindex)
 
     # find new files on server
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dir_del_server)
@@ -668,15 +667,15 @@ def upload_files(memory, options, serverindex, file_uploads):
     uploaded_files = []
     file_upload_completed = []
 
-    def done_downloading(file_path):
+    def done_downloading(file_path_uploaded):
         """
         done_downloading
-        @type download_result: dict
+        @type file_path_uploaded: str, unicode
         """
-        uploaded_files.append(file_path)
+        uploaded_files.append(file_path_uploaded)
 
         update_progress(len(uploaded_files), len(file_uploads), "uploading")
-        file_upload_completed.append(file_path)
+        file_upload_completed.append(file_path_uploaded)
 
     upload_result = []
 
@@ -695,10 +694,20 @@ def upload_files(memory, options, serverindex, file_uploads):
         if not result.successful():
             result.get()
     pool.terminate()
+    possible_new_dirs = []
     for file_path in file_upload_completed:
         memory = add_local_file_history(memory, file_path)
-        rel_unix_path = path_to_relative_path_unix_style(memory, os.path.dirname(file_path))
-
+        file_dir = os.path.dirname(file_path)
+        rel_unix_path = path_to_relative_path_unix_style(memory, file_dir)
+        unix_paths = rel_unix_path.split("/")
+        tmp_dir = ""
+        for up in unix_paths:
+            if len(up.strip()) > 0:
+                tmp_dir += "/" + up
+                possible_new_dirs.append(tmp_dir)
+    possible_new_dirs = list(set(possible_new_dirs))
+    for pnd in possible_new_dirs:
+        memory = add_server_path_history(memory, pnd)
 
     return memory
 

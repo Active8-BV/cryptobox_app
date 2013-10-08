@@ -186,7 +186,7 @@ def on_server(memory, options, method, payload, session, files=None):
         result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg)
     try:
         return parse_http_result(result), memory
-    except ServerForbidden, ex:
+    except ServerForbidden:
         return (None, None), memory
 
 
