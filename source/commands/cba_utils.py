@@ -699,7 +699,7 @@ def del_server_file_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
-    memory = del_serverhash(memory, relative_path_name)
+    memory = del_serverhash(memory, relative_path_unix_style)
     return memory
 
 
