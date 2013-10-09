@@ -12,7 +12,6 @@ def ensure_directory(path):
     @type path: str or unicode or unicode
     """
     if not os.path.exists(path):
-        log("making", path)
         os.makedirs(path)
 
 
