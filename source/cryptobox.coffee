@@ -485,7 +485,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.file_del_local = smem.file_del_local
 
     cryptobox_locked_status_change = (locked) =>
-        $scope.cryptobox_locked = r
+        $scope.cryptobox_locked = locked
 
         if $scope.cryptobox_locked
             tray.icon = "images/icon-client-signed-out.png"
@@ -504,13 +504,14 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         run_command("get_all_smemory", []).then(
             (r) ->
                 get_progress(r.progress, r.item_progress)
-                cryptobox_locked_status_change(r.cryptobox_locked)
-                $scope.lock_buttons = utils.exists.truth(r.working)
+
+                #cryptobox_locked_status_change(r.cryptobox_locked)
+                #$scope.lock_buttons = utils.exists.truth(r.working)
                 update_sync_state(r)
                 utils.force_digest($scope)
 
             (e) ->
-                warning "cryptobox.cf:513", e
+                warning "cryptobox.cf:514", e
         )
 
     get_option = ->
@@ -534,7 +535,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 pass
 
             (err) ->
-                warning "cryptobox.cf:537", err
+                warning "cryptobox.cf:538", err
         )
 
     $scope.encrypt_btn = ->
@@ -548,7 +549,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output(res)
 
             (err) ->
-                warning "cryptobox.cf:551", err
+                warning "cryptobox.cf:552", err
         )
 
     $scope.decrypt_btn = ->
@@ -562,7 +563,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output("done decrypting")
 
             (err) ->
-                warning "cryptobox.cf:565", err
+                warning "cryptobox.cf:566", err
         )
 
     $scope.tree_sequence = null
@@ -577,7 +578,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 $scope.tree_sequence = res
 
             (err) ->
-                warning "cryptobox.cf:580", err
+                warning "cryptobox.cf:581", err
         )
 
     $scope.open_folder = ->
@@ -689,6 +690,6 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         start_watch()
 
         try_get_sync_state()
-        utils.set_interval("cryptobox.cf:692", second_interval, 1000, "second_interval")
+        utils.set_interval("cryptobox.cf:693", second_interval, 1000, "second_interval")
 
-    utils.set_time_out("cryptobox.cf:694", start_after_second, 1000)
+    utils.set_time_out("cryptobox.cf:695", start_after_second, 1000)

@@ -571,9 +571,9 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @type serverindex: dict
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content): tuple
     """
-    print_pickle_variable_for_debugging(memory, "memory")
-    print_pickle_variable_for_debugging(localindex, "localindex")
-    print_pickle_variable_for_debugging(serverindex, "serverindex")
+    #print_pickle_variable_for_debugging(memory, "memory")
+    #print_pickle_variable_for_debugging(localindex, "localindex")
+    #print_pickle_variable_for_debugging(serverindex, "serverindex")
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
     # server dirs
