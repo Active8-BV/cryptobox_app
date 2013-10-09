@@ -529,6 +529,15 @@ class Memory(object):
         else:
             raise MemoryNoKey(str(key))
 
+    def has_get(self, key):
+        """
+        @type key: string, unicode
+        """
+        if self.has(key):
+            return self.data[key]
+        else:
+            return None
+
     def delete(self, key):
         """
         @type key: string, unicode

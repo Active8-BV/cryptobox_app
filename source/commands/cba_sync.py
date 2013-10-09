@@ -166,7 +166,7 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
 
     if len(payload["foldernames"]) > 0:
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
-
+    memory.replace("could_be_a_task", True)
     serverindex, memory = get_server_index(memory, options)
     return serverindex, memory
 
@@ -221,9 +221,13 @@ def dirs_on_server(memory, options, unique_dirs_server):
 
     for dir_name in local_folders_removed:
         dirname_rel = dir_name.replace(options.dir, "")
-        have_on_server, memory = in_server_file_history(memory, dirname_rel)
-
+        had_on_server, memory = in_server_file_history(memory, dirname_rel)
+        have_on_server = False
+        if not had_on_server:
+            have_on_server = dirname_rel in memory.get("serverindex")["dirlist"]
         if have_on_server:
+            memory = add_server_path_history(memory, dirname_rel)
+        if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
             folder = {"name": dir_name, "relname": dirname_rel}
@@ -248,13 +252,16 @@ def wait_for_tasks(memory, options):
         num_tasks = len(result[1])
 
         if num_tasks == 0:
-            return memory
+            if memory.has_get("could_be_a_task"):
+                memory.replace("could_be_a_task", False)
+            else:
+                return memory
 
         if num_tasks < 2:
-            time.sleep(0.2)
-        else:
             time.sleep(1)
-            if num_tasks > 4:
+        else:
+            time.sleep(2)
+            if num_tasks > 6:
                 log("waiting for tasks", num_tasks)
                 time.sleep(2)
 
@@ -282,7 +289,7 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
                     if path not in serverpath_history_item_path:
                         new_server_hash_history.add(serverpath_history_item)
                 memory.replace("serverpath_history", new_server_hash_history)
-
+    memory.replace("could_be_a_task", True)
     return memory
 
 
@@ -312,6 +319,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete)
+    memory.replace("could_be_a_task", True)
     return memory
 
 
@@ -561,7 +569,6 @@ def print_pickle_variable_for_debugging(var, varname):
     print varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
-
 def get_sync_changes(memory, options, localindex, serverindex):
     """
     get_sync_changes
@@ -571,9 +578,12 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @type serverindex: dict
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content): tuple
     """
-    #print_pickle_variable_for_debugging(memory, "memory")
-    #print_pickle_variable_for_debugging(localindex, "localindex")
-    #print_pickle_variable_for_debugging(serverindex, "serverindex")
+    print_state = False
+    #print_state = True
+    if print_state:
+        print_pickle_variable_for_debugging(memory, "memory")
+        print_pickle_variable_for_debugging(localindex, "localindex")
+        print_pickle_variable_for_debugging(serverindex, "serverindex")
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
     # server dirs
@@ -657,6 +667,23 @@ def upload_file(memory, options, file_path, parent):
     return file_path
 
 
+def possible_new_dirs(file_path, memory):
+    """
+    @type file_path: str, unicode
+    @type memory: Memory
+    """
+    possible_new_dir_list = []
+    file_dir = os.path.dirname(file_path)
+    rel_unix_path = path_to_relative_path_unix_style(memory, file_dir)
+    unix_paths = rel_unix_path.split("/")
+    tmp_dir = ""
+    for up in unix_paths:
+        if len(up.strip()) > 0:
+            tmp_dir += "/" + up
+            possible_new_dir_list.append(tmp_dir)
+    return list(set(possible_new_dir_list))
+
+
 def upload_files(memory, options, serverindex, file_uploads):
     """
     upload_files
@@ -703,21 +730,14 @@ def upload_files(memory, options, serverindex, file_uploads):
         if not result.successful():
             result.get()
     pool.terminate()
-    possible_new_dirs = []
+    possible_new_dir_list = []
     for file_path in file_upload_completed:
         memory = add_local_file_history(memory, file_path)
-        file_dir = os.path.dirname(file_path)
-        rel_unix_path = path_to_relative_path_unix_style(memory, file_dir)
-        unix_paths = rel_unix_path.split("/")
-        tmp_dir = ""
-        for up in unix_paths:
-            if len(up.strip()) > 0:
-                tmp_dir += "/" + up
-                possible_new_dirs.append(tmp_dir)
+        possible_new_dir_list.extend(possible_new_dirs(file_path, memory))
     possible_new_dirs = list(set(possible_new_dirs))
     for pnd in possible_new_dirs:
         memory = add_server_path_history(memory, pnd)
-
+    memory.replace("could_be_a_task", True)
     return memory
 
 
@@ -728,6 +748,7 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
+    memory.replace("could_be_a_task", False)
     if cryptobox_locked(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
@@ -761,6 +782,14 @@ def sync_server(memory, options):
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
 
+    for fpath in dir_del_server:
+        memory = del_server_file_history(memory, fpath)
+        memory = del_local_file_history(memory, fpath)
+
+    for fpath in dir_del_local:
+        memory = del_server_file_history(memory, fpath)
+        memory = del_local_file_history(memory, fpath)
+
     sm = SingletonMemory()
     sm.set("file_downloads", [])
     sm.set("file_uploads", [])
@@ -770,4 +799,5 @@ def sync_server(memory, options):
     sm.set("dir_del_local", [])
     sm.set("file_del_local", [])
     sm.set("file_del_server", [])
+
     return localindex, memory
