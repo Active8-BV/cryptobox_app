@@ -684,6 +684,18 @@ def possible_new_dirs(file_path, memory):
     return list(set(possible_new_dir_list))
 
 
+def possible_new_dirs_extend(file_path_list, memory):
+    """
+    @type file_path_list: lsit
+    @type memory: Memory
+    """
+    for file_path in file_path_list:
+        file_path_list.extend(possible_new_dirs(file_path, memory))
+    file_path_list = list(set(file_path_list))
+    file_path_list.sort()
+    return file_path_list
+
+
 def upload_files(memory, options, serverindex, file_uploads):
     """
     upload_files
@@ -734,8 +746,8 @@ def upload_files(memory, options, serverindex, file_uploads):
     for file_path in file_upload_completed:
         memory = add_local_file_history(memory, file_path)
         possible_new_dir_list.extend(possible_new_dirs(file_path, memory))
-    possible_new_dirs = list(set(possible_new_dirs))
-    for pnd in possible_new_dirs:
+
+    for pnd in possible_new_dir_list:
         memory = add_server_path_history(memory, pnd)
     memory.replace("could_be_a_task", True)
     return memory
@@ -773,6 +785,11 @@ def sync_server(memory, options):
     memory = get_unique_content(memory, options, unique_content, file_downloads)
     memory = upload_files(memory, options, serverindex, file_uploads)
     remove_local_files(file_del_local)
+
+    file_del_server = possible_new_dirs_extend(file_del_server, memory)
+    file_del_local = possible_new_dirs_extend(file_del_local, memory)
+    dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
+    dir_del_local = possible_new_dirs_extend(dir_del_local, memory)
 
     for fpath in file_del_server:
         memory = del_server_file_history(memory, fpath)
