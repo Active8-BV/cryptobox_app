@@ -16,7 +16,10 @@ from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
-
+import sys
+sys.path.append("/Users/rabshakeh/workspace/cryptobox")
+#noinspection PyUnresolvedReferences
+from couchdb_api import MemcachedServer
 
 def add(a, b):
     """
@@ -62,7 +65,9 @@ class CryptoboxAppTest(unittest.TestCase):
         #SERVER = "https://www.cryptobox.nl/"
         #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
         #server = "https://www.cryptobox.nl/"
-        os.system("echo 'flush_all' | nc localhost 11211")
+        mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
+        mc.flush_all()
+
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
         self.cboptions = Dict2Obj(self.options_d)
@@ -146,7 +151,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         complete_reset
         """
-        os.system("echo 'flush_all' | nc localhost 11211")
         os.system("rm -Rf testdata/testmap")
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
@@ -509,6 +513,20 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/testmap/")
         with self.assertRaisesRegexp(NoSyncDirFound, "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap"):
             localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+
+    def test_set_dir_to_non_empty_syncfolder(self):
+        """
+        test_set_dir_to_non_empty_syncfolder
+        """
+        self.complete_reset()
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        os.system("rm -Rf testdata/testmap/.cryptobox")
+        os.system("md testdata/testmap/legedir")
+        #noinspection PyUnusedLocal
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -137,7 +137,7 @@ def cryptobox_command(options):
             return "0.1"
 
         if not options.numdownloadthreads:
-            options.numdownloadthreads = 8
+            options.numdownloadthreads = 2
         else:
             options.numdownloadthreads = int(options.numdownloadthreads)
 
@@ -252,7 +252,7 @@ def cryptobox_command(options):
         reset_item_progress()
         smemory.set("cryptobox_locked", cryptobox_locked(memory))
     except Exception, e:
-        handle_exception(e)
+        handle_exception(e, False)
     finally:
         smemory = SingletonMemory()
         smemory.set("working", False)

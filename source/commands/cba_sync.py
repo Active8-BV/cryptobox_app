@@ -745,7 +745,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     possible_new_dir_list = []
     for file_path in file_upload_completed:
         memory = add_local_file_history(memory, file_path)
-        possible_new_dir_list.extend(possible_new_dirs(file_path, memory))
+        possible_new_dir_list = possible_new_dirs_extend(file_path, memory)
 
     for pnd in possible_new_dir_list:
         memory = add_server_path_history(memory, pnd)
@@ -777,10 +777,14 @@ def sync_server(memory, options):
     # update seen server history files
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
-    serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
-    remove_local_folders(dir_del_local)
-    memory = make_directories_local(memory, options, localindex, dir_make_local)
-    memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_del_server)
+    if len(dir_make_server) > 0:
+        serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
+    if len(dir_del_local) > 0:
+        remove_local_folders(dir_del_local)
+    if len(dir_make_local) > 0:
+        memory = make_directories_local(memory, options, localindex, dir_make_local)
+    if len(dir_del_server) > 0:
+        memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_del_server)
     del_server_items = []
 
     for del_file in file_del_server:
@@ -788,15 +792,19 @@ def sync_server(memory, options):
         del_server_items.append(del_short_guid)
 
     # delete items
-    memory = instruct_server_to_delete_items(memory, options, serverindex, del_server_items)
-    memory = get_unique_content(memory, options, unique_content, file_downloads)
-    memory = upload_files(memory, options, serverindex, file_uploads)
-    remove_local_files(file_del_local)
+    if len(del_server_items) > 0:
+        memory = instruct_server_to_delete_items(memory, options, serverindex, del_server_items)
+    if len(file_downloads) > 0:
+        memory = get_unique_content(memory, options, unique_content, file_downloads)
+    if len(file_uploads) > 0:
+        memory = upload_files(memory, options, serverindex, file_uploads)
+    if len(file_del_local) > 0:
+        remove_local_files(file_del_local)
 
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
     dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
-    dir_del_local = possible_new_dirs_extend(dir_del_local, memory)
+    dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
 
     for fpath in file_del_server:
         memory = del_server_file_history(memory, fpath)
@@ -811,7 +819,7 @@ def sync_server(memory, options):
         localpaths = [x[0] for x in localpath_history]
         for fpath in dir_del_server:
             for lfpath in localpaths:
-                if str(fpath) in str(lfpath): 
+                if str(fpath) in str(lfpath):
                     memory = del_server_file_history(memory, lfpath)
                     memory = del_local_file_history(memory, lfpath)
             memory = del_server_file_history(memory, fpath)
