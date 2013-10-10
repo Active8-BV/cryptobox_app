@@ -811,7 +811,7 @@ def sync_server(memory, options):
         localpaths = [x[0] for x in localpath_history]
         for fpath in dir_del_server:
             for lfpath in localpaths:
-                if str(fpath) in str(lfpath):
+                if str(fpath) in str(lfpath): 
                     memory = del_server_file_history(memory, lfpath)
                     memory = del_local_file_history(memory, lfpath)
             memory = del_server_file_history(memory, fpath)
@@ -837,5 +837,5 @@ def sync_server(memory, options):
     sm.set("dir_del_local", [])
     sm.set("file_del_local", [])
     sm.set("file_del_server", [])
-
+    memory = wait_for_tasks(memory, options)
     return localindex, memory
