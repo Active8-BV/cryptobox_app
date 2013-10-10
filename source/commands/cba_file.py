@@ -25,6 +25,9 @@ def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
     @type st_uid: __builtin__.NoneType
     @type st_gid: __builtin__.NoneType
     """
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+
     fout = open(path, "wb")
     fout.write(data)
     fout.close()
