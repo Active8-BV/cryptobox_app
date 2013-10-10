@@ -753,6 +753,10 @@ def upload_files(memory, options, serverindex, file_uploads):
     return memory
 
 
+class NoSyncDirFound(Exception):
+    pass
+
+
 def sync_server(memory, options):
     """
     @type memory: Memory
@@ -760,6 +764,9 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
+    if not os.path.exists(options.dir):
+        raise NoSyncDirFound(options.dir)
+
     memory.replace("could_be_a_task", False)
     if cryptobox_locked(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
