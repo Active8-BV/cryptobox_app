@@ -60,6 +60,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
             memory_cb.lock()
             memory_cb.load(get_data_dir(options_cb), keep_lock=True)
             memory_cb = write_blobs_to_filepaths(memory_cb, options_cb, local_file_paths, result_async_method["content"], result_async_method["content_hash"])
+            for local_file_path in local_file_paths:
+                memory_cb = add_local_file_history(memory_cb, local_file_path["doc"]["m_path"])
             memory_cb.save(get_data_dir(options), keep_lock=True)
             downloaded_files.append(result_async_method["url"])
             update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result_async_method["name"]))
@@ -519,16 +521,12 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
     for fnode in server_file_nodes:
         server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
 
-        if os.path.exists(server_path_to_local):
-            memory = add_local_file_history(memory, server_path_to_local)
-        else:
-            seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
+        seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
 
-            if seen_local_file_before:
-                file_del_server.append(server_path_to_local)
-            else:
-                file_downloads.append(fnode)
-                memory = add_local_file_history(memory, fnode["doc"]["m_path"])
+        if seen_local_file_before:
+            file_del_server.append(server_path_to_local)
+        else:
+            file_downloads.append(fnode)
 
     dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip(os.path.sep)) for d in dirs_scheduled_for_removal]
     file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dirs_scheduled_for_removal]

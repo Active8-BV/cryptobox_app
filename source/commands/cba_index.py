@@ -46,14 +46,30 @@ def store_cryptobox_index(memory, index):
     memory.replace("cryptobox_index", index)
     return memory
 
+def quick_lock_check(cryptobox_folder):
+    """
+    quick_lock_check
+    """
+    try:
+        if not os.path.exists(cryptobox_folder):
+            return False
+        mempath = os.path.join(os.path.join(cryptobox_folder, ".cryptobox", "memory.pickle"))
+        mempathenc = os.path.join(os.path.join(cryptobox_folder, ".cryptobox", "memory.pickle.enc"))
+        if os.path.exists(mempathenc):
+            return True
+        elif not os.path.exists(mempath):
+            return False
+        unpickle_object(mempath)
+        return False
+    except:
+        return True
+
 
 def cryptobox_locked(memory):
     """
     cryptobox_locked
     @type memory: Memory
     """
-    return memory.get("cryptobox_locked")
-
     locked = True
     current_cryptobox_index = get_cryptobox_index(memory)
 
