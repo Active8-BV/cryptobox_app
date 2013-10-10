@@ -20,7 +20,7 @@ import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
 from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception, open_folder
-from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree
+from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes
 from cba_blobs import get_data_dir
@@ -152,7 +152,12 @@ def cryptobox_command(options):
         options.basedir = options.dir
         ensure_directory(options.basedir)
         options.dir = os.path.join(options.dir, options.cryptobox)
-        restore_hidden_config(options)
+        if quick_lock_check(options.dir):
+            smemory.set("cryptobox_locked", True)
+            log("Cryptobox locked")
+            return False
+        if not options.encrypt:
+            restore_hidden_config(options)
         ensure_directory(options.dir)
         datadir = get_data_dir(options)
         ensure_directory(datadir)
