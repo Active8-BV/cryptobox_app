@@ -566,6 +566,11 @@ def diff_files_locally(memory, options, localindex, serverindex):
 
 
 def print_pickle_variable_for_debugging(var, varname):
+    """
+
+    :param var:
+    :param varname:
+    """
     print varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
@@ -754,6 +759,9 @@ def upload_files(memory, options, serverindex, file_uploads):
 
 
 class NoSyncDirFound(Exception):
+    """
+    NoSyncDirFound
+    """
     pass
 
 

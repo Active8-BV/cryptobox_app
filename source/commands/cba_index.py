@@ -214,6 +214,11 @@ def index_and_encrypt(memory, options, localindex_param):
 
 
 def get_hidden_configs(options):
+    """
+
+    :param options:
+    :return: :rtype:
+    """
     dirs_base_folder = os.listdir(options.basedir)
     hidden_configs = []
 
