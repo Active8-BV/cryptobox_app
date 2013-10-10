@@ -52,6 +52,8 @@ def cryptobox_locked(memory):
     cryptobox_locked
     @type memory: Memory
     """
+    return memory.get("cryptobox_locked")
+
     locked = True
     current_cryptobox_index = get_cryptobox_index(memory)
 
@@ -123,7 +125,7 @@ def make_local_index(options):
     return cryptobox_index
 
 
-def index_and_encrypt(memory, options, localindex_param):
+def index_and_encrypt(memory, options):
     """
     index_and_encrypt
     @type memory: Memory
@@ -131,7 +133,7 @@ def index_and_encrypt(memory, options, localindex_param):
     @type localindex_param: dict
     @rtype salt, secret, memory, localindex: str, str, Memory, dict
     """
-    localindex = localindex_param
+    localindex = make_local_index(options)
     datadir = get_data_dir(options)
 
     if cryptobox_locked(memory):
@@ -215,7 +217,6 @@ def index_and_encrypt(memory, options, localindex_param):
 
 def get_hidden_configs(options):
     """
-
     :param options:
     :return: :rtype:
     """

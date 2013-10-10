@@ -14,7 +14,7 @@ import urllib2
 from multiprocessing.dummy import Pool
 import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
-from cba_blobs import write_blobs_to_filepaths, have_blob
+from cba_blobs import write_blobs_to_filepaths, have_blob, get_data_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
 from cba_file import ensure_directory
@@ -24,18 +24,12 @@ from cba_crypto import make_sha1_hash
 def download_blob(memory, options, node):
     """
     download_blob
-    @type memory: Memory
     @type options: optparse.Values, instance
     @type node: dict
     """
-
-    try:
-        url = "download/" + node["doc"]["m_short_id"]
-        result, memory = download_server(memory, options, url)
-        time.sleep(random.random() * 2)
-        return {"url": url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result}
-    except Exception, e:
-        handle_exception(e)
+    url = "download/" + node["doc"]["m_short_id"]
+    result = download_server(memory, options, url)
+    return {"url": url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result, "options": options, "name": node["doc"]["m_name"]}
 
 
 def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
@@ -50,7 +44,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-    pool = Pool(processes=options.numdownloadthreads)
+    pool = Pool(processes=options.numdownloadthreads * 3)
     downloaded_files = []
 
     #noinspection PyUnusedLocal
@@ -59,10 +53,21 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         done_downloading
         @type result_async_method: dict
         """
-        downloaded_files.append(result_async_method)
-        update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result_async_method["content_hash"]))
+        options_cb = result_async_method["options"]
+        memory_cb = Memory()
+
+        try:
+            memory_cb.lock()
+            memory_cb.load(get_data_dir(options_cb), keep_lock=True)
+            memory_cb = write_blobs_to_filepaths(memory_cb, options_cb, local_file_paths, result_async_method["content"], result_async_method["content_hash"])
+            memory_cb.save(get_data_dir(options), keep_lock=True)
+            downloaded_files.append(result_async_method["url"])
+            update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result_async_method["name"]))
+        finally:
+            memory_cb.unlock()
 
     download_results = []
+    memory.save(get_data_dir(options))
 
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
@@ -75,11 +80,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         if not result.successful():
             result.get()
     pool.terminate()
-    log("writing files")
-
-    for result in downloaded_files:
-        memory = write_blobs_to_filepaths(memory, options, local_file_paths, result["content"], result["content_hash"])
-    log("done writing files")
+    memory.load(get_data_dir(options))
+    log("done downloading files")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
@@ -223,10 +225,13 @@ def dirs_on_server(memory, options, unique_dirs_server):
         dirname_rel = dir_name.replace(options.dir, "")
         had_on_server, memory = in_server_file_history(memory, dirname_rel)
         have_on_server = False
+
         if not had_on_server:
             have_on_server = dirname_rel in memory.get("serverindex")["dirlist"]
+
         if have_on_server:
             memory = add_server_path_history(memory, dirname_rel)
+
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
@@ -249,21 +254,24 @@ def wait_for_tasks(memory, options):
             session = memory.get("session")
 
         result, memory = on_server(memory, options, "tasks", payload={}, session=session)
-        num_tasks = len(result[1])
 
-        if num_tasks == 0:
-            if memory.has_get("could_be_a_task"):
-                memory.replace("could_be_a_task", False)
-            else:
-                return memory
+        if result:
+            if len(result) > 1:
+                num_tasks = len(result[1])
 
-        if num_tasks < 2:
-            time.sleep(1)
-        else:
-            time.sleep(2)
-            if num_tasks > 6:
-                log("waiting for tasks", num_tasks)
-                time.sleep(2)
+                if num_tasks == 0:
+                    if memory.has_get("could_be_a_task"):
+                        memory.replace("could_be_a_task", False)
+                    else:
+                        return memory
+
+                if num_tasks < 2:
+                    time.sleep(1)
+                else:
+                    time.sleep(2)
+                    if num_tasks > 6:
+                        log("waiting for tasks", num_tasks)
+                        time.sleep(2)
 
 
 def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
@@ -289,6 +297,7 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
                     if path not in serverpath_history_item_path:
                         new_server_hash_history.add(serverpath_history_item)
                 memory.replace("serverpath_history", new_server_hash_history)
+
     memory.replace("could_be_a_task", True)
     return memory
 
@@ -369,6 +378,7 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
 
     if len(result) == 0:
         raise NoParentFound(parent_path)
+
     elif len(result) == 1:
         return result[0], parent_path, memory
     else:
@@ -567,11 +577,10 @@ def diff_files_locally(memory, options, localindex, serverindex):
 
 def print_pickle_variable_for_debugging(var, varname):
     """
-
     :param var:
     :param varname:
     """
-    print varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:583", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -584,31 +593,43 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content): tuple
     """
     print_state = False
+
     #print_state = True
+
     if print_state:
         print_pickle_variable_for_debugging(memory, "memory")
         print_pickle_variable_for_debugging(localindex, "localindex")
         print_pickle_variable_for_debugging(serverindex, "serverindex")
+
     dirname_hashes_server, server_file_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
     # server dirs
-    dir_del_server, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
+    dir_del_server_tmp, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
 
     #local dirs
     dir_make_server, dir_del_local = dirs_on_local(options, localindex, dirname_hashes_server, serverindex)
 
     # find new files on server
-    memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dir_del_server)
+    memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dir_del_server_tmp)
 
     #local files
     file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
+    # filter out file uploads from dirs to delete
     file_upload_dirs = set([os.path.dirname(x["local_file_path"]) for x in file_uploads])
     dir_del_local_paths = list(set([x["dirname"] for x in dir_del_local]))
     for fup in file_upload_dirs:
         if fup in dir_del_local_paths:
             dir_del_local = [x for x in dir_del_local if x["dirname"] != fup]
+
+    # prune directories to delete from files to download
+    dir_del_server = []
+
+    for dds_path in dir_del_server_tmp:
+        for dfl in set([x["dirname_of_path"] for x in file_downloads]):
+            if dfl not in dir_del_server_tmp:
+                dir_del_server.append(dds_path)
 
     sm = SingletonMemory()
     sm.set("file_downloads", file_downloads)
@@ -633,7 +654,9 @@ def upload_file(memory, options, file_path, parent):
     """
     if not memory.has("session"):
         raise NotAuthorized("trying to upload without a session")
+
     last_progress = [0]
+
     #noinspection PyUnusedLocal
     def prog_callback(param, current, total):
         """
@@ -642,13 +665,11 @@ def upload_file(memory, options, file_path, parent):
         @type total:
         prog_callback
         """
-
-        #print param
         percentage = 100 - ((total - current ) * 100 ) / total
         update_item_progress(percentage)
         if percentage % 25 == 0:
             if percentage != last_progress[0]:
-                print "Upload progress: %s%%" % percentage
+                print "cba_sync.py:672"
                 last_progress[0] = percentage
 
     server = options.server
@@ -659,16 +680,17 @@ def upload_file(memory, options, file_path, parent):
     service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
     file_object = open(file_path, "rb")
     rel_path = ""
+
     if parent.strip() == "":
         rel_path = path_to_relative_path_unix_style(memory, file_path)
         rel_path = save_encode_b64(rel_path)
+
     params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
     datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
     request = urllib2.Request(service, datagen, headers)
 
     #noinspection PyUnusedLocal
     result = urllib2.urlopen(request)
-
     return file_path
 
 
@@ -682,10 +704,12 @@ def possible_new_dirs(file_path, memory):
     rel_unix_path = path_to_relative_path_unix_style(memory, file_dir)
     unix_paths = rel_unix_path.split("/")
     tmp_dir = ""
+
     for up in unix_paths:
         if len(up.strip()) > 0:
             tmp_dir += "/" + up
             possible_new_dir_list.append(tmp_dir)
+
     return list(set(possible_new_dir_list))
 
 
@@ -696,6 +720,7 @@ def possible_new_dirs_extend(file_path_list, memory):
     """
     for file_path in file_path_list:
         file_path_list.extend(possible_new_dirs(file_path, memory))
+
     file_path_list = list(set(file_path_list))
     file_path_list.sort()
     return file_path_list
@@ -709,7 +734,6 @@ def upload_files(memory, options, serverindex, file_uploads):
     @type serverindex: dict
     @type file_uploads: list
     """
-
     for uf in file_uploads:
         try:
             uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_file_path"])
@@ -726,7 +750,6 @@ def upload_files(memory, options, serverindex, file_uploads):
         @type file_path_uploaded: str, unicode
         """
         uploaded_files.append(file_path_uploaded)
-
         update_progress(len(uploaded_files), len(file_uploads), "uploading")
         file_upload_completed.append(file_path_uploaded)
 
@@ -739,7 +762,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:677", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:765", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
@@ -748,9 +771,10 @@ def upload_files(memory, options, serverindex, file_uploads):
             result.get()
     pool.terminate()
     possible_new_dir_list = []
+
     for file_path in file_upload_completed:
         memory = add_local_file_history(memory, file_path)
-        possible_new_dir_list = possible_new_dirs_extend(file_path, memory)
+        possible_new_dir_list = possible_new_dirs_extend([file_path], memory)
 
     for pnd in possible_new_dir_list:
         memory = add_server_path_history(memory, pnd)
@@ -785,14 +809,19 @@ def sync_server(memory, options):
     # update seen server history files
     localindex = make_local_index(options)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
+
     if len(dir_del_local) > 0:
         remove_local_folders(dir_del_local)
+
     if len(dir_make_local) > 0:
         memory = make_directories_local(memory, options, localindex, dir_make_local)
+
     if len(dir_del_server) > 0:
         memory = instruct_server_to_delete_folders(memory, options, serverindex, dir_del_server)
+
     del_server_items = []
 
     for del_file in file_del_server:
@@ -802,18 +831,21 @@ def sync_server(memory, options):
     # delete items
     if len(del_server_items) > 0:
         memory = instruct_server_to_delete_items(memory, options, serverindex, del_server_items)
+
     if len(file_downloads) > 0:
         memory = get_unique_content(memory, options, unique_content, file_downloads)
+
     if len(file_uploads) > 0:
         memory = upload_files(memory, options, serverindex, file_uploads)
+
     if len(file_del_local) > 0:
         remove_local_files(file_del_local)
 
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
     dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
-    dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
 
+    dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
@@ -824,23 +856,27 @@ def sync_server(memory, options):
 
     if memory.has("localpath_history"):
         localpath_history = memory.get("localpath_history")
+
         localpaths = [x[0] for x in localpath_history]
         for fpath in dir_del_server:
             for lfpath in localpaths:
                 if str(fpath) in str(lfpath):
                     memory = del_server_file_history(memory, lfpath)
                     memory = del_local_file_history(memory, lfpath)
+
             memory = del_server_file_history(memory, fpath)
             memory = del_local_file_history(memory, fpath)
 
     if memory.has("serverpath_history"):
         serverpath_history = memory.get("serverpath_history")
+
         serverpaths = [x[0] for x in serverpath_history]
         for fpath in dir_del_local:
             for lfpath in serverpaths:
                 if fpath in lfpath:
                     memory = del_server_file_history(memory, lfpath)
                     memory = del_local_file_history(memory, lfpath)
+
             memory = del_server_file_history(memory, fpath)
             memory = del_local_file_history(memory, fpath)
 

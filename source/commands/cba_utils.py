@@ -6,9 +6,9 @@ import os
 import sys
 import math
 import time
+import threading
 import xmlrpclib
 import multiprocessing
-import threading
 import uuid as _uu
 import cPickle
 import json
@@ -25,7 +25,6 @@ from multiprocessing import Pool
 
 def open_folder(path):
     """
-
     :param path:
     """
     if sys.platform == 'darwin':
@@ -346,8 +345,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:345", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:346", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:348", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:349", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -502,6 +501,9 @@ class MemoryCorruption(Exception):
     pass
 
 
+memory_lock = threading.Lock()
+
+
 class Memory(object):
     """
     Memory
@@ -513,6 +515,7 @@ class Memory(object):
         @rtype: Memory
         """
         self.data = {}
+        self.m_locked = False
 
     def set(self, key, value):
         """
@@ -572,29 +575,60 @@ class Memory(object):
         """
         return len(self.data)
 
-    def save(self, datadir):
+    def lock(self):
+        """
+        lock
+        """
+        if not self.m_locked:
+            global memory_lock
+            memory_lock.acquire()
+            self.m_locked = True
+
+    def unlock(self):
+        """
+        unlock
+        """
+        global memory_lock
+        memory_lock.release()
+        self.m_locked = False
+
+    def save(self, datadir, keep_lock=False):
         """
         @type datadir: string, unicode
         """
-        if os.path.exists(datadir):
+
+        try:
+            self.lock()
+            if os.path.exists(datadir):
+                mempath = os.path.join(datadir, "memory.pickle")
+                pickle_object(mempath, self.data, json_pickle=True)
+        finally:
+            if not keep_lock:
+                self.unlock()
+
+    def load(self, datadir, keep_lock=False):
+        """
+        @type datadir: string, unicode
+        @type keep_lock: bool
+        """
+
+        try:
+            self.lock()
             mempath = os.path.join(datadir, "memory.pickle")
-            pickle_object(mempath, self.data, json_pickle=True)
 
-    def load(self, datadir):
-        """
-        @type datadir: string, unicode
-        """
-        mempath = os.path.join(datadir, "memory.pickle")
+            if os.path.exists(mempath):
+                #noinspection PyAttributeOutsideInit
+                self.data = unpickle_object(mempath)
 
-        if os.path.exists(mempath):
-            #noinspection PyAttributeOutsideInit
-            self.data = unpickle_object(mempath)
+                for k in self.data.copy():
+                    try:
+                        self.has(k)
+                    except MemoryExpired:
+                        pass
 
-            for k in self.data.copy():
-                try:
-                    self.has(k)
-                except MemoryExpired:
-                    pass
+        finally:
+            if not keep_lock:
+                self.unlock()
 
     def set_add_value(self, list_name, value):
         """
@@ -780,7 +814,7 @@ class AsyncUpdateProgressItem(threading.Thread):
             s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
             s.set_smemory("item_progress", self.p)
         except Exception:
-            print "cba_utils.py:770", "progress:", self.p
+            print "cba_utils.py:817", "item_progress", self.p
 
 
 def update_item_progress(p, server=False):
@@ -794,7 +828,7 @@ def update_item_progress(p, server=False):
             api = AsyncUpdateProgressItem(p)
             api.start()
         except Exception, e:
-            print "cba_utils.py:784", "AsyncUpdateProgressItem exception", str(e)
+            print "cba_utils.py:831", "AsyncUpdateProgressItem exception", str(e)
     else:
         mem = SingletonMemory()
         mem.set("item_progress", p)
@@ -826,7 +860,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print curr, total, msg
+    print "cba_utils.py:863", curr, total, msg
     global last_update_string_len
     if total == 0:
         return

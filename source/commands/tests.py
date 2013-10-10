@@ -18,8 +18,10 @@ from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
 import sys
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
+
 #noinspection PyUnresolvedReferences
 from couchdb_api import MemcachedServer
+
 
 def add(a, b):
     """
@@ -33,7 +35,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:33", p
+    print "tests.py:38", p
 
 
 def count_files_dir(fpath):
@@ -67,7 +69,6 @@ class CryptoboxAppTest(unittest.TestCase):
         #server = "https://www.cryptobox.nl/"
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
-
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
         self.cboptions = Dict2Obj(self.options_d)
@@ -144,7 +145,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         os.system("cp testdata/test_synced.dump testdata/test.dump")
         os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null; cd crypto_docs; cp * /Users/rabshakeh/workspace/cloudfiles/crypto_docs; cd ..; rm -Rf crypto_docs")
-
         self.reset_cb_db()
 
     def complete_reset(self):
@@ -357,6 +357,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.complete_reset()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
+
         # build directories locally and on server
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
@@ -385,7 +386,6 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mkdir testdata/testmap/map3")
         os.system("rm -Rf testdata/testmap/all_types/document.pdf")
         os.system("rm -Rf testdata/testmap/smalltest")
-
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(file_del_server), 1)
         self.assertEqual(len(file_downloads), 0)
@@ -462,7 +462,6 @@ class CryptoboxAppTest(unittest.TestCase):
         os.mkdir("testdata/testmap/foo")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.mkdir("testdata/testmap/foo2")
         os.system("ls > testdata/testmap/foo2/test.txt")
@@ -487,9 +486,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("ls > testdata/testmap/all_types/foo/test.txt")
         os.system("ls > testdata/testmap/all_types/foo2/test2.txt")
         os.system("ls > testdata/testmap/all_types/foo2/bar/test3.txt")
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-
         os.system("rm -Rf testdata/testmap/all_types")
         self.assertTrue(os.path.exists("testdata/testmap"))
         self.assertFalse(os.path.exists("testdata/testmap/all_types"))
@@ -498,9 +495,7 @@ class CryptoboxAppTest(unittest.TestCase):
         cbmemory, cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(dir_del_server), 4)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-
         self.unzip_testfiles_clean()
-
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 3)
 
@@ -522,10 +517,12 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
         os.system("rm -Rf testdata/testmap/.cryptobox")
-        os.system("md testdata/testmap/legedir")
+        os.system("mkdir testdata/testmap/legedir")
+
         #noinspection PyUnusedLocal
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
-        pass
+        self.assertEqual(len(dir_make_server), 1)
+        self.assertEqual(len(file_uploads), 5)
 
 
 if __name__ == '__main__':

@@ -230,7 +230,7 @@ def download_server(memory, options, url):
                 update_item_progress(percentage)
 
     content = b"".join(fileb)
-    return content, memory
+    return content
 
 
 def server_time(memory, options):
