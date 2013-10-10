@@ -24,6 +24,10 @@ from multiprocessing import Pool
 
 
 def open_folder(path):
+    """
+
+    :param path:
+    """
     if sys.platform == 'darwin':
         subprocess.check_call(['open', '--', path])
     elif sys.platform == 'linux2':

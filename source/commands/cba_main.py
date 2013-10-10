@@ -414,11 +414,18 @@ class XMLRPCThread(multiprocessing.Process):
             def do_open_folder(folder_path, servername):
                 """
                 do_open_folder
+                :param folder_path:
+                :param servername:
                 """
                 log("do_open_folder")
                 open_folder(os.path.join(folder_path, servername))
 
             def get_tree_sequence(options):
+                """
+
+                :param options:
+                :return: :rtype:
+                """
                 log("get_tree_sequence")
                 return cryptobox_command(options)
 
