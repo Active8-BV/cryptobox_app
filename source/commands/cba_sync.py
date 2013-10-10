@@ -799,25 +799,27 @@ def sync_server(memory, options):
         memory = del_server_file_history(memory, fpath)
         memory = del_local_file_history(memory, fpath)
 
-    localpath_history = memory.get("localpath_history")
-    localpaths = [x[0] for x in localpath_history]
-    for fpath in dir_del_server:
-        for lfpath in localpaths:
-            if fpath in lfpath:
-                memory = del_server_file_history(memory, fpath)
-                memory = del_local_file_history(memory, fpath)
-        memory = del_server_file_history(memory, fpath)
-        memory = del_local_file_history(memory, fpath)
+    if memory.has("localpath_history"):
+        localpath_history = memory.get("localpath_history")
+        localpaths = [x[0] for x in localpath_history]
+        for fpath in dir_del_server:
+            for lfpath in localpaths:
+                if str(fpath) in str(lfpath):
+                    memory = del_server_file_history(memory, lfpath)
+                    memory = del_local_file_history(memory, lfpath)
+            memory = del_server_file_history(memory, fpath)
+            memory = del_local_file_history(memory, fpath)
 
-    serverpath_history = memory.get("serverpath_history")
-    serverpaths = [x[0] for x in serverpath_history]
-    for fpath in dir_del_local:
-        for lfpath in serverpaths:
-            if fpath in lfpath:
-                memory = del_server_file_history(memory, fpath)
-                memory = del_local_file_history(memory, fpath)
-        memory = del_server_file_history(memory, fpath)
-        memory = del_local_file_history(memory, fpath)
+    if memory.has("serverpath_history"):
+        serverpath_history = memory.get("serverpath_history")
+        serverpaths = [x[0] for x in serverpath_history]
+        for fpath in dir_del_local:
+            for lfpath in serverpaths:
+                if fpath in lfpath:
+                    memory = del_server_file_history(memory, lfpath)
+                    memory = del_local_file_history(memory, lfpath)
+            memory = del_server_file_history(memory, fpath)
+            memory = del_local_file_history(memory, fpath)
 
     sm = SingletonMemory()
     sm.set("file_downloads", [])
