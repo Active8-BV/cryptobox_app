@@ -4,7 +4,6 @@ sync functions
 """
 import os
 import time
-import random
 import uuid
 import cPickle
 import base64
@@ -16,7 +15,7 @@ import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_data_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
+from cba_utils import strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -44,7 +43,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-    pool = Pool(processes=options.numdownloadthreads * 3)
+    pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
 
     #noinspection PyUnusedLocal
@@ -170,7 +169,6 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
 
     if len(payload["foldernames"]) > 0:
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
-    memory.replace("could_be_a_task", True)
     serverindex, memory = get_server_index(memory, options)
     return serverindex, memory
 
@@ -259,21 +257,16 @@ def wait_for_tasks(memory, options):
 
         if result:
             if len(result) > 1:
-                num_tasks = len(result[1])
+                num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
 
                 if num_tasks == 0:
-                    if memory.has_get("could_be_a_task"):
-                        memory.replace("could_be_a_task", False)
-                    else:
-                        return memory
+                    return memory
 
-                if num_tasks < 2:
+                if num_tasks > 3:
                     time.sleep(1)
-                else:
-                    time.sleep(2)
                     if num_tasks > 6:
                         log("waiting for tasks", num_tasks)
-                        time.sleep(2)
+                        time.sleep(1)
 
 
 def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
@@ -300,7 +293,6 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
                         new_server_hash_history.add(serverpath_history_item)
                 memory.replace("serverpath_history", new_server_hash_history)
 
-    memory.replace("could_be_a_task", True)
     return memory
 
 
@@ -330,7 +322,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete)
-    memory.replace("could_be_a_task", True)
+
     return memory
 
 
@@ -521,12 +513,15 @@ def diff_new_files_on_server(memory, options, server_file_nodes, dirs_scheduled_
     for fnode in server_file_nodes:
         server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
 
-        seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
-
-        if seen_local_file_before:
-            file_del_server.append(server_path_to_local)
+        if os.path.exists(server_path_to_local):
+            memory = add_local_file_history(memory, server_path_to_local)
         else:
-            file_downloads.append(fnode)
+            seen_local_file_before, memory = in_local_file_history(memory, server_path_to_local)
+
+            if seen_local_file_before:
+                file_del_server.append(server_path_to_local)
+            else:
+                file_downloads.append(fnode)
 
     dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip(os.path.sep)) for d in dirs_scheduled_for_removal]
     file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dirs_scheduled_for_removal]
@@ -625,9 +620,12 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_del_server = []
 
     for dds_path in dir_del_server_tmp:
-        for dfl in set([x["dirname_of_path"] for x in file_downloads]):
-            if dfl not in dir_del_server_tmp:
-                dir_del_server.append(dds_path)
+        if len(file_downloads) > 0:
+            for dfl in set([x["dirname_of_path"] for x in file_downloads]):
+                if dfl not in dir_del_server_tmp:
+                    dir_del_server.append(dds_path)
+        else:
+            dir_del_server.append(dds_path)
 
     sm = SingletonMemory()
     sm.set("file_downloads", file_downloads)
@@ -764,20 +762,12 @@ def upload_files(memory, options, serverindex, file_uploads):
     pool.close()
     pool.join()
 
-    for result in upload_result:
-        if not result.successful():
-            result.get()
+    files_uploaded = [r.get() for r in upload_result]
     pool.terminate()
     possible_new_dir_list = []
 
-    for file_path in file_upload_completed:
-        memory = add_local_file_history(memory, file_path)
-        possible_new_dir_list = possible_new_dirs_extend([file_path], memory)
 
-    for pnd in possible_new_dir_list:
-        memory = add_server_path_history(memory, pnd)
-    memory.replace("could_be_a_task", True)
-    return memory
+    return memory, files_uploaded
 
 
 class NoSyncDirFound(Exception):
@@ -785,6 +775,18 @@ class NoSyncDirFound(Exception):
     NoSyncDirFound
     """
     pass
+
+
+def add_path_history(fpath, memory):
+    memory = add_server_path_history(memory, fpath)
+    memory = add_local_file_history(memory, fpath)
+    return memory
+
+
+def del_path_history(fpath, memory):
+    memory = del_server_file_history(memory, fpath)
+    memory = del_local_file_history(memory, fpath)
+    return memory
 
 
 def sync_server(memory, options):
@@ -797,7 +799,6 @@ def sync_server(memory, options):
     if not os.path.exists(options.dir):
         raise NoSyncDirFound(options.dir)
 
-    memory.replace("could_be_a_task", False)
     if cryptobox_locked(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
@@ -810,6 +811,9 @@ def sync_server(memory, options):
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
+        serverdirpaths = [x["doc"]["m_path"] for x in serverindex["doclist"]]
+        for fpath in serverdirpaths:
+            memory = add_path_history(fpath, memory)
 
     if len(dir_del_local) > 0:
         remove_local_folders(dir_del_local)
@@ -834,7 +838,10 @@ def sync_server(memory, options):
         memory = get_unique_content(memory, options, unique_content, file_downloads)
 
     if len(file_uploads) > 0:
-        memory = upload_files(memory, options, serverindex, file_uploads)
+        memory, files_uploaded = upload_files(memory, options, serverindex, file_uploads)
+        files_uploaded = possible_new_dirs_extend(files_uploaded, memory)
+        for fpath in files_uploaded:
+            memory = add_path_history(fpath, memory)
 
     if len(file_del_local) > 0:
         remove_local_files(file_del_local)
@@ -845,12 +852,10 @@ def sync_server(memory, options):
 
     dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
-        memory = del_server_file_history(memory, fpath)
-        memory = del_local_file_history(memory, fpath)
+        memory = del_path_history(fpath, memory)
 
     for fpath in file_del_local:
-        memory = del_server_file_history(memory, fpath)
-        memory = del_local_file_history(memory, fpath)
+        memory = del_path_history(fpath, memory)
 
     if memory.has("localpath_history"):
         localpath_history = memory.get("localpath_history")
@@ -859,11 +864,9 @@ def sync_server(memory, options):
         for fpath in dir_del_server:
             for lfpath in localpaths:
                 if str(fpath) in str(lfpath):
-                    memory = del_server_file_history(memory, lfpath)
-                    memory = del_local_file_history(memory, lfpath)
+                    memory = del_path_history(lfpath, memory)
 
-            memory = del_server_file_history(memory, fpath)
-            memory = del_local_file_history(memory, fpath)
+            memory = del_path_history(fpath, memory)
 
     if memory.has("serverpath_history"):
         serverpath_history = memory.get("serverpath_history")
@@ -872,11 +875,9 @@ def sync_server(memory, options):
         for fpath in dir_del_local:
             for lfpath in serverpaths:
                 if fpath in lfpath:
-                    memory = del_server_file_history(memory, lfpath)
-                    memory = del_local_file_history(memory, lfpath)
+                    memory = del_path_history(fpath, memory)
 
-            memory = del_server_file_history(memory, fpath)
-            memory = del_local_file_history(memory, fpath)
+            memory = del_path_history(fpath, memory)
 
     sm = SingletonMemory()
     sm.set("file_downloads", [])

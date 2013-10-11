@@ -8,6 +8,8 @@ import cPickle
 import unittest
 import random
 from subprocess import Popen, PIPE
+import sys
+
 from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
@@ -16,7 +18,6 @@ from cba_network import authorize_user, authorized
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
-import sys
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -227,7 +228,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_synced()
         self.do_wait_for_tasks = False
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
@@ -235,7 +236,7 @@ class CryptoboxAppTest(unittest.TestCase):
         # add a new file
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 9)
@@ -243,7 +244,7 @@ class CryptoboxAppTest(unittest.TestCase):
         # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 9)
@@ -258,7 +259,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
         localindex1 = make_local_index(self.cboptions)
         self.cboptions.remove = True
-        salt, secret, self.cbmemory, localindex1 = index_and_encrypt(self.cbmemory, self.cboptions, localindex1)
+        salt, secret, self.cbmemory, localindex1 = index_and_encrypt(self.cbmemory, self.cboptions)
         datadir = get_data_dir(self.cboptions)
         self.cbmemory.save(datadir)
         hide_config(self.cboptions, salt, secret)
@@ -266,7 +267,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory = decrypt_and_build_filetree(self.cbmemory, self.cboptions)
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
         localindex2 = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory, localindex2 = index_and_encrypt(self.cbmemory, self.cboptions, localindex2)
+        salt, secret, self.cbmemory, localindex2 = index_and_encrypt(self.cbmemory, self.cboptions)
         self.max_diff = None
 
         def remove_atime(index):
@@ -297,7 +298,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.unzip_testfiles_clean()
         localindex = make_local_index(self.cboptions)
-        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions, localindex)
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.cboptions.clear = True
         self.cboptions.encrypt = False
         self.cboptions.clear = "1"
@@ -423,6 +424,15 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_local), 0)
         self.assertEqual(len(dir_make_server), 0)
         self.assertEqual(len(dir_del_local), 0)
+        return True
+
+    def test_memory_lock(self):
+        """
+        test_memory_lock
+        """
+        memory = Memory()
+        memory.lock()
+        memory.unlock()
 
     def test_sync_new_file(self):
         """
@@ -459,6 +469,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rm -Rf testdata/testmap/foo")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        self.assertEqual(self.directories_synced(), True)
         os.mkdir("testdata/testmap/foo")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)

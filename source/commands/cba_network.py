@@ -4,6 +4,7 @@ routines to connect to cryptobox
 """
 import os
 import time
+import threading
 import base64
 import urllib
 import subprocess
@@ -157,6 +158,9 @@ def parse_http_result(result):
     return result
 
 
+on_server_lock = threading.Lock()
+
+
 def on_server(memory, options, method, payload, session, files=None):
     """
     @type memory: Memory
@@ -167,27 +171,32 @@ def on_server(memory, options, method, payload, session, files=None):
     @type files: dict
     @return: @rtype:
     """
-    server = options.server
-    cryptobox = options.cryptobox
-    cookies = {}
-    service = server + cryptobox + "/" + method + "/" + str(time.time())
-
-    if not session:
-        session = requests
-
-    #verifyarg = os.path.join(os.getcwd(), "ca.cert")
-    verifyarg = False
-
-    if not payload:
-        result = session.post(service, cookies=cookies, files=files, verify=verifyarg)
-    elif files:
-        result = session.post(service, data=payload, cookies=cookies, files=files, verify=verifyarg)
-    else:
-        result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg)
+    global on_server_lock
     try:
-        return parse_http_result(result), memory
-    except ServerForbidden:
-        return (None, None), memory
+        on_server_lock.acquire()
+        server = options.server
+        cryptobox = options.cryptobox
+        cookies = {}
+        service = server + cryptobox + "/" + method + "/" + str(time.time())
+
+        if not session:
+            session = requests
+
+        #verifyarg = os.path.join(os.getcwd(), "ca.cert")
+        verifyarg = False
+
+        if not payload:
+            result = session.post(service, cookies=cookies, files=files, verify=verifyarg)
+        elif files:
+            result = session.post(service, data=payload, cookies=cookies, files=files, verify=verifyarg)
+        else:
+            result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg)
+        try:
+            return parse_http_result(result), memory
+        except ServerForbidden:
+            return (None, None), memory
+    finally:
+        on_server_lock.release()
 
 
 def download_server(memory, options, url):
