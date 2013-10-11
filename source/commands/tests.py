@@ -74,6 +74,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions = Dict2Obj(self.options_d)
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
+        self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
@@ -309,16 +310,6 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
 
-    def test_connection(self):
-        """
-        test_connection
-        """
-        self.cbmemory = authorized(self.cbmemory, self.cboptions)
-        self.assertFalse(self.cbmemory.get("authorized"))
-        self.cbmemory = authorize_user(self.cbmemory, self.cboptions)
-        self.assertTrue(self.cbmemory.get("authorized"))
-        self.cbmemory = authorized(self.cbmemory, self.cboptions)
-        self.assertTrue(self.cbmemory.get("authorized"))
 
     def test_compare_server_tree_with_local_tree_method_folders(self):
         """
@@ -542,8 +533,6 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mkdir testdata/testmap/legedir")
 
         #noinspection PyUnusedLocal
-        self.cboptions.dir = "/Users/rabshakeh/Desktop/testmap_desktop/test"
-        os.system("rm -Rf /Users/rabshakeh/Desktop/testmap_desktop/test/.cryptobox")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
