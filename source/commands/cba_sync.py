@@ -15,7 +15,7 @@ import poster
 from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_data_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -259,16 +259,19 @@ def wait_for_tasks(memory, options):
 
         if result:
             if len(result) > 1:
-                num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
+                if result[1]:
+                    num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
 
-                if num_tasks == 0:
-                    return memory
+                    if num_tasks == 0:
+                        return memory
 
-                if num_tasks > 3:
-                    time.sleep(1)
-                    if num_tasks > 6:
-                        log("waiting for tasks", num_tasks)
+                    if num_tasks > 3:
                         time.sleep(1)
+                        if num_tasks > 6:
+                            log("waiting for tasks", num_tasks)
+                            time.sleep(1)
+                else:
+                    return Memory
 
 
 def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
@@ -764,9 +767,18 @@ def upload_files(memory, options, serverindex, file_uploads):
     pool.close()
     pool.join()
 
-    files_uploaded = [r.get() for r in upload_result]
+    files_uploaded = []
+    for ur in upload_result:
+        if ur.successful():
+            files_uploaded.append(ur.get())
+        else:
+            try:
+                ur.get()
+            except Exception, e:
+                handle_exception(e, False)
+
     pool.terminate()
-    possible_new_dir_list = []
+
     return memory, files_uploaded
 
 
@@ -778,12 +790,20 @@ class NoSyncDirFound(Exception):
 
 
 def add_path_history(fpath, memory):
+    """
+    @type fpath:str, unicode
+    @type memory: Memory
+    """
     memory = add_server_path_history(memory, fpath)
     memory = add_local_file_history(memory, fpath)
     return memory
 
 
 def del_path_history(fpath, memory):
+    """
+    @type fpath:str, unicode
+    @type memory: Memory
+    """
     memory = del_server_file_history(memory, fpath)
     memory = del_local_file_history(memory, fpath)
     return memory

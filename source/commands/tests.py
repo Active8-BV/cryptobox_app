@@ -359,7 +359,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_clean()
 
         # build directories locally and on server
-        serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
         self.assertTrue(self.files_synced())
@@ -469,7 +468,9 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/testmap/foo")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertEqual(self.directories_synced(), True)
+        self.all_changes_asserted_zero()
         os.mkdir("testdata/testmap/foo")
+        self.assertEqual(os.path.exists("testdata/testmap/foo"), True)
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
