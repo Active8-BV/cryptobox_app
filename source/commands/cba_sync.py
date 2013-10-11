@@ -23,6 +23,7 @@ from cba_crypto import make_sha1_hash
 def download_blob(memory, options, node):
     """
     download_blob
+    @type memory: Memory
     @type options: optparse.Values, instance
     @type node: dict
     """
@@ -107,8 +108,9 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     return memory
 
 
-def dirs_on_local(options, localindex, dirname_hashes_server, serverindex):
+def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex):
     """
+    @type memory: Memory
     @param dirname_hashes_server: folders on server
     @type dirname_hashes_server: dict
     @type serverindex: dict
@@ -121,7 +123,7 @@ def dirs_on_local(options, localindex, dirname_hashes_server, serverindex):
     if "tree_timestamp" not in serverindex:
         raise Exception("dirs_on_local needs a tree timestamp")
 
-    tree_timestamp = float(serverindex["tree_timestamp"])
+    #tree_timestamp = float(serverindex["tree_timestamp"])
     local_dirs_not_on_server = []
 
     for dirhashlocal in localindex["dirnames"]:
@@ -140,7 +142,11 @@ def dirs_on_local(options, localindex, dirname_hashes_server, serverindex):
 
     for node in local_dirs_not_on_server:
         if os.path.exists(node["dirname"]):
-            if float(os.stat(node["dirname"]).st_mtime) >= tree_timestamp:
+            #folder_timestamp = os.stat(node["dirname"]).st_mtime
+            #if int(folder_timestamp) >= int(tree_timestamp):
+            memory, rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
+
+            if rel_dirname not in serverindex["dirlist"]:
                 dirs_make_server.append(node)
             else:
                 dirs_del_local.append(node)
@@ -271,7 +277,8 @@ def wait_for_tasks(memory, options):
                             log("waiting for tasks", num_tasks)
                             time.sleep(1)
                 else:
-                    return Memory
+                    return memory
+
 
 
 def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
@@ -604,7 +611,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_del_server_tmp, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
 
     #local dirs
-    dir_make_server, dir_del_local = dirs_on_local(options, localindex, dirname_hashes_server, serverindex)
+    dir_make_server, dir_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
 
     # find new files on server
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_file_nodes, dir_del_server_tmp)

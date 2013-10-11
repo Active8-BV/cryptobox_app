@@ -50,8 +50,10 @@ def store_cryptobox_index(memory, index):
 def quick_lock_check(cryptobox_folder):
     """
     quick_lock_check
+    @type cryptobox_folder: str, unicode
     """
 
+    #noinspection PyBroadException
     try:
         if not os.path.exists(cryptobox_folder):
             return False
@@ -151,7 +153,6 @@ def index_and_encrypt(memory, options):
     index_and_encrypt
     @type memory: Memory
     @type options: optparse.Values, instance
-    @type localindex_param: dict
     @rtype salt, secret, memory, localindex: str, str, Memory, dict
     """
     localindex = make_local_index(options)
