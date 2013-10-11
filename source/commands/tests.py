@@ -418,7 +418,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_local), 0)
         return True
 
-
     @staticmethod
     def test_memory_lock():
         """
@@ -511,6 +510,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_sync_delete_server_folder
         """
         self.reset_cb_db_clean()
+
         #self.unzip_testfiles_clean()
         os.makedirs("testdata/testmap/foo")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
@@ -520,7 +520,6 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         cbmemory, cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(dir_del_local), 1)
-
 
     def test_sync_method_clean_tree_remove_local_folder(self):
         """
@@ -543,6 +542,8 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mkdir testdata/testmap/legedir")
 
         #noinspection PyUnusedLocal
+        self.cboptions.dir = "/Users/rabshakeh/Desktop/testmap_desktop/test"
+        os.system("rm -Rf /Users/rabshakeh/Desktop/testmap_desktop/test/.cryptobox")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)

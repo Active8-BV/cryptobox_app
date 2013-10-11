@@ -821,7 +821,7 @@ class AsyncUpdateProgressItem(threading.Thread):
             s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
             s.set_smemory("item_progress", self.p)
         except Exception:
-            print "cba_utils.py:821", "item_progress", self.p
+            print "cba_utils.py:824", "item_progress", self.p
 
 
 def update_item_progress(p, server=False):
@@ -835,7 +835,7 @@ def update_item_progress(p, server=False):
             api = AsyncUpdateProgressItem(p)
             api.start()
         except Exception, e:
-            print "cba_utils.py:835", "AsyncUpdateProgressItem exception", str(e)
+            print "cba_utils.py:838", "AsyncUpdateProgressItem exception", str(e)
     else:
         mem = SingletonMemory()
         mem.set("item_progress", p)
@@ -867,7 +867,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:867", curr, total, msg
+    print "cba_utils.py:870", curr, total, msg
     global last_update_string_len
     if total == 0:
         return
