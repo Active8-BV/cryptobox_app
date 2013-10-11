@@ -595,8 +595,10 @@ class Memory(object):
     def save(self, datadir, keep_lock=False):
         """
         @type datadir: string, unicode
+        @type keep_lock: bool
         """
 
+        #noinspection PyBroadException
         try:
             self.lock()
             if os.path.exists(datadir):
@@ -614,6 +616,7 @@ class Memory(object):
         @type keep_lock: bool
         """
 
+        #noinspection PyBroadException
         try:
             self.lock()
             mempath = os.path.join(datadir, "memory.pickle")
