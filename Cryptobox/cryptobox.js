@@ -247,7 +247,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       }
     });
   };
-  $scope.lock_buttons = false;
+  $scope.lock_buttons = true;
   $scope.get_lock_buttons = function() {
     return $scope.lock_buttons;
   };

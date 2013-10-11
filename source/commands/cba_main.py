@@ -20,7 +20,7 @@ import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
 from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception, open_folder
-from cba_index import restore_hidden_config, cryptobox_locked, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
+from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
@@ -153,10 +153,11 @@ def cryptobox_command(options):
         ensure_directory(options.basedir)
         options.dir = os.path.join(options.dir, options.cryptobox)
 
-        if quick_lock_check(options.dir):
-            smemory.set("cryptobox_locked", True)
-            log("Cryptobox locked")
-            return False
+        if not options.decrypt:
+            if quick_lock_check(options):
+                smemory.set("cryptobox_locked", True)
+                log("Cryptobox locked")
+                return False
 
         if not options.encrypt:
             restore_hidden_config(options)
@@ -202,7 +203,7 @@ def cryptobox_command(options):
 
         reset_memory_progress()
         reset_item_progress()
-        smemory.set("cryptobox_locked", cryptobox_locked(memory))
+        smemory.set("cryptobox_locked", quick_lock_check(options))
         if options.logout:
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
@@ -215,7 +216,7 @@ def cryptobox_command(options):
 
             if memory.get("authorized"):
                 if options.check:
-                    if cryptobox_locked(memory):
+                    if quick_lock_check(options):
                         return False
 
                     if smemory.get("cryptobox_locked"):
@@ -229,7 +230,7 @@ def cryptobox_command(options):
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
                         return False
 
-                    if cryptobox_locked(memory):
+                    if quick_lock_check(options):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
                     ensure_directory(options.dir)
@@ -258,7 +259,7 @@ def cryptobox_command(options):
         hide_config(options, salt, secret)
         reset_memory_progress()
         reset_item_progress()
-        smemory.set("cryptobox_locked", cryptobox_locked(memory))
+        smemory.set("cryptobox_locked", quick_lock_check(options))
     except Exception, e:
         handle_exception(e, False)
     finally:
@@ -441,6 +442,12 @@ class XMLRPCThread(multiprocessing.Process):
                 :param v:
                 """
                 smemory = SingletonMemory()
+                if k == "item_progress":
+                    if v == 100:
+                        if 0 == smemory.get(k):
+                            return True
+                        else:
+                            return smemory.set(k, v)
                 return smemory.set(k, v)
 
             def get_motivation():
