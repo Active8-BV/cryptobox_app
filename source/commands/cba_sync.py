@@ -478,7 +478,6 @@ def get_server_index(memory, options):
     old_tree_seq = memory.has_get("tree_seq")
     memory.replace("tree_seq", tree_seq)
     if tree_seq == old_tree_seq:
-        print "SAME TREE ID"
         return memory.get("serverindex"), memory
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
