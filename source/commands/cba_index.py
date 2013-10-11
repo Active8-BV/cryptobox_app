@@ -52,16 +52,18 @@ def get_hidden_configs(options):
     :param options:
     :return: :rtype:
     """
-    dirs_base_folder = os.listdir(options.basedir)
     hidden_configs = []
 
-    for base_folder in dirs_base_folder:
-        dirpath = os.path.join(options.basedir, base_folder)
+    if os.path.exists(options.basedir):
+        dirs_base_folder = os.listdir(options.basedir)
 
-        if os.path.isdir(dirpath):
-            for fpath in os.listdir(dirpath):
-                if fpath.endswith(".cryptoboxfolder"):
-                    hidden_configs.append((base_folder, fpath))
+        for base_folder in dirs_base_folder:
+            dirpath = os.path.join(options.basedir, base_folder)
+
+            if os.path.isdir(dirpath):
+                for fpath in os.listdir(dirpath):
+                    if fpath.endswith(".cryptoboxfolder"):
+                        hidden_configs.append((base_folder, fpath))
 
     return hidden_configs
 
@@ -144,56 +146,19 @@ def hide_config(options, salt, secret):
             os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
-def quick_lock_check(cryptobox_folder):
+def quick_lock_check(options):
     """
     quick_lock_check
-    @type cryptobox_folder: str, unicode
+    @type options: optparse.Values, instance
     """
 
     #noinspection PyBroadException
-    try:
-        if not os.path.exists(cryptobox_folder):
-            return False
+    if not os.path.exists(options.dir):
+        encrypted_configs = get_encrypted_configs(options, name_stop=options.cryptobox)
 
-        mempath = os.path.join(os.path.join(cryptobox_folder, ".cryptobox", "memory.pickle"))
-        mempathenc = os.path.join(os.path.join(cryptobox_folder, ".cryptobox", "memory.pickle.enc"))
-
-        if os.path.exists(mempathenc):
+        if len(encrypted_configs) > 0:
             return True
-        elif not os.path.exists(mempath):
-            return False
-
-        unpickle_object(mempath)
-        return False
-    except:
-        return True
-
-
-def cryptobox_locked(memory):
-    """
-    cryptobox_locked
-    @type memory: Memory
-    """
-    locked = True
-    current_cryptobox_index = get_cryptobox_index(memory)
-
-    if not "dirnames" in current_cryptobox_index:
-        locked = False
-    else:
-        for dirname in current_cryptobox_index["dirnames"]:
-            if not strcmp(current_cryptobox_index["dirnames"][dirname]["dirname"], memory.get("cryptobox_folder")):
-                if os.path.exists(current_cryptobox_index["dirnames"][dirname]["dirname"]):
-                    locked = False
-
-    if locked:
-        #noinspection PyBroadException
-        try:
-            mempath = os.path.join(os.path.join(memory.get("cryptobox_folder"), ".cryptobox", "memory.pickle"))
-            unpickle_object(mempath)
-            locked = False
-        except:
-            pass
-    return locked
+    return False
 
 
 def get_secret(memory, options):
@@ -255,7 +220,7 @@ def index_and_encrypt(memory, options):
     localindex = make_local_index(options)
     datadir = get_data_dir(options)
 
-    if cryptobox_locked(memory):
+    if quick_lock_check(options):
         log("cba_index.py:140", "cryptobox is locked, nothing can be added now first decrypt (-d)")
         return None, None, memory, localindex
 
@@ -294,10 +259,12 @@ def index_and_encrypt(memory, options):
     if options.remove:
         ld = os.listdir(options.dir)
         ld.remove(".cryptobox")
-
+        processed_files = 0
+        numfiles = len(ld)
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
-            log("delete", fpath)
+            processed_files += 1
+            update_progress(processed_files, numfiles, "deleting")
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
             else:
@@ -321,7 +288,9 @@ def index_and_encrypt(memory, options):
                 if not found:
                     obsolute_blob_store_entries.add(blob_dir + blob_file)
 
+
     for f_hash in obsolute_blob_store_entries:
+
         blob_dir = os.path.join(blob_dirs, f_hash[:2])
         blob_path = os.path.join(blob_dir, f_hash[2:])
         os.remove(blob_path)

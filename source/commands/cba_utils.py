@@ -838,6 +838,7 @@ def update_item_progress(p, server=False):
             print "cba_utils.py:838", "AsyncUpdateProgressItem exception", str(e)
     else:
         mem = SingletonMemory()
+
         mem.set("item_progress", p)
 
 

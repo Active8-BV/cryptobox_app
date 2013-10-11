@@ -211,7 +211,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             if utils.exist(e)
                 warning "cryptobox.cf:212", e
 
-    $scope.lock_buttons = false
+    $scope.lock_buttons = true
 
     $scope.get_lock_buttons = ->
         return $scope.lock_buttons

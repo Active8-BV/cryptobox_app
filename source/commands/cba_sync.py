@@ -12,7 +12,7 @@ import shutil
 import urllib2
 from multiprocessing.dummy import Pool
 import poster
-from cba_index import cryptobox_locked, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
+from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_data_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
@@ -834,7 +834,7 @@ def sync_server(memory, options):
     if not os.path.exists(options.dir):
         raise NoSyncDirFound(options.dir)
 
-    if cryptobox_locked(memory):
+    if quick_lock_check(memory):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
 
