@@ -172,6 +172,7 @@ def on_server(memory, options, method, payload, session, files=None):
     @return: @rtype:
     """
     global on_server_lock
+
     try:
         on_server_lock.acquire()
         server = options.server

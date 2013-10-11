@@ -59,6 +59,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
             memory_cb.lock()
             memory_cb.load(get_data_dir(options_cb), keep_lock=True)
             memory_cb = write_blobs_to_filepaths(memory_cb, options_cb, local_file_paths, result_async_method["content"], result_async_method["content_hash"])
+
             for local_file_path in local_file_paths:
                 memory_cb = add_local_file_history(memory_cb, local_file_path["doc"]["m_path"])
             memory_cb.save(get_data_dir(options), keep_lock=True)
@@ -169,6 +170,7 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
 
     if len(payload["foldernames"]) > 0:
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
+
     serverindex, memory = get_server_index(memory, options)
     return serverindex, memory
 
@@ -322,7 +324,6 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete)
-
     return memory
 
 
@@ -573,7 +574,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:583", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:577", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -624,6 +625,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
             for dfl in set([x["dirname_of_path"] for x in file_downloads]):
                 if dfl not in dir_del_server_tmp:
                     dir_del_server.append(dds_path)
+
         else:
             dir_del_server.append(dds_path)
 
@@ -665,7 +667,7 @@ def upload_file(memory, options, file_path, parent):
         update_item_progress(percentage)
         if percentage % 25 == 0:
             if percentage != last_progress[0]:
-                print "cba_sync.py:672"
+                print "cba_sync.py:670", "upload", percentage
                 last_progress[0] = percentage
 
     server = options.server
@@ -758,15 +760,13 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:765", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:763", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
 
     files_uploaded = [r.get() for r in upload_result]
     pool.terminate()
     possible_new_dir_list = []
-
-
     return memory, files_uploaded
 
 
@@ -811,6 +811,7 @@ def sync_server(memory, options):
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
+
         serverdirpaths = [x["doc"]["m_path"] for x in serverindex["doclist"]]
         for fpath in serverdirpaths:
             memory = add_path_history(fpath, memory)
@@ -840,6 +841,7 @@ def sync_server(memory, options):
     if len(file_uploads) > 0:
         memory, files_uploaded = upload_files(memory, options, serverindex, file_uploads)
         files_uploaded = possible_new_dirs_extend(files_uploaded, memory)
+
         for fpath in files_uploaded:
             memory = add_path_history(fpath, memory)
 

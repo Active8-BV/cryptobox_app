@@ -9,7 +9,6 @@ import unittest
 import random
 from subprocess import Popen, PIPE
 import sys
-
 from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
