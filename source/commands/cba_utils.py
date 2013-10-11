@@ -582,6 +582,7 @@ class Memory(object):
         if not self.m_locked:
             global memory_lock
             memory_lock.acquire()
+            print "mem locked"
             self.m_locked = True
 
     def unlock(self):
@@ -590,6 +591,7 @@ class Memory(object):
         """
         global memory_lock
         memory_lock.release()
+        print "mem unlocked"
         self.m_locked = False
 
     def save(self, datadir, keep_lock=False):

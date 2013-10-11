@@ -10,7 +10,7 @@ import base64
 import urllib
 import shutil
 import urllib2
-from multiprocessing.dummy import Pool
+from multiprocessing import Pool
 import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_data_dir
@@ -278,10 +278,9 @@ def wait_for_tasks(memory, options):
                         time.sleep(1)
                         if num_tasks > 6:
                             log("waiting for tasks", num_tasks)
-                            time.sleep(1)
-
                 else:
                     return memory
+        time.sleep(1)
 
 
 def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
@@ -660,55 +659,52 @@ def get_sync_changes(memory, options, localindex, serverindex):
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
-def upload_file(memory, options, file_path, parent):
+def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
     """
-    @type memory: Memory
+    @type session: dict
     @type options: instance
     @type file_path: str, unicode
     @type parent: str, unicode
     @raise NotAuthorized:
-
     """
-    if not memory.has("session"):
-        raise NotAuthorized("trying to upload without a session")
+    try:
+        if not session:
+            raise NotAuthorized("trying to upload without a session")
 
-    last_progress = [0]
+        last_progress = [0]
 
-    #noinspection PyUnusedLocal
-    def prog_callback(param, current, total):
-        """
-        @type param:
-        @type current:
-        @type total:
-        prog_callback
-        """
-        percentage = 100 - ((total - current ) * 100 ) / total
-        update_item_progress(percentage)
-        if percentage % 25 == 0:
-            if percentage != last_progress[0]:
-                print "cba_sync.py:689", "upload", percentage
-                last_progress[0] = percentage
+        #noinspection PyUnusedLocal
+        def prog_callback(param, current, total):
+            """
+            @type param:
+            @type current:
+            @type total:
+            prog_callback
+            """
+            percentage = 100 - ((total - current ) * 100 ) / total
+            update_item_progress(percentage, True)
+            if percentage % 25 == 0:
+                if percentage != last_progress[0]:
+                    print "cba_sync.py:689", "upload", percentage
+                    last_progress[0] = percentage
+        opener = poster.streaminghttp.register_openers()
+        opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
+        service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
+        file_object = open(file_path, "rb")
+        rel_path = ""
 
-    server = options.server
-    cryptobox = options.cryptobox
-    session = memory.get("session")
-    opener = poster.streaminghttp.register_openers()
-    opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
-    service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
-    file_object = open(file_path, "rb")
-    rel_path = ""
+        if parent.strip() == "":
+            rel_path = save_encode_b64(rel_file_path)
 
-    if parent.strip() == "":
-        rel_path = path_to_relative_path_unix_style(memory, file_path)
-        rel_path = save_encode_b64(rel_path)
+        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
+        datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
+        request = urllib2.Request(service, datagen, headers)
 
-    params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
-    datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
-    request = urllib2.Request(service, datagen, headers)
-
-    #noinspection PyUnusedLocal
-    result = urllib2.urlopen(request)
-    return file_path
+        #noinspection PyUnusedLocal
+        result = urllib2.urlopen(request)
+        return file_path
+    except Exception, e:
+        handle_exception(e, False)
 
 
 def possible_new_dirs(file_path, memory):
@@ -776,7 +772,7 @@ def upload_files(memory, options, serverindex, file_uploads):
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
             #apply(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]))
-            result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
+            result = pool.apply_async(upload_file, (memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory,  uf["local_file_path"]), uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
             print "cba_sync.py:782", "can't fnd", uf["local_file_path"]

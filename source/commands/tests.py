@@ -13,14 +13,14 @@ from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
 from cba_blobs import get_blob_dir, get_data_dir
-from cba_network import authorize_user, authorized
+from cba_network import authorize_user
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
-from couchdb_api import MemcachedServer
+from couchdb_api import MemcachedServer, CouchNamedCluster, CouchDBServer, sync_all_views
 
 
 def add(a, b):
@@ -131,6 +131,9 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
+        named_cluster = CouchNamedCluster("test", ["http://127.0.0.1:5984/"], [])
+        dbase = CouchDBServer(named_cluster, memcached_server_list=["127.0.0.1:11211"])
+        sync_all_views(dbase, ["couchdb_api", "crypto_api", "couchdb_tree"])
 
     def reset_cb_db_clean(self):
         """
@@ -309,7 +312,6 @@ class CryptoboxAppTest(unittest.TestCase):
         dirname_hashes_server, fnodes, unique_content, unique_dirs = parse_serverindex(serverindex)
         dir_make_server, dir_del_local = dirs_on_local(self.cbmemory, self.cboptions, localindex, dirname_hashes_server, serverindex)
         return (len(dir_make_server) == 0) and (len(dir_del_local) == 0)
-
 
     def test_compare_server_tree_with_local_tree_method_folders(self):
         """
