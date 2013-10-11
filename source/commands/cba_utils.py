@@ -602,9 +602,12 @@ class Memory(object):
             if os.path.exists(datadir):
                 mempath = os.path.join(datadir, "memory.pickle")
                 pickle_object(mempath, self.data, json_pickle=True)
+        except:
+            self.unlock()
         finally:
             if not keep_lock:
                 self.unlock()
+
 
     def load(self, datadir, keep_lock=False):
         """
@@ -625,7 +628,8 @@ class Memory(object):
                         self.has(k)
                     except MemoryExpired:
                         pass
-
+        except:
+            self.unlock()
         finally:
             if not keep_lock:
                 self.unlock()
