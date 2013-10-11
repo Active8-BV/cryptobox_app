@@ -152,10 +152,12 @@ def cryptobox_command(options):
         options.basedir = options.dir
         ensure_directory(options.basedir)
         options.dir = os.path.join(options.dir, options.cryptobox)
+
         if quick_lock_check(options.dir):
             smemory.set("cryptobox_locked", True)
             log("Cryptobox locked")
             return False
+
         if not options.encrypt:
             restore_hidden_config(options)
         ensure_directory(options.dir)
@@ -209,7 +211,7 @@ def cryptobox_command(options):
                 clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
                 smemory = SingletonMemory()
                 smemory.set("tree_sequence", clock_tree_seq[1])
-                print "cba_main.py:208", smemory.get("tree_sequence")
+                print "cba_main.py:214", smemory.get("tree_sequence")
         elif options.password and options.username and options.cryptobox:
             memory = authorize_user(memory, options)
 
@@ -217,6 +219,7 @@ def cryptobox_command(options):
                 if options.check:
                     if cryptobox_locked(memory):
                         return False
+
                     if smemory.get("cryptobox_locked"):
                         return False
                     ensure_directory(options.dir)
@@ -458,7 +461,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:454", "bye xmlrpc server"
+            print "cba_main.py:464", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -486,7 +489,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:482", "kill it", ex
+                print "cba_main.py:492", "kill it", ex
 
                 #commandserver.terminate()
 
@@ -505,4 +508,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:501", "\nbye main"
+        print "cba_main.py:511", "\nbye main"
