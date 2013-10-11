@@ -117,6 +117,7 @@ def consoledict(*args):
     log(dbs)
 
 
+
 def cryptobox_command(options):
     """
     @param options: dictionary with options
@@ -208,9 +209,7 @@ def cryptobox_command(options):
             return result[0]
         elif options.treeseq:
             if memory.has("session"):
-                clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
-                smemory = SingletonMemory()
-                smemory.set("tree_sequence", clock_tree_seq[1])
+                memory, smemory = get_tree_sequence(memory, options)
                 print "cba_main.py:214", smemory.get("tree_sequence")
         elif options.password and options.username and options.cryptobox:
             memory = authorize_user(memory, options)

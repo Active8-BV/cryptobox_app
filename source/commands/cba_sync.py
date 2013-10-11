@@ -280,7 +280,6 @@ def wait_for_tasks(memory, options):
                     return memory
 
 
-
 def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
     """
     @type memory: Memory
@@ -448,6 +447,19 @@ def path_to_server_shortid(memory, options, serverindex, path):
         raise MultipleGuidsForPath(path)
 
 
+def get_tree_sequence(memory, options):
+    """
+    @type memory: Memory
+    @type options: optparse.Values, instance
+    """
+    if not memory.has("session"):
+        return -1
+    clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
+    smemory = SingletonMemory()
+    smemory.set("tree_sequence", clock_tree_seq[1])
+    return int(clock_tree_seq[1])
+
+
 def get_server_index(memory, options):
     """
     @type memory: Memory
@@ -461,6 +473,13 @@ def get_server_index(memory, options):
 
     if not memory.has("session"):
         memory = authorize_user(memory, options)
+
+    tree_seq = get_tree_sequence(memory, options)
+    old_tree_seq = memory.has_get("tree_seq")
+    memory.replace("tree_seq", tree_seq)
+    if tree_seq == old_tree_seq:
+        print "SAME TREE ID"
+        return memory.get("serverindex"), memory
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
     if not result[0]:
