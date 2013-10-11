@@ -203,35 +203,39 @@ def cryptobox_command(options):
 
         reset_memory_progress()
         reset_item_progress()
-        smemory.set("cryptobox_locked", quick_lock_check(options))
+
         if options.logout:
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
         elif options.treeseq:
             if memory.has("session"):
                 memory, smemory = get_tree_sequence(memory, options)
+                smemory.set("working", False)
                 return smemory.get("tree_sequence")
         elif options.password and options.username and options.cryptobox:
-            memory = authorize_user(memory, options)
+            memory = authorize_user(memory, options, force=True)
 
             if memory.get("authorized"):
                 if options.check:
                     if quick_lock_check(options):
+                        smemory.set("working", False)
                         return False
 
-                    if smemory.get("cryptobox_locked"):
-                        return False
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
+                    smemory.set("working", True)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
                 elif options.sync:
+
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+                        smemory.set("working", False)
                         return False
 
                     if quick_lock_check(options):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        smemory.set("working", False)
                         return False
                     ensure_directory(options.dir)
                     smemory.set("working", True)
@@ -248,6 +252,7 @@ def cryptobox_command(options):
         if options.decrypt:
             if options.remove:
                 log("option remove (-r) cannot be used together with decrypt (dataloss)")
+                smemory.set("working", False)
                 return False
 
             if not options.clear == "1":
@@ -260,6 +265,7 @@ def cryptobox_command(options):
         reset_memory_progress()
         reset_item_progress()
         smemory.set("cryptobox_locked", quick_lock_check(options))
+        smemory.set("working", False)
     except Exception, e:
         handle_exception(e, False)
     finally:

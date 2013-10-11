@@ -775,7 +775,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
-            apply(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]))
+            #apply(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]))
             result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
@@ -834,7 +834,7 @@ def sync_server(memory, options):
     if not os.path.exists(options.dir):
         raise NoSyncDirFound(options.dir)
 
-    if quick_lock_check(memory):
+    if quick_lock_check(options):
         exit_app_warning("cryptobox is locked, no sync possible, first decrypt (-d)")
         return
 
