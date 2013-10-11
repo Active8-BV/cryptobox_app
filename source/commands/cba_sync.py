@@ -146,6 +146,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
 
             if rel_dirname not in serverindex["dirlist"]:
                 folder_timestamp = os.stat(node["dirname"]).st_mtime
+
                 if int(folder_timestamp) >= int(tree_timestamp):
                     dirs_make_server.append(node)
                 else:
@@ -278,15 +279,15 @@ def wait_for_tasks(memory, options):
                         if num_tasks > 6:
                             log("waiting for tasks", num_tasks)
                             time.sleep(1)
+
                 else:
                     return memory
 
 
-def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete):
+def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
     """
     @type memory: Memory
     @type options: optparse.Values, instance
-    @type serverindex: dict
     @type short_node_ids_to_delete: list
     """
     if len(short_node_ids_to_delete) > 0:
@@ -321,7 +322,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
     for dir_name_rel in shortest_paths:
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
-    memory = instruct_server_to_delete_items(memory, options, serverindex, short_node_ids_to_delete)
+    memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
     return memory
 
 
@@ -443,6 +444,7 @@ def get_tree_sequence(memory, options):
     """
     if not memory.has("session"):
         return -1
+
     clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
     smemory = SingletonMemory()
     smemory.set("tree_sequence", clock_tree_seq[1])
@@ -591,7 +593,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:577", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:596", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -684,7 +686,7 @@ def upload_file(memory, options, file_path, parent):
         update_item_progress(percentage)
         if percentage % 25 == 0:
             if percentage != last_progress[0]:
-                print "cba_sync.py:670", "upload", percentage
+                print "cba_sync.py:689", "upload", percentage
                 last_progress[0] = percentage
 
     server = options.server
@@ -777,11 +779,11 @@ def upload_files(memory, options, serverindex, file_uploads):
             result = pool.apply_async(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]), callback=done_downloading)
             upload_result.append(result)
         else:
-            print "cba_sync.py:763", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:782", "can't fnd", uf["local_file_path"]
     pool.close()
     pool.join()
-
     files_uploaded = []
+
     for ur in upload_result:
         if ur.successful():
             files_uploaded.append(ur.get())
@@ -792,7 +794,6 @@ def upload_files(memory, options, serverindex, file_uploads):
                 handle_exception(e, False)
 
     pool.terminate()
-
     return memory, files_uploaded
 
 
@@ -867,7 +868,7 @@ def sync_server(memory, options):
 
     # delete items
     if len(del_server_items) > 0:
-        memory = instruct_server_to_delete_items(memory, options, serverindex, del_server_items)
+        memory = instruct_server_to_delete_items(memory, options, del_server_items)
 
     if len(file_downloads) > 0:
         memory = get_unique_content(memory, options, unique_content, file_downloads)
@@ -885,19 +886,18 @@ def sync_server(memory, options):
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
     dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
+    #noinspection PyStatementEffect
     """
-    for short_id in short_node_ids_to_delete:
-        path, memory = short_id_to_server_path(memory, serverindex, short_id)
-        new_server_hash_history = set()
-
-        if memory.has("serverpath_history"):
-            for serverpath_history_item in memory.get("serverpath_history"):
-                serverpath_history_item_path = serverpath_history_item[0]
-
-                if path not in serverpath_history_item_path:
-                    new_server_hash_history.add(serverpath_history_item)
-            memory.replace("serverpath_history", new_server_hash_history)
-    """
+        for short_id in short_node_ids_to_delete:
+            path, memory = short_id_to_server_path(memory, serverindex, short_id)
+            new_server_hash_history = set()
+            if memory.has("serverpath_history"):
+                for serverpath_history_item in memory.get("serverpath_history"):
+                    serverpath_history_item_path = serverpath_history_item[0]
+                    if path not in serverpath_history_item_path:
+                        new_server_hash_history.add(serverpath_history_item)
+                memory.replace("serverpath_history", new_server_hash_history)
+        """
     dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
         memory = del_path_history(fpath, memory)

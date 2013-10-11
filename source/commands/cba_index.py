@@ -47,6 +47,103 @@ def store_cryptobox_index(memory, index):
     return memory
 
 
+def get_hidden_configs(options):
+    """
+    :param options:
+    :return: :rtype:
+    """
+    dirs_base_folder = os.listdir(options.basedir)
+    hidden_configs = []
+
+    for base_folder in dirs_base_folder:
+        dirpath = os.path.join(options.basedir, base_folder)
+
+        if os.path.isdir(dirpath):
+            for fpath in os.listdir(dirpath):
+                if fpath.endswith(".cryptoboxfolder"):
+                    hidden_configs.append((base_folder, fpath))
+
+    return hidden_configs
+
+
+def restore_config(config_file_path, cryptoboxname, options, secret):
+    """
+    @type config_file_path: str, unicode
+    @type cryptoboxname: str, unicode
+    @type options: optparse.Values, instance
+    @type secret: str, unicode
+    """
+    if os.path.exists(config_file_path):
+        os.remove(config_file_path)
+
+    p1 = os.path.dirname(config_file_path)
+    p2 = os.path.join(options.basedir, cryptoboxname)
+    os.rename(p1, p2)
+    if secret:
+        datadir = get_data_dir(options)
+        mempath = os.path.join(datadir, "memory.pickle")
+
+        if os.path.exists(mempath + ".enc"):
+            decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
+            os.remove(mempath + ".enc")
+
+
+def get_encrypted_configs(options, name_stop=None):
+    """
+    @type options: optparse.Values, instance
+    @param name_stop: stop looking if this name is matched
+    @type name_stop:bool
+    """
+    hidden_configs = get_hidden_configs(options)
+    encrypted_configs = []
+
+    for config in hidden_configs:
+        config_file_path = os.path.join(options.basedir, config[0])
+        config_file_path = os.path.join(config_file_path, config[1])
+        cryptoboxname = unpickle_object(config_file_path)
+        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
+        encrypted_configs.append({"cryptoboxname": cryptoboxname, "secret": secret, "config_file_path": config_file_path})
+        if name_stop == cryptoboxname:
+            return encrypted_configs
+    return encrypted_configs
+
+
+def restore_hidden_config(options):
+    """
+    @type options: optparse.Values, instance
+    """
+    encrypted_configs = get_encrypted_configs(options, name_stop=options.cryptobox)
+
+    for encrypted_config in encrypted_configs:
+        if strcmp(encrypted_config["cryptoboxname"], options.cryptobox):
+            restore_config(encrypted_config["config_file_path"], encrypted_config["cryptoboxname"], options, encrypted_config["secret"])
+
+
+def hide_config(options, salt, secret):
+    """
+    @type options: optparse.Values, instance
+    @param salt:
+    @type salt:
+    @param secret:
+    @type secret:
+    """
+    if options.encrypt and options.remove and salt and secret:
+        datadir = get_data_dir(options)
+        mempath = os.path.join(datadir, "memory.pickle")
+
+        if os.path.exists(mempath):
+            read_and_encrypt_file(mempath, mempath + ".enc", secret)
+            os.remove(mempath)
+            hidden_name = "." + get_uuid(3)
+
+            while hidden_name in os.listdir(options.dir):
+                hidden_name = "." + get_uuid(3)
+
+            encrypted_name = encrypt_object(secret, options.cryptobox)
+            pickle_object(os.path.join(options.dir, hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
+            os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
+
+
 def quick_lock_check(cryptobox_folder):
     """
     quick_lock_check
@@ -237,86 +334,10 @@ def index_and_encrypt(memory, options):
     return salt, secret, memory, localindex
 
 
-def get_hidden_configs(options):
-    """
-    :param options:
-    :return: :rtype:
-    """
-    dirs_base_folder = os.listdir(options.basedir)
-    hidden_configs = []
-
-    for base_folder in dirs_base_folder:
-        dirpath = os.path.join(options.basedir, base_folder)
-
-        if os.path.isdir(dirpath):
-            for fpath in os.listdir(dirpath):
-                if fpath.endswith(".cryptoboxfolder"):
-                    hidden_configs.append((base_folder, fpath))
-
-    return hidden_configs
-
-
-def restore_hidden_config(options):
-    """
-    @param options:
-    @type options:
-    """
-    hidden_configs = get_hidden_configs(options)
-
-    for config in hidden_configs:
-        config_file_path = os.path.join(options.basedir, config[0])
-        config_file_path = os.path.join(config_file_path, config[1])
-        cryptoboxname = unpickle_object(config_file_path)
-        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
-
-        if strcmp(cryptoboxname, options.cryptobox):
-            if os.path.exists(config_file_path):
-                os.remove(config_file_path)
-
-            p1 = os.path.dirname(config_file_path)
-            p2 = os.path.join(options.basedir, cryptoboxname)
-            os.rename(p1, p2)
-            if secret:
-                datadir = get_data_dir(options)
-                mempath = os.path.join(datadir, "memory.pickle")
-
-                if os.path.exists(mempath + ".enc"):
-                    decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
-                    os.remove(mempath + ".enc")
-
-            return
-
-
-def hide_config(options, salt, secret):
-    """
-    @param options:
-    @type options:
-    @param salt:
-    @type salt:
-    @param secret:
-    @type secret:
-    """
-    if options.encrypt and options.remove and salt and secret:
-        datadir = get_data_dir(options)
-        mempath = os.path.join(datadir, "memory.pickle")
-
-        if os.path.exists(mempath):
-            read_and_encrypt_file(mempath, mempath + ".enc", secret)
-            os.remove(mempath)
-            hidden_name = "." + get_uuid(3)
-
-            while hidden_name in os.listdir(options.dir):
-                hidden_name = "." + get_uuid(3)
-
-            encrypted_name = encrypt_object(secret, options.cryptobox)
-            pickle_object(os.path.join(options.dir, hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
-            os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
-
-
 def check_and_clean_dir(options):
     """
     check_and_clean_dir
-    @type options: instance
+    @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
         log("check_and_clean_dir needs clear and encrypt option")

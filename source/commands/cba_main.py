@@ -32,9 +32,12 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
+
         class _Popen(multiprocessing.forking.Popen):
+
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -47,6 +50,7 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
+
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -63,7 +67,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -356,11 +359,11 @@ class XMLRPCThread(multiprocessing.Process):
                 stop_server
                 """
                 log("force_stop")
+                log("force_stop DISABLED")
+                return False
 
-                #log("force_stop DISABLED")
-                #return False
-                server.force_stop()
-                return True
+                #server.force_stop()
+                #return True
 
             def last_ping():
                 """
@@ -399,18 +402,23 @@ class XMLRPCThread(multiprocessing.Process):
                 @type options: dict
                 """
                 logged = False
+
                 if has_option(options, "check"):
                     log("check sync stats")
                     logged = True
+
                 if has_option(options, "sync"):
                     log("sync")
                     logged = True
+
                 if has_option(options, "encrypt"):
                     log("encrypt")
                     logged = True
+
                 if has_option(options, "decrypt"):
                     log("decrypt")
                     logged = True
+
                 if not logged:
                     log("cb_command", options)
 
@@ -454,14 +462,13 @@ class XMLRPCThread(multiprocessing.Process):
                 log("do_open_folder")
                 open_folder(os.path.join(folder_path, servername))
 
-            def get_tree_sequence(options):
+            def do_get_tree_sequence(options):
                 """
                 :param options:
                 :return: :rtype:
                 """
                 log("get_tree_sequence")
                 return cryptobox_command(options)
-
             server.register_function(ping, 'ping')
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
@@ -472,7 +479,7 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(get_all_smemory, "get_all_smemory")
             server.register_function(get_motivation, "get_motivation")
             server.register_function(do_open_folder, "do_open_folder")
-            server.register_function(get_tree_sequence, "get_tree_sequence")
+            server.register_function(do_get_tree_sequence, "get_tree_sequence")
 
             try:
                 memory.set("last_ping", time.time())
@@ -483,7 +490,8 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:464", "bye xmlrpc server"
+            print "cba_main.py:493", "bye xmlrpc server"
+
 
 #noinspection PyClassicStyleClass
 def main():
@@ -510,7 +518,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:492", "kill it", ex
+                print "cba_main.py:521", "kill it", ex
 
                 #commandserver.terminate()
 
@@ -523,9 +531,10 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:511", "\nbye main"
+        print "cba_main.py:540", "\nbye main"
