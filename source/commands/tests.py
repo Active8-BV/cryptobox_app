@@ -236,14 +236,14 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 9)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
         # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 9)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
     def itest_index_encrypt_decrypt_clean(self):
         """
@@ -528,7 +528,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #noinspection PyUnusedLocal
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
-        self.assertEqual(len(dir_make_server), 1)
+        self.assertEqual(len(dir_make_server), 3)
         self.assertEqual(len(file_uploads), 5)
 
 

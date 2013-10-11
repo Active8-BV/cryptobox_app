@@ -144,7 +144,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
         if os.path.exists(node["dirname"]):
             #folder_timestamp = os.stat(node["dirname"]).st_mtime
             #if int(folder_timestamp) >= int(tree_timestamp):
-            memory, rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
+            rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
 
             if rel_dirname not in serverindex["dirlist"]:
                 dirs_make_server.append(node)
