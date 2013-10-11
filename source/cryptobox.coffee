@@ -526,9 +526,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 change_workingstate(r.working)
                 update_sync_state(r)
                 utils.force_digest($scope)
+                if utils.exist(r.tree_sequence)
+                    $scope.tree_sequence = r.tree_sequence
 
             (e) ->
-                warning "cryptobox.cf:531", e
+                warning "cryptobox.cf:533", e
         )
 
     get_option = ->
@@ -552,7 +554,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 pass
 
             (err) ->
-                warning "cryptobox.cf:555", err
+                warning "cryptobox.cf:557", err
         )
 
     $scope.encrypt_btn = ->
@@ -566,7 +568,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output(res)
 
             (err) ->
-                warning "cryptobox.cf:569", err
+                warning "cryptobox.cf:571", err
         )
 
     $scope.decrypt_btn = ->
@@ -580,22 +582,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output("done decrypting")
 
             (err) ->
-                warning "cryptobox.cf:583", err
-        )
-
-    $scope.tree_sequence = null
-
-    get_tree_sequence = ->
-        option = get_option()
-        option.treeseq = true
-
-        run_command("cryptobox_command", [option]).then(
-            (res) ->
-                add_output("tree_seq", res)
-                $scope.tree_sequence = res
-
-            (err) ->
-                warning "cryptobox.cf:598", err
+                warning "cryptobox.cf:585", err
         )
 
     $scope.open_folder = ->
@@ -699,14 +686,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         if second_counter % 10 == 0
             ping_client()
 
-        if second_counter % 30 == 0
-            get_tree_sequence()
-
     start_after_second = =>
         get_motivation()
-        get_tree_sequence()
 
         try_get_sync_state()
-        utils.set_interval("cryptobox.cf:710", second_interval, 1000, "second_interval")
+        utils.set_interval("cryptobox.cf:693", second_interval, 1000, "second_interval")
 
-    utils.set_time_out("cryptobox.cf:712", start_after_second, 1000)
+    utils.set_time_out("cryptobox.cf:695", start_after_second, 1000)

@@ -123,7 +123,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
     if "tree_timestamp" not in serverindex:
         raise Exception("dirs_on_local needs a tree timestamp")
 
-    #tree_timestamp = float(serverindex["tree_timestamp"])
+    tree_timestamp = int(serverindex["tree_timestamp"])
     local_dirs_not_on_server = []
 
     for dirhashlocal in localindex["dirnames"]:
@@ -142,12 +142,14 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
 
     for node in local_dirs_not_on_server:
         if os.path.exists(node["dirname"]):
-            #folder_timestamp = os.stat(node["dirname"]).st_mtime
-            #if int(folder_timestamp) >= int(tree_timestamp):
             rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
 
             if rel_dirname not in serverindex["dirlist"]:
-                dirs_make_server.append(node)
+                folder_timestamp = os.stat(node["dirname"]).st_mtime
+                if int(folder_timestamp) >= int(tree_timestamp):
+                    dirs_make_server.append(node)
+                else:
+                    dirs_del_local.append(node)
             else:
                 dirs_del_local.append(node)
 
@@ -291,19 +293,6 @@ def instruct_server_to_delete_items(memory, options, serverindex, short_node_ids
         payload = {"tree_item_list": short_node_ids_to_delete}
         result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
         memory = wait_for_tasks(memory, options)
-
-        for short_id in short_node_ids_to_delete:
-            path, memory = short_id_to_server_path(memory, serverindex, short_id)
-            new_server_hash_history = set()
-
-            if memory.has("serverpath_history"):
-                for serverpath_history_item in memory.get("serverpath_history"):
-                    serverpath_history_item_path = serverpath_history_item[0]
-
-                    if path not in serverpath_history_item_path:
-                        new_server_hash_history.add(serverpath_history_item)
-                memory.replace("serverpath_history", new_server_hash_history)
-
     return memory
 
 
@@ -896,7 +885,19 @@ def sync_server(memory, options):
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
     dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
+    """
+    for short_id in short_node_ids_to_delete:
+        path, memory = short_id_to_server_path(memory, serverindex, short_id)
+        new_server_hash_history = set()
 
+        if memory.has("serverpath_history"):
+            for serverpath_history_item in memory.get("serverpath_history"):
+                serverpath_history_item_path = serverpath_history_item[0]
+
+                if path not in serverpath_history_item_path:
+                    new_server_hash_history.add(serverpath_history_item)
+            memory.replace("serverpath_history", new_server_hash_history)
+    """
     dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
         memory = del_path_history(fpath, memory)
