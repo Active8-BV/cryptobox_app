@@ -688,8 +688,8 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                     if percentage != last_progress[0]:
                         print "cba_sync.py:689", "upload", percentage
                         last_progress[0] = percentage
-            except Exception, e:
-                print "updating upload progress failed", str(e)
+            except Exception, exc:
+                print "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
