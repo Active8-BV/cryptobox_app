@@ -661,9 +661,11 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
 def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
     """
-    @type session: dict
-    @type options: instance
+    @type session: instance
+    @type server: dict
+    @type cryptobox: str, unicode
     @type file_path: str, unicode
+    @type rel_file_path: str, unicode
     @type parent: str, unicode
     @raise NotAuthorized:
     """
