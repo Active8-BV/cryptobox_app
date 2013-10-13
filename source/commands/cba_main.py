@@ -141,6 +141,8 @@ def cryptobox_command(options):
         else:
             options.numdownloadthreads = int(options.numdownloadthreads)
 
+        options.numdownloadthreads = 8
+
         if not options.dir:
             log("Need DIR -f or --dir to continue")
             return False
