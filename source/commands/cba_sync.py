@@ -716,6 +716,8 @@ def possible_new_dirs(file_path, memory):
     @type file_path: str, unicode
     @type memory: Memory
     """
+    if file_path is None:
+        raise Exception("possible_new_dirs is None")
     possible_new_dir_list = []
     file_dir = os.path.dirname(file_path)
     rel_unix_path = path_to_relative_path_unix_style(memory, file_dir)
