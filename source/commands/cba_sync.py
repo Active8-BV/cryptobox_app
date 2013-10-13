@@ -706,6 +706,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
 
+        #test
         #noinspection PyUnusedLocal
         result = urllib2.urlopen(request)
         return file_path
