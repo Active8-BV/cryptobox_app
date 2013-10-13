@@ -754,6 +754,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             uf["parent_short_id"] = uf["parent_path"] = ""
 
     pool = Pool(processes=options.numdownloadthreads)
+    pool = Pool(processes=2)
     uploaded_files = []
     file_upload_completed = []
 
