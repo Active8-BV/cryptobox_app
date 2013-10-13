@@ -681,12 +681,16 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             @type total:
             prog_callback
             """
-            percentage = 100 - ((total - current ) * 100 ) / total
-            update_item_progress(percentage, True)
-            if percentage % 25 == 0:
-                if percentage != last_progress[0]:
-                    print "cba_sync.py:689", "upload", percentage
-                    last_progress[0] = percentage
+            try:
+                percentage = 100 - ((total - current ) * 100 ) / total
+                update_item_progress(percentage, True)
+                if percentage % 25 == 0:
+                    if percentage != last_progress[0]:
+                        print "cba_sync.py:689", "upload", percentage
+                        last_progress[0] = percentage
+            except Exception, e:
+                print "updating upload progress failed", str(e)
+
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
@@ -754,7 +758,6 @@ def upload_files(memory, options, serverindex, file_uploads):
             uf["parent_short_id"] = uf["parent_path"] = ""
 
     pool = Pool(processes=options.numdownloadthreads)
-    pool = Pool(processes=2)
     uploaded_files = []
     file_upload_completed = []
 
