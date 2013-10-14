@@ -7,7 +7,6 @@ import time
 import threading
 import base64
 import urllib
-import subprocess
 import json
 import requests
 from cba_utils import log, Memory, update_item_progress
@@ -111,10 +110,8 @@ def request_error(result):
     request_error
     @type result: str, unicode
     """
-    open("error.html", "w").write(result.text)
-    subprocess.call(["lynx", "error.html"])
-    os.remove("error.html")
-    return
+    log(result.raw)
+
 
 
 class ServerForbidden(Exception):
@@ -210,7 +207,6 @@ def download_server(memory, options, url):
     url = os.path.normpath(url)
     url = options.server + options.cryptobox + "/" + url
 
-    #log("download server:", URL)
     session = memory.get("session")
     result = session.get(url, timeout=3600, stream=True, verify=False)
 

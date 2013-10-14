@@ -58,7 +58,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.on_exit = =>
         $scope.quitting = true
         client = get_rpc_client()
-        client.methodCall "force_stop",[], (e,v) ->
+        client.methodCall "force_stop2",[], (e,v) ->
             if cba_main?.pid?
                 if not $scope.succesfull_kill
                     process.kill(cba_main.pid);
