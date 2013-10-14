@@ -4,10 +4,13 @@ unit test for app commands
 """
 __author__ = 'rabshakeh'
 import os
+import time
+import couchdb
 import cPickle
+import subprocess
 import unittest
 import random
-from subprocess import Popen, PIPE
+import requests
 import sys
 from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
@@ -17,11 +20,13 @@ from cba_network import authorize_user
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
+from subprocess import Popen, PIPE
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
-from couchdb_api import MemcachedServer, CouchNamedCluster, CouchDBServer, sync_all_views
-
+from couchdb_api import MemcachedServer, CouchDBServer, sync_all_views
+#noinspection PyUnresolvedReferences
+import crypto_api
 
 def add(a, b):
     """
@@ -63,17 +68,33 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         setUp
         """
+        self.db_name = "test"
+        server = "http://127.0.01:8000/"
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
+        self.cboptions = Dict2Obj(self.options_d)
 
-        #SERVER = "https://www.cryptobox.nl/"
-        #os.system("cd testdata; unzip -o testmap.zip > /dev/null")
-        #server = "https://www.cryptobox.nl/"
+        self.reset_cb_db_clean()
+
+        os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
+        os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
+        self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
+        self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        connected = False
+        while not connected:
+            try:
+                data = requests.get("http://127.0.0.1:8000").content
+                connected = True
+            except Exception, e:
+                print str(e)
+                time.sleep(1)
+
+
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
-        server = "http://127.0.01:8000/"
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": "test", "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
-        self.cboptions = Dict2Obj(self.options_d)
+
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
+
         self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
@@ -84,17 +105,15 @@ class CryptoboxAppTest(unittest.TestCase):
             if not os.path.exists(os.path.join("testdata", tfn)):
                 os.system("cd testdata; nohup wget http://download.thinkbroadband.com/" + tfn)
 
-                #sys.stdout = open('stdout.txt', 'w')
-                #sys.stderr = open('stderr.txt', 'w')
-
-                #noinspection PyPep8Naming
-
     def tearDown(self):
         """
         tearDown
         """
         if self.do_wait_for_tasks:
             wait_for_tasks(self.cbmemory, self.cboptions)
+        self.server.terminate()
+        time.sleep(1)
+        self.cronjob.terminate()
         self.cbmemory.save(get_data_dir(self.cboptions))
         if os.path.exists('stdout.txt'):
             os.remove('stdout.txt')
@@ -124,6 +143,14 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         reset_cb_db_clean
         """
+        server = "http://127.0.0.1:5984/"
+
+        if self.db_name in list(couchdb.Server(server)):
+            couchdb.Server(server).delete(self.db_name)
+
+        if self.db_name not in list(couchdb.Server(server)):
+            couchdb.Server(server).create(self.db_name)
+
         os.system("rm -Rf testdata/testmap")
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
@@ -131,9 +158,8 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
-        named_cluster = CouchNamedCluster("test", ["http://127.0.0.1:5984/"], [])
-        dbase = CouchDBServer(named_cluster, memcached_server_list=["127.0.0.1:11211"])
-        sync_all_views(dbase, ["couchdb_api", "crypto_api", "couchdb_tree"])
+        dbase = CouchDBServer(self.db_name, ["http://127.0.0.1:5984/"], memcached_server_list=["127.0.0.1:11211"])
+        sync_all_views(dbase, ["couchdb_api", "crypto_api"])
 
     def reset_cb_db_clean(self):
         """
