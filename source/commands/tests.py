@@ -91,6 +91,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
                 #noinspection PyUnusedLocal
                 if self.start_servers:
+                    #noinspection PyStatementEffect
                     requests.get("http://127.0.0.1:8000").content
 
                 connected = True

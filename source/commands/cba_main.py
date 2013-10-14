@@ -19,7 +19,7 @@ import random
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, reset_memory_progress, reset_item_progress, handle_exception, open_folder
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -126,7 +126,7 @@ def cryptobox_command(options):
     """
     try:
         smemory = SingletonMemory()
-        smemory.set("working", False)
+        smemory.set("working", True)
         if isinstance(options, dict):
             options = Dict2Obj(options)
 
@@ -200,15 +200,13 @@ def cryptobox_command(options):
                 log("No password given (-p or --password)")
                 return False
 
-        reset_memory_progress()
-        reset_item_progress()
         if options.logout:
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
         elif options.treeseq:
             if memory.has("session"):
                 memory, smemory = get_tree_sequence(memory, options)
-                smemory.set("working", False)
+
                 return smemory.get("tree_sequence")
         elif options.password and options.username and options.cryptobox:
             memory = authorize_user(memory, options, force=True)
@@ -216,25 +214,24 @@ def cryptobox_command(options):
             if memory.get("authorized"):
                 if options.check:
                     if quick_lock_check(options):
-                        smemory.set("working", False)
                         return False
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
-                    smemory.set("working", True)
+
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
-                        smemory.set("working", False)
+
                         return False
 
                     if quick_lock_check(options):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
-                        smemory.set("working", False)
+
                         return False
                     ensure_directory(options.dir)
-                    smemory.set("working", True)
+
                     localindex, memory = sync_server(memory, options)
 
         salt = None
@@ -242,26 +239,20 @@ def cryptobox_command(options):
 
         if options.encrypt:
             smemory.set("cryptobox_locked", True)
-            smemory.set("working", True)
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
 
         if options.decrypt:
             if options.remove:
                 log("option remove (-r) cannot be used together with decrypt (dataloss)")
-                smemory.set("working", False)
                 return False
 
             if not options.clear == "1":
-                smemory.set("working", True)
                 memory = decrypt_and_build_filetree(memory, options)
         check_and_clean_dir(options)
         smemory.set("last_ping", time.time())
         memory.save(datadir)
         hide_config(options, salt, secret)
-        reset_memory_progress()
-        reset_item_progress()
         smemory.set("cryptobox_locked", quick_lock_check(options))
-        smemory.set("working", False)
     except Exception, e:
         handle_exception(e, False)
     finally:
@@ -373,19 +364,6 @@ class XMLRPCThread(multiprocessing.Process):
                 memory.set("last_ping", time.time())
                 return "ping received"
 
-            def reset_progress(): 
-                """
-                reset_progress
-                """
-                log("reset_progress")
-                reset_memory_progress()
-
-            def do_reset_item_progress():
-                """
-                reset_item_progress
-                """
-                log("do_reset_item_progress")
-                reset_item_progress()
 
             def ping():
                 """
@@ -431,7 +409,6 @@ class XMLRPCThread(multiprocessing.Process):
                 get_all_smemory
                 """
 
-                #log("get_all_smemory")
                 smemory = SingletonMemory()
                 return smemory.data
 
@@ -442,14 +419,6 @@ class XMLRPCThread(multiprocessing.Process):
                 :param v:
                 """
                 smemory = SingletonMemory()
-
-                if k == "item_progress":
-                    if v == 100:
-                        if 0 == smemory.get(k):
-                            return True
-                        else:
-                            return smemory.set(k, v)
-
                 return smemory.set(k, v)
 
             def get_motivation():
@@ -482,8 +451,6 @@ class XMLRPCThread(multiprocessing.Process):
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
             server.register_function(run_cb_command, "cryptobox_command")
-            server.register_function(reset_progress, "reset_progress")
-            server.register_function(do_reset_item_progress, "reset_item_progress")
             server.register_function(set_smemory, "set_smemory")
             server.register_function(get_all_smemory, "get_all_smemory")
             server.register_function(get_motivation, "get_motivation")
@@ -492,8 +459,6 @@ class XMLRPCThread(multiprocessing.Process):
 
             try:
                 memory.set("last_ping", time.time())
-                reset_progress()
-                reset_item_progress()
                 server.serve_forever()
             finally:
                 server.force_stop()
@@ -533,6 +498,9 @@ def main():
 
             if not commandserver.is_alive():
                 break
+        smemory = SingletonMemory()
+        while smemory.get("working"):
+            time.sleep(0.2)
 
     else:
         cryptobox_command(options)

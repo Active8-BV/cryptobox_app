@@ -69,7 +69,7 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def encrypt_file_for_smp(secret, fin, total=None, perc_callback=None, perc_callback_freq=2):
+def encrypt_file_for_smp(secret, fin, total=None, perc_callback=None, perc_callback_freq=0.1):
     """
     @param secret: pkdf2 secre
     @type secret: str
@@ -138,7 +138,7 @@ def encrypt_file_for_smp(secret, fin, total=None, perc_callback=None, perc_callb
     return data_hash, initialization_vector, chunk_sizes_d, total_enc_data
 
 
-def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=2):
+def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vector, chunk_sizes, perc_callback=None, perc_callback_freq=0.1):
     """
     @param secret: generated secret pkdf2
     @type secret: str
@@ -212,7 +212,7 @@ def progress_file_cryption(p):
     """
     @type p: int
     """
-    update_item_progress(p, True)
+    update_item_progress(p)
 
 
 def encrypt_a_file(secret, perc_callback, chunk):

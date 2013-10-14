@@ -52,19 +52,17 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.cba_version = 0.1
     memory.set("g_running", true)
     cba_main = null
+    $scope.succesfull_kill = true
+    $scope.quitting = false
 
     $scope.on_exit = =>
+        $scope.quitting = true
         client = get_rpc_client()
         client.methodCall "force_stop",[], (e,v) ->
-            print "cryptobox.cf:59", "force_stop", e, v
-            gui.App.quit()
-
-        force_kill = =>
             if cba_main?.pid?
-                process.kill(cba_main.pid);
+                if not $scope.succesfull_kill
+                    process.kill(cba_main.pid);
             gui.App.quit()
-
-        utils.set_time_out("cryptobox.cf:67", force_kill, 2000)
 
     set_output_buffers = (cba_main_proc) ->
         if exist(cba_main_proc.stdout)
@@ -155,7 +153,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope.motivation = value
 
                 if not utils.exist($scope.motivation)
-                    utils.set_time_out("cryptobox.cf:158", get_motivation, 100)
+                    utils.set_time_out("cryptobox.cf:156", get_motivation, 100)
 
     ping_client = ->
         utils.force_digest($scope)
@@ -170,45 +168,33 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.rpc_server_started = false
 
     start_process = =>
-        print "cryptobox.cf:173", "start_process"
-        client = get_rpc_client()
-        client.methodCall "force_stop",[], (e,v) ->
-            if utils.exist(v)
-                print "cryptobox.cf:177", "killed existing deamon"
-            else
-                print "cryptobox.cf:179", "starting deamon"
+        print "cryptobox.cf:171", "start_process"
 
-            cba_main = spawn(cmd_to_run, [""])
-            set_output_buffers(cba_main)
+        #client = get_rpc_client()
+        #client.methodCall "force_stop",[], (e,v) ->
+        #    if utils.exist(v)
+        #        print "cryptobox.cf:176", "killed existing deamon"
+        #    else
+        #        print "cryptobox.cf:178", "starting deamon"
+        cba_main = spawn(cmd_to_run, [""])
+        set_output_buffers(cba_main)
 
     start_process_once = _.once(start_process)
-    print "cryptobox.cf:185", cmd_to_run
+    print "cryptobox.cf:183", cmd_to_run
     start_process_once()
-    progress_bar = 0
-    progress_bar_item = 0
+    $scope.progress_bar = 0
+    $scope.progress_bar_item = 0
 
     $scope.get_progress_item_show = =>
-        return progress_bar_item != 0
+        return $scope.progress_bar_item != 0
 
     $scope.get_progress_item = =>
         width:
-            progress_bar_item + "%"
+            $scope.progress_bar_item + "%"
 
     $scope.get_progress = =>
         width:
-            progress_bar + "%"
-
-    reset_progress = ->
-        client = get_rpc_client()
-        client.methodCall "reset_progress",[], (e,v) ->
-            if utils.exist(e)
-                warning "cryptobox.cf:205", e
-
-    reset_item_progress = ->
-        client = get_rpc_client()
-        client.methodCall "reset_item_progress",[], (e,v) ->
-            if utils.exist(e)
-                warning "cryptobox.cf:211", e
+            $scope.progress_bar + "%"
 
     $scope.lock_buttons = true
 
@@ -217,47 +203,6 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     last_progress_bar = 0
     last_progress_bar_item = 0
-
-    get_progress = (progress, progress_item) =>
-        add_output("progress: "+progress+" | progress_item:"+progress_item)
-        if not $scope.rpc_server_started
-            return
-
-        progress = parseInt(progress, 10)
-        progress_item = parseInt(progress_item, 10)
-        last_progress_bar = progress_bar
-        last_progress_bar_item = progress_bar_item
-
-        if progress == 0
-            if last_progress_bar > 10
-                progress_bar = 100
-
-        if progress_item == 0
-            if last_progress_bar_item > 10
-                progress_bar_item = 100
-
-        if progress > parseInt(progress_bar, 10)
-            progress_bar = progress
-
-        if progress_item > parseInt(progress_bar_item, 10)
-            progress_bar_item = progress_item
-
-        if progress_bar >= 100
-
-            reset_progress_bar = ->
-                progress_bar = 0
-                reset_progress()
-
-            utils.set_time_out("cryptobox.cf:251", reset_progress_bar, 500)
-
-        if progress_bar_item >= 100
-
-            reset_progress_bar_item = ->
-                progress_bar_item = 0
-                reset_item_progress()
-
-            utils.set_time_out("cryptobox.cf:259", reset_progress_bar_item, 500)
-        utils.force_digest($scope)
 
     store_user_var = (k, v) ->
         p = $q.defer()
@@ -324,7 +269,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 p.resolve()
 
             (err) ->
-                warning "cryptobox.cf:327", err
+                warning "cryptobox.cf:272", err
                 p.reject()
         )
         p.promise
@@ -345,6 +290,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.getting_sync_state = false
 
     try_get_sync_state = =>
+        if $scope.working
+            add_output("try_get_sync_state denied, working")
+            return
+
         if not $scope.getting_sync_state
             $scope.getting_sync_state = true
             add_output("try_get_sync_state")
@@ -352,13 +301,13 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             get_sync_state().then(
                 (r) ->
 
-                    utils.set_time_out("cryptobox.cf:355", getting_sync_state_false, 1000)
+                    utils.set_time_out("cryptobox.cf:304", getting_sync_state_false, 1000)
 
                 (e) ->
                     add_output("sync state error", e)
 
-                    utils.set_time_out("cryptobox.cf:360", getting_sync_state_false, 1000)
-                    warning "cryptobox.cf:361", e
+                    utils.set_time_out("cryptobox.cf:309", getting_sync_state_false, 1000)
+                    warning "cryptobox.cf:310", e
             )
         else
             add_output("sync state in progress")
@@ -438,7 +387,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                warning "cryptobox.cf:441", err
+                warning "cryptobox.cf:390", err
         )
 
     $scope.file_input_change = (f) ->
@@ -460,7 +409,8 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     else
                         ca_str = ca_str + i
                 _.each(command_arguments, bsca)
-                add_output(command_name + " " + ca_str + " " + error)
+
+                #add_output(command_name + " " + ca_str + " " + error)
                 p.reject(error)
                 utils.force_digest($scope)
             else
@@ -521,14 +471,18 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             $scope.disable_sync_button = false
             encrypt_tray_item.enabled = true
 
+    $scope.working = false
+
     change_workingstate = (wstate) ->
         if utils.exist_truth(wstate)
             $scope.lock_buttons = true
+            $scope.working = true
         else
             if $scope.lock_buttons
                 try_get_sync_state()
 
             $scope.lock_buttons = false
+            $scope.working = false
 
     get_all_smemory = ->
         client = get_rpc_client()
@@ -538,11 +492,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output("get_all_smemory" + " " + error)
                 utils.force_digest($scope)
             else
-                add_output(value)
-                get_progress(value.progress, value.item_progress)
                 cryptobox_locked_status_change(utils.exist_truth(value.cryptobox_locked))
                 change_workingstate(value.working)
-                update_sync_state(value)
+                if not utils.exist_truth(value.working)
+                    update_sync_state(value)
                 utils.force_digest($scope)
                 if utils.exist(value.tree_sequence)
                     $scope.tree_sequence = value.tree_sequence
@@ -570,7 +523,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 pass
 
             (err) ->
-                warning "cryptobox.cf:573", err
+                warning "cryptobox.cf:526", err
         )
 
     $scope.encrypt_btn = ->
@@ -584,7 +537,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output(res)
 
             (err) ->
-                warning "cryptobox.cf:587", err
+                warning "cryptobox.cf:540", err
         )
 
     $scope.decrypt_btn = ->
@@ -598,7 +551,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output("done decrypting")
 
             (err) ->
-                warning "cryptobox.cf:601", err
+                warning "cryptobox.cf:554", err
         )
 
     $scope.open_folder = ->
@@ -695,6 +648,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     second_counter = 0
 
     second_interval = =>
+        if $scope.quitting
+            print "cryptobox.cf:652", "quitting"
+            return
+
         start_watch()
         second_counter += 1
         update_output()
@@ -706,6 +663,33 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         get_motivation()
 
         try_get_sync_state()
-        utils.set_interval("cryptobox.cf:709", second_interval, 1000, "second_interval")
+        utils.set_interval("cryptobox.cf:666", second_interval, 1000, "second_interval")
 
-    utils.set_time_out("cryptobox.cf:711", start_after_second, 1000)
+    utils.set_time_out("cryptobox.cf:668", start_after_second, 1000)
+
+    progress_checker = ->
+        fprogress = path.join(process.cwd(), "progress")
+        fitem_progress = path.join(process.cwd(), "item_progress")
+
+        if fs.existsSync(fprogress)
+            data = fs.readFileSync(fprogress)
+            data = parseInt(data, 10)
+
+            if utils.exist(data)
+                $scope.progress_bar = parseInt(data, 10)
+                fs.unlinkSync(fprogress)
+
+        if fs.existsSync(fitem_progress)
+            data = fs.readFileSync(fitem_progress)
+
+            if utils.exist(data)
+                $scope.progress_bar_item = parseInt(data, 10)
+                fs.unlinkSync(fitem_progress)
+
+        if $scope.progress_bar >= 100
+            $scope.progress_bar = 0
+
+        if $scope.progress_bar_item >= 100
+            $scope.progress_bar_item = 0
+        utils.force_digest($scope)
+    utils.set_interval("cryptobox.cf:695", progress_checker, 100, "progress_checker")
