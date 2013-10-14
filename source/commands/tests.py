@@ -5,13 +5,16 @@ unit test for app commands
 __author__ = 'rabshakeh'
 import os
 import time
-import couchdb
 import cPickle
 import subprocess
 import unittest
 import random
-import requests
 import sys
+from subprocess import Popen, PIPE
+
+import couchdb
+import requests
+
 from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
@@ -20,7 +23,6 @@ from cba_network import authorize_user
 from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory
 from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
-from subprocess import Popen, PIPE
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -58,7 +60,11 @@ def count_files_dir(fpath):
 
     return len(s)
 
+
 def print_progress(p):
+    """
+    :param p: percentage
+    """
     print p
 
 #noinspection PyPep8Naming

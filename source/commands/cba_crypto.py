@@ -104,13 +104,17 @@ def encrypt_a_file(secret, chunk):
     return encrypt_file_for_smp(secret, StringIO(chunk))
 
 
-def encrypt_file_smp(secret, fname=None, progress_callback=None):
+def encrypt_file_smp(secret, fname, progress_callback):
     """
     @type secret: str, unicode
     @type fname: str, unicode
     @type progress_callback: function
     """
-    fobj = open(fname)
+    if isinstance(fname, str) or isinstance(fname, unicode):
+        fobj = open(fname)
+    else:
+        fobj = fname
+
     two_mb = (2 * (2 ** 20))
 
     chunklist = []
@@ -155,7 +159,7 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
     return dec_data
 
 
-def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
+def decrypt_file_smp(secret, enc_file_chunks, progress_callback):
     """
     @type secret: str, unicode
     @type enc_file_chunks: list
@@ -180,7 +184,7 @@ def encrypt_object(secret, obj):
     @return: @rtype:
     """
     pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
-    encrypted_dict = encrypt_file_smp(secret, StringIO(pickle_data))
+    encrypted_dict = encrypt_file_smp(secret, StringIO(pickle_data), update_item_progress)
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
@@ -199,4 +203,4 @@ def decrypt_object(secret, obj_string, key=None, salt=None):
             raise Exception("no salt")
 
         secret = password_derivation(key, salt)
-    return cPickle.load(decrypt_file_smp(secret, data)), secret
+    return cPickle.load(decrypt_file_smp(secret, data, update_item_progress)), secret

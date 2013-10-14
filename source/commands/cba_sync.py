@@ -679,8 +679,8 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             try:
                 percentage = 100 - ((total - current ) * 100 ) / total
                 if percentage != last_progress[0]:
-                    print "item progress", percentage
                     last_progress[0] = percentage
+                    update_item_progress(percentage)
             except Exception, exc:
                 print "cba_sync.py:692", "updating upload progress failed", str(exc)
 

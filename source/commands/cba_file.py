@@ -3,7 +3,7 @@
 file operations
 """
 import os
-from cba_utils import strcmp, pickle_object, unpickle_object
+from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress
 from cba_crypto import make_sha1_hash, decrypt_file_smp, encrypt_file_smp
 
 
@@ -86,7 +86,7 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
-    enc_file_struct = encrypt_file_smp(secret, fpath)
+    enc_file_struct = encrypt_file_smp(secret, fpath, progress_callback=update_item_progress)
     pickle_object(blobpath, enc_file_struct)
     return True
 
@@ -99,7 +99,7 @@ def decrypt_file_and_write(fpath, unenc_path, secret):
     @return: @rtype:
     """
     enc_file_struct = unpickle_object(fpath)
-    dec_file = decrypt_file_smp(secret, enc_file_struct)
+    dec_file = decrypt_file_smp(secret, enc_file_struct, progress_callback=update_item_progress)
     open(unenc_path, "wb").write(dec_file.read())
     return True
 
@@ -116,7 +116,7 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     @type secret:
     """
     blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
-    file_blob = {"data": decrypt_file_smp(secret, blob_enc).read()}
+    file_blob = {"data": decrypt_file_smp(secret, blob_enc, update_item_progress).read()}
     paths = []
 
     for dirhash in cryptobox_index["dirnames"]:

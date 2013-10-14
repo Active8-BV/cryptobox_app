@@ -66,7 +66,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     var client;
     $scope.quitting = true;
     client = get_rpc_client();
-    return client.methodCall("force_stop", [], function(e, v) {
+    return client.methodCall("force_stop2", [], function(e, v) {
       if ((cba_main != null ? cba_main.pid : void 0) != null) {
         if (!$scope.succesfull_kill) {
           process.kill(cba_main.pid);
