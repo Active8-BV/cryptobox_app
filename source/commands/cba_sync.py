@@ -10,10 +10,9 @@ import base64
 import urllib
 import shutil
 import urllib2
-from multiprocessing import Pool
 import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
-from cba_blobs import write_blobs_to_filepaths, have_blob, get_data_dir
+from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
 from cba_file import ensure_directory
@@ -29,7 +28,7 @@ def download_blob(memory, options, node):
     """
     url = "download/" + node["doc"]["m_short_id"]
     result = download_server(memory, options, url)
-    return {"url": url, "content_hash": node["content_hash_latest_timestamp"][0], "content": result, "options": options, "name": node["doc"]["m_name"]}
+    return result, node["content_hash_latest_timestamp"][0]
 
 
 def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
@@ -44,46 +43,17 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-    pool = Pool(processes=options.numdownloadthreads)
     downloaded_files = []
-
-    #noinspection PyUnusedLocal
-    def done_downloading(result_async_method):
-        """
-        done_downloading
-        @type result_async_method: dict
-        """
-        options_cb = result_async_method["options"]
-        memory_cb = Memory()
-
-        try:
-            memory_cb.lock()
-            memory_cb.load(get_data_dir(options_cb), keep_lock=True)
-            memory_cb = write_blobs_to_filepaths(memory_cb, options_cb, local_file_paths, result_async_method["content"], result_async_method["content_hash"])
-
-            for local_file_path in local_file_paths:
-                memory_cb = add_local_file_history(memory_cb, local_file_path["doc"]["m_path"])
-            memory_cb.save(get_data_dir(options), keep_lock=True)
-            downloaded_files.append(result_async_method["url"])
-            update_progress(len(downloaded_files), len(unique_nodes), "download " + str(result_async_method["name"]))
-        finally:
-            memory_cb.unlock()
-
-    download_results = []
-    memory.save(get_data_dir(options))
 
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
-        result = pool.apply_async(download_blob, (memory, options, node), callback=done_downloading)
-        download_results.append(result)
-    pool.close()
-    pool.join()
+        content, content_hash = download_blob(memory, options, node)
+        memory = write_blobs_to_filepaths(memory, options, local_file_paths, content, content_hash)
 
-    for result in download_results:
-        if not result.successful():
-            result.get()
-    pool.terminate()
-    memory.load(get_data_dir(options))
+        for local_file_path in local_file_paths:
+            memory = add_local_file_history(memory, local_file_path["doc"]["m_path"])
+        update_progress(len(downloaded_files), len(unique_nodes), "download")
+
     log("done downloading files")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
@@ -238,7 +208,10 @@ def dirs_on_server(memory, options, unique_dirs_server):
         have_on_server = False
 
         if not had_on_server:
-            have_on_server = dirname_rel in memory.get("serverindex")["dirlist"]
+            if memory.has("serverindex"):
+                serverindex = memory.get("serverindex")
+                if "dirlist" in serverindex:
+                    have_on_server = dirname_rel in memory.get("serverindex")["dirlist"]
 
         if have_on_server:
             memory = add_server_path_history(memory, dirname_rel)
@@ -635,6 +608,17 @@ def get_sync_changes(memory, options, localindex, serverindex):
         if fup in dir_del_local_paths:
             dir_del_local = [x for x in dir_del_local if x["dirname"] != fup]
 
+    # filter out dirs to make from file_uploads:
+    dir_make_server_tmp = []
+    for dms in dir_make_server:
+        add = True
+        for fu in file_uploads:
+            if dms["dirname"] in fu["local_file_path"]:
+                add = False
+        if add:
+            dir_make_server_tmp.append(dms)
+    dir_make_server = dir_make_server_tmp
+
     # prune directories to delete from files to download
     dir_del_server = []
 
@@ -662,7 +646,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
 def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
     """
     @type session: instance
-    @type server: dict
+    @type server: str, unicode
     @type cryptobox: str, unicode
     @type file_path: str, unicode
     @type rel_file_path: str, unicode
@@ -686,10 +670,12 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             try:
                 percentage = 100 - ((total - current ) * 100 ) / total
                 update_item_progress(percentage, True)
-                if percentage % 25 == 0:
-                    if percentage != last_progress[0]:
-                        print "cba_sync.py:689", "upload", percentage
-                        last_progress[0] = percentage
+                #if percentage % 25 == 0:
+                if percentage != last_progress[0]:
+                    #if hasattr(param, "filename"):
+                        #fname = param.filename
+                    #    print "cba_sync.py:689", "upload", percentage, fname
+                    last_progress[0] = percentage
             except Exception, exc:
                 print "updating upload progress failed", str(exc)
 
@@ -761,43 +747,16 @@ def upload_files(memory, options, serverindex, file_uploads):
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
-    pool = Pool(processes=options.numdownloadthreads)
-    uploaded_files = []
-    file_upload_completed = []
-
-    def done_downloading(file_path_uploaded):
-        """
-        done_downloading
-        @type file_path_uploaded: str, unicode
-        """
-        uploaded_files.append(file_path_uploaded)
-        update_progress(len(uploaded_files), len(file_uploads), "uploading")
-        file_upload_completed.append(file_path_uploaded)
-
-    upload_result = []
-
+    files_uploaded = []
     for uf in file_uploads:
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
-            #apply(upload_file, (memory, options, uf["local_file_path"], uf["parent_short_id"]))
-            result = pool.apply_async(upload_file, (memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory,  uf["local_file_path"]), uf["parent_short_id"]), callback=done_downloading)
-            upload_result.append(result)
+            file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory,  uf["local_file_path"]), uf["parent_short_id"])
+            files_uploaded.append(file_path)
+            update_progress(len(files_uploaded), len(file_uploads), "uploading")
         else:
             print "cba_sync.py:782", "can't fnd", uf["local_file_path"]
-    pool.close()
-    pool.join()
-    files_uploaded = []
 
-    for ur in upload_result:
-        if ur.successful():
-            files_uploaded.append(ur.get())
-        else:
-            try:
-                ur.get()
-            except Exception, e:
-                handle_exception(e, False)
-
-    pool.terminate()
     return memory, files_uploaded
 
 
