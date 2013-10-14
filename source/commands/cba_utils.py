@@ -788,7 +788,11 @@ def update_item_progress(p):
     update_progress
     @type p:int
     """
-    open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
+    try:
+        if 0 < int(p) <= 100:
+            open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
+    except Exception, e:
+        handle_exception(e, False)
 
 
 def update_memory_progress(p):
@@ -796,7 +800,11 @@ def update_memory_progress(p):
     update_memory_progress
     @type p:int
     """
-    open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
+    try:
+        if 0 < int(p) <= 100:
+            open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
+    except Exception, e:
+        handle_exception(e, False)
 
 
 def update_progress(curr, total, msg, console=False):
