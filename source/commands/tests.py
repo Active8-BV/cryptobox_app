@@ -70,15 +70,16 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         setUp
         """
-        self.start_servers = True
+        self.start_servers = False
         self.db_name = "test"
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
-        os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
-        os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
         if self.start_servers:
+            os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
+            os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
+
             self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
             self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
@@ -214,7 +215,8 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/1MB.zip"
+        fname = "testdata/nohup.out"
+        #fname = "testdata/5MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file_struct = encrypt_file_smp(secret, fname)
         dec_file = decrypt_file_smp(secret, enc_file_struct)

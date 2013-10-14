@@ -104,6 +104,7 @@ def smp_all_cpu_apply(method, items, base_params=()):
             base_params_list.append(item)
 
         params = tuple(base_params_list)
+
         result = pool.apply_async(method, params, callback=done_proc)
         calculation_result.append(result)
     pool.close()
