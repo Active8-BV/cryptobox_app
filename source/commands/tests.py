@@ -58,9 +58,10 @@ def count_files_dir(fpath):
 
     return len(s)
 
+def print_progress(p):
+    print p
+
 #noinspection PyPep8Naming
-
-
 class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -70,7 +71,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         setUp
         """
-        self.start_servers = False
+        self.start_servers = True
         self.db_name = "test"
         server = "http://127.0.01:8000/"
         self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
@@ -218,15 +219,15 @@ class CryptoboxAppTest(unittest.TestCase):
         fname = "testdata/nohup.out"
         #fname = "testdata/5MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
-        enc_file_struct = encrypt_file_smp(secret, fname)
-        dec_file = decrypt_file_smp(secret, enc_file_struct)
+        enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
+        dec_file = decrypt_file_smp(secret, enc_file_struct, print_progress)
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())
         self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
-        fname = "testdata/20MB.zip"
-        enc_file_struct = encrypt_file_smp(secret, fname)
-        dec_file = decrypt_file_smp(secret, enc_file_struct)
+        fname = "testdata/100MB.zip"
+        enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
+        dec_file = decrypt_file_smp(secret, enc_file_struct, print_progress)
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())

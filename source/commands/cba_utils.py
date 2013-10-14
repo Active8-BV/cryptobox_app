@@ -75,27 +75,55 @@ def unpickle_object(path):
     return cPickle.load(open(path, "rb"))
 
 
-def smp_all_cpu_apply(method, items, base_params=()):
+def update_item_progress(p):
     """
-    @type items: list
+    update_progress
+    @type p:int
+    """
+    try:
+        if 0 < int(p) <= 100:
+            open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
+    except Exception, e:
+        handle_exception(e, False)
+
+
+def update_memory_progress(p):
+    """
+    update_memory_progress
+    @type p:int
+    """
+    try:
+        if 0 < int(p) <= 100:
+            open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
+    except Exception, e:
+        handle_exception(e, False)
+
+
+def smp_all_cpu_apply(method, items, progress_callback=None):
+    """
     @type method: function
+    @type items: list
+    @type progress_callback: function
     @type base_params: tuple
     """
     pool = Pool(processes=multiprocessing.cpu_count())
-    results = []
+    results_cnt = [0]
 
     def done_proc(result_func):
         """
         done_downloading
         @type result_func: object
         """
-        results.append(result_func)
+        if progress_callback:
+            results_cnt[0] += 1
+            perc = float(results_cnt[0]) / (float(len(items)) / 100)
+            progress_callback(perc)
         return result_func
 
     calculation_result = []
 
     for item in items:
-        base_params_list = list(base_params)
+        base_params_list = []
 
         if isinstance(item, tuple):
             for i in item:
@@ -781,30 +809,6 @@ def del_local_file_history(memory, relative_path_name):
     if memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash))):
         memory.set_delete_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash)))
     return memory
-
-
-def update_item_progress(p):
-    """
-    update_progress
-    @type p:int
-    """
-    try:
-        if 0 < int(p) <= 100:
-            open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
-    except Exception, e:
-        handle_exception(e, False)
-
-
-def update_memory_progress(p):
-    """
-    update_memory_progress
-    @type p:int
-    """
-    try:
-        if 0 < int(p) <= 100:
-            open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
-    except Exception, e:
-        handle_exception(e, False)
 
 
 def update_progress(curr, total, msg, console=False):

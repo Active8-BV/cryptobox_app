@@ -104,17 +104,13 @@ def encrypt_a_file(secret, chunk):
     return encrypt_file_for_smp(secret, StringIO(chunk))
 
 
-def encrypt_file_smp(secret, fname=None, strobj=None):
+def encrypt_file_smp(secret, fname=None, progress_callback=None):
     """
     @type secret: str, unicode
     @type fname: str, unicode
-    @type strobj: StringIO, None
+    @type progress_callback: function
     """
-    if not strobj:
-        fobj = open(fname)
-    else:
-        fobj = strobj
-
+    fobj = open(fname)
     two_mb = (2 * (2 ** 20))
 
     chunklist = []
@@ -124,8 +120,9 @@ def encrypt_file_smp(secret, fname=None, strobj=None):
         chunklist.append(chunk)
         chunk = fobj.read(two_mb)
 
-    encrypted_file_chunks = smp_all_cpu_apply(encrypt_a_file, chunklist, base_params=(secret,))
-    progress_file_cryption(0)
+    chunklist = [(secret, chunk) for chunk in chunklist]
+    encrypted_file_chunks = smp_all_cpu_apply(encrypt_a_file, chunklist, progress_callback)
+
     return encrypted_file_chunks
 
 
@@ -158,15 +155,16 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
     return dec_data
 
 
-def decrypt_file_smp(secret, enc_file_chunks):
+def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
     """
     @type secret: str, unicode
     @type enc_file_chunks: list
+    @type progress_callback: function
     """
     dec_file = StringIO()
 
     chunks_param_sorted = [(secret, chunk["enc_data"], chunk["data_hash"], chunk["initialization_vector"]) for chunk in enc_file_chunks]
-    dec_file_chunks = smp_all_cpu_apply(decrypt_file_for_smp, chunks_param_sorted)
+    dec_file_chunks = smp_all_cpu_apply(decrypt_file_for_smp, chunks_param_sorted, progress_callback)
 
     for chunk_dec_file in dec_file_chunks:
         dec_file.write(chunk_dec_file)
@@ -182,7 +180,7 @@ def encrypt_object(secret, obj):
     @return: @rtype:
     """
     pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
-    encrypted_dict = encrypt_file_smp(secret, strobj=StringIO(pickle_data))
+    encrypted_dict = encrypt_file_smp(secret, StringIO(pickle_data))
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
