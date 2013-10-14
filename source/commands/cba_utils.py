@@ -7,7 +7,6 @@ import sys
 import math
 import time
 import threading
-import xmlrpclib
 import multiprocessing
 import uuid as _uu
 import cPickle
@@ -16,7 +15,6 @@ import subprocess
 import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
-
 
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -179,7 +177,6 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
-
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -785,57 +782,20 @@ def del_local_file_history(memory, relative_path_name):
     return memory
 
 
+def update_item_progress(p):
+    """
+    update_progress
+    @type p:int
+    """
+    open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
+
+
 def update_memory_progress(p):
     """
-    update_progress
+    update_memory_progress
     @type p:int
     """
-    mem = SingletonMemory()
-    mem.set("progress", p)
-
-
-def reset_memory_progress():
-    """
-    reset_memory_progress
-    """
-    mem = SingletonMemory()
-    mem.set("progress", 0)
-
-
-def update_item_progress(p, server=False):
-    """
-    update_progress
-    @type server:bool
-    @type p:int
-    """
-    if server:
-        try:
-            s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-            s.set_smemory("item_progress", p)
-        except Exception, ex:
-            print "cba_utils.py:815", "error", str(ex)
-    else:
-        mem = SingletonMemory()
-        mem.set("item_progress", p)
-
-
-def get_item_progress():
-    """
-    get_item_progress
-    """
-    mem = SingletonMemory()
-
-    if mem.has("item_progress"):
-        return mem.get("item_progress")
-    return 0
-
-
-def reset_item_progress():
-    """
-    reset_memory_item_progress
-    """
-    mem = SingletonMemory()
-    mem.set("item_progress", 0)
+    open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
 
 
 def update_progress(curr, total, msg, console=False):

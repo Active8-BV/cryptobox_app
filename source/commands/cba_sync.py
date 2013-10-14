@@ -43,16 +43,16 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
-    downloaded_files = []
+    downloaded_files_cnt = 0
 
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
+        downloaded_files_cnt += 1
+        update_progress(downloaded_files_cnt, len(unique_nodes), "download")
         content, content_hash = download_blob(memory, options, node)
         memory = write_blobs_to_filepaths(memory, options, local_file_paths, content, content_hash)
-
         for local_file_path in local_file_paths:
             memory = add_local_file_history(memory, local_file_path["doc"]["m_path"])
-        update_progress(len(downloaded_files), len(unique_nodes), "download")
     log("done downloading files")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
@@ -756,7 +756,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     files_uploaded = []
 
     for uf in file_uploads:
-        update_item_progress(0)
+        update_item_progress(len(files_uploaded) + 1)
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading")
@@ -765,7 +765,6 @@ def upload_files(memory, options, serverindex, file_uploads):
 
         else:
             print "cba_sync.py:772", "can't fnd", uf["local_file_path"]
-    update_item_progress(0)
     return memory, files_uploaded
 
 

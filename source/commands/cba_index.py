@@ -354,9 +354,10 @@ def decrypt_and_build_filetree(memory, options):
     secret = password_derivation(password, base64.decodestring(cryptobox_index["salt_b64"]))
 
     for fhash in hashes:
-        paths = decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret)
         processed_files += 1
-        update_progress(processed_files, numfiles, "decrypting " + "\n\t"+"\n\t".join(paths))
+        update_progress(processed_files, numfiles, "decrypting")
+        #noinspection PyUnusedLocal
+        paths = decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret)
 
     memory = store_cryptobox_index(memory, cryptobox_index)
     return memory
