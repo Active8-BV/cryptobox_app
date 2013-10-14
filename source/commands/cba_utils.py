@@ -104,7 +104,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
     @type method: function
     @type items: list
     @type progress_callback: function
-    @type base_params: tuple
     """
     pool = Pool(processes=multiprocessing.cpu_count())
     results_cnt = [0]
