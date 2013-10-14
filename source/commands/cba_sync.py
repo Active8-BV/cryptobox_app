@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, update_item_progress, path_to_relative_path_unix_style
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, update_item_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -53,7 +53,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         for local_file_path in local_file_paths:
             memory = add_local_file_history(memory, local_file_path["doc"]["m_path"])
         update_progress(len(downloaded_files), len(unique_nodes), "download")
-
     log("done downloading files")
 
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
@@ -210,6 +209,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if not had_on_server:
             if memory.has("serverindex"):
                 serverindex = memory.get("serverindex")
+
                 if "dirlist" in serverindex:
                     have_on_server = dirname_rel in memory.get("serverindex")["dirlist"]
 
@@ -251,8 +251,10 @@ def wait_for_tasks(memory, options):
                         time.sleep(1)
                         if num_tasks > 6:
                             log("waiting for tasks", num_tasks)
+
                 else:
                     return memory
+
         time.sleep(1)
 
 
@@ -565,7 +567,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:596", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:570", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -610,13 +612,17 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     # filter out dirs to make from file_uploads:
     dir_make_server_tmp = []
+
     for dms in dir_make_server:
         add = True
+
         for fu in file_uploads:
             if dms["dirname"] in fu["local_file_path"]:
                 add = False
+
         if add:
             dir_make_server_tmp.append(dms)
+
     dir_make_server = dir_make_server_tmp
 
     # prune directories to delete from files to download
@@ -652,7 +658,9 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
     @type rel_file_path: str, unicode
     @type parent: str, unicode
     @raise NotAuthorized:
+
     """
+
     try:
         if not session:
             raise NotAuthorized("trying to upload without a session")
@@ -667,17 +675,14 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             @type total:
             prog_callback
             """
+
             try:
                 percentage = 100 - ((total - current ) * 100 ) / total
-                update_item_progress(percentage, True)
-                #if percentage % 25 == 0:
                 if percentage != last_progress[0]:
-                    #if hasattr(param, "filename"):
-                        #fname = param.filename
-                    #    print "cba_sync.py:689", "upload", percentage, fname
+                    print "item progress", percentage
                     last_progress[0] = percentage
             except Exception, exc:
-                print "updating upload progress failed", str(exc)
+                print "cba_sync.py:692", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -706,6 +711,7 @@ def possible_new_dirs(file_path, memory):
     """
     if file_path is None:
         raise Exception("possible_new_dirs is None")
+
     possible_new_dir_list = []
     file_dir = os.path.dirname(file_path)
     rel_unix_path = path_to_relative_path_unix_style(memory, file_dir)
@@ -748,15 +754,18 @@ def upload_files(memory, options, serverindex, file_uploads):
             uf["parent_short_id"] = uf["parent_path"] = ""
 
     files_uploaded = []
+
     for uf in file_uploads:
+        update_item_progress(0)
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
+            update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading")
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory,  uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
-            update_progress(len(files_uploaded), len(file_uploads), "uploading")
-        else:
-            print "cba_sync.py:782", "can't fnd", uf["local_file_path"]
 
+        else:
+            print "cba_sync.py:772", "can't fnd", uf["local_file_path"]
+    update_item_progress(0)
     return memory, files_uploaded
 
 
@@ -849,18 +858,7 @@ def sync_server(memory, options):
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
     dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
-    #noinspection PyStatementEffect
-    """
-        for short_id in short_node_ids_to_delete:
-            path, memory = short_id_to_server_path(memory, serverindex, short_id)
-            new_server_hash_history = set()
-            if memory.has("serverpath_history"):
-                for serverpath_history_item in memory.get("serverpath_history"):
-                    serverpath_history_item_path = serverpath_history_item[0]
-                    if path not in serverpath_history_item_path:
-                        new_server_hash_history.add(serverpath_history_item)
-                memory.replace("serverpath_history", new_server_hash_history)
-        """
+
     dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
         memory = del_path_history(fpath, memory)

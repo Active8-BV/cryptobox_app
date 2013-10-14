@@ -234,9 +234,6 @@ def download_server(memory, options, url):
 
             if divider > 0:
                 percentage = int(float(downloaded_bytes) / divider)
-
-                #percentage += get_item_progress()
-                #percentage /= options.numdownloadthreads
                 update_item_progress(percentage)
 
     content = b"".join(fileb)

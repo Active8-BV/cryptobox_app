@@ -252,6 +252,7 @@ def encrypt_file_smp(secret, fname=None, strobj=None, progress_callback=progress
         chunk = fobj.read(two_mb)
 
     encrypted_file_chunks = smp_all_cpu_apply(encrypt_a_file, chunklist, base_params=(secret, progress_callback))
+    progress_file_cryption(0)
     return encrypted_file_chunks
 
 
@@ -269,6 +270,7 @@ def decrypt_file_smp(secret, enc_file_chunks, progress_callback=progress_file_cr
     for chunk_dec_file in dec_file_chunks:
         dec_file.write(chunk_dec_file)
     dec_file.seek(0)
+    progress_file_cryption(0)
     return dec_file
 
 

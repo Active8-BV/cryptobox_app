@@ -124,10 +124,7 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-    lock = threading.Lock()
-
     try:
-        lock.acquire()
         smemory = SingletonMemory()
         smemory.set("working", False)
         if isinstance(options, dict):
@@ -205,7 +202,6 @@ def cryptobox_command(options):
 
         reset_memory_progress()
         reset_item_progress()
-
         if options.logout:
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
@@ -222,14 +218,12 @@ def cryptobox_command(options):
                     if quick_lock_check(options):
                         smemory.set("working", False)
                         return False
-
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     smemory.set("working", True)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
                 elif options.sync:
-
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
                         smemory.set("working", False)
@@ -273,7 +267,6 @@ def cryptobox_command(options):
     finally:
         smemory = SingletonMemory()
         smemory.set("working", False)
-        lock.release()
 
     return True
 
@@ -336,6 +329,7 @@ class XMLRPCThread(multiprocessing.Process):
                             time.sleep(poll_interval)
                         else:
                             log("no ping received for 30 seconds")
+                            time.sleep(1)
 
                 def force_stop(self):
                     """
@@ -368,11 +362,8 @@ class XMLRPCThread(multiprocessing.Process):
                 stop_server
                 """
                 log("force_stop")
-                log("force_stop DISABLED")
-                return False
-
-                #server.force_stop()
-                #return True
+                server.force_stop()
+                return True
 
             def last_ping():
                 """
@@ -382,7 +373,7 @@ class XMLRPCThread(multiprocessing.Process):
                 memory.set("last_ping", time.time())
                 return "ping received"
 
-            def reset_progress():
+            def reset_progress(): 
                 """
                 reset_progress
                 """
@@ -433,6 +424,7 @@ class XMLRPCThread(multiprocessing.Process):
 
                 t1 = threading.Thread(target=cryptobox_command, args=(options,))
                 t1.start()
+                log("cb_command started")
 
             def get_all_smemory():
                 """
@@ -450,12 +442,14 @@ class XMLRPCThread(multiprocessing.Process):
                 :param v:
                 """
                 smemory = SingletonMemory()
+
                 if k == "item_progress":
                     if v == 100:
                         if 0 == smemory.get(k):
                             return True
                         else:
                             return smemory.set(k, v)
+
                 return smemory.set(k, v)
 
             def get_motivation():
@@ -505,7 +499,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:493", "bye xmlrpc server"
+            print "cba_main.py:507", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -524,7 +518,7 @@ def main():
         commandserver.start()
 
         while True:
-            time.sleep(10)
+            time.sleep(2)
 
             try:
                 if commandserver.is_alive():
@@ -533,7 +527,7 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:521", "kill it", ex
+                print "cba_main.py:535", "kill it", ex
 
                 #commandserver.terminate()
 
@@ -552,4 +546,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:540", "\nbye main"
+        print "cba_main.py:554", "\nbye main"

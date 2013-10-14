@@ -118,6 +118,7 @@ def smp_all_cpu_apply(method, items, base_params=()):
         else:
             calculation_result_values.append(result.get())
     pool.terminate()
+
     return calculation_result_values
 
 
@@ -582,7 +583,7 @@ class Memory(object):
         if not self.m_locked:
             global memory_lock
             memory_lock.acquire()
-            print "mem locked"
+            print "cba_utils.py:585", "mem locked"
             self.m_locked = True
 
     def unlock(self):
@@ -591,7 +592,7 @@ class Memory(object):
         """
         global memory_lock
         memory_lock.release()
-        print "mem unlocked"
+        print "cba_utils.py:594", "mem unlocked"
         self.m_locked = False
 
     def save(self, datadir, keep_lock=False):
@@ -801,31 +802,6 @@ def reset_memory_progress():
     mem.set("progress", 0)
 
 
-class AsyncUpdateProgressItem(threading.Thread):
-    """
-    AsyncUpdateProgressItem
-    """
-
-    def __init__(self, p):
-        """
-        @type p: int
-        """
-        self.p = p
-        super(AsyncUpdateProgressItem, self).__init__()
-
-    def run(self):
-        """
-        run
-        """
-
-        #noinspection PyBroadException
-        try:
-            s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-            s.set_smemory("item_progress", self.p)
-        except Exception:
-            print "cba_utils.py:824", "item_progress", self.p
-
-
 def update_item_progress(p, server=False):
     """
     update_progress
@@ -834,13 +810,12 @@ def update_item_progress(p, server=False):
     """
     if server:
         try:
-            api = AsyncUpdateProgressItem(p)
-            api.start()
-        except Exception, e:
-            print "cba_utils.py:838", "AsyncUpdateProgressItem exception", str(e)
+            s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
+            s.set_smemory("item_progress", p)
+        except Exception, ex:
+            print "cba_utils.py:815", "error", str(ex)
     else:
         mem = SingletonMemory()
-
         mem.set("item_progress", p)
 
 
@@ -870,7 +845,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:870", curr, total, msg
+    print "cba_utils.py:847", curr, total, msg
     global last_update_string_len
     if total == 0:
         return
