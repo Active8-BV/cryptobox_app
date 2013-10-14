@@ -261,6 +261,7 @@ def index_and_encrypt(memory, options):
         ld.remove(".cryptobox")
         processed_files = 0
         numfiles = len(ld)
+
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
             processed_files += 1
@@ -288,9 +289,7 @@ def index_and_encrypt(memory, options):
                 if not found:
                     obsolute_blob_store_entries.add(blob_dir + blob_file)
 
-
     for f_hash in obsolute_blob_store_entries:
-
         blob_dir = os.path.join(blob_dirs, f_hash[:2])
         blob_path = os.path.join(blob_dir, f_hash[2:])
         os.remove(blob_path)
