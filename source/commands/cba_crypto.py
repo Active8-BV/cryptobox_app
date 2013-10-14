@@ -109,7 +109,6 @@ def encrypt_file_smp(secret, fname=None, strobj=None):
     @type secret: str, unicode
     @type fname: str, unicode
     @type strobj: StringIO, None
-    @type progress_callback: function
     """
     if not strobj:
         fobj = open(fname)
