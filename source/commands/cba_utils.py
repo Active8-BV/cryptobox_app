@@ -16,7 +16,6 @@ import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
 
-
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
@@ -207,7 +206,6 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
-
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -838,3 +836,34 @@ def update_progress(curr, total, msg, console=False):
         sys.stderr.flush()
 
     last_update_string_len = len(update_string)
+
+
+def check_command_folder(command_folder):
+    """
+    @type command_folder: str, unicode
+    """
+    commands = []
+    if not os.path.exists(command_folder):
+        return commands
+
+    for fp in os.listdir(command_folder):
+        fp = os.path.join(command_folder, fp)
+        if os.path.exists(fp):
+            fin = open(fp)
+            commands.append({"name": os.path.basename(fin.name), "data": fin.read()})
+        if os.path.exists(fp):
+            os.remove(fp)
+    return commands
+
+
+def add_command_to_folder(command_folder, name, data=None):
+    """
+    @type command_folder: str, unicode
+    @type name: str, unicode
+    @type data: str, unicode
+    """
+    if not os.path.exists(command_folder):
+        os.makedirs(command_folder)
+    if not data:
+        data = "null"
+    open(os.path.join(command_folder, name), "w").write(data)
