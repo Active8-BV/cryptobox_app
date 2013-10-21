@@ -1,4 +1,5 @@
 # coding=utf-8
+
 """
 unit test for app commands
 """
@@ -14,7 +15,7 @@ from subprocess import Popen, PIPE
 import couchdb
 import requests
 from cba_main import cryptobox_command
-from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
+from cba_utils import *
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_network import authorize_user
@@ -64,14 +65,13 @@ def print_progress(p):
     :param p: percentage
     """
     print "tests.py:66", p
-#noinspection PyPep8Naming
 
 
 class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
     """
-
+    #noinspection PyPep8Naming
     def setUp(self):
         """
         setUp
@@ -119,6 +119,7 @@ class CryptoboxAppTest(unittest.TestCase):
             if not os.path.exists(os.path.join("testdata", tfn)):
                 os.system("cd testdata; nohup wget http://download.thinkbroadband.com/" + tfn)
 
+        #noinspection PyPep8Naming
     def tearDown(self):
         """
         tearDown
@@ -603,17 +604,37 @@ class CommunicationTest(unittest.TestCase):
     CommunicationTest
     """
 
+    #noinspection PyPep8Naming
     def setUp(self):
         """
         setUp
         """
-        pass
+        self.cmd_folder_path = os.path.join(os.getcwd(), "commands")
+        if not os.path.exists(self.cmd_folder_path):
+            os.makedirs(self.cmd_folder_path)
+
+            #noinspection PyPep8Naming
 
     def tearDown(self):
         """
         tearDown
         """
-        pass
+        for f in os.listdir(self.cmd_folder_path):
+            os.remove(os.path.join(self.cmd_folder_path, f))
+        os.removedirs(self.cmd_folder_path)
+
+    def test_new_commands(self):
+        """
+        test_new_commands
+        """
+
+        commands = check_command_folder(self.cmd_folder_path)
+        self.assertEqual(len(commands), 0)
+
+        add_command_to_folder(self.cmd_folder_path, "exit")
+
+        commands = check_command_folder(self.cmd_folder_path)
+        self.assertEqual(len(commands), 1)
 
 
 if __name__ == '__main__':
