@@ -1,10 +1,9 @@
 #!/usr/local/bin/python
 # coding=utf-8
 
-import unittest
 import os
-import json
 from commands.cba_utils import *
+
 
 def main():
     """
@@ -18,8 +17,6 @@ def main():
         if cmd["name"] == "add":
             cmd["result"] = {"params": (cmd["a"], cmd["b"]), "result": cmd["a"] + cmd["b"]}
             add_command_result_to_folder(cmd_folder_path, cmd)
-
-
 
 
 if __name__ == '__main__':
