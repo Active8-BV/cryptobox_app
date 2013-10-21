@@ -79,11 +79,9 @@ def encrypt_file_for_smp(secret, fin):
     Random.atfork()
     initialization_vector = Random.new().read(AES.block_size)
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
-
     chunk = fin.read()
     data_hash = make_checksum(chunk)
     enc_data = cipher.encrypt(chunk)
-
     return {"initialization_vector": initialization_vector, "enc_data": enc_data, "data_hash": data_hash}
 
 
@@ -116,7 +114,6 @@ def encrypt_file_smp(secret, fname, progress_callback):
         fobj = fname
 
     two_mb = (2 * (2 ** 20))
-
     chunklist = []
     chunk = fobj.read(two_mb)
 
@@ -126,7 +123,6 @@ def encrypt_file_smp(secret, fname, progress_callback):
 
     chunklist = [(secret, chunk) for chunk in chunklist]
     encrypted_file_chunks = smp_all_cpu_apply(encrypt_a_file, chunklist, progress_callback)
-
     return encrypted_file_chunks
 
 

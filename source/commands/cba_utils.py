@@ -16,6 +16,7 @@ import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
 
+
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
@@ -80,6 +81,7 @@ def update_item_progress(p):
     update_progress
     @type p:int
     """
+
     try:
         if 0 < int(p) <= 100:
             open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
@@ -92,6 +94,7 @@ def update_memory_progress(p):
     update_memory_progress
     @type p:int
     """
+
     try:
         if 0 < int(p) <= 100:
             open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
@@ -117,6 +120,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
             results_cnt[0] += 1
             perc = float(results_cnt[0]) / (float(len(items)) / 100)
             progress_callback(perc)
+
         return result_func
 
     calculation_result = []
@@ -131,7 +135,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
             base_params_list.append(item)
 
         params = tuple(base_params_list)
-
         result = pool.apply_async(method, params, callback=done_proc)
         calculation_result.append(result)
     pool.close()
@@ -144,7 +147,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
         else:
             calculation_result_values.append(result.get())
     pool.terminate()
-
     return calculation_result_values
 
 
@@ -205,6 +207,7 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
+
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -371,8 +374,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:348", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:349", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:377", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:378", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -608,7 +611,7 @@ class Memory(object):
         if not self.m_locked:
             global memory_lock
             memory_lock.acquire()
-            print "cba_utils.py:585", "mem locked"
+            print "cba_utils.py:614", "mem locked"
             self.m_locked = True
 
     def unlock(self):
@@ -617,7 +620,7 @@ class Memory(object):
         """
         global memory_lock
         memory_lock.release()
-        print "cba_utils.py:594", "mem unlocked"
+        print "cba_utils.py:623", "mem unlocked"
         self.m_locked = False
 
     def save(self, datadir, keep_lock=False):
@@ -817,7 +820,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:847", curr, total, msg
+    print "cba_utils.py:823", curr, total, msg
     global last_update_string_len
     if total == 0:
         return
