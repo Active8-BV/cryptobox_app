@@ -356,6 +356,7 @@ def decrypt_and_build_filetree(memory, options):
     for fhash in hashes:
         processed_files += 1
         update_progress(processed_files, numfiles, "decrypting")
+
         #noinspection PyUnusedLocal
         paths = decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret)
 

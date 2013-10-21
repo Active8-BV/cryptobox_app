@@ -11,10 +11,8 @@ import unittest
 import random
 import sys
 from subprocess import Popen, PIPE
-
 import couchdb
 import requests
-
 from cba_main import cryptobox_command
 from cba_utils import Dict2Obj, smp_all_cpu_apply, Memory
 from cba_index import make_local_index, index_and_encrypt, check_and_clean_dir, decrypt_and_build_filetree, hide_config
@@ -65,9 +63,10 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print p
-
+    print "tests.py:66", p
 #noinspection PyPep8Naming
+
+
 class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -86,7 +85,6 @@ class CryptoboxAppTest(unittest.TestCase):
         if self.start_servers:
             os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
             os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
-
             self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
             self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
@@ -223,6 +221,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.do_wait_for_tasks = False
         fname = "testdata/nohup.out"
+
         #fname = "testdata/5MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
@@ -597,6 +596,24 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
+
+
+class CommunicationTest(unittest.TestCase):
+    """
+    CommunicationTest
+    """
+
+    def setUp(self):
+        """
+        setUp
+        """
+        pass
+
+    def tearDown(self):
+        """
+        tearDown
+        """
+        pass
 
 
 if __name__ == '__main__':

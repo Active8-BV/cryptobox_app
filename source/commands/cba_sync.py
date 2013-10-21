@@ -51,6 +51,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         update_progress(downloaded_files_cnt, len(unique_nodes), "download")
         content, content_hash = download_blob(memory, options, node)
         memory = write_blobs_to_filepaths(memory, options, local_file_paths, content, content_hash)
+
         for local_file_path in local_file_paths:
             memory = add_local_file_history(memory, local_file_path["doc"]["m_path"])
     log("done downloading files")
@@ -567,7 +568,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:570", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:571", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -678,11 +679,12 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
 
             try:
                 percentage = 100 - ((total - current ) * 100 ) / total
+
                 if percentage != last_progress[0]:
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:692", "updating upload progress failed", str(exc)
+                print "cba_sync.py:687", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -762,9 +764,8 @@ def upload_files(memory, options, serverindex, file_uploads):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading")
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory,  uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
-
         else:
-            print "cba_sync.py:772", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:768", "can't fnd", uf["local_file_path"]
     return memory, files_uploaded
 
 

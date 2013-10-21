@@ -113,7 +113,6 @@ def request_error(result):
     log(result.raw)
 
 
-
 class ServerForbidden(Exception):
     """
     ServerForbidden
@@ -206,7 +205,6 @@ def download_server(memory, options, url):
     """
     url = os.path.normpath(url)
     url = options.server + options.cryptobox + "/" + url
-
     session = memory.get("session")
     result = session.get(url, timeout=3600, stream=True, verify=False)
 

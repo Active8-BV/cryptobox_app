@@ -124,6 +124,7 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
+
     try:
         smemory = SingletonMemory()
         smemory.set("working", True)
@@ -206,7 +207,6 @@ def cryptobox_command(options):
         elif options.treeseq:
             if memory.has("session"):
                 memory, smemory = get_tree_sequence(memory, options)
-
                 return smemory.get("tree_sequence")
         elif options.password and options.username and options.cryptobox:
             memory = authorize_user(memory, options, force=True)
@@ -218,20 +218,16 @@ def cryptobox_command(options):
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
-
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
-
                         return False
 
                     if quick_lock_check(options):
                         log("cryptobox is locked, nothing can be added now first decrypt (-d)")
-
                         return False
                     ensure_directory(options.dir)
-
                     localindex, memory = sync_server(memory, options)
 
         salt = None
@@ -364,7 +360,6 @@ class XMLRPCThread(multiprocessing.Process):
                 memory.set("last_ping", time.time())
                 return "ping received"
 
-
             def ping():
                 """
                 simple ping
@@ -408,7 +403,6 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 get_all_smemory
                 """
-
                 smemory = SingletonMemory()
                 return smemory.data
 
@@ -464,7 +458,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:507", "bye xmlrpc server"
+            print "cba_main.py:461", "bye xmlrpc server"
 
 
 #noinspection PyClassicStyleClass
@@ -492,16 +486,17 @@ def main():
                     s.ping()
                     socket.setdefaulttimeout(None)
             except socket.error, ex:
-                print "cba_main.py:535", "kill it", ex
+                print "cba_main.py:489", "kill it", ex
 
                 #commandserver.terminate()
 
             if not commandserver.is_alive():
                 break
+
         smemory = SingletonMemory()
+
         while smemory.get("working"):
             time.sleep(0.2)
-
     else:
         cryptobox_command(options)
 
@@ -514,4 +509,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:554", "\nbye main"
+        print "cba_main.py:512", "\nbye main"
