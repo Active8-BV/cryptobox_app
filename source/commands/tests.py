@@ -119,7 +119,8 @@ class CryptoboxAppTest(unittest.TestCase):
             if not os.path.exists(os.path.join("testdata", tfn)):
                 os.system("cd testdata; nohup wget http://download.thinkbroadband.com/" + tfn)
 
-        #noinspection PyPep8Naming
+                #noinspection PyPep8Naming
+
     def tearDown(self):
         """
         tearDown
