@@ -1,8 +1,4 @@
 
-describe "var", ->
 
-    it "should make a file", ->
-        console.log("hello")
-
-
-
+exports["test String#length"] = ->
+  assert.equal 6, "foobar".length
