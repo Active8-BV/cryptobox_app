@@ -19,7 +19,7 @@ import random
 import SimpleXMLRPCServer
 from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder, check_command_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -362,7 +362,6 @@ class XMLRPCThread(multiprocessing.Process):
                 simple ping
                 """
 
-                #log("ping")
                 t = time.time()
                 return t
 
@@ -467,47 +466,16 @@ def main():
 
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
-        me = singleton.SingleInstance()
-        queue = multiprocessing.Queue()
-        log("xmlrpc server up")
-        commandserver = XMLRPCThread(args=(queue,))
-        commandserver.start()
-
+        cmd_folder_path = os.path.join(os.getcwd(), "commands")
         while True:
-            time.sleep(2)
-
-            try:
-                if commandserver.is_alive():
-                    s = xmlrpclib.ServerProxy('http://localhost:8654/RPC2')
-                    socket.setdefaulttimeout(2)
-                    s.ping()
-                    socket.setdefaulttimeout(None)
-            except socket.error, ex:
-                print "cba_main.py:489", "kill it", ex
-
-                #commandserver.terminate()
-
-            if not commandserver.is_alive():
-                break
-
-        smemory = SingletonMemory()
-
-        while smemory.get("working"):
-            time.sleep(0.2)
+            commands = check_command_folder(cmd_folder_path)
+            for cmd in commands:
+                if cmd["name"] == "exit":
+                    print "bye"
+                    break
     else:
         cryptobox_command(options)
 
-
-def main2():
-    (options, args) = add_options()
-
-    if not options.cryptobox and not options.version:
-        #noinspection PyBroadException,PyUnusedLocal
-        me = singleton.SingleInstance()
-
-
-    else:
-        cryptobox_command(options)
 
 
 if strcmp(__name__, '__main__'):

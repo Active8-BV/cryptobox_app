@@ -5,10 +5,7 @@ fs = require("fs")
 
 
 gui = require('nw.gui')
-xmlrpc = require('xmlrpc')
 
-
-gui = require("nw.gui")
 watch = require("watch")
 
 # Create a tray icon
@@ -41,14 +38,6 @@ angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
 cryptobox_ctrl = ($scope, $q, memory, utils) ->
     print "cryptobox.cf:42", "cryptobox_ctrl"
 
-    get_rpc_client = ->
-        clientOptions = 
-            host: "localhost"
-            port: 8654
-            path: "/RPC2"
-
-        return xmlrpc.createClient(clientOptions)
-
     $scope.cba_version = 0.1
     memory.set("g_running", true)
     cba_main = null
@@ -57,12 +46,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     $scope.on_exit = =>
         $scope.quitting = true
-        client = get_rpc_client()
-        client.methodCall "force_stop2",[], (e,v) ->
-            if cba_main?.pid?
-                if not $scope.succesfull_kill
-                    process.kill(cba_main.pid);
-            gui.App.quit()
+        gui.App.quit()
 
     set_output_buffers = (cba_main_proc) ->
         if exist(cba_main_proc.stdout)
@@ -147,35 +131,15 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     get_motivation = ->
         if not utils.exist($scope.motivation)
-            client = get_rpc_client()
-            client.methodCall "get_motivation", [], (error, value) ->
-                if utils.exist(value)
-                    $scope.motivation = value
-
-                if not utils.exist($scope.motivation)
-                    utils.set_time_out("cryptobox.cf:156", get_motivation, 100)
+            print "get_motivation not implemented"
 
     ping_client = ->
         utils.force_digest($scope)
-        client = get_rpc_client()
-        client.methodCall "last_ping", [], (error, value) ->
-            if utils.exist(error)
-                cba_main = spawn(cmd_to_run, [""])
-                set_output_buffers(cba_main)
-            else
-                $scope.rpc_server_started = true
-
+        print "ping_client"
     $scope.rpc_server_started = false
 
     start_process = =>
         print "cryptobox.cf:171", "start_process"
-
-        #client = get_rpc_client()
-        #client.methodCall "force_stop",[], (e,v) ->
-        #    if utils.exist(v)
-        #        print "cryptobox.cf:176", "killed existing deamon"
-        #    else
-        #        print "cryptobox.cf:178", "starting deamon"
         cba_main = spawn(cmd_to_run, [""])
         set_output_buffers(cba_main)
 
@@ -211,7 +175,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         if not exist(db)
             p.reject("no db")
         else
-            record = 
+            record =
                 _id: k
                 value: v
             db.get k, (e, d) ->
@@ -395,6 +359,34 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.form_change()
 
     run_command = (command_name, command_arguments) ->
+        p = $q.defer()
+
+        fprogress = path.join(process.cwd(), "progress")
+        fitem_progress = path.join(process.cwd(), "item_progress")
+
+        if fs.existsSync(fprogress)
+            data = fs.readFileSync(fprogress)
+            data = parseInt(data, 10)
+
+            if utils.exist(data)
+                $scope.progress_bar = parseInt(data, 10)
+                fs.unlinkSync(fprogress)
+
+        if fs.existsSync(fitem_progress)
+            data = fs.readFileSync(fitem_progress)
+
+            if utils.exist(data)
+                $scope.progress_bar_item = parseInt(data, 10)
+                fs.unlinkSync(fitem_progress)
+
+        if $scope.progress_bar >= 100
+            $scope.progress_bar = 0
+
+        if $scope.progress_bar_item >= 100
+            $scope.progress_bar_item = 0
+        utils.force_digest($scope)
+        utils.set_interval("cryptobox.cf:695", progress_checker, 100, "progress_checker")
+
         client = get_rpc_client()
         p = $q.defer()
         client.methodCall command_name, command_arguments, (error, value) ->
@@ -429,7 +421,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     get_sync_state = ->
         p = $q.defer()
-        option = 
+        option =
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
@@ -503,7 +495,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         client.methodCall("get_all_smemory", [], handle_smemory)
 
     get_option = ->
-        option = 
+        option =
             dir: $scope.cb_folder_text
             username: $scope.cb_username
             password: $scope.cb_password
