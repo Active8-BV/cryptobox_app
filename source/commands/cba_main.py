@@ -522,6 +522,15 @@ def run_cb_command(options):
     t1.start()
     log("cb_command started")
 
+
+def get_all_smemory(cmd):
+    """
+    get_all_smemory
+    """
+
+    smemory = SingletonMemory()
+    return smemory.data
+
 #noinspection PyClassicStyleClass
 def main():
     """
