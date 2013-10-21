@@ -16,6 +16,7 @@ import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
 
+
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
@@ -206,6 +207,7 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
+
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -843,11 +845,13 @@ def check_command_folder(command_folder):
     @type command_folder: str, unicode
     """
     commands = []
+
     if not os.path.exists(command_folder):
         return commands
 
     for fp in os.listdir(command_folder):
         fp = os.path.join(command_folder, fp)
+
         if os.path.exists(fp):
             if str(fp).endswith(".cmd"):
                 fin = open(fp)
@@ -857,6 +861,7 @@ def check_command_folder(command_folder):
                 commands.append(cmd)
                 if os.path.exists(fp):
                     os.remove(fp)
+
     return commands
 
 
@@ -868,6 +873,7 @@ def add_command_to_folder(command_folder, name, data=None):
     """
     if not os.path.exists(command_folder):
         os.makedirs(command_folder)
+
     if not data:
         data = "null"
     open(os.path.join(command_folder, name + ".cmd"), "w").write(data)
@@ -880,8 +886,11 @@ def add_command_result_to_folder(command_folder, data):
     """
     if not os.path.exists(command_folder):
         os.makedirs(command_folder)
+
     if not data:
         data = "null"
+
     if not "name" in data:
         raise Exception("no name in result object")
+
     open(os.path.join(command_folder, data["name"] + ".result"), "w").write(json.dumps(data))
