@@ -30,12 +30,9 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
-
         class _Popen(multiprocessing.forking.Popen):
-
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -48,7 +45,6 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
-
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -65,6 +61,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -422,15 +419,6 @@ class XMLRPCThread(multiprocessing.Process):
                 q = qlist[random.randint(0, len(qlist))]
                 return q[0] + "<br/><br/>- " + q[1]
 
-            def do_open_folder(folder_path, servername):
-                """
-                do_open_folder
-                :param folder_path:
-                :param servername:
-                """
-                log("do_open_folder")
-                open_folder(os.path.join(folder_path, servername))
-
             def do_get_tree_sequence(options):
                 """
                 :param options:
@@ -438,6 +426,7 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 log("get_tree_sequence")
                 return cryptobox_command(options)
+
             server.register_function(ping, 'ping')
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
@@ -458,39 +447,119 @@ class XMLRPCThread(multiprocessing.Process):
             print "cba_main.py:457", "bye xmlrpc server"
 
 
+def do_open_folder(cmd):
+    """
+    do_open_folder
+    :param folder_path:
+    :param servername:
+    """
+
+    log("do_open_folder")
+    open_folder(os.path.join(cmd["data"][0], cmd["data"][1]))
+
+
+def add(cmd):
+    """
+
+    """
+    return cmd["a"] + cmd["b"]
+
+
+def get_motivation(cmd):
+    """
+
+    """
+    qlist = cPickle.load(open("quotes.list"))
+    q = qlist[random.randint(0, len(qlist)) - 1]
+    return q[0] + "<br/><br/>- " + q[1]
+
+
+def do_exit(cmd):
+    """
+
+    """
+    exit(1)
+    return True
+
+
+def ping_client(cmd):
+    """
+
+    """
+    memory = SingletonMemory()
+    memory.set("last_ping", time.time())
+    return True
+
+
+def run_cb_command(options):
+    """
+    run_cb_command
+    @type options: dict
+    """
+
+    logged = False
+
+    if has_option(options, "check"):
+        log("check sync stats")
+        logged = True
+
+    if has_option(options, "sync"):
+        log("sync")
+        logged = True
+
+    if has_option(options, "encrypt"):
+        log("encrypt")
+        logged = True
+
+    if has_option(options, "decrypt"):
+        log("decrypt")
+        logged = True
+
+    if not logged:
+        log("cb_command", options)
+
+    t1 = threading.Thread(target=cryptobox_command, args=(options,))
+    t1.start()
+    log("cb_command started")
+
 #noinspection PyClassicStyleClass
 def main():
     """
     @return: @rtype:
     """
+
+    memory = SingletonMemory()
+    memory.set("last_ping", time.time())
     (options, args) = add_options()
 
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
-        if not options.ipcfolder:
+
+        if not options.ipcfolder.strip():
             raise Exception("ipcfolder (-i) not given")
-        cmd_folder_path = options.ipcfolder
+        cmd_folder_path = options.ipcfolder.strip()
+        for fp in os.listdir(cmd_folder_path):
+            fp = os.path.join(cmd_folder_path, fp)
+            if os.path.exists(fp):
+                os.remove(fp)
 
         while True:
-            print "check commands"
             commands = check_command_folder(cmd_folder_path)
 
             for cmd in commands:
-                if strcmp(cmd["name"], "add"):
-                    cmd["result"] = {"params": (cmd["a"], cmd["b"]), "result": cmd["a"] + cmd["b"]}
+                if cmd["name"] not in globals():
+                    print cmd["name"], "not found"
+                else:
+                    func = globals()[cmd["name"]]
+                    cmd["result"] = func(cmd)
                     add_command_result_to_folder(cmd_folder_path, cmd)
-                elif strcmp(cmd["name"], "ping_client"):
-                    cmd["result"] = "ok"
-                    add_command_result_to_folder(cmd_folder_path, cmd)
-                elif strcmp(cmd["name"], "get_motivation"):
-                    qlist = cPickle.load(open("quotes.list"))
-                    q = qlist[random.randint(0, len(qlist))-1]
-                    cmd["result"] = q[0] + "<br/><br/>- " + q[1]
-                    add_command_result_to_folder(cmd_folder_path, cmd)
-                elif strcmp(cmd["name"], "exit"):
-                    print "cba_main.py:479", "bye"
-                    break
+
             time.sleep(0.2)
+            tslp = time.time() - memory.get("last_ping")
+
+            if int(tslp) > 30:
+                log("exit")
+                exit(1)
 
     else:
         cryptobox_command(options)
@@ -498,7 +567,6 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
