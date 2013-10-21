@@ -36,6 +36,6 @@ cblogo/
 *.pyc
 *.lock
 create_*.sh
-./Cryptobox/cba_commands
+Cryptobox/cba_commands
 
 #git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch create_*.sh' --prune-empty --tag-name-filter cat -- --all
