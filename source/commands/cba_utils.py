@@ -849,10 +849,14 @@ def check_command_folder(command_folder):
     for fp in os.listdir(command_folder):
         fp = os.path.join(command_folder, fp)
         if os.path.exists(fp):
-            fin = open(fp)
-            commands.append({"name": os.path.basename(fin.name), "data": fin.read()})
-        if os.path.exists(fp):
-            os.remove(fp)
+            if str(fp).endswith(".cmd"):
+                fin = open(fp)
+                cmd = json.loads(fin.read())
+                cmd["name"] = os.path.basename(fin.name)
+                cmd["name"] = cmd["name"].replace(".cmd", "")
+                commands.append(cmd)
+                if os.path.exists(fp):
+                    os.remove(fp)
     return commands
 
 
@@ -866,4 +870,18 @@ def add_command_to_folder(command_folder, name, data=None):
         os.makedirs(command_folder)
     if not data:
         data = "null"
-    open(os.path.join(command_folder, name), "w").write(data)
+    open(os.path.join(command_folder, name + ".cmd"), "w").write(data)
+
+
+def add_command_result_to_folder(command_folder, data):
+    """
+    @type command_folder: str, unicode
+    @type data: dict
+    """
+    if not os.path.exists(command_folder):
+        os.makedirs(command_folder)
+    if not data:
+        data = "null"
+    if not "name" in data:
+        raise Exception("no name in result object")
+    open(os.path.join(command_folder, data["name"] + ".result"), "w").write(json.dumps(data))
