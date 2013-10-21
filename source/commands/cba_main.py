@@ -89,6 +89,7 @@ def add_options():
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
     parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
     parser.add_option("-v", "--version", dest="version", action='store_true', help="client version", metavar="VERSION")
+    parser.add_option("-i", "--ipcfolder", dest="ipcfolder", help="folder to store command objects", metavar="IPCFOLDER")
     return parser.parse_args()
 
 
@@ -466,18 +467,30 @@ def main():
 
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
-        cmd_folder_path = os.path.join(os.getcwd(), "cba_commands")
+        if not options.ipcfolder:
+            raise Exception("ipcfolder (-i) not given")
+        cmd_folder_path = options.ipcfolder
 
         while True:
+            print "check commands"
             commands = check_command_folder(cmd_folder_path)
 
             for cmd in commands:
-                if cmd["name"] == "add":
+                if strcmp(cmd["name"], "add"):
                     cmd["result"] = {"params": (cmd["a"], cmd["b"]), "result": cmd["a"] + cmd["b"]}
                     add_command_result_to_folder(cmd_folder_path, cmd)
-                elif cmd["name"] == "exit":
+                elif strcmp(cmd["name"], "ping_client"):
+                    cmd["result"] = "ok"
+                    add_command_result_to_folder(cmd_folder_path, cmd)
+                elif strcmp(cmd["name"], "get_motivation"):
+                    qlist = cPickle.load(open("quotes.list"))
+                    q = qlist[random.randint(0, len(qlist))-1]
+                    cmd["result"] = q[0] + "<br/><br/>- " + q[1]
+                    add_command_result_to_folder(cmd_folder_path, cmd)
+                elif strcmp(cmd["name"], "exit"):
                     print "cba_main.py:479", "bye"
                     break
+            time.sleep(0.2)
 
     else:
         cryptobox_command(options)
