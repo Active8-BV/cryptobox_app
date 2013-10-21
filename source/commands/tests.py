@@ -1,5 +1,4 @@
 # coding=utf-8
-
 """
 unit test for app commands
 """
@@ -71,6 +70,7 @@ class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
     """
+
     #noinspection PyPep8Naming
     def setUp(self):
         """
@@ -611,11 +611,11 @@ class CommunicationTest(unittest.TestCase):
         setUp
         """
         self.cmd_folder_path = os.path.join(os.getcwd(), "commands")
+
         if not os.path.exists(self.cmd_folder_path):
             os.makedirs(self.cmd_folder_path)
 
             #noinspection PyPep8Naming
-
     def tearDown(self):
         """
         tearDown
@@ -628,12 +628,9 @@ class CommunicationTest(unittest.TestCase):
         """
         test_new_commands
         """
-
         commands = check_command_folder(self.cmd_folder_path)
         self.assertEqual(len(commands), 0)
-
         add_command_to_folder(self.cmd_folder_path, "exit")
-
         commands = check_command_folder(self.cmd_folder_path)
         self.assertEqual(len(commands), 1)
 

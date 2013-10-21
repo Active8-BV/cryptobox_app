@@ -10,16 +10,14 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import os
 import threading
-import socket
 import cPickle
 import time
 import multiprocessing
 import xmlrpclib
 import random
 import SimpleXMLRPCServer
-from tendo import singleton
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder, check_command_folder
+from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder, check_command_folder, add_command_result_to_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -32,9 +30,12 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
+
         class _Popen(multiprocessing.forking.Popen):
+
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -47,6 +48,7 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
+
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -63,7 +65,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -361,7 +362,6 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 simple ping
                 """
-
                 t = time.time()
                 return t
 
@@ -437,7 +437,6 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 log("get_tree_sequence")
                 return cryptobox_command(options)
-
             server.register_function(ping, 'ping')
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
@@ -455,7 +454,8 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:461", "bye xmlrpc server"
+            print "cba_main.py:457", "bye xmlrpc server"
+
 
 #noinspection PyClassicStyleClass
 def main():
@@ -466,23 +466,29 @@ def main():
 
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
-        cmd_folder_path = os.path.join(os.getcwd(), "commands")
+        cmd_folder_path = os.path.join(os.getcwd(), "cba_commands")
+
         while True:
             commands = check_command_folder(cmd_folder_path)
+
             for cmd in commands:
-                if cmd["name"] == "exit":
-                    print "bye"
+                if cmd["name"] == "add":
+                    cmd["result"] = {"params": (cmd["a"], cmd["b"]), "result": cmd["a"] + cmd["b"]}
+                    add_command_result_to_folder(cmd_folder_path, cmd)
+                elif cmd["name"] == "exit":
+                    print "cba_main.py:479", "bye"
                     break
+
     else:
         cryptobox_command(options)
 
 
-
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:512", "\nbye main"
+        print "cba_main.py:494", "\nbye main"
