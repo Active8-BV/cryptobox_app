@@ -13,7 +13,10 @@ function on_change_path_cmd {
 
 on_change_path_cmd ./source/cryptobox.coffee 'python -OO cp.py -r 0 -f ./source/cryptobox.coffee; coffee -c -b ./source/cryptobox.coffee; mv ./source/cryptobox.js ./Cryptobox'
 
+cd source
 ./run_cp.sh
+cd ..
+
 function build_commands {
     python -OO when_changed.py ./source/commands/cba_main.py -c "./buildcommands.sh cba_main" &
     python -OO when_changed.py ./source/commands/cba_sync.py -c "./buildcommands.sh cba_main" &

@@ -30,9 +30,12 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
+
         class _Popen(multiprocessing.forking.Popen):
+
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -45,6 +48,7 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
+
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -61,7 +65,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -426,7 +429,6 @@ class XMLRPCThread(multiprocessing.Process):
                 """
                 log("get_tree_sequence")
                 return cryptobox_command(options)
-
             server.register_function(ping, 'ping')
             server.register_function(force_stop, 'force_stop')
             server.register_function(last_ping, 'last_ping')
@@ -444,7 +446,7 @@ class XMLRPCThread(multiprocessing.Process):
                 server.force_stop()
                 server.server_close()
         except KeyboardInterrupt:
-            print "cba_main.py:457", "bye xmlrpc server"
+            print "cba_main.py:449", "bye xmlrpc server"
 
 
 def do_open_folder(cmd):
@@ -453,21 +455,20 @@ def do_open_folder(cmd):
     :param folder_path:
     :param servername:
     """
-
     log("do_open_folder")
     open_folder(os.path.join(cmd["data"][0], cmd["data"][1]))
 
 
 def add(cmd):
     """
-
+    add
     """
     return cmd["a"] + cmd["b"]
 
 
 def get_motivation(cmd):
     """
-
+    get_motivation
     """
     qlist = cPickle.load(open("quotes.list"))
     q = qlist[random.randint(0, len(qlist)) - 1]
@@ -476,7 +477,7 @@ def get_motivation(cmd):
 
 def do_exit(cmd):
     """
-
+    do_exit
     """
     exit(1)
     return True
@@ -484,7 +485,7 @@ def do_exit(cmd):
 
 def ping_client(cmd):
     """
-
+    ping_client
     """
     memory = SingletonMemory()
     memory.set("last_ping", time.time())
@@ -496,7 +497,6 @@ def run_cb_command(options):
     run_cb_command
     @type options: dict
     """
-
     logged = False
 
     if has_option(options, "check"):
@@ -527,28 +527,29 @@ def get_all_smemory(cmd):
     """
     get_all_smemory
     """
-
     smemory = SingletonMemory()
     return smemory.data
+
 
 #noinspection PyClassicStyleClass
 def main():
     """
     @return: @rtype:
     """
-
     memory = SingletonMemory()
     memory.set("last_ping", time.time())
     (options, args) = add_options()
 
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
-
         if not options.ipcfolder.strip():
             raise Exception("ipcfolder (-i) not given")
+
         cmd_folder_path = options.ipcfolder.strip()
+
         for fp in os.listdir(cmd_folder_path):
             fp = os.path.join(cmd_folder_path, fp)
+
             if os.path.exists(fp):
                 os.remove(fp)
 
@@ -557,12 +558,11 @@ def main():
 
             for cmd in commands:
                 if cmd["name"] not in globals():
-                    print cmd["name"], "not found"
+                    print "cba_main.py:561", cmd["name"], "not found"
                 else:
                     func = globals()[cmd["name"]]
                     cmd["result"] = func(cmd)
                     add_command_result_to_folder(cmd_folder_path, cmd)
-
             time.sleep(0.2)
             tslp = time.time() - memory.get("last_ping")
 
@@ -576,9 +576,10 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:494", "\nbye main"
+        print "cba_main.py:585", "\nbye main"
