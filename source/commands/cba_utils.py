@@ -849,7 +849,6 @@ def check_command_folder(command_folder):
     if not os.path.exists(command_folder):
         return commands
 
-
     for fp in os.listdir(command_folder):
         fp = os.path.join(command_folder, fp)
 
@@ -858,10 +857,12 @@ def check_command_folder(command_folder):
                 if str(fp).endswith(".cmd"):
                     fin = open(fp)
                     cmd = json.loads(fin.read())
+
                     if not isinstance(cmd, dict):
                         tmp_data = cmd
                         cmd = {}
                         cmd["data"] = tmp_data
+
                     cmd["name"] = os.path.basename(fin.name)
                     cmd["name"] = cmd["name"].replace(".cmd", "")
                     commands.append(cmd)
@@ -870,7 +871,7 @@ def check_command_folder(command_folder):
             finally:
                 if str(fp).endswith(".cmd"):
                     if os.path.exists(fp):
-                        print fp
+                        print "cba_utils.py:874", fp
                         os.remove(fp)
 
     return commands
@@ -903,6 +904,7 @@ def add_command_result_to_folder(command_folder, data):
 
     if not "name" in data:
         raise Exception("no name in result object")
+
     if os.path.exists(os.path.join(command_folder, data["name"] + ".cmd")):
         os.remove(os.path.join(command_folder, data["name"] + ".cmd"))
     open(os.path.join(command_folder, data["name"] + ".result"), "w").write(json.dumps(data))
