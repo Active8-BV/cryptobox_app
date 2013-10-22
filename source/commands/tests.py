@@ -83,12 +83,12 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         if self.start_servers:
-            #os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
+            os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
             os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
-            #self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
+            self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
             self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
-        connected = True
+        connected = False
 
         while not connected:
             #noinspection PyBroadException
