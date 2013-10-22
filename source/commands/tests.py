@@ -83,12 +83,12 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         if self.start_servers:
-            os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
+            #os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
             os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
-            self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
+            #self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
             self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
-        connected = False
+        connected = True
 
         while not connected:
             #noinspection PyBroadException
@@ -113,7 +113,7 @@ class CryptoboxAppTest(unittest.TestCase):
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
         self.do_wait_for_tasks = True
-        testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "1GB.zip", "50MB.zip"]
+        testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
         for tfn in testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
@@ -222,9 +222,9 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/nohup.out"
 
-        #fname = "testdata/5MB.zip"
+
+        fname = "testdata/5MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_file_struct, print_progress)
@@ -598,41 +598,6 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
-
-
-class CommunicationTest(unittest.TestCase):
-    """
-    CommunicationTest
-    """
-
-    #noinspection PyPep8Naming
-    def setUp(self):
-        """
-        setUp
-        """
-        self.cmd_folder_path = os.path.join(os.getcwd(), "commands")
-
-        if not os.path.exists(self.cmd_folder_path):
-            os.makedirs(self.cmd_folder_path)
-
-            #noinspection PyPep8Naming
-    def tearDown(self):
-        """
-        tearDown
-        """
-        for f in os.listdir(self.cmd_folder_path):
-            os.remove(os.path.join(self.cmd_folder_path, f))
-        os.removedirs(self.cmd_folder_path)
-
-    def test_new_commands(self):
-        """
-        test_new_commands
-        """
-        commands = check_command_folder(self.cmd_folder_path)
-        self.assertEqual(len(commands), 0)
-        add_command_to_folder(self.cmd_folder_path, "exit")
-        commands = check_command_folder(self.cmd_folder_path)
-        self.assertEqual(len(commands), 1)
 
 
 if __name__ == '__main__':
