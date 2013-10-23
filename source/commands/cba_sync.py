@@ -441,10 +441,8 @@ def get_server_index(memory, options):
         memory = authorize_user(memory, options)
 
     tree_seq = get_tree_sequence(memory, options)
-    old_tree_seq = memory.has_get("tree_seq")
+
     memory.replace("tree_seq", tree_seq)
-    if tree_seq == old_tree_seq:
-        return memory.get("serverindex"), memory
 
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
     if not result[0]:
@@ -458,7 +456,9 @@ def get_server_index(memory, options):
 
     serverindex = result[1]
 
-    serverindex["dirlist"] = list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]]))
+    serverindex["dirlist"] = tuple(list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]])))
+    serverindex["doclist"] = tuple(serverindex["doclist"])
+
     memory.replace("serverindex", serverindex)
     return serverindex, memory
 
