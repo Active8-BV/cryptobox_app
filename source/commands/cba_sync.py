@@ -64,7 +64,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
 
         for ldir in local_index["dirnames"]:
             for f in local_index["dirnames"][ldir]["filenames"]:
-                local_file_hashes[f["hash"]] = os.path.join(local_index["dirnames"][ldir]["dirname"], f["name"])
+                if "hash" in f:
+                    local_file_hashes[f["hash"]] = os.path.join(local_index["dirnames"][ldir]["dirname"], f["name"])
 
         for lfnw in local_file_paths_not_written:
             w = False
@@ -770,7 +771,8 @@ def upload_files(memory, options, serverindex, file_uploads):
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
-    files_uploaded = []
+    def add_size
+    files_uploaded = [os.stat()
 
     files_uploaded = sorted(files_uploaded, key=lambda k: k["m_created"])
 
