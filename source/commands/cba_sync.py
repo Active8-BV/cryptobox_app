@@ -709,11 +709,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
-        rel_path = ""
-
-        if parent.strip() == "":
-            rel_path = save_encode_b64(rel_file_path)
-
+        rel_path = save_encode_b64(rel_file_path)
         params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
