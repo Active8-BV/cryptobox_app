@@ -13,9 +13,7 @@ import threading
 import cPickle
 import time
 import multiprocessing
-import xmlrpclib
 import random
-import SimpleXMLRPCServer
 from optparse import OptionParser
 from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder, check_command_folder, add_command_result_to_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
@@ -30,12 +28,9 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
-
         class _Popen(multiprocessing.forking.Popen):
-
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -48,7 +43,6 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
-
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -65,6 +59,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -114,6 +109,15 @@ def consoledict(*args):
                 dbs += " " + str(s)
 
     log(dbs)
+
+
+def delete_progress_file(fname):
+    """
+    @type fname: str, unicode
+    """
+    p = os.path.join(os.getcwd(), fname)
+    if os.path.exists(p):
+        os.remove(p)
 
 
 def cryptobox_command(options):
@@ -253,6 +257,8 @@ def cryptobox_command(options):
     finally:
         smemory = SingletonMemory()
         smemory.set("working", False)
+        delete_progress_file("progress")
+        delete_progress_file("item_progress")
 
     return True
 
@@ -268,192 +274,10 @@ def has_option(options, optname):
     return False
 
 
-class XMLRPCThread(multiprocessing.Process):
-    """
-    XMLRPCThread
-    """
-
-    def run(self):
-        """
-        run
-        """
-
-        try:
-            memory = SingletonMemory()
-
-            #noinspection PyClassicStyleClass
-
-            class RequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
-                """
-                RequestHandler
-                """
-                rpc_paths = ('/RPC2',)
-
-            #noinspection PyClassicStyleClass
-
-            class StoppableRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-                """
-                StoppableRPCServer
-                """
-                allow_reuse_address = True
-                stopped = False
-                timeout = 1
-
-                def __init__(self, *args, **kw):
-                    SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, *args, **kw)
-
-                def serve_forever(self, poll_interval=0.1):
-                    """
-                    :param poll_interval:
-                    :return: :rtype:
-                    """
-                    while not self.stopped:
-                        tslp = time.time() - memory.get("last_ping")
-
-                        if int(tslp) < 30:
-                            self.handle_request()
-                            time.sleep(poll_interval)
-                        else:
-                            log("no ping received for 30 seconds")
-                            time.sleep(1)
-
-                def force_stop(self):
-                    """
-                    :return: :rtype:
-                    """
-                    self.server_close()
-
-                    #noinspection PyAttributeOutsideInit
-                    self.stopped = True
-
-                    #noinspection PyBroadException
-                    try:
-                        self.create_dummy_request()
-                    except:
-                        pass
-
-                @staticmethod
-                def create_dummy_request():
-                    """
-                    create_dummy_request
-                    """
-                    xmlrpclib.ServerProxy("http://localhost:8654/RPC2").ping()
-
-            # Create server
-            server = StoppableRPCServer(("localhost", 8654), requestHandler=RequestHandler, allow_none=True)
-            server.register_introspection_functions()
-
-            def force_stop():
-                """
-                stop_server
-                """
-                log("force_stop")
-                server.force_stop()
-                return True
-
-            def last_ping():
-                """
-                ping from client
-                """
-                log("last_ping")
-                memory.set("last_ping", time.time())
-                return "ping received"
-
-            def ping():
-                """
-                simple ping
-                """
-                t = time.time()
-                return t
-
-            def run_cb_command(options):
-                """
-                run_cb_command
-                @type options: dict
-                """
-                logged = False
-
-                if has_option(options, "check"):
-                    log("check sync stats")
-                    logged = True
-
-                if has_option(options, "sync"):
-                    log("sync")
-                    logged = True
-
-                if has_option(options, "encrypt"):
-                    log("encrypt")
-                    logged = True
-
-                if has_option(options, "decrypt"):
-                    log("decrypt")
-                    logged = True
-
-                if not logged:
-                    log("cb_command", options)
-
-                t1 = threading.Thread(target=cryptobox_command, args=(options,))
-                t1.start()
-                log("cb_command started")
-
-            def get_all_smemory():
-                """
-                get_all_smemory
-                """
-                smemory = SingletonMemory()
-                return smemory.data
-
-            def set_smemory(k, v):
-                """
-                set_smemory
-                :param k:
-                :param v:
-                """
-                smemory = SingletonMemory()
-                return smemory.set(k, v)
-
-            def get_motivation():
-                """
-                get_motivation
-                """
-
-                #noinspection PyBroadException
-                qlist = cPickle.load(open("quotes.list"))
-                q = qlist[random.randint(0, len(qlist))]
-                return q[0] + "<br/><br/>- " + q[1]
-
-            def do_get_tree_sequence(options):
-                """
-                :param options:
-                :return: :rtype:
-                """
-                log("get_tree_sequence")
-                return cryptobox_command(options)
-            server.register_function(ping, 'ping')
-            server.register_function(force_stop, 'force_stop')
-            server.register_function(last_ping, 'last_ping')
-            server.register_function(run_cb_command, "cryptobox_command")
-            server.register_function(set_smemory, "set_smemory")
-            server.register_function(get_all_smemory, "get_all_smemory")
-            server.register_function(get_motivation, "get_motivation")
-            server.register_function(do_open_folder, "do_open_folder")
-            server.register_function(do_get_tree_sequence, "get_tree_sequence")
-
-            try:
-                memory.set("last_ping", time.time())
-                server.serve_forever()
-            finally:
-                server.force_stop()
-                server.server_close()
-        except KeyboardInterrupt:
-            print "cba_main.py:449", "bye xmlrpc server"
-
-
 def do_open_folder(cmd):
     """
     do_open_folder
-    :param folder_path:
-    :param servername:
+    :param cmd:
     """
     log("do_open_folder")
     open_folder(os.path.join(cmd["data"][0], cmd["data"][1]))
@@ -465,7 +289,7 @@ def add(cmd):
     """
     return cmd["a"] + cmd["b"]
 
-
+#noinspection PyUnusedLocal
 def get_motivation(cmd):
     """
     get_motivation
@@ -474,7 +298,7 @@ def get_motivation(cmd):
     q = qlist[random.randint(0, len(qlist)) - 1]
     return q[0] + "<br/><br/>- " + q[1]
 
-
+#noinspection PyUnusedLocal
 def do_exit(cmd):
     """
     do_exit
@@ -482,7 +306,7 @@ def do_exit(cmd):
     exit(1)
     return True
 
-
+#noinspection PyUnusedLocal
 def ping_client(cmd):
     """
     ping_client
@@ -522,14 +346,13 @@ def run_cb_command(options):
     t1.start()
     log("cb_command started")
 
-
+#noinspection PyUnusedLocal
 def get_all_smemory(cmd):
     """
     get_all_smemory
     """
     smemory = SingletonMemory()
     return smemory.data
-
 
 #noinspection PyClassicStyleClass
 def main():
@@ -576,7 +399,6 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()

@@ -19,13 +19,13 @@ class TreeLoadError(Exception):
     pass
 
 
-def get_cryptobox_index(memory):
+def get_localindex(memory):
     """
     @type memory: Memory
-    get_cryptobox_index
+    get_localindex
     """
-    if memory.has("cryptobox_index"):
-        return memory.get("cryptobox_index")
+    if memory.has("localindex"):
+        return memory.get("localindex")
     else:
         return dict()
 
@@ -37,13 +37,13 @@ class NoLocalIndex(Exception):
     pass
 
 
-def store_cryptobox_index(memory, index):
+def store_localindex(memory, index):
     """
-    store_cryptobox_index
+    store_localindex
     @type memory: Memory
     @type index: dict
     """
-    memory.replace("cryptobox_index", index)
+    memory.replace("localindex", index)
     return memory
 
 
@@ -168,10 +168,10 @@ def get_secret(memory, options):
     @type options: optparse.Values, instance
     """
     password = options.password
-    current_cryptobox_index = get_cryptobox_index(memory)
+    current_localindex = get_localindex(memory)
 
-    if current_cryptobox_index:
-        salt = base64.decodestring(current_cryptobox_index["salt_b64"])
+    if current_localindex:
+        salt = base64.decodestring(current_localindex["salt_b64"])
     else:
         salt = Random.new().read(32)
 
@@ -206,8 +206,8 @@ def make_local_index(options):
         if datadir in args["folders"]["dirnames"][dir_name]["dirname"]:
             del args["folders"]["dirnames"][dir_name]
 
-    cryptobox_index = args["folders"]
-    return cryptobox_index
+    localindex = args["folders"]
+    return localindex
 
 
 def index_and_encrypt(memory, options):
@@ -254,7 +254,7 @@ def index_and_encrypt(memory, options):
             encrypt_new_blobs(secret, new_blobs)
 
     localindex["salt_b64"] = base64.encodestring(salt)
-    memory = store_cryptobox_index(memory, localindex)
+    memory = store_localindex(memory, localindex)
 
     if options.remove:
         ld = os.listdir(options.dir)
@@ -334,31 +334,31 @@ def decrypt_and_build_filetree(memory, options):
         return memory
 
     blobdir = os.path.join(datadir, "blobs")
-    cryptobox_index = get_cryptobox_index(memory)
+    localindex = get_localindex(memory)
     hashes = set()
 
-    if cryptobox_index:
-        for dirhash in cryptobox_index["dirnames"]:
-            if "dirname" in cryptobox_index["dirnames"][dirhash]:
-                if not os.path.exists(cryptobox_index["dirnames"][dirhash]["dirname"]):
-                    ensure_directory(cryptobox_index["dirnames"][dirhash]["dirname"])
+    if localindex:
+        for dirhash in localindex["dirnames"]:
+            if "dirname" in localindex["dirnames"][dirhash]:
+                if not os.path.exists(localindex["dirnames"][dirhash]["dirname"]):
+                    ensure_directory(localindex["dirnames"][dirhash]["dirname"])
 
-            for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
-                fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
+            for cfile in localindex["dirnames"][dirhash]["filenames"]:
+                fpath = os.path.join(localindex["dirnames"][dirhash]["dirname"], cfile["name"])
 
                 if not os.path.exists(fpath):
                     hashes.add(cfile["hash"])
 
     processed_files = 0
     numfiles = len(hashes)
-    secret = password_derivation(password, base64.decodestring(cryptobox_index["salt_b64"]))
+    secret = password_derivation(password, base64.decodestring(localindex["salt_b64"]))
 
     for fhash in hashes:
         processed_files += 1
         update_progress(processed_files, numfiles, "decrypting")
 
         #noinspection PyUnusedLocal
-        paths = decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret)
+        paths = decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret)
 
-    memory = store_cryptobox_index(memory, cryptobox_index)
+    memory = store_localindex(memory, localindex)
     return memory

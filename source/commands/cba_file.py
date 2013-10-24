@@ -104,10 +104,10 @@ def decrypt_file_and_write(fpath, unenc_path, secret):
     return True
 
 
-def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
+def decrypt_write_file(localindex, fdir, fhash, secret):
     """
-    @param cryptobox_index: dict
-    @type cryptobox_index:
+    @param localindex: dict
+    @type localindex:
     @param fdir: str or unicode
     @type fdir:
     @param fhash: str or unicode
@@ -119,13 +119,13 @@ def decrypt_write_file(cryptobox_index, fdir, fhash, secret):
     file_blob = {"data": decrypt_file_smp(secret, blob_enc, update_item_progress).read()}
     paths = []
 
-    for dirhash in cryptobox_index["dirnames"]:
-        for cfile in cryptobox_index["dirnames"][dirhash]["filenames"]:
+    for dirhash in localindex["dirnames"]:
+        for cfile in localindex["dirnames"][dirhash]["filenames"]:
             if strcmp(fhash, cfile["hash"]):
-                fpath = os.path.join(cryptobox_index["dirnames"][dirhash]["dirname"], cfile["name"])
+                fpath = os.path.join(localindex["dirnames"][dirhash]["dirname"], cfile["name"])
 
                 if not os.path.exists(fpath):
-                    ft = cryptobox_index["filestats"][fpath]
+                    ft = localindex["filestats"][fpath]
                     file_blob["st_atime"] = int(ft["st_atime"])
                     file_blob["st_mtime"] = int(ft["st_mtime"])
                     file_blob["st_mode"] = int(ft["st_mode"])
