@@ -3,13 +3,8 @@
 unit test for app commands
 """
 __author__ = 'rabshakeh'
-import os
-import time
-import cPickle
-import subprocess
 import unittest
 import random
-import sys
 from subprocess import Popen, PIPE
 import couchdb
 import requests

@@ -11,7 +11,7 @@ import urllib
 import shutil
 import urllib2
 import poster
-from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_cryptobox_index
+from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user
 from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, update_item_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, path_to_relative_path_unix_style
@@ -59,7 +59,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
     if len(local_file_paths_not_written) > 0:
-        local_index = get_cryptobox_index(memory)
+        local_index = get_localindex(memory)
         local_file_hashes = {}
 
         for ldir in local_index["dirnames"]:
@@ -772,6 +772,10 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     files_uploaded = []
 
+    files_uploaded = sorted(files_uploaded, key=lambda k: k["m_created"])
+
+    raise
+
     for uf in file_uploads:
         update_item_progress(len(files_uploaded) + 1)
         log("upload", uf["local_file_path"])
@@ -829,6 +833,7 @@ def sync_server(memory, options):
 
     # update seen server history files
     localindex = make_local_index(options)
+    memory.replace("localindex", localindex)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
 
     if len(dir_make_server) > 0:

@@ -40,12 +40,12 @@ def encrypt_new_blobs(secret, new_blobs):
         update_progress(processed_files, numfiles, "encrypting")
 
 
-def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
+def decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret):
     """
     @param blobdir: str or unicode
     @type blobdir:
-    @param cryptobox_index: dict
-    @type cryptobox_index:
+    @param localindex: dict
+    @type localindex:
     @param fhash: str or unicode
     @type fhash:
     @param secret: str or unicode
@@ -54,7 +54,7 @@ def decrypt_blob_to_filepaths(blobdir, cryptobox_index, fhash, secret):
 
     try:
         fdir = os.path.join(blobdir, fhash[:2])
-        return decrypt_write_file(cryptobox_index, fdir, fhash, secret)
+        return decrypt_write_file(localindex, fdir, fhash, secret)
     except Exception, e:
         handle_exception(e, False)
 
