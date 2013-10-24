@@ -327,6 +327,7 @@ def handle_exception(exc, again=True, ret_err=False):
     @param ret_err: bool
     @type ret_err:
     """
+    import sys
     import traceback
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
