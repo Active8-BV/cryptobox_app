@@ -154,6 +154,16 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     return serverindex, memory
 
 
+def server_path_to_shortid(memory, options, path):
+    path = save_encode_b64(path)
+    payload = {"path": path}
+
+    result, memory = on_server(memory, options, "pathtoshortid", payload=payload, session=memory.get("session"))
+    if result[0]:
+        return result[1]
+    return None
+
+
 def remove_local_folders(dirs_del_local):
     """
     @type dirs_del_local: list
@@ -341,17 +351,26 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     parent_path = os.path.dirname(parent_path)
 
     result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
-
-    #if len(result) == 0:
-    #    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
+    if len(result) > 1:
+        raise MultipleGuidsForPath(parent_path)
 
     if len(result) == 0:
+        shortid = server_path_to_shortid(memory, options, parent_path)
+    else:
+        if len(result) > 1:
+            raise MultipleGuidsForPath(parent_path)
+        shortid = result[0]
+
+    if not shortid:
+        result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
+        if len(result) > 1:
+            raise MultipleGuidsForPath(parent_path)
+        shortid = result[0]
+
+    if not shortid:
         raise NoParentFound(parent_path)
 
-    elif len(result) == 1:
-        return result[0], parent_path, memory
-    else:
-        raise MultipleGuidsForPath(parent_path)
+    return shortid, parent_path, memory
 
 
 class MultiplePathsForSID(Exception):
