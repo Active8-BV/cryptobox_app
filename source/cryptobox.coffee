@@ -651,6 +651,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     utils.set_time_out("cryptobox.cf:651", start_after_second, 1000)
 
     progress_checker = ->
+        throw "should me method CALL!!"
         fprogress = path.join(process.cwd(), "progress")
         fitem_progress = path.join(process.cwd(), "item_progress")
 
@@ -675,4 +676,4 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         if $scope.progress_bar_item >= 100
             $scope.progress_bar_item = 0
         utils.force_digest($scope)
-    utils.set_interval("cryptobox.cf:678", progress_checker, 100, "progress_checker")
+    utils.set_interval("cryptobox.cf:679", progress_checker, 100, "progress_checker")

@@ -662,6 +662,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   utils.set_time_out("cryptobox.cf:651", start_after_second, 1000);
   progress_checker = function() {
     var data, fitem_progress, fprogress;
+    throw "should me method CALL!!";
     fprogress = path.join(process.cwd(), "progress");
     fitem_progress = path.join(process.cwd(), "item_progress");
     if (fs.existsSync(fprogress)) {
@@ -687,5 +688,5 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }
     return utils.force_digest($scope);
   };
-  return utils.set_interval("cryptobox.cf:678", progress_checker, 100, "progress_checker");
+  return utils.set_interval("cryptobox.cf:679", progress_checker, 100, "progress_checker");
 };
