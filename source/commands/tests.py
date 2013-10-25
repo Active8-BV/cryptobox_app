@@ -25,6 +25,15 @@ from couchdb_api import MemcachedServer, CouchDBServer, sync_all_views
 import crypto_api
 
 
+def delete_progress_file(fname):
+    """
+    @type fname: str, unicode
+    """
+    p = os.path.join(os.getcwd(), fname)
+
+    if os.path.exists(p):
+        os.remove(p)
+
 def add(a, b):
     """
     @type a: int
@@ -139,6 +148,8 @@ class CryptoboxAppTest(unittest.TestCase):
 
         if os.path.exists('stderr.txt'):
             os.remove('stderr.txt')
+        delete_progress_file("progress")
+        delete_progress_file("item_progress")
 
     @staticmethod
     def unzip_testfiles_clean():
