@@ -780,8 +780,8 @@ def upload_files(memory, options, serverindex, file_uploads):
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
-    def add_size(f):
-        f["size"] = os.stat(f["local_file_path"]).st_size
+    def add_size(lf):
+        lf["size"] = os.stat(lf["local_file_path"]).st_size
         return f
 
     file_uploads = [add_size(f) for f in file_uploads]

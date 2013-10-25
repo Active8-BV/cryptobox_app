@@ -317,7 +317,7 @@ def stack_trace(depth=6, line_num_only=False):
 
     return error
 
-
+#noinspection PyUnresolvedReferences
 def handle_exception(exc, again=True, ret_err=False):
     """
     @param exc: Exception
