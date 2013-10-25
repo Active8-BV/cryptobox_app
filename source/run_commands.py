@@ -1,7 +1,6 @@
 #!/usr/local/bin/python
 # coding=utf-8
 
-import os
 from commands.cba_utils import *
 
 
