@@ -111,6 +111,10 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
     dirs_make_server = []
     dirs_del_local = []
 
+    server_dir_history = []
+    if memory.has("serverpath_history"):
+        server_dir_history = [path_to_relative_path_unix_style(memory, x[0]) for x in memory.get("serverpath_history")]
+
     for node in local_dirs_not_on_server:
         if os.path.exists(node["dirname"]):
             rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
@@ -121,7 +125,10 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
                 if int(folder_timestamp) >= int(tree_timestamp):
                     dirs_make_server.append(node)
                 else:
-                    dirs_del_local.append(node)
+                    if node["dirname"] not in server_dir_history:
+                        dirs_make_server.append(node)
+                    else:
+                        dirs_del_local.append(node)
             else:
                 dirs_del_local.append(node)
 
@@ -627,14 +634,14 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
     # filter out file uploads from dirs to delete
-    file_upload_dirs = set([os.path.dirname(x["local_file_path"]) for x in file_uploads])
-    dir_del_local_paths = list(set([x["dirname"] for x in dir_del_local]))
-    for fup in file_upload_dirs:
-        if fup in dir_del_local_paths:
-            dir_del_local = [x for x in dir_del_local if x["dirname"] != fup]
+    #file_upload_dirs = set()
+    #dir_del_local_paths = list(set([x["dirname"] for x in dir_del_local]))
+    dir_del_local = [x for x in dir_del_local if x["dirname"] not in [os.path.dirname(y["local_file_path"]) for y in file_uploads] ]
+    dir_make_server = [x for x in dir_make_server if x["dirname"] not in [os.path.dirname(y["local_file_path"]) for y in file_uploads]]
 
     # filter out dirs to make from file_uploads:
     dir_make_server_tmp = []
+
 
     for dms in dir_make_server:
         add = True
@@ -827,6 +834,16 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
+    sm = SingletonMemory()
+    sm.set("file_downloads", [])
+    sm.set("file_uploads", [])
+    sm.set("dir_del_server", [])
+    sm.set("dir_make_local", [])
+    sm.set("dir_make_server", [])
+    sm.set("dir_del_local", [])
+    sm.set("file_del_local", [])
+    sm.set("file_del_server", [])
+
     if memory.has("session"):
         memory = authorized(memory, options)
 
@@ -916,14 +933,5 @@ def sync_server(memory, options):
 
             memory = del_path_history(fpath, memory)
 
-    sm = SingletonMemory()
-    sm.set("file_downloads", [])
-    sm.set("file_uploads", [])
-    sm.set("dir_del_server", [])
-    sm.set("dir_make_local", [])
-    sm.set("dir_make_server", [])
-    sm.set("dir_del_local", [])
-    sm.set("file_del_local", [])
-    sm.set("file_del_server", [])
     memory = wait_for_tasks(memory, options)
     return localindex, memory
