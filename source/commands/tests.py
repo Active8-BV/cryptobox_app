@@ -37,7 +37,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:45", p
+    print "tests.py:40", p
 
 
 def count_files_dir(fpath):
@@ -58,7 +58,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:66", p
+    print "tests.py:61", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -67,29 +67,12 @@ class CryptoboxAppTest(unittest.TestCase):
     """
 
     #noinspection PyPep8Naming
-    def setUp(self):
-        """
-        setUp
-        """
-        self.start_servers = True
-        self.db_name = "test"
-        server = "http://127.0.01:8000/"
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
-        self.cboptions = Dict2Obj(self.options_d)
-        self.reset_cb_db_clean()
-        if self.start_servers:
-            os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
-            os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
-            self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
-            self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-
+    def wait_for_django_server(self, wait=True):
         connected = False
 
         while not connected:
             #noinspection PyBroadException
             try:
-                time.sleep(0.5)
-
                 #noinspection PyUnusedLocal
                 if self.start_servers:
                     #noinspection PyStatementEffect
@@ -97,8 +80,31 @@ class CryptoboxAppTest(unittest.TestCase):
 
                 connected = True
             except Exception:
-                time.sleep(0.5)
+                if wait:
+                    time.sleep(0.5)
+                else:
+                    return False
 
+        return True
+
+    def setUp(self):
+        """
+        setUp
+        """
+        self.start_servers = True
+        self.django_running = self.wait_for_django_server(False)
+        self.db_name = "test"
+        server = "http://127.0.01:8000/"
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
+        self.cboptions = Dict2Obj(self.options_d)
+        self.reset_cb_db_clean()
+        if self.start_servers:
+            if not self.django_running:
+                os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
+                os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
+                self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
+                self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        self.wait_for_django_server()
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
         self.cbmemory = Memory()
@@ -124,8 +130,9 @@ class CryptoboxAppTest(unittest.TestCase):
             wait_for_tasks(self.cbmemory, self.cboptions)
 
         if self.start_servers:
-            self.server.terminate()
-            self.cronjob.terminate()
+            if not self.django_running:
+                self.server.terminate()
+                self.cronjob.terminate()
         self.cbmemory.save(get_data_dir(self.cboptions))
         if os.path.exists('stdout.txt'):
             os.remove('stdout.txt')
@@ -184,7 +191,11 @@ class CryptoboxAppTest(unittest.TestCase):
         reset_cb_db_synced
         """
         os.system("cp testdata/test_synced.dump testdata/test.dump")
-        os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null; cd crypto_docs; cp * /Users/rabshakeh/workspace/cloudfiles/crypto_docs; cd ..; rm -Rf crypto_docs")
+        os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null;")
+        os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
+        os.system("mkdir -p /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
+        os.system("cp /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs/* /Users/rabshakeh/workspace/cloudfiles/crypto_docs;")
+        os.system("rm -Rf /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs")
         self.reset_cb_db()
 
     def complete_reset(self):
@@ -217,8 +228,6 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-
-
         fname = "testdata/5MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
@@ -561,6 +570,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #self.unzip_testfiles_clean()
         os.makedirs("testdata/testmap/foo")
+        os.makedirs("testdata/testmap/bar")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         dir_del_server = ['/foo']
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
