@@ -28,12 +28,9 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
-
         class _Popen(multiprocessing.forking.Popen):
-
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -46,7 +43,6 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
-
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -63,6 +59,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -292,7 +289,6 @@ def add(cmd):
     """
     return cmd["a"] + cmd["b"]
 
-
 #noinspection PyUnusedLocal
 def get_motivation(cmd):
     """
@@ -302,7 +298,6 @@ def get_motivation(cmd):
     q = qlist[random.randint(0, len(qlist)) - 1]
     return q[0] + "<br/><br/>- " + q[1]
 
-
 #noinspection PyUnusedLocal
 def do_exit(cmd):
     """
@@ -311,7 +306,6 @@ def do_exit(cmd):
     log("exit disabled!!")
     #exit(1)
     return True
-
 
 #noinspection PyUnusedLocal
 def ping_client(cmd):
@@ -353,7 +347,6 @@ def run_cb_command(options):
     t1.start()
     log("cb_command started")
 
-
 #noinspection PyUnusedLocal
 def get_all_smemory(cmd):
     """
@@ -362,6 +355,28 @@ def get_all_smemory(cmd):
     smemory = SingletonMemory()
     return smemory.data
 
+
+def get_progres_from_files(pname):
+    pfile = os.path.join(os.getcwd(), pname)
+    if os.path.exists(pfile):
+        return open(pfile).read()
+    return 0
+
+
+def get_progress(cmd):
+    """
+    get the progress
+    """
+    pname = "progress"
+    return get_progres_from_files(pname)
+
+
+def get_item_progress(cmd):
+    """
+    get the progress
+    """
+    pname = "item_progress"
+    return get_progres_from_files(pname)
 
 #noinspection PyClassicStyleClass
 def main():
@@ -409,7 +424,6 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
