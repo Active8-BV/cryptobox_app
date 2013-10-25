@@ -310,5 +310,11 @@ def authorized(memory, options):
         return memory
 
     result, memory = on_server(memory, options, "authorized", payload=None, session=memory.get("session"))
-    memory.replace("authorized", result[0])
+
+    if not result[0]:
+        memory.replace("authorized", False)
+        memory.delete("session")
+    else:
+        memory.replace("authorized", result[0])
+
     return memory

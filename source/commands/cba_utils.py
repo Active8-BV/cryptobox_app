@@ -870,7 +870,7 @@ def check_command_folder(command_folder):
             finally:
                 if str(fp).endswith(".cmd"):
                     if os.path.exists(fp):
-                        print "cba_utils.py:874", fp
+                        print "cba_utils.py:873", fp
                         os.remove(fp)
 
     return commands

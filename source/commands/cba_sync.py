@@ -13,7 +13,7 @@ import urllib2
 import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
-from cba_network import download_server, on_server, NotAuthorized, authorize_user
+from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
 from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, update_item_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
@@ -144,11 +144,12 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     @type dirs_make_server: list
     @rtype: Memory
     """
-    payload = {"foldernames": [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_make_server]}
-    for dir_name in payload["foldernames"]:
+    foldernames = [dir_name["dirname"].replace(options.dir, "").lstrip(os.sep) for dir_name in dirs_make_server]
+    for dir_name in foldernames:
         add_server_path_history(memory, dir_name)
 
-    if len(payload["foldernames"]) > 0:
+    for foldername in foldernames:
+        payload = {"foldername": foldername}
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
 
     serverindex, memory = get_server_index(memory, options)
@@ -158,8 +159,8 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
 def server_path_to_shortid(memory, options, path):
     path = save_encode_b64(path)
     payload = {"path": path}
-
     result, memory = on_server(memory, options, "pathtoshortid", payload=payload, session=memory.get("session"))
+
     if result[0]:
         return result[1]
     return None
@@ -352,6 +353,7 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     parent_path = os.path.dirname(parent_path)
 
     result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
+
     if len(result) > 1:
         raise MultipleGuidsForPath(parent_path)
 
@@ -360,12 +362,15 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     else:
         if len(result) > 1:
             raise MultipleGuidsForPath(parent_path)
+
         shortid = result[0]
 
     if not shortid:
         result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
+
         if len(result) > 1:
             raise MultipleGuidsForPath(parent_path)
+
         shortid = result[0]
 
     if not shortid:
@@ -461,9 +466,7 @@ def get_server_index(memory, options):
         memory = authorize_user(memory, options)
 
     tree_seq = get_tree_sequence(memory, options)
-
     memory.replace("tree_seq", tree_seq)
-
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
     if not result[0]:
         if memory.has("authorized"):
@@ -478,7 +481,6 @@ def get_server_index(memory, options):
 
     serverindex["dirlist"] = tuple(list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]])))
     serverindex["doclist"] = tuple(serverindex["doclist"])
-
     memory.replace("serverindex", serverindex)
     return serverindex, memory
 
@@ -588,7 +590,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:571", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:593", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -704,7 +706,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:687", "updating upload progress failed", str(exc)
+                print "cba_sync.py:709", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -771,22 +773,23 @@ def upload_files(memory, options, serverindex, file_uploads):
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
-    def add_size
-    files_uploaded = [os.stat()
+    def add_size(f):
+        f["size"] = os.stat(f["local_file_path"]).st_size
+        return f
 
-    files_uploaded = sorted(files_uploaded, key=lambda k: k["m_created"])
-
-    raise
+    file_uploads = [add_size(f) for f in file_uploads]
+    file_uploads = sorted(file_uploads, key=lambda k: k["size"])
+    files_uploaded = []
 
     for uf in file_uploads:
         update_item_progress(len(files_uploaded) + 1)
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading")
-            file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory,  uf["local_file_path"]), uf["parent_short_id"])
+            file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory, uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:768", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:792", "can't fnd", uf["local_file_path"]
     return memory, files_uploaded
 
 
@@ -824,6 +827,9 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
+    if memory.has("session"):
+        memory = authorized(memory, options)
+
     if not os.path.exists(options.dir):
         raise NoSyncDirFound(options.dir)
 
