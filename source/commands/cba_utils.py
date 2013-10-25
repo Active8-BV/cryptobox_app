@@ -611,7 +611,6 @@ class Memory(object):
         if not self.m_locked:
             global memory_lock
             memory_lock.acquire()
-            print "cba_utils.py:614", "mem locked"
             self.m_locked = True
 
     def unlock(self):
@@ -620,7 +619,6 @@ class Memory(object):
         """
         global memory_lock
         memory_lock.release()
-        print "cba_utils.py:623", "mem unlocked"
         self.m_locked = False
 
     def save(self, datadir, keep_lock=False):
@@ -870,7 +868,6 @@ def check_command_folder(command_folder):
             finally:
                 if str(fp).endswith(".cmd"):
                     if os.path.exists(fp):
-                        print "cba_utils.py:873", fp
                         os.remove(fp)
 
     return commands
