@@ -61,8 +61,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     spawn = require("child_process").spawn
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
-
-    #cmd_to_run = "/bin/date"
+    cmd_to_run = "/bin/date"
     output = []
 
     $scope.clear_msg_buffer = ->
@@ -135,7 +134,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                     $scope.motivation = motivation
 
                 (error) ->
-                    print "cryptobox.cf:138", error
+                    print "cryptobox.cf:137", error
             )
 
     #print "cryptobox.cf:135", "get_motivation not implemented"
@@ -143,18 +142,18 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     ping_client = ->
         run_command("ping_client", "")
         utils.force_digest($scope)
-        print "cryptobox.cf:146", "ping_client"
+        print "cryptobox.cf:145", "ping_client"
 
     $scope.rpc_server_started = false
 
     start_process = =>
-        print "cryptobox.cf:151", "start_process"
+        print "cryptobox.cf:150", "start_process"
         cmd_folder = path.join(process.cwd(), "cba_commands")
         cba_main = spawn(cmd_to_run, ["-i " + cmd_folder])
         set_output_buffers(cba_main)
 
     start_process_once = _.once(start_process)
-    print "cryptobox.cf:157", cmd_to_run
+    print "cryptobox.cf:156", cmd_to_run
     start_process_once()
     $scope.progress_bar = 0
     $scope.progress_bar_item = 0
@@ -239,7 +238,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 p.resolve()
 
             (err) ->
-                warning "cryptobox.cf:242", err
+                warning "cryptobox.cf:241", err
                 p.reject()
         )
         p.promise
@@ -271,13 +270,13 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
             get_sync_state().then(
                 (r) ->
 
-                    utils.set_time_out("cryptobox.cf:274", getting_sync_state_false, 1000)
+                    utils.set_time_out("cryptobox.cf:273", getting_sync_state_false, 1000)
 
                 (e) ->
                     add_output("sync state error", e)
 
-                    utils.set_time_out("cryptobox.cf:279", getting_sync_state_false, 1000)
-                    warning "cryptobox.cf:280", e
+                    utils.set_time_out("cryptobox.cf:278", getting_sync_state_false, 1000)
+                    warning "cryptobox.cf:279", e
             )
         else
             add_output("sync state in progress")
@@ -357,7 +356,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 utils.force_digest($scope)
 
             (err) ->
-                warning "cryptobox.cf:360", err
+                warning "cryptobox.cf:359", err
         )
 
     $scope.file_input_change = (f) ->
@@ -506,7 +505,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 pass
 
             (err) ->
-                warning "cryptobox.cf:509", err
+                warning "cryptobox.cf:508", err
         )
 
     $scope.encrypt_btn = ->
@@ -520,7 +519,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output(res)
 
             (err) ->
-                warning "cryptobox.cf:523", err
+                warning "cryptobox.cf:522", err
         )
 
     $scope.decrypt_btn = ->
@@ -534,7 +533,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output("done decrypting")
 
             (err) ->
-                warning "cryptobox.cf:537", err
+                warning "cryptobox.cf:536", err
         )
 
     $scope.open_folder = ->
@@ -632,7 +631,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     second_interval = =>
         if $scope.quitting
-            print "cryptobox.cf:635", "quitting"
+            print "cryptobox.cf:634", "quitting"
             return
 
         start_watch()
@@ -646,10 +645,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         get_motivation()
 
         try_get_sync_state()
-        utils.set_interval("cryptobox.cf:649", second_interval, 1000, "second_interval")
+        utils.set_interval("cryptobox.cf:648", second_interval, 1000, "second_interval")
     get_motivation()
 
-    utils.set_time_out("cryptobox.cf:652", start_after_second, 1000)
+    utils.set_time_out("cryptobox.cf:651", start_after_second, 1000)
 
     progress_checker = ->
         fprogress = path.join(process.cwd(), "progress")
@@ -676,4 +675,4 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         if $scope.progress_bar_item >= 100
             $scope.progress_bar_item = 0
         utils.force_digest($scope)
-    utils.set_interval("cryptobox.cf:679", progress_checker, 100, "progress_checker")
+    utils.set_interval("cryptobox.cf:678", progress_checker, 100, "progress_checker")

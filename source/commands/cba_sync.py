@@ -326,7 +326,7 @@ def save_encode_b64(s):
     @type s:
     @return: @rtype:
     """
-    s = urllib.quote(s)
+    s = urllib.quote(s.encode("utf8"))
     s = base64.encodestring(s)
     return s
 
