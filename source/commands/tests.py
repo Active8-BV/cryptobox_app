@@ -203,7 +203,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         os.system("cp testdata/test_synced.dump testdata/test.dump")
         os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null;")
-        os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
+        #os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
         os.system("mkdir -p /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
         os.system("cp /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs/* /Users/rabshakeh/workspace/cloudfiles/crypto_docs;")
         os.system("rm -Rf /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs")
@@ -484,6 +484,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
+
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         os.system("ls > testdata/testmap/all_types/listing.txt")

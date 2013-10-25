@@ -308,7 +308,8 @@ def do_exit(cmd):
     """
     do_exit
     """
-    exit(1)
+    log("exit disabled!!")
+    #exit(1)
     return True
 
 
@@ -367,6 +368,7 @@ def main():
     """
     @return: @rtype:
     """
+    print "cba_main up"
     memory = SingletonMemory()
     memory.set("last_ping", time.time())
     (options, args) = add_options()
