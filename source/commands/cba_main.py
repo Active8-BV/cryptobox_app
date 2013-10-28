@@ -28,9 +28,12 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
+
         class _Popen(multiprocessing.forking.Popen):
+
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -43,6 +46,7 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
+
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -59,7 +63,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -289,6 +292,7 @@ def add(cmd):
     """
     return cmd["a"] + cmd["b"]
 
+
 #noinspection PyUnusedLocal
 def get_motivation(cmd):
     """
@@ -298,14 +302,15 @@ def get_motivation(cmd):
     q = qlist[random.randint(0, len(qlist)) - 1]
     return q[0] + "<br/><br/>- " + q[1]
 
+
 #noinspection PyUnusedLocal
 def do_exit(cmd):
     """
     do_exit
     """
     log("exit disabled!!")
-    #exit(1)
     return True
+
 
 #noinspection PyUnusedLocal
 def ping_client(cmd):
@@ -347,6 +352,7 @@ def run_cb_command(options):
     t1.start()
     log("cb_command started")
 
+
 #noinspection PyUnusedLocal
 def get_all_smemory(cmd):
     """
@@ -358,6 +364,7 @@ def get_all_smemory(cmd):
 
 def get_progres_from_files(pname):
     pfile = os.path.join(os.getcwd(), pname)
+
     if os.path.exists(pfile):
         return open(pfile).read()
     return 0
@@ -378,16 +385,18 @@ def get_item_progress(cmd):
     pname = "item_progress"
     return get_progres_from_files(pname)
 
+
 #noinspection PyClassicStyleClass
 def main():
     """
     @return: @rtype:
     """
-    print "cba_main up"
+    print "cba_main.py:396", "cba_main up"
     memory = SingletonMemory()
     memory.set("last_ping", time.time())
     (options, args) = add_options()
-
+    from cba_utils import update_memory_progress
+    update_memory_progress(60)
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
         if not options.ipcfolder.strip():
@@ -406,7 +415,7 @@ def main():
 
             for cmd in commands:
                 if cmd["name"] not in globals():
-                    print "cba_main.py:392", cmd["name"], "not found"
+                    print "cba_main.py:419", cmd["name"], "not found"
                 else:
                     func = globals()[cmd["name"]]
                     cmd["result"] = func(cmd)
@@ -415,8 +424,8 @@ def main():
             tslp = time.time() - memory.get("last_ping")
 
             if int(tslp) > 30:
-                log("exit")
-                exit(1)
+                print "exit"
+                return
 
     else:
         cryptobox_command(options)
@@ -424,9 +433,10 @@ def main():
 
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:416", "\nbye main"
+        print "cba_main.py:443", "\nbye main"

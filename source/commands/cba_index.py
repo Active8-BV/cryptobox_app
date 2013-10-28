@@ -170,11 +170,14 @@ def get_secret(memory, options):
     password = options.password
     current_localindex = get_localindex(memory)
     salt = None
+
     if current_localindex:
         if "salt_b64" in current_localindex:
             salt = base64.decodestring(current_localindex["salt_b64"])
+
     if not salt:
         salt = Random.new().read(32)
+
     return salt, password_derivation(password, salt)
 
 

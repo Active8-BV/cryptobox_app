@@ -412,7 +412,9 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       if (result_cnt > 100) {
         print("cryptobox.cf:402", "too many result checks", name, result_cnt);
       }
-      return setTimeout(check_result, 100, name);
+      return {
+        "else": setTimeout(check_result, 100, name)
+      };
     };
     setTimeout(check_result, 100, name);
     return p.promise;
@@ -518,7 +520,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return run_command("run_cb_command", option).then(function(res) {
       return pass;
     }, function(err) {
-      return warning("cryptobox.cf:511", err);
+      return warning("cryptobox.cf:512", err);
     });
   };
   $scope.encrypt_btn = function() {
@@ -530,7 +532,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return run_command("run_cb_command", option).then(function(res) {
       return add_output(res);
     }, function(err) {
-      return warning("cryptobox.cf:525", err);
+      return warning("cryptobox.cf:526", err);
     });
   };
   $scope.decrypt_btn = function() {
@@ -542,7 +544,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       add_output(res);
       return add_output("done decrypting");
     }, function(err) {
-      return warning("cryptobox.cf:539", err);
+      return warning("cryptobox.cf:540", err);
     });
   };
   $scope.open_folder = function() {
@@ -646,7 +648,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   second_counter = 0;
   second_interval = function() {
     if ($scope.quitting) {
-      print("cryptobox.cf:637", "quitting");
+      print("cryptobox.cf:638", "quitting");
       return;
     }
     start_watch();
@@ -660,10 +662,10 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   start_after_second = function() {
     get_motivation();
     try_get_sync_state();
-    return utils.set_interval("cryptobox.cf:651", second_interval, 1000, "second_interval");
+    return utils.set_interval("cryptobox.cf:652", second_interval, 1000, "second_interval");
   };
   get_motivation();
-  utils.set_time_out("cryptobox.cf:654", start_after_second, 1000);
+  utils.set_time_out("cryptobox.cf:655", start_after_second, 1000);
   progress_checker = function() {
     run_command("get_progress", []).then(function(progress) {
       return $scope.progress_bar = parseInt(progress, 10);
@@ -683,5 +685,5 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }
     return utils.force_digest($scope);
   };
-  return utils.set_interval("cryptobox.cf:678", progress_checker, 100, "progress_checker");
+  return utils.set_interval("cryptobox.cf:679", progress_checker, 100, "progress_checker");
 };

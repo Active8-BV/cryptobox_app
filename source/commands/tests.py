@@ -34,6 +34,7 @@ def delete_progress_file(fname):
     if os.path.exists(p):
         os.remove(p)
 
+
 def add(a, b):
     """
     @type a: int
@@ -46,7 +47,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:40", p
+    print "tests.py:50", p
 
 
 def count_files_dir(fpath):
@@ -67,7 +68,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:61", p
+    print "tests.py:71", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -203,6 +204,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         os.system("cp testdata/test_synced.dump testdata/test.dump")
         os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null;")
+
         #os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
         os.system("mkdir -p /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
         os.system("cp /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs/* /Users/rabshakeh/workspace/cloudfiles/crypto_docs;")
@@ -484,7 +486,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         os.system("ls > testdata/testmap/all_types/listing.txt")
