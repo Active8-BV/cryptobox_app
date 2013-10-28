@@ -123,6 +123,7 @@ def delete_progress_file(fname):
     if os.path.exists(p):
         os.remove(p)
 
+cryptobox_lock = threading.Lock()
 
 def cryptobox_command(options):
     """
@@ -131,8 +132,12 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
+    global cryptobox_lock
 
     try:
+        if not cryptobox_lock.acquire(False):
+            return False
+
         smemory = SingletonMemory()
         smemory.set("working", True)
         if isinstance(options, dict):
@@ -263,6 +268,7 @@ def cryptobox_command(options):
         smemory.set("working", False)
         delete_progress_file("progress")
         delete_progress_file("item_progress")
+        cryptobox_lock.release()
     return True
 
 
@@ -308,7 +314,8 @@ def do_exit(cmd):
     """
     do_exit
     """
-    log("exit disabled!!")
+    smemory = SingletonMemory()
+    smemory.set("exit", True)
     return True
 
 
@@ -317,8 +324,8 @@ def ping_client(cmd):
     """
     ping_client
     """
-    memory = SingletonMemory()
-    memory.set("last_ping", time.time())
+    smemory = SingletonMemory()
+    smemory.set("last_ping", time.time())
     return True
 
 
@@ -348,9 +355,8 @@ def run_cb_command(options):
     if not logged:
         log("cb_command", options)
 
-    cryptobox_command(options)
-    #t1 = threading.Thread(target=cryptobox_command, args=(options,))
-    #t1.start()
+    t1 = threading.Thread(target=cryptobox_command, args=(options,))
+    t1.start()
 
 
 #noinspection PyUnusedLocal
@@ -394,8 +400,8 @@ def main():
     @return: @rtype:
     """
     print "cba_main.py:396", "cba_main up"
-    memory = SingletonMemory()
-    memory.set("last_ping", time.time())
+    smemory = SingletonMemory()
+    smemory.set("last_ping", time.time())
     (options, args) = add_options()
     from cba_utils import update_memory_progress
 
@@ -411,7 +417,7 @@ def main():
 
             if os.path.exists(fp):
                 os.remove(fp)
-
+        smemory.set("exit", False)
         while True:
             commands = check_command_folder(cmd_folder_path)
 
@@ -423,7 +429,10 @@ def main():
                     cmd["result"] = func(cmd)
                     add_command_result_to_folder(cmd_folder_path, cmd)
             time.sleep(0.2)
-            tslp = time.time() - memory.get("last_ping")
+            tslp = time.time() - smemory.get("last_ping")
+            if smemory.get("exit"):
+                print "bye"
+                return
 
             if int(tslp) > 60 * 60 * 24:
                 print "exit"
