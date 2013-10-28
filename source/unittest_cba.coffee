@@ -3,10 +3,11 @@ assert = require('assert')
 path = require("path")
 
 
+exports["hello"] = ->
+    assert.equal(1, 1)
 
-exports["test add spawn cba_main"] = ->
-    x = 4
-
+exports["hello2"] = ->
+    assert.equal(1, 1)
 
 
 

@@ -7,7 +7,10 @@ assert = require('assert');
 
 path = require("path");
 
-exports["test add spawn cba_main"] = function() {
-  var x;
-  return x = 4;
+exports["hello"] = function() {
+  return assert.equal(1, 1);
+};
+
+exports["hello2"] = function() {
+  return assert.equal(1, 1);
 };
