@@ -11,6 +11,7 @@ function on_change_path_cmd {
     wait_bit
 }
 
+on_change_path_cmd ./source/cbalib.coffee 'python -OO cp.py -r 0 -f ./source/cbalib.coffee; coffee -c -b ./source/cbalib.coffee; mv ./source/cbalib.js ./Cryptobox'
 on_change_path_cmd ./source/cryptobox.coffee 'python -OO cp.py -r 0 -f ./source/cryptobox.coffee; coffee -c -b ./source/cryptobox.coffee; mv ./source/cryptobox.js ./Cryptobox'
 
 cd source
