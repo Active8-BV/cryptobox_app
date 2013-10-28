@@ -317,6 +317,7 @@ def stack_trace(depth=6, line_num_only=False):
 
     return error
 
+
 #noinspection PyUnresolvedReferences
 def handle_exception(exc, again=True, ret_err=False):
     """
@@ -374,8 +375,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:377", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:378", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:378", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:379", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -818,7 +819,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:823", curr, total, msg
+    print "cba_utils.py:822", curr, total, msg
     global last_update_string_len
     if total == 0:
         return
@@ -853,6 +854,7 @@ def check_command_folder(command_folder):
         if os.path.exists(fp):
             try:
                 if str(fp).endswith(".cmd"):
+
                     fin = open(fp)
                     cmd = json.loads(fin.read())
 
@@ -901,6 +903,4 @@ def add_command_result_to_folder(command_folder, data):
     if not "name" in data:
         raise Exception("no name in result object")
 
-    if os.path.exists(os.path.join(command_folder, data["name"] + ".cmd")):
-        os.remove(os.path.join(command_folder, data["name"] + ".cmd"))
     open(os.path.join(command_folder, data["name"] + ".result"), "w").write(json.dumps(data))

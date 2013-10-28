@@ -110,11 +110,10 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
 
     dirs_make_server = []
     dirs_del_local = []
-
     server_dir_history = []
+
     if memory.has("serverpath_history"):
         server_dir_history = [path_to_relative_path_unix_style(memory, x[0]) for x in memory.get("serverpath_history")]
-
     for node in local_dirs_not_on_server:
         if os.path.exists(node["dirname"]):
             rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
@@ -129,6 +128,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
                         dirs_make_server.append(node)
                     else:
                         dirs_del_local.append(node)
+
             else:
                 dirs_del_local.append(node)
 
@@ -597,7 +597,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:593", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:600", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -641,7 +641,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     # filter out dirs to make from file_uploads:
     dir_make_server_tmp = []
-
 
     for dms in dir_make_server:
         add = True
@@ -713,7 +712,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:709", "updating upload progress failed", str(exc)
+                print "cba_sync.py:715", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -796,7 +795,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory, uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:792", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:798", "can't fnd", uf["local_file_path"]
     return memory, files_uploaded
 
 
@@ -843,7 +842,6 @@ def sync_server(memory, options):
     sm.set("dir_del_local", [])
     sm.set("file_del_local", [])
     sm.set("file_del_server", [])
-
     if memory.has("session"):
         memory = authorized(memory, options)
 

@@ -400,7 +400,8 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
             if result_cnt > 100
                 print "cryptobox.cf:402", "too many result checks", name, result_cnt
-            setTimeout(check_result, 100, name)
+            else:
+                setTimeout(check_result, 100, name)
         setTimeout(check_result, 100, name)
         p.promise
 
@@ -508,7 +509,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 pass
 
             (err) ->
-                warning "cryptobox.cf:511", err
+                warning "cryptobox.cf:512", err
         )
 
     $scope.encrypt_btn = ->
@@ -522,7 +523,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output(res)
 
             (err) ->
-                warning "cryptobox.cf:525", err
+                warning "cryptobox.cf:526", err
         )
 
     $scope.decrypt_btn = ->
@@ -536,7 +537,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
                 add_output("done decrypting")
 
             (err) ->
-                warning "cryptobox.cf:539", err
+                warning "cryptobox.cf:540", err
         )
 
     $scope.open_folder = ->
@@ -634,7 +635,7 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
 
     second_interval = =>
         if $scope.quitting
-            print "cryptobox.cf:637", "quitting"
+            print "cryptobox.cf:638", "quitting"
             return
 
         start_watch()
@@ -648,10 +649,10 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         get_motivation()
 
         try_get_sync_state()
-        utils.set_interval("cryptobox.cf:651", second_interval, 1000, "second_interval")
+        utils.set_interval("cryptobox.cf:652", second_interval, 1000, "second_interval")
     get_motivation()
 
-    utils.set_time_out("cryptobox.cf:654", start_after_second, 1000)
+    utils.set_time_out("cryptobox.cf:655", start_after_second, 1000)
 
     progress_checker = ->
         run_command("get_progress", []).then(
@@ -675,4 +676,4 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         if $scope.progress_bar_item >= 100
             $scope.progress_bar_item = 0
         utils.force_digest($scope)
-    utils.set_interval("cryptobox.cf:678", progress_checker, 100, "progress_checker")
+    utils.set_interval("cryptobox.cf:679", progress_checker, 100, "progress_checker")
