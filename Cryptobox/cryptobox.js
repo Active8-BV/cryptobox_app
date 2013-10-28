@@ -41,7 +41,7 @@ tray = new gui.Tray({
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, $q, memory, utils) {
-  var actions, add_checkbox_menu_item, add_checkbox_traymenu_item, add_menu_item, add_menu_seperator, add_output, add_traymenu_item, add_traymenu_seperator, cba_main, change_workingstate, cmd_to_run, cryptobox_locked_status_change, encrypt_tray_item, get_all_smemory, get_motivation, get_option, get_sync_state, get_user_var, getting_sync_state_false, menubar, output, ping_client, progress_checker, run_command, second_counter, second_interval, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, settings_menubar_tray, settings_menubaritem, spawn, start_after_second, start_process, start_process_once, start_watch, store_user_var, trayactions, try_get_sync_state, update_menu_checks, update_output, update_sync_state, warning, winmain,
+  var actions, add_checkbox_menu_item, add_checkbox_traymenu_item, add_menu_item, add_menu_seperator, add_output, add_traymenu_item, add_traymenu_seperator, cba_main, change_workingstate, cmd_to_run, cryptobox_locked_status_change, encrypt_tray_item, get_all_smemory, get_motivation, get_option, get_sync_state, get_user_var, menubar, output, ping_client, progress_checker, run_command, second_counter, second_interval, set_data_user_config, set_data_user_config_once, set_output_buffers, set_user_var_scope, settings_menubar_tray, settings_menubaritem, spawn, start_after_second, start_process, start_process_once, start_watch, store_user_var, trayactions, try_get_sync_state, update_menu_checks, update_output, update_sync_state, warning, winmain,
     _this = this;
   print("cryptobox.cf:38", "cryptobox_ctrl");
   $scope.cba_version = 0.1;
@@ -274,29 +274,13 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   };
   $scope.got_folder_text = false;
   $scope.got_cb_name = false;
-  $scope.getting_sync_state = false;
-  getting_sync_state_false = function() {
-    add_output("sync state retrieved");
-    return $scope.getting_sync_state = false;
-  };
   try_get_sync_state = function() {
-    if ($scope.working) {
-      add_output("try_get_sync_state denied, working");
-      return;
-    }
-    if (!$scope.getting_sync_state) {
-      $scope.getting_sync_state = true;
-      add_output("try_get_sync_state");
-      return get_sync_state().then(function(r) {
-        return utils.set_time_out("cryptobox.cf:273", getting_sync_state_false, 1000);
-      }, function(e) {
-        add_output("sync state error", e);
-        utils.set_time_out("cryptobox.cf:278", getting_sync_state_false, 1000);
-        return warning("cryptobox.cf:279", e);
-      });
-    } else {
-      return add_output("sync state in progress");
-    }
+    add_output("try_get_sync_state");
+    return get_sync_state().then(function(r) {
+      return pass;
+    }, function(e) {
+      return add_output("sync state error", e);
+    });
   };
   $scope.file_watch_started = false;
   start_watch = function() {
@@ -369,7 +353,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings, p_show_debug]).then(function() {
       return utils.force_digest($scope);
     }, function(err) {
-      return warning("cryptobox.cf:359", err);
+      return warning("cryptobox.cf:342", err);
     });
   };
   $scope.file_input_change = function(f) {
@@ -400,7 +384,9 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       result_path = path.join(cmd_folder, name + ".result");
       if (fs.existsSync(result_path)) {
         data = fs.readFileSync(result_path);
-        data = JSON.parse(data);
+        if (data != null) {
+          data = JSON.parse(data);
+        }
         if (data != null) {
           if (data["result"] != null) {
             fs.unlinkSync(result_path);
@@ -410,7 +396,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
         }
       }
       if (result_cnt > 100) {
-        print("cryptobox.cf:402", "too many result checks", name, result_cnt);
+        print("cryptobox.cf:387", "too many result checks", name, result_cnt);
       }
       return {
         "else": setTimeout(check_result, 100, name)
@@ -520,7 +506,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return run_command("run_cb_command", option).then(function(res) {
       return pass;
     }, function(err) {
-      return warning("cryptobox.cf:512", err);
+      return warning("cryptobox.cf:497", err);
     });
   };
   $scope.encrypt_btn = function() {
@@ -532,7 +518,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     return run_command("run_cb_command", option).then(function(res) {
       return add_output(res);
     }, function(err) {
-      return warning("cryptobox.cf:526", err);
+      return warning("cryptobox.cf:511", err);
     });
   };
   $scope.decrypt_btn = function() {
@@ -544,7 +530,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
       add_output(res);
       return add_output("done decrypting");
     }, function(err) {
-      return warning("cryptobox.cf:540", err);
+      return warning("cryptobox.cf:525", err);
     });
   };
   $scope.open_folder = function() {
@@ -648,7 +634,7 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   second_counter = 0;
   second_interval = function() {
     if ($scope.quitting) {
-      print("cryptobox.cf:638", "quitting");
+      print("cryptobox.cf:623", "quitting");
       return;
     }
     start_watch();
@@ -662,21 +648,31 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
   start_after_second = function() {
     get_motivation();
     try_get_sync_state();
-    return utils.set_interval("cryptobox.cf:652", second_interval, 1000, "second_interval");
+    return utils.set_interval("cryptobox.cf:637", second_interval, 1000, "second_interval");
   };
   get_motivation();
-  utils.set_time_out("cryptobox.cf:655", start_after_second, 1000);
+  utils.set_time_out("cryptobox.cf:640", start_after_second, 1000);
   progress_checker = function() {
-    run_command("get_progress", []).then(function(progress) {
-      return $scope.progress_bar = parseInt(progress, 10);
-    }, function(error) {
-      return $scope.progress_bar = 0;
-    });
-    run_command("get_item_progress", []).then(function(item_progress) {
-      return $scope.progress_bar_item = parseInt(item_progress, 10);
-    }, function(error) {
-      return $scope.progress_bar_item = 0;
-    });
+    var data, fitem_progress, fprogress;
+    fprogress = path.join(process.cwd(), "progress");
+    fitem_progress = path.join(process.cwd(), "item_progress");
+    if (fs.existsSync(fprogress)) {
+      data = fs.readFileSync(fprogress);
+      data = parseInt(data, 10);
+      if (utils.exist(data)) {
+        add_output("progress", data);
+        $scope.progress_bar = parseInt(data, 10);
+        fs.unlinkSync(fprogress);
+      }
+    }
+    if (fs.existsSync(fitem_progress)) {
+      data = fs.readFileSync(fitem_progress);
+      if (utils.exist(data)) {
+        add_output("item_progress", data);
+        $scope.progress_bar_item = parseInt(data, 10);
+        fs.unlinkSync(fitem_progress);
+      }
+    }
     if ($scope.progress_bar >= 100) {
       $scope.progress_bar = 0;
     }
@@ -685,5 +681,5 @@ cryptobox_ctrl = function($scope, $q, memory, utils) {
     }
     return utils.force_digest($scope);
   };
-  return utils.set_interval("cryptobox.cf:679", progress_checker, 100, "progress_checker");
+  return utils.set_interval("cryptobox.cf:669", progress_checker, 100, "progress_checker");
 };

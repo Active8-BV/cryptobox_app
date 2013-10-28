@@ -856,15 +856,21 @@ def check_command_folder(command_folder):
                 if str(fp).endswith(".cmd"):
 
                     fin = open(fp)
-                    cmd = json.loads(fin.read())
+                    jdata = fin.read()
+                    try:
+                        cmd = json.loads(jdata)
+                        if not isinstance(cmd, dict):
+                            tmp_data = cmd
+                            cmd = {"data": tmp_data}
 
-                    if not isinstance(cmd, dict):
-                        tmp_data = cmd
-                        cmd = {"data": tmp_data}
+                        cmd["name"] = os.path.basename(fin.name)
+                        cmd["name"] = cmd["name"].replace(".cmd", "")
+                        commands.append(cmd)
+                    except ValueError:
+                        print "json parse errror"
+                        print jdata
 
-                    cmd["name"] = os.path.basename(fin.name)
-                    cmd["name"] = cmd["name"].replace(".cmd", "")
-                    commands.append(cmd)
+
             except Exception, e:
                 handle_exception(e, False)
             finally:
