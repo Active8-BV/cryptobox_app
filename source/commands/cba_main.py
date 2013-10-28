@@ -348,9 +348,9 @@ def run_cb_command(options):
     if not logged:
         log("cb_command", options)
 
-    t1 = threading.Thread(target=cryptobox_command, args=(options,))
-    t1.start()
-    log("cb_command started")
+    cryptobox_command(options)
+    #t1 = threading.Thread(target=cryptobox_command, args=(options,))
+    #t1.start()
 
 
 #noinspection PyUnusedLocal
@@ -366,7 +366,9 @@ def get_progres_from_files(pname):
     pfile = os.path.join(os.getcwd(), pname)
 
     if os.path.exists(pfile):
-        return open(pfile).read()
+        pr = open(pfile).read()
+        pr = int(pr)
+        return pr
     return 0
 
 
@@ -396,7 +398,7 @@ def main():
     memory.set("last_ping", time.time())
     (options, args) = add_options()
     from cba_utils import update_memory_progress
-    update_memory_progress(60)
+
     if not options.cryptobox and not options.version:
         #noinspection PyBroadException,PyUnusedLocal
         if not options.ipcfolder.strip():
@@ -423,7 +425,7 @@ def main():
             time.sleep(0.2)
             tslp = time.time() - memory.get("last_ping")
 
-            if int(tslp) > 30:
+            if int(tslp) > 60 * 60 * 24:
                 print "exit"
                 return
 
