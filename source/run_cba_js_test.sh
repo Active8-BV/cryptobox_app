@@ -1,3 +1,4 @@
+coffee -c -b ./cryptobox.coffee;
 coffee -c -b ./unittest_cba.coffee;
-./node_modules/expresso/bin/expresso  ./unittest_cba.js
+#./node_modules/expresso/bin/expresso  ./unittest_cba.js
 
