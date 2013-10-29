@@ -28,7 +28,6 @@ def b64_decode_mstyle(s):
         return s
 
     b64mstyle = get_b64mstyle()
-
     if s.find(b64mstyle) != 0:
         return s
 
@@ -47,7 +46,6 @@ def b64_encode_mstyle(s):
         return s
 
     b64mstyle = get_b64mstyle()
-
     if s.find(b64mstyle) != -1:
         return s
 

@@ -15,7 +15,7 @@ import time
 import multiprocessing
 import random
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, SingletonMemory, handle_exception, open_folder, check_command_folder, add_command_result_to_folder
+from cba_utils import strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -72,22 +72,23 @@ def add_options():
     options for the command line tool
     """
     parser = OptionParser()
-    parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
-    parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files", metavar="ENCRYPT")
-    parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
-    parser.add_option("-r", "--remove", dest="remove", action='store_true', help="remove the unencrypted files", metavar="REMOVE")
-    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="CLEAR")
-    parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
-    parser.add_option("-p", "--password", dest="password", help="password used encryption", metavar="PASSWORD")
+    parser.add_option("-a", "--acommand", dest="acommand", help="a helper command", metavar="ACOMMAND")
     parser.add_option("-b", "--cryptobox", dest="cryptobox", help="cryptobox slug", metavar="CRYPTOBOX")
-    parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
-    parser.add_option("-o", "--check", dest="check", action='store_true', help="check with server", metavar="CHECK")
-    parser.add_option("-t", "--treeseq", dest="treeseq", action='store_true', help="check tree sequence", metavar="TREESEQ")
+    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="CLEAR")
+    parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
+    parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files", metavar="ENCRYPT")
+    parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
     parser.add_option("-l", "--logout", dest="logout", action='store_true', help="log session out", metavar="LOGOUT")
+    parser.add_option("-m", "--motivation", dest="motivation", help="get motivational quote", metavar="MOTIVATION")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
-    parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
+    parser.add_option("-o", "--check", dest="check", action='store_true', help="check with server", metavar="CHECK")
+    parser.add_option("-p", "--password", dest="password", help="password used encryption", metavar="PASSWORD")
+    parser.add_option("-r", "--remove", dest="remove", action='store_true', help="remove the unencrypted files", metavar="REMOVE")
+    parser.add_option("-s", "--sync", dest="sync", action='store_true', help="sync with server", metavar="SYNC")
+    parser.add_option("-t", "--treeseq", dest="treeseq", action='store_true', help="check tree sequence", metavar="TREESEQ")
+    parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
     parser.add_option("-v", "--version", dest="version", action='store_true', help="client version", metavar="VERSION")
-    parser.add_option("-i", "--ipcfolder", dest="ipcfolder", help="folder to store command objects", metavar="IPCFOLDER")
+    parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
     return parser.parse_args()
 
 
@@ -123,7 +124,9 @@ def delete_progress_file(fname):
     if os.path.exists(p):
         os.remove(p)
 
+
 cryptobox_lock = threading.Lock()
+
 
 def cryptobox_command(options):
     """
@@ -137,9 +140,24 @@ def cryptobox_command(options):
     try:
         if not cryptobox_lock.acquire(False):
             return False
+        if options.acommand:
+            print options.acommand + ":",
+            if options.acommand == "open_folder":
+                if options.dir:
+                    print options.dir
+                    open_folder(options.dir)
+                else:
+                    print "no folder given(-f)"
+            else:
+                print "unknown command"
+            return
 
-        smemory = SingletonMemory()
-        smemory.set("working", True)
+        if options.motivation:
+            qlist = cPickle.load(open("quotes.list"))
+            q = qlist[random.randint(0, len(qlist)) - 1]
+            print "cba_main.py:146", q[0] + "\n\n- " + q[1]
+            return
+
         if isinstance(options, dict):
             options = Dict2Obj(options)
 
@@ -167,7 +185,6 @@ def cryptobox_command(options):
 
         if not options.decrypt:
             if quick_lock_check(options):
-                smemory.set("cryptobox_locked", True)
                 log("Cryptobox locked")
                 return False
 
@@ -246,7 +263,6 @@ def cryptobox_command(options):
         secret = None
 
         if options.encrypt:
-            smemory.set("cryptobox_locked", True)
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
 
         if options.decrypt:
@@ -257,189 +273,21 @@ def cryptobox_command(options):
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
         check_and_clean_dir(options)
-        smemory.set("last_ping", time.time())
         memory.save(datadir)
         hide_config(options, salt, secret)
-        smemory.set("cryptobox_locked", quick_lock_check(options))
     except Exception, e:
         handle_exception(e, False)
     finally:
-        smemory = SingletonMemory()
-        smemory.set("working", False)
         delete_progress_file("progress")
         delete_progress_file("item_progress")
         cryptobox_lock.release()
+
     return True
 
 
-def has_option(options, optname):
-    """
-    @type options: dict
-    @type optname: str, unicode
-    """
-    if optname in options:
-        if options[optname] == "1":
-            return True
-    return False
-
-
-def do_open_folder(cmd):
-    """
-    do_open_folder
-    :param cmd:
-    """
-    log("do_open_folder")
-    open_folder(os.path.join(cmd["data"][0], cmd["data"][1]))
-
-
-def add(cmd):
-    """
-    add
-    """
-    return cmd["a"] + cmd["b"]
-
-
-#noinspection PyUnusedLocal
-def get_motivation(cmd):
-    """
-    get_motivation
-    """
-    qlist = cPickle.load(open("quotes.list"))
-    q = qlist[random.randint(0, len(qlist)) - 1]
-    return q[0] + "<br/><br/>- " + q[1]
-
-
-#noinspection PyUnusedLocal
-def do_exit(cmd):
-    """
-    do_exit
-    """
-    smemory = SingletonMemory()
-    smemory.set("exit", True)
-    return True
-
-
-#noinspection PyUnusedLocal
-def ping_client(cmd):
-    """
-    ping_client
-    """
-    smemory = SingletonMemory()
-    smemory.set("last_ping", time.time())
-    return True
-
-
-def run_cb_command(options):
-    """
-    run_cb_command
-    @type options: dict
-    """
-    logged = False
-
-    if has_option(options, "check"):
-        log("check sync stats")
-        logged = True
-
-    if has_option(options, "sync"):
-        log("sync")
-        logged = True
-
-    if has_option(options, "encrypt"):
-        log("encrypt")
-        logged = True
-
-    if has_option(options, "decrypt"):
-        log("decrypt")
-        logged = True
-
-    if not logged:
-        log("cb_command", options)
-
-    t1 = threading.Thread(target=cryptobox_command, args=(options,))
-    t1.start()
-
-
-#noinspection PyUnusedLocal
-def get_all_smemory(cmd):
-    """
-    get_all_smemory
-    """
-    smemory = SingletonMemory()
-    return smemory.data
-
-
-def get_progres_from_files(pname):
-    pfile = os.path.join(os.getcwd(), pname)
-
-    if os.path.exists(pfile):
-        pr = open(pfile).read()
-        pr = int(pr)
-        return pr
-    return 0
-
-
-def get_progress(cmd):
-    """
-    get the progress
-    """
-    pname = "progress"
-    return get_progres_from_files(pname)
-
-
-def get_item_progress(cmd):
-    """
-    get the progress
-    """
-    pname = "item_progress"
-    return get_progres_from_files(pname)
-
-
-#noinspection PyClassicStyleClass
 def main():
-    """
-    @return: @rtype:
-    """
-    print "cba_main.py:396", "cba_main up"
-    smemory = SingletonMemory()
-    smemory.set("last_ping", time.time())
     (options, args) = add_options()
-    from cba_utils import update_memory_progress
-
-    if not options.cryptobox and not options.version:
-        #noinspection PyBroadException,PyUnusedLocal
-        if not options.ipcfolder.strip():
-            raise Exception("ipcfolder (-i) not given")
-
-        cmd_folder_path = options.ipcfolder.strip()
-
-        for fp in os.listdir(cmd_folder_path):
-            fp = os.path.join(cmd_folder_path, fp)
-
-            if os.path.exists(fp):
-                os.remove(fp)
-        smemory.set("exit", False)
-        while True:
-            commands = check_command_folder(cmd_folder_path)
-
-            for cmd in commands:
-                if cmd["name"] not in globals():
-                    print "cba_main.py:419", cmd["name"], "not found"
-                else:
-                    func = globals()[cmd["name"]]
-                    cmd["result"] = func(cmd)
-                    add_command_result_to_folder(cmd_folder_path, cmd)
-            time.sleep(0.2)
-            tslp = time.time() - smemory.get("last_ping")
-            if smemory.get("exit"):
-                print "bye"
-                return
-
-            if int(tslp) > 60 * 60 * 24:
-                print "exit"
-                return
-
-    else:
-        cryptobox_command(options)
+    cryptobox_command(options)
 
 
 if strcmp(__name__, '__main__'):
@@ -450,4 +298,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:443", "\nbye main"
+        print "cba_main.py:289", "\nbye main"

@@ -15,8 +15,6 @@ import subprocess
 import jsonpickle
 from Crypto.Hash import SHA
 last_update_string_len = 0
-
-
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
@@ -375,8 +373,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:378", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:379", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:376", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:377", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -409,91 +407,6 @@ def get_uuid(size):
         unique_id = int(unique_id / alphabet_length)
 
     return output[0:size]
-
-
-class SingletonMemoryNoKey(Exception):
-    """
-    SingletonMemoryNoKey
-    """
-    pass
-
-
-class SingletonMemoryExpired(Exception):
-    """
-    SingletonMemoryExpired
-    """
-    pass
-
-
-class SingletonMemory(object):
-    #noinspection PyUnresolvedReferences
-    """
-    @param cls:
-    @type cls:
-    @param args:
-    @type args:
-    @param kwargs:
-    @type kwargs:
-    @return:
-    @rtype:
-    """
-    _instance = None
-    data = {}
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            #noinspection PyAttributeOutsideInit,PyArgumentList
-            cls._instance = super(SingletonMemory, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
-    def set(self, key, value):
-        """
-        @param key:
-        @type key:
-        @param value:
-        @type value:
-        """
-        self.data[key] = value
-
-    def has(self, key):
-        """
-        @param key:
-        @type key:
-        @return: @rtype: @raise SingletonMemoryExpired:
-
-        """
-        return key in self.data
-
-    def get(self, key):
-        """
-        @param key:
-        @type key:
-        @return: @rtype: @raise SingletonMemoryNoKey:
-
-        """
-        if self.has(key):
-            return self.data[key]
-        else:
-            return ""
-
-    def delete(self, key):
-        """
-        @param key:
-        @type key:
-        @raise SingletonMemoryNoKey:
-
-        """
-        if self.has(key):
-            del self.data[key]
-            return True
-        else:
-            raise SingletonMemoryNoKey(str(key))
-
-    def size(self):
-        """
-        @return: @rtype:
-        """
-        return len(self.data)
 
 
 class MemoryNoKey(Exception):
@@ -819,7 +732,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:822", curr, total, msg
+    print "cba_utils.py:735", curr, total, msg
     global last_update_string_len
     if total == 0:
         return
@@ -854,11 +767,12 @@ def check_command_folder(command_folder):
         if os.path.exists(fp):
             try:
                 if str(fp).endswith(".cmd"):
-
                     fin = open(fp)
                     jdata = fin.read()
+
                     try:
                         cmd = json.loads(jdata)
+
                         if not isinstance(cmd, dict):
                             tmp_data = cmd
                             cmd = {"data": tmp_data}
@@ -867,9 +781,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "json parse errror"
-                        print jdata
-
+                        print "cba_utils.py:784", "json parse errror"
+                        print "cba_utils.py:785", jdata
 
             except Exception, e:
                 handle_exception(e, False)
