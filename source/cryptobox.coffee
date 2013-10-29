@@ -3,9 +3,8 @@ child_process = require("child_process")
 path = require("path")
 fs = require("fs")
 watch = require("watch")
-spawn = require("child_process")
 gui = require('nw.gui')
-sleep = require('sleep');
+sleep = require('sleep')
 
 
 gui.Window.get().showDevTools()
@@ -111,7 +110,14 @@ warning = (ln, w) ->
             add_output(w)
 
 
-option_to_string = (option) ->
+option_to_array = (option) ->
+    for k in _.keys(option)
+        if option[k] == true
+            option[k] = "1"
+
+        if option[k] == false
+            option[k] = "0"
+
     cmd_str = ""
     cmd_str += " -a " + option.acommand if option.acommand?
     cmd_str += " -b " + option.cryptobox if option.cryptobox?
@@ -130,37 +136,33 @@ option_to_string = (option) ->
     cmd_str += " -u " + option.username if option.username?
     cmd_str += " -v " + option.version if option.version?
     cmd_str += " -x " + option.server if option.server?
-    return cmd_str
+    param_array = []
+
+    push_param_array = (i) ->
+        if _.size(i.trim()) > 0
+            param_array.push(i)
+    _.each(cmd_str.split(" "), push_param_array)
+    return param_array
 
 
-set_output_buffers = (cba_main_proc) ->
-    if exist(cba_main_proc.stdout)
-        cba_main_proc.stdout.on "data", (data) ->
-            add_output("stdout:" + data)
-
-    if exist(cba_main_proc.stderr)
-        cba_main_proc.stderr.on "data", (data) ->
-            add_output("stderr:" + data)
-
-
-run_cba_main = (options) ->
-    params = option_to_string(options)
-    print "cryptobox.cf:148", "start_process"
+run_cba_main = (options, cb) ->
+    params = option_to_array(options)
+    print "cryptobox.cf:150", "start_process"
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
-    cba_main = spawn.spawn(cmd_to_run, params)
-    set_output_buffers(cba_main)
-    cba_main.wait()
+    cba_main = child_process.spawn(cmd_to_run, params)
+    output = ""
+    cba_main.stdout.on "data", (data) ->
+        output += data
+    cba_main.stderr.on "data", (data) ->
+        output += data
 
-
-get_motivation = (scope) ->
-    if not scope.motivation?
-        options =
-        scope.motivation = run_cba_main("get_motivation", "", scope)
-    else
-        get_motivation_scope = =>
-            get_motivation(scope)
-        setTimeout(get_motivation_scope, 200)
+    execution_done = (event) ->
+        if event > 0
+            cb(false, output)
+        else
+            cb(true, output)
+    cba_main.on("exit", execution_done)
 
 
 on_exit = ->
@@ -250,7 +252,7 @@ get_sync_state = (scope) ->
         password: scope.cb_password
         cryptobox: scope.cb_name
         server: scope.cb_server
-        check: "1"
+        check: true
     run_command("run_cb_command", option, scope)
 
 
@@ -438,7 +440,7 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:441", "quitting"
+        print "cryptobox.cf:443", "quitting"
         return
 
     g_second_counter += 1
@@ -516,8 +518,8 @@ cryptobox_ctrl = ($scope, memory, utils) ->
     $scope.sync_btn = ->
         option = get_option()
         option.encrypt = true
-        option.clear = "0"
-        option.sync = "0"
+        option.clear = false
+        option.sync = false
         run_command("run_cb_command", option, $scope)
 
     $scope.encrypt_btn = ->
@@ -549,18 +551,10 @@ cryptobox_ctrl = ($scope, memory, utils) ->
     set_data_user_config_once($scope)
 
     #start_process_once()
-    #get_motivation($scope)
+    motivation_options = {"motivation":true}
+
+    motivation_cb = (result, output) ->
+        if result?
+            $scope.motivation = output
+    run_cba_main(motivation_options, motivation_cb)
     set_menus_and_g_tray_icon($scope)
-
-    second_interval_scoped = ->
-        second_interval($scope)
-
-    #setInterval(second_interval_scoped, 1000)
-    option = 
-        dir: $scope.cb_folder_text
-        username: $scope.cb_username
-        password: $scope.cb_password
-        cryptobox: $scope.cb_name
-        server: $scope.cb_server
-        check: "1"
-    print "cryptobox.cf:566", option_to_string(option)

@@ -9,7 +9,7 @@ reload(sys)
 #noinspection PyUnresolvedReferences
 sys.setdefaultencoding("utf-8")
 import os
-import threading
+
 import cPickle
 import time
 import multiprocessing
@@ -125,8 +125,6 @@ def delete_progress_file(fname):
         os.remove(p)
 
 
-cryptobox_lock = threading.Lock()
-
 
 def cryptobox_command(options):
     """
@@ -135,11 +133,7 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-    global cryptobox_lock
-
     try:
-        if not cryptobox_lock.acquire(False):
-            return False
         if options.acommand:
             print options.acommand + ":",
             if options.acommand == "open_folder":
@@ -280,7 +274,6 @@ def cryptobox_command(options):
     finally:
         delete_progress_file("progress")
         delete_progress_file("item_progress")
-        cryptobox_lock.release()
 
     return True
 
