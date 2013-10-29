@@ -125,6 +125,14 @@ def delete_progress_file(fname):
         os.remove(p)
 
 
+def output(msg):
+    """
+    @type msg: str, unicode
+    """
+    msg = str(msg)
+    sys.stdout.write(msg)
+    sys.stdout.write("\n")
+    sys.stdout.flush()
 
 def cryptobox_command(options):
     """
@@ -149,7 +157,7 @@ def cryptobox_command(options):
         if options.motivation:
             qlist = cPickle.load(open("quotes.list"))
             q = qlist[random.randint(0, len(qlist)) - 1]
-            print "cba_main.py:146", q[0] + "\n\n- " + q[1]
+            output(q[0] + "\n\n- " + q[1])
             return
 
         if isinstance(options, dict):

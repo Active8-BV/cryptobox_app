@@ -555,6 +555,10 @@ cryptobox_ctrl = ($scope, memory, utils) ->
 
     motivation_cb = (result, output) ->
         if result?
-            $scope.motivation = output
+            $scope.motivation = output.replace("\n", "<br/>")
     run_cba_main(motivation_options, motivation_cb)
     set_menus_and_g_tray_icon($scope)
+
+    dodigest = =>
+        utils.force_digest($scope)
+    setInterval(dodigest, 500)
