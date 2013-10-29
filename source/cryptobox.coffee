@@ -5,6 +5,9 @@ fs = require("fs")
 watch = require("watch")
 spawn = require("child_process")
 gui = require('nw.gui')
+
+
+gui.Window.get().showDevTools()
 g_output = []
 g_second_counter = 0
 cb_server_url = "http://127.0.0.1:8000/"
@@ -18,10 +21,7 @@ g_menu = new gui.Menu(
 g_trayactions = new gui.Menu()
 g_tray.menu = g_trayactions
 g_menuactions = new gui.Menu()
-g_winmain.menu = g_menuactions
-
-
-gui.Window.get().showDevTools()
+g_winmain.menu = g_menu
 print = (msg, others...) ->
     len_others = _.size(others)
 
@@ -131,7 +131,7 @@ start_process = ->
 check_result = (name) ->
     result_path = path.join(cmd_folder, name + ".result")
 
-    if fs.existSync(result_path)
+    if fs.existsSync(result_path)
         data = null
 
         try
@@ -157,7 +157,9 @@ check_result = (name) ->
     if result_cnt > 100
         print "cryptobox.cf:158", "too many result checks", name, result_cnt
     else
-        setTimeout(check_result, 100, name)
+        check_result_name = =>
+            check_result(name)
+        setTimeout(check_result_name, 100)
 
 
 run_command = (name, data, scope) ->
@@ -169,13 +171,13 @@ run_command = (name, data, scope) ->
 
         cmd_folder = path.join(process.cwd(), "cba_commands")
 
-        if not fs.existSync(cmd_folder)
+        if not fs.existsSync(cmd_folder)
             fs.mkdirSync(cmd_folder)
 
         cmd_path = path.join(cmd_folder, name + ".cmd")
         result_path = path.join(cmd_folder, name + ".result")
 
-        if fs.existSync(result_path)
+        if fs.existsSync(result_path)
             fs.unlinkSync(result_path)
 
         fout = fs.openSync(cmd_path, "w")
@@ -189,7 +191,9 @@ get_motivation = (scope) ->
     if not scope.motivation?
         scope.motivation = run_command("get_motivation", "", scope)
     else
-        setTimeout(get_motivation, scope, 200)
+        get_motivation_scope = =>
+            get_motivation(scope)
+        setTimeout(get_motivation_scope, 200)
 
 
 on_exit = ->
@@ -285,35 +289,36 @@ get_sync_state = (scope) ->
 
 start_watch = (scope) ->
     if not scope.file_watch_started
-        watch_path = path.join(scope.cb_folder_text, scope.cb_name)
+        if exist(scope.cb_folder_text) and exist(scope.cb_name)
+            watch_path = path.join(scope.cb_folder_text, scope.cb_name)
 
-        if fs.existSync(watch_path)
-            scope.file_watch_started = true
-            watch.watchTree watch_path, (f, curr, prev) ->
-                if not String(f).contains("memory.pickle")
-                    if typeof f is "object" and prev is null and curr is null
-                        return
+            if fs.existsSync(watch_path)
+                scope.file_watch_started = true
+                watch.watchTree watch_path, (f, curr, prev) ->
+                    if not String(f).contains("memory.pickle")
+                        if typeof f is "object" and prev is null and curr is null
+                            return
 
-                    if scope.running_command
-                        return
+                        if scope.running_command
+                            return
 
-                    add_output("local filechange", f)
-                    if prev is null
-                        get_sync_state(scope)
-                    else if curr.nlink is 0
-                        get_sync_state(scope)
-                    else
-                        get_sync_state(scope)
+                        add_output("local filechange", f)
+                        if prev is null
+                            get_sync_state(scope)
+                        else if curr.nlink is 0
+                            get_sync_state(scope)
+                        else
+                            get_sync_state(scope)
 
 
-update_sync_state = (smem) ->
-    $scope.file_downloads = smem.file_downloads
-    $scope.file_uploads = smem.file_uploads
-    $scope.dir_del_server = smem.dir_del_server
-    $scope.dir_make_local = smem.dir_make_local
-    $scope.dir_make_server = smem.dir_make_server
-    $scope.dir_del_local = smem.dir_del_local
-    $scope.file_del_local = smem.file_del_local
+update_sync_state = (smem, scope) ->
+    scope.file_downloads = smem.file_downloads
+    scope.file_uploads = smem.file_uploads
+    scope.dir_del_server = smem.dir_del_server
+    scope.dir_make_local = smem.dir_make_local
+    scope.dir_make_server = smem.dir_make_server
+    scope.dir_del_local = smem.dir_del_local
+    scope.file_del_local = smem.file_del_local
 
 
 cryptobox_locked_status_change = (locked) ->
@@ -347,7 +352,7 @@ get_all_smemory = (scope) ->
     cryptobox_locked_status_change(exist_truth(value.cryptobox_locked))
     change_workingstate(value.working)
     if not exist_truth(value.working)
-        update_sync_state(value)
+        update_sync_state(value, scope)
     force_digest(scope)
     if exist(value.tree_sequence)
         scope.tree_sequence = value.tree_sequence
@@ -429,10 +434,10 @@ add_menu_seperator = () ->
 set_menus_and_g_tray_icon = (scope) ->
     add_menu_seperator()
     add_g_traymenu_seperator()
-    add_menu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
-    add_g_traymenu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
-    add_menu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
-    add_g_traymenu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
+    add_menu_item("Encrypt local", "images/lock.png", scope.encrypt_btn)
+    add_g_traymenu_item("Encrypt local", "images/lock.png", scope.encrypt_btn)
+    add_menu_item("Decrypt local", "images/unlock.png", scope.decrypt_btn)
+    add_g_traymenu_item("Decrypt local", "images/unlock.png", scope.decrypt_btn)
     g_winmain.menu.insert(new gui.MenuItem({label: 'Actions', submenu: g_menuactions}), 1);
     scope.settings_menubaritem = add_checkbox_menu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
     scope.settings_menubar_g_tray = add_checkbox_g_traymenu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
@@ -446,7 +451,7 @@ set_menus_and_g_tray_icon = (scope) ->
 progress_checker = (fname, scope) ->
     fprogress = path.join(process.cwd(), fname)
 
-    if fs.existSync(fprogress)
+    if fs.existsSync(fprogress)
         data = fs.readFileSync(fprogress)
         data = parseInt(data, 10)
 
@@ -457,7 +462,6 @@ progress_checker = (fname, scope) ->
 
     if scope[fname] >= 100
         scope[fname] = 100
-    utils.force_digest(scope)
 
 
 check_all_progress = (scope) ->
@@ -467,16 +471,16 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:470", "quitting"
+        print "cryptobox.cf:474", "quitting"
         return
 
     g_second_counter += 1
-    start_watch()
+    start_watch(scope)
     check_all_progress(scope)
     update_output(scope)
-    get_all_smemory()
+    get_all_smemory(scope)
     if g_second_counter % 10 == 0
-        ping_client()
+        run_command("last_ping", "", scope)
 
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
@@ -579,4 +583,7 @@ cryptobox_ctrl = ($scope, memory, utils) ->
 
     #get_motivation($scope)
     set_menus_and_g_tray_icon($scope)
-    setInterval(second_interval, [scope], 1000)
+
+    second_interval_scoped = ->
+        second_interval($scope)
+    setInterval(second_interval_scoped, 1000)
