@@ -14,6 +14,8 @@ spawn = require("child_process");
 
 gui = require('nw.gui');
 
+gui.Window.get().showDevTools();
+
 g_output = [];
 
 g_second_counter = 0;
@@ -36,9 +38,7 @@ g_tray.menu = g_trayactions;
 
 g_menuactions = new gui.Menu();
 
-g_winmain.menu = g_menuactions;
-
-gui.Window.get().showDevTools();
+g_winmain.menu = g_menu;
 
 print = function() {
   var len_others, msg, others;
@@ -171,9 +171,10 @@ start_process = function() {
 };
 
 check_result = function(name) {
-  var data, ex, result_path;
+  var check_result_name, data, ex, result_path,
+    _this = this;
   result_path = path.join(cmd_folder, name + ".result");
-  if (fs.existSync(result_path)) {
+  if (fs.existsSync(result_path)) {
     data = null;
     try {
       data = fs.readFileSync(result_path);
@@ -205,7 +206,10 @@ check_result = function(name) {
   if (result_cnt > 100) {
     return print("cryptobox.cf:158", "too many result checks", name, result_cnt);
   } else {
-    return setTimeout(check_result, 100, name);
+    check_result_name = function() {
+      return check_result(name);
+    };
+    return setTimeout(check_result_name, 100);
   }
 };
 
@@ -217,12 +221,12 @@ run_command = function(name, data, scope) {
       data = "";
     }
     cmd_folder = path.join(process.cwd(), "cba_commands");
-    if (!fs.existSync(cmd_folder)) {
+    if (!fs.existsSync(cmd_folder)) {
       fs.mkdirSync(cmd_folder);
     }
     cmd_path = path.join(cmd_folder, name + ".cmd");
     result_path = path.join(cmd_folder, name + ".result");
-    if (fs.existSync(result_path)) {
+    if (fs.existsSync(result_path)) {
       fs.unlinkSync(result_path);
     }
     fout = fs.openSync(cmd_path, "w");
@@ -234,10 +238,15 @@ run_command = function(name, data, scope) {
 };
 
 get_motivation = function(scope) {
+  var get_motivation_scope,
+    _this = this;
   if (scope.motivation == null) {
     return scope.motivation = run_command("get_motivation", "", scope);
   } else {
-    return setTimeout(get_motivation, scope, 200);
+    get_motivation_scope = function() {
+      return get_motivation(scope);
+    };
+    return setTimeout(get_motivation_scope, 200);
   }
 };
 
@@ -354,39 +363,41 @@ get_sync_state = function(scope) {
 start_watch = function(scope) {
   var watch_path;
   if (!scope.file_watch_started) {
-    watch_path = path.join(scope.cb_folder_text, scope.cb_name);
-    if (fs.existSync(watch_path)) {
-      scope.file_watch_started = true;
-      return watch.watchTree(watch_path, function(f, curr, prev) {
-        if (!String(f).contains("memory.pickle")) {
-          if (typeof f === "object" && prev === null && curr === null) {
-            return;
+    if (exist(scope.cb_folder_text) && exist(scope.cb_name)) {
+      watch_path = path.join(scope.cb_folder_text, scope.cb_name);
+      if (fs.existsSync(watch_path)) {
+        scope.file_watch_started = true;
+        return watch.watchTree(watch_path, function(f, curr, prev) {
+          if (!String(f).contains("memory.pickle")) {
+            if (typeof f === "object" && prev === null && curr === null) {
+              return;
+            }
+            if (scope.running_command) {
+              return;
+            }
+            add_output("local filechange", f);
+            if (prev === null) {
+              return get_sync_state(scope);
+            } else if (curr.nlink === 0) {
+              return get_sync_state(scope);
+            } else {
+              return get_sync_state(scope);
+            }
           }
-          if (scope.running_command) {
-            return;
-          }
-          add_output("local filechange", f);
-          if (prev === null) {
-            return get_sync_state(scope);
-          } else if (curr.nlink === 0) {
-            return get_sync_state(scope);
-          } else {
-            return get_sync_state(scope);
-          }
-        }
-      });
+        });
+      }
     }
   }
 };
 
-update_sync_state = function(smem) {
-  $scope.file_downloads = smem.file_downloads;
-  $scope.file_uploads = smem.file_uploads;
-  $scope.dir_del_server = smem.dir_del_server;
-  $scope.dir_make_local = smem.dir_make_local;
-  $scope.dir_make_server = smem.dir_make_server;
-  $scope.dir_del_local = smem.dir_del_local;
-  return $scope.file_del_local = smem.file_del_local;
+update_sync_state = function(smem, scope) {
+  scope.file_downloads = smem.file_downloads;
+  scope.file_uploads = smem.file_uploads;
+  scope.dir_del_server = smem.dir_del_server;
+  scope.dir_make_local = smem.dir_make_local;
+  scope.dir_make_server = smem.dir_make_server;
+  scope.dir_del_local = smem.dir_del_local;
+  return scope.file_del_local = smem.file_del_local;
 };
 
 cryptobox_locked_status_change = function(locked) {
@@ -422,7 +433,7 @@ get_all_smemory = function(scope) {
   cryptobox_locked_status_change(exist_truth(value.cryptobox_locked));
   change_workingstate(value.working);
   if (!exist_truth(value.working)) {
-    update_sync_state(value);
+    update_sync_state(value, scope);
   }
   force_digest(scope);
   if (exist(value.tree_sequence)) {
@@ -513,10 +524,10 @@ add_menu_seperator = function() {
 set_menus_and_g_tray_icon = function(scope) {
   add_menu_seperator();
   add_g_traymenu_seperator();
-  add_menu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn);
-  add_g_traymenu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn);
-  add_menu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn);
-  add_g_traymenu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn);
+  add_menu_item("Encrypt local", "images/lock.png", scope.encrypt_btn);
+  add_g_traymenu_item("Encrypt local", "images/lock.png", scope.encrypt_btn);
+  add_menu_item("Decrypt local", "images/unlock.png", scope.decrypt_btn);
+  add_g_traymenu_item("Decrypt local", "images/unlock.png", scope.decrypt_btn);
   g_winmain.menu.insert(new gui.MenuItem({
     label: 'Actions',
     submenu: g_menuactions
@@ -533,7 +544,7 @@ set_menus_and_g_tray_icon = function(scope) {
 progress_checker = function(fname, scope) {
   var data, fprogress;
   fprogress = path.join(process.cwd(), fname);
-  if (fs.existSync(fprogress)) {
+  if (fs.existsSync(fprogress)) {
     data = fs.readFileSync(fprogress);
     data = parseInt(data, 10);
     if (exist(data)) {
@@ -543,9 +554,8 @@ progress_checker = function(fname, scope) {
     }
   }
   if (scope[fname] >= 100) {
-    scope[fname] = 100;
+    return scope[fname] = 100;
   }
-  return utils.force_digest(scope);
 };
 
 check_all_progress = function(scope) {
@@ -555,23 +565,23 @@ check_all_progress = function(scope) {
 
 second_interval = function(scope) {
   if (scope.quitting) {
-    print("cryptobox.cf:470", "quitting");
+    print("cryptobox.cf:474", "quitting");
     return;
   }
   g_second_counter += 1;
-  start_watch();
+  start_watch(scope);
   check_all_progress(scope);
   update_output(scope);
-  get_all_smemory();
+  get_all_smemory(scope);
   if (g_second_counter % 10 === 0) {
-    return ping_client();
+    return run_command("last_ping", "", scope);
   }
 };
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, memory, utils) {
-  var set_data_user_config_once, start_process_once;
+  var second_interval_scoped, set_data_user_config_once, start_process_once;
   $scope.cba_version = 0.1;
   $scope.cba_main = null;
   $scope.quitting = false;
@@ -674,5 +684,8 @@ cryptobox_ctrl = function($scope, memory, utils) {
   set_data_user_config_once($scope);
   start_process_once();
   set_menus_and_g_tray_icon($scope);
-  return setInterval(second_interval, [scope], 1000);
+  second_interval_scoped = function() {
+    return second_interval($scope);
+  };
+  return setInterval(second_interval_scoped, 1000);
 };
