@@ -12,8 +12,16 @@ g_winmain = gui.Window.get()
 g_tray = new gui.Tray(
     icon: "images/icon-client-signed-in-idle.png"
 )
+g_menu = new gui.Menu(
+    type: 'menubar'
+)
+g_trayactions = new gui.Menu()
+g_tray.menu = g_trayactions
+g_menuactions = new gui.Menu()
+g_winmain.menu = g_menuactions
 
-#gui.Window.get().showDevTools()
+
+gui.Window.get().showDevTools()
 print = (msg, others...) ->
     len_others = _.size(others)
 
@@ -36,7 +44,7 @@ warning = (ln, w) ->
     else
         return
 
-    if utils.exist(w)
+    if exist(w)
         if w.faultString?
             add_output(w.faultString)
         else if w.message
@@ -76,7 +84,7 @@ add_output = (msgs, scope) ->
             msg.replace("\n", "")
             msg = msg.trim()
 
-        if utils.exist(msg)
+        if exist(msg)
             g_output.unshift(msg)
 
     if msgs?.split?
@@ -102,7 +110,7 @@ warning = (ln, w) ->
     else
         return
 
-    if utils.exist(w)
+    if exist(w)
         if w.faultString?
             add_output(w.faultString)
         else if w.message
@@ -111,8 +119,8 @@ warning = (ln, w) ->
             add_output(w)
 
 
-start_process = =>
-    print "cryptobox.cf:115", "start_process"
+start_process = ->
+    print "cryptobox.cf:123", "start_process"
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
     cmd_folder = path.join(process.cwd(), "cba_commands")
@@ -120,30 +128,10 @@ start_process = =>
     set_output_buffers(cba_main)
 
 
-start_watch = ->
-    if not file_watch_started
-        watch_path = path.join($scope.cb_folder_text, $scope.cb_name)
-
-        if fs.existsSync(watch_path)
-            file_watch_started = true
-            watch.watchTree watch_path, (f, curr, prev) ->
-                if not String(f).contains("memory.pickle")
-                    if typeof f is "object" and prev is null and curr is null
-                        return
-
-                    add_output("local filechange", f)
-                    if prev is null
-                        file_watch_started = false
-                    else if curr.nlink is 0
-                        file_watch_started = false
-                    else
-                        file_watch_started = false
-
-
-check_result = (name) =>
+check_result = (name) ->
     result_path = path.join(cmd_folder, name + ".result")
 
-    if fs.existsSync(result_path)
+    if fs.existSync(result_path)
         data = null
 
         try
@@ -162,49 +150,44 @@ check_result = (name) =>
                 try
                     fs.unlinkSync(result_path)
                 catch ex
-                    print "cryptobox.cf:165", ex
+                    print "cryptobox.cf:153", ex
                 p.resolve(data["result"])
                 return
 
     if result_cnt > 100
-        print "cryptobox.cf:170", "too many result checks", name, result_cnt
+        print "cryptobox.cf:158", "too many result checks", name, result_cnt
     else
         setTimeout(check_result, 100, name)
 
 
-run_command = (name, data) ->
-    p = $q.defer()
+run_command = (name, data, scope) ->
+    try
+        scope.running_command = true
 
-    if not exist(data)
-        data = ""
+        if not exist(data)
+            data = ""
 
-    cmd_folder = path.join(process.cwd(), "cba_commands")
+        cmd_folder = path.join(process.cwd(), "cba_commands")
 
-    if not fs.existsSync(cmd_folder)
-        fs.mkdirSync(cmd_folder)
+        if not fs.existSync(cmd_folder)
+            fs.mkdirSync(cmd_folder)
 
-    cmd_path = path.join(cmd_folder, name + ".cmd")
-    result_path = path.join(cmd_folder, name + ".result")
+        cmd_path = path.join(cmd_folder, name + ".cmd")
+        result_path = path.join(cmd_folder, name + ".result")
 
-    if fs.existsSync(result_path)
-        fs.unlinkSync(result_path)
+        if fs.existSync(result_path)
+            fs.unlinkSync(result_path)
 
-    fout = fs.openSync(cmd_path, "w")
-    fs.writeSync(fout, JSON.stringify(data))
-    fs.closeSync(fout)
-    setTimeout(check_result, 100, name)
-    p.promise
+        fout = fs.openSync(cmd_path, "w")
+        fs.writeSync(fout, JSON.stringify(data))
+        fs.closeSync(fout)
+    finally
+        scope.running_command = false
 
 
 get_motivation = (scope) ->
     if not scope.motivation?
-        run_command("get_motivation").then(
-            (motivation) ->
-                scope.motivation = motivation
-
-            (error) ->
-                print "cryptobox.cf:206", error
-        )
+        scope.motivation = run_command("get_motivation", "", scope)
     else
         setTimeout(get_motivation, scope, 200)
 
@@ -213,12 +196,11 @@ on_exit = ->
     gui.App.quit()
 
 
-store_user_var = (k, v, $q) ->
-    p = $q.defer()
+store_user_var = (k, v) ->
     db = new PouchDB('cb_userinfo')
 
     if not exist(db)
-        p.reject("no db")
+        throw "no db"
     else
         record = 
             _id: k
@@ -229,92 +211,68 @@ store_user_var = (k, v, $q) ->
                     record._rev = d._rev
             db.put record, (e, r) ->
                 if exist(e)
-                    p.reject(e)
+                    throw e
 
                 if exist(r)
                     if exist_truth(r.ok)
-                        p.resolve(true)
+                        return true
                     else
-                        p.reject(r)
+                        throw e
                 else
-                    p.reject("store_user_var generic error")
-
-    return p.promise
+                    throw "store_user_var generic error"
 
 
-get_user_var = (k, $q) ->
-    p = $q.defer()
+get_user_var = (k) ->
     db = new PouchDB('cb_userinfo')
 
     if not exist(db)
-        p.reject("no db")
+        throw ("no db, get_user_var")
     else
         db.get k, (e, d) ->
             if exist(e)
-                p.reject(e)
+                throw e
             else
                 if exist(d)
-                    p.resolve(d.value)
+                    return d.value
                 else
-                    p.reject()
-
-    return p.promise
+                    throw ("error, get_user_var")
 
 
-set_user_var_scope = (name, scope_name, scope, $q) ->
-    p = $q.defer()
+set_user_var_scope = (name, scope_name, scope) ->
+    v = get_user_var(name)
 
-    get_user_var(name).then(
-        (v) ->
-            if exist(scope_name)
-                scope[scope_name] = v
-            else
-                scope[name] = v
-            p.resolve()
+    if exist(scope_name)
+        scope[scope_name] = v
+    else
+        scope[name] = v
 
-        (err) ->
-            warning "cryptobox.cf:276", err
-            p.reject()
-    )
-    p.promise
+    return true
 
 
 set_data_user_config = (scope) ->
-    set_user_var_scope("cb_folder", "cb_folder_text").then(
-        ->
-            scope.got_folder_text = true
-    )
-
-    set_user_var_scope("cb_username")
-    set_user_var_scope("cb_password")
-
-    set_user_var_scope("cb_name").then(
-        ->
-            if not exist(scope.cb_name)
-                scope.cb_name = "active8"
-
+    if set_user_var_scope("cb_folder", "cb_folder_text", scope)
+        scope.got_folder_text = true
+    set_user_var_scope("cb_username", null, scope)
+    set_user_var_scope("cb_password", null, scope)
+    if set_user_var_scope("cb_name", null, scope)
+        if not exist(scope.cb_name)
+            scope.cb_name = "active8"
             scope.got_cb_name = true
-    )
 
-    set_user_var_scope("cb_server").then(
-        ->
-            if not exist(scope.cb_folder_text)
-                scope.cb_folder_text = "https://www.cryptobox.nl/"
-                scope.cb_folder = $scope.cb_folder_text
-
-    )
-
-    set_user_var_scope("show_settings")
-    set_user_var_scope("show_debug")
-    if not utils.exist(scope.cb_username)
+    if set_user_var_scope("cb_server", null, scope)
+        if not exist(scope.cb_folder_text)
+            scope.cb_folder_text = "https://www.cryptobox.nl/"
+            scope.cb_folder = scope.cb_folder_text
+    set_user_var_scope("show_settings", null, scope)
+    set_user_var_scope("show_debug", null, scope)
+    if not exist(scope.cb_username)
         scope.show_settings = true
 
     if not exist(scope.cb_server)
         scope.cb_server = cb_server_url
 
 
-get_sync_state = (q, scope) ->
-    p = q.defer()
+get_sync_state = (scope) ->
     option = 
         dir: scope.cb_folder_text
         username: scope.cb_username
@@ -322,15 +280,30 @@ get_sync_state = (q, scope) ->
         cryptobox: scope.cb_name
         server: scope.cb_server
         check: "1"
+    run_command("run_cb_command", option, scope)
 
-    run_command("run_cb_command", option).then(
-        ->
-            p.resolve()
 
-        (err) ->
-            p.reject(err)
-    )
-    p.promise
+start_watch = (scope) ->
+    if not scope.file_watch_started
+        watch_path = path.join(scope.cb_folder_text, scope.cb_name)
+
+        if fs.existSync(watch_path)
+            scope.file_watch_started = true
+            watch.watchTree watch_path, (f, curr, prev) ->
+                if not String(f).contains("memory.pickle")
+                    if typeof f is "object" and prev is null and curr is null
+                        return
+
+                    if scope.running_command
+                        return
+
+                    add_output("local filechange", f)
+                    if prev is null
+                        get_sync_state(scope)
+                    else if curr.nlink is 0
+                        get_sync_state(scope)
+                    else
+                        get_sync_state(scope)
 
 
 update_sync_state = (smem) ->
@@ -343,7 +316,7 @@ update_sync_state = (smem) ->
     $scope.file_del_local = smem.file_del_local
 
 
-cryptobox_locked_status_change = (locked) =>
+cryptobox_locked_status_change = (locked) ->
     $scope.cryptobox_locked = locked
 
     if $scope.cryptobox_locked
@@ -370,21 +343,15 @@ change_workingstate = (wstate, scope) ->
 
 
 get_all_smemory = (scope) ->
-    run_command("get_all_smemory").then(
-        (value) ->
-            cryptobox_locked_status_change(exist_truth(value.cryptobox_locked))
-            change_workingstate(value.working)
-            if not exist_truth(value.working)
-                update_sync_state(value)
-            force_digest(scope)
-            if exist(value.tree_sequence)
-                scope.tree_sequence = value.tree_sequence
-            force_digest(scope)
-
-        (error) ->
-            add_output("get_all_smemory" + " " + error)
-            force_digest(scope)
-    )
+    value = run_command("get_all_smemory", "", scope)
+    cryptobox_locked_status_change(exist_truth(value.cryptobox_locked))
+    change_workingstate(value.working)
+    if not exist_truth(value.working)
+        update_sync_state(value)
+    force_digest(scope)
+    if exist(value.tree_sequence)
+        scope.tree_sequence = value.tree_sequence
+    force_digest(scope)
 
 
 get_option = ->
@@ -398,7 +365,7 @@ get_option = ->
     return option
 
 
-add_g_traymenu_item = (label, icon, method) =>
+add_g_traymenu_item = (label, icon, method) ->
     g_trayitem = new gui.MenuItem(
         type: "normal"
         label: label
@@ -409,7 +376,7 @@ add_g_traymenu_item = (label, icon, method) =>
     return g_trayitem
 
 
-add_checkbox_g_traymenu_item = (label, icon, method, enabled) =>
+add_checkbox_g_traymenu_item = (label, icon, method, enabled) ->
     g_trayitem_cb = new gui.MenuItem(
         type: "checkbox"
         label: label
@@ -421,7 +388,7 @@ add_checkbox_g_traymenu_item = (label, icon, method, enabled) =>
     return g_trayitem_cb
 
 
-add_g_traymenu_seperator = () =>
+add_g_traymenu_seperator = ->
     g_traymenubaritem = new gui.MenuItem(
         type: "separator"
     )
@@ -429,18 +396,18 @@ add_g_traymenu_seperator = () =>
     return g_traymenubaritem
 
 
-add_menu_item = (label, icon, method) =>
+add_menu_item = (label, icon, method) ->
     menubaritem = new gui.MenuItem(
         type: "normal"
         label: label
         icon: icon
         click: method
     )
-    actions.append menubaritem
+    g_menuactions.append menubaritem
     return menubaritem
 
 
-add_checkbox_menu_item = (label, icon, method, enabled) =>
+add_checkbox_menu_item = (label, icon, method, enabled) ->
     menubaritem_cb = new gui.MenuItem(
         type: "checkbox"
         label: label
@@ -448,32 +415,25 @@ add_checkbox_menu_item = (label, icon, method, enabled) =>
         click: method
         checked: enabled
     )
-    actions.append menubaritem_cb
+    g_menuactions.append menubaritem_cb
     return menubaritem_cb
 
 
-add_menu_seperator = () =>
+add_menu_seperator = () ->
     menubaritem = new gui.MenuItem(
         type: "separator"
     )
-    actions.append menubaritem
+    g_menuactions.append menubaritem
 
 
 set_menus_and_g_tray_icon = (scope) ->
-    g_trayactions = new gui.Menu()
-    g_tray.menu = g_trayactions
-    menubar = new gui.Menu(
-        type: 'menubar'
-    )
-    actions = new gui.Menu()
     add_menu_seperator()
     add_g_traymenu_seperator()
     add_menu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
     add_g_traymenu_item("Encrypt local", "images/lock.png", $scope.encrypt_btn)
     add_menu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
     add_g_traymenu_item("Decrypt local", "images/unlock.png", $scope.decrypt_btn)
-    g_winmain.menu = menubar
-    g_winmain.menu.insert(new gui.MenuItem({label: 'Actions', submenu: actions}), 1);
+    g_winmain.menu.insert(new gui.MenuItem({label: 'Actions', submenu: g_menuactions}), 1);
     scope.settings_menubaritem = add_checkbox_menu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
     scope.settings_menubar_g_tray = add_checkbox_g_traymenu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
 
@@ -483,33 +443,14 @@ set_menus_and_g_tray_icon = (scope) ->
     scope.$watch "show_settings", scope.update_menu_checks
 
 
-second_interval = (scope) ->
-    if scope.quitting
-        print "cryptobox.cf:488", "quitting"
-        return
-
-    start_watch()
-    g_second_counter += 1
-    update_output()
-    get_all_smemory()
-    if g_second_counter % 10 == 0
-        ping_client()
-
-
-start_after_second = ->
-    get_motivation()
-    get_sync_state()
-    setInterval(second_interval, 1000)
-
-
-progress_checker = (fname, scope, utils) ->
+progress_checker = (fname, scope) ->
     fprogress = path.join(process.cwd(), fname)
 
-    if fs.existsSync(fprogress)
+    if fs.existSync(fprogress)
         data = fs.readFileSync(fprogress)
         data = parseInt(data, 10)
 
-        if utils.exist(data)
+        if exist(data)
             add_output(fname, data)
             scope[fname] = parseInt(data, 10)
             fs.unlinkSync(fprogress)
@@ -519,13 +460,27 @@ progress_checker = (fname, scope, utils) ->
     utils.force_digest(scope)
 
 
-check_all_progress = (scope, utils) ->
-    progress_checker("progress", scope, utils)
-    progress_checker("item_progress", scope, utils)
+check_all_progress = (scope) ->
+    progress_checker("progress", scope)
+    progress_checker("item_progress", scope)
+
+
+second_interval = (scope) ->
+    if scope.quitting
+        print "cryptobox.cf:470", "quitting"
+        return
+
+    g_second_counter += 1
+    start_watch()
+    check_all_progress(scope)
+    update_output(scope)
+    get_all_smemory()
+    if g_second_counter % 10 == 0
+        ping_client()
 
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"])
-cryptobox_ctrl = ($scope, $q, memory, utils) ->
+cryptobox_ctrl = ($scope, memory, utils) ->
     $scope.cba_version = 0.1
     $scope.cba_main = null
     $scope.quitting = false
@@ -550,18 +505,20 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
     $scope.disable_encrypt_button = false
     $scope.disable_decrypt_button = false
     $scope.disable_sync_button = false
+    $scope.file_watch_started = false
+    $scope.running_command = false
     g_winmain.on('close', on_exit)
 
     $scope.debug_btn = ->
         require('nw.gui').Window.get().showDevTools()
 
-    $scope.get_progress_item_show = =>
+    $scope.get_progress_item_show = ->
         return $scope.progress_bar_item != 0
 
-    $scope.get_progress_item = =>
+    $scope.get_progress_item = ->
         {width:$scope.progress_bar_item + "%"}
 
-    $scope.get_progress = =>
+    $scope.get_progress = ->
         {width:$scope.progress_bar + "%"}
 
     $scope.get_lock_buttons = ->
@@ -572,21 +529,14 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.form_change()
 
     $scope.form_change = ->
-        p_cb_folder = store_user_var("cb_folder", $scope.cb_folder_text, $q)
-        p_cb_username = store_user_var("cb_username", $scope.cb_username, $q)
-        p_cb_password = store_user_var("cb_password", $scope.cb_password, $q)
-        p_cb_name = store_user_var("cb_name", $scope.cb_name, $q)
-        p_cb_server = store_user_var("cb_server", $scope.cb_server, $q)
-        p_show_settings = store_user_var("show_settings", $scope.show_settings, $q)
-        p_show_debug = store_user_var("show_debug", $scope.show_debug, $q)
-
-        $q.all([p_cb_folder, p_cb_username, p_cb_password, p_cb_name, p_cb_server, p_show_settings, p_show_debug]).then(
-            ->
-                utils.force_digest($scope)
-
-            (err) ->
-                warning "cryptobox.cf:588", err
-        )
+        store_user_var("cb_folder", $scope.cb_folder_text)
+        store_user_var("cb_username", $scope.cb_username)
+        store_user_var("cb_password", $scope.cb_password)
+        store_user_var("cb_name", $scope.cb_name)
+        store_user_var("cb_server", $scope.cb_server)
+        store_user_var("show_settings", $scope.show_settings)
+        store_user_var("show_debug", $scope.show_debug)
+        utils.force_digest($scope)
 
     $scope.file_input_change = (f) ->
         $scope.cb_folder_text = f[0].path
@@ -597,23 +547,23 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         option.encrypt = true
         option.clear = "0"
         option.sync = "0"
-        run_command("run_cb_command", option)
+        run_command("run_cb_command", option, $scope)
 
     $scope.encrypt_btn = ->
         option = get_option()
         option.encrypt = true
         option.remove = true
         option.sync = false
-        run_command("run_cb_command", option)
+        run_command("run_cb_command", option, $scope)
 
     $scope.decrypt_btn = ->
         option = get_option()
         option.decrypt = true
         option.clear = false
-        run_command("run_cb_command", option)
+        run_command("run_cb_command", option, $scope)
 
     $scope.open_folder = ->
-        run_command("do_open_folder", [$scope.cb_folder_text, $scope.cb_name])
+        run_command("do_open_folder", [$scope.cb_folder_text, $scope.cb_name], $scope)
 
     $scope.open_website = ->
         gui.Shell.openExternal($scope.cb_server + $scope.cb_name)
@@ -622,11 +572,11 @@ cryptobox_ctrl = ($scope, $q, memory, utils) ->
         $scope.show_settings = !$scope.show_settings
         $scope.form_change()
 
-    utils.set_time_out("cryptobox.cf:625", start_after_second, 1000)
-    utils.set_interval("cryptobox.cf:626", check_all_progress, 250, "check_all_progress")
     set_data_user_config_once = _.once(set_data_user_config)
     start_process_once = _.once(start_process)
-    set_data_user_config_once()
+    set_data_user_config_once($scope)
     start_process_once()
-    get_motivation()
-    set_menus_and_g_tray_icon()
+
+    #get_motivation($scope)
+    set_menus_and_g_tray_icon($scope)
+    setInterval(second_interval, [scope], 1000)
