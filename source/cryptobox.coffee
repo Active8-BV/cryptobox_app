@@ -5,6 +5,7 @@ fs = require("fs")
 watch = require("watch")
 spawn = require("child_process")
 gui = require('nw.gui')
+sleep = require('sleep');
 
 
 gui.Window.get().showDevTools()
@@ -120,7 +121,7 @@ warning = (ln, w) ->
 
 
 start_process = ->
-    print "cryptobox.cf:123", "start_process"
+    print "cryptobox.cf:124", "start_process"
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
     cmd_folder = path.join(process.cwd(), "cba_commands")
@@ -128,63 +129,53 @@ start_process = ->
     set_output_buffers(cba_main)
 
 
-check_result = (name) ->
+run_command = (name, data, scope) ->
+    scope.running_command = true
+
+    if not exist(data)
+        data = ""
+
+    cmd_folder = path.join(process.cwd(), "cba_commands")
+    cmd_path = path.join(cmd_folder, name + ".cmd")
     result_path = path.join(cmd_folder, name + ".result")
 
-    if fs.existsSync(result_path)
-        data = null
+    if not fs.existsSync(cmd_folder)
+        fs.mkdirSync(cmd_folder)
 
-        try
-            data = fs.readFileSync(result_path)
-        catch ex
-            pass
+    fout = fs.openSync(cmd_path, "w")
+    fs.writeSync(fout, JSON.stringify(data))
+    fs.closeSync(fout)
+    result_cnt = 0
 
-        if data?
-            try
-                data = JSON.parse(data)
-            catch ex
-                pass
-
-        if data?
-            if data["result"]?
-                try
-                    fs.unlinkSync(result_path)
-                catch ex
-                    print "cryptobox.cf:153", ex
-                p.resolve(data["result"])
-                return
-
-    if result_cnt > 100
-        print "cryptobox.cf:158", "too many result checks", name, result_cnt
-    else
-        check_result_name = =>
-            check_result(name)
-        setTimeout(check_result_name, 100)
-
-
-run_command = (name, data, scope) ->
     try
-        scope.running_command = true
+        while result_cnt < 20
+            print "cryptobox.cf:152", result_path
+            if fs.existsSync(result_path)
+                data = null
+                error = false
 
-        if not exist(data)
-            data = ""
+                try
+                    data = fs.readFileSync(result_path)
+                    data = JSON.parse(data)
+                catch ex
+                    data = null
+                    error = true
 
-        cmd_folder = path.join(process.cwd(), "cba_commands")
+                if data?
+                    if data["result"]?
+                        return data["result"]
 
-        if not fs.existsSync(cmd_folder)
-            fs.mkdirSync(cmd_folder)
-
-        cmd_path = path.join(cmd_folder, name + ".cmd")
-        result_path = path.join(cmd_folder, name + ".result")
-
-        if fs.existsSync(result_path)
-            fs.unlinkSync(result_path)
-
-        fout = fs.openSync(cmd_path, "w")
-        fs.writeSync(fout, JSON.stringify(data))
-        fs.closeSync(fout)
+                second = 1000000
+            sleep.sleep(1)
+            result_cnt += 1
     finally
         scope.running_command = false
+
+        if fs.existsSync(cmd_path)
+            fs.unlinkSync(cmd_path)
+
+        #if fs.existsSync(result_path)
+        #    fs.unlinkSync(result_path)
 
 
 get_motivation = (scope) ->
@@ -471,7 +462,7 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:474", "quitting"
+        print "cryptobox.cf:465", "quitting"
         return
 
     g_second_counter += 1
