@@ -190,7 +190,6 @@ def index_files_visit(arg, dir_name, names):
     filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
     dirname_hash = make_sha1_hash(dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/"))
     nameshash = make_sha1_hash("".join(names))
-
     folder = {"dirname": dir_name, "dirnamehash": dirname_hash, "filenames": [{'name': x} for x in filenames], "nameshash": nameshash}
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)

@@ -148,7 +148,6 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     dec_data = cipher.decrypt(encrypted_data)
     calculated_hash = make_checksum(dec_data)
-
     if data_hash != calculated_hash:
         raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
 
@@ -162,7 +161,6 @@ def decrypt_file_smp(secret, enc_file_chunks, progress_callback):
     @type progress_callback: function
     """
     dec_file = StringIO()
-
     chunks_param_sorted = [(secret, chunk["enc_data"], chunk["data_hash"], chunk["initialization_vector"]) for chunk in enc_file_chunks]
     dec_file_chunks = smp_all_cpu_apply(decrypt_file_for_smp, chunks_param_sorted, progress_callback)
 

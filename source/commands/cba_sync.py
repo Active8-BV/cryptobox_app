@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, update_item_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, SingletonMemory, path_to_relative_path_unix_style
+from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, update_item_progress, Memory, add_server_path_history, in_server_file_history, add_local_file_history, in_local_file_history, del_server_file_history, del_local_file_history, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -44,7 +44,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     downloaded_files_cnt = 0
-
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
         downloaded_files_cnt += 1
@@ -55,7 +54,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_file_paths):
         for local_file_path in local_file_paths:
             memory = add_local_file_history(memory, local_file_path["doc"]["m_path"])
     log("done downloading files")
-
     local_file_paths_not_written = [fp for fp in local_file_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
     if len(local_file_paths_not_written) > 0:
@@ -120,7 +118,6 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
 
             if rel_dirname not in serverindex["dirlist"]:
                 folder_timestamp = os.stat(node["dirname"]).st_mtime
-
                 if int(folder_timestamp) >= int(tree_timestamp):
                     dirs_make_server.append(node)
                 else:
@@ -133,7 +130,6 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
                 dirs_del_local.append(node)
 
     dirs_make_server_unique = []
-
     key_set = set([k["dirnamehash"] for k in dirs_make_server])
     for k in key_set:
         for i in dirs_make_server:
@@ -358,7 +354,6 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     """
     parent_path = path.replace(options.dir, "")
     parent_path = os.path.dirname(parent_path)
-
     result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
 
     if len(result) > 1:
@@ -432,7 +427,6 @@ def path_to_server_shortid(memory, options, serverindex, path):
 
     """
     path = path.replace(options.dir, "")
-
     result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], path)]
 
     if len(result) == 0:
@@ -453,8 +447,6 @@ def get_tree_sequence(memory, options):
         return -1
 
     clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
-    smemory = SingletonMemory()
-    smemory.set("tree_sequence", clock_tree_seq[1])
     return int(clock_tree_seq[1])
 
 
@@ -485,7 +477,6 @@ def get_server_index(memory, options):
             raise TreeLoadError()
 
     serverindex = result[1]
-
     serverindex["dirlist"] = tuple(list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]])))
     serverindex["doclist"] = tuple(serverindex["doclist"])
     memory.replace("serverindex", serverindex)
@@ -597,7 +588,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:600", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:591", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -665,16 +656,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
         else:
             dir_del_server.append(dds_path)
-
-    sm = SingletonMemory()
-    sm.set("file_downloads", file_downloads)
-    sm.set("file_uploads", file_uploads)
-    sm.set("dir_del_server", dir_del_server)
-    sm.set("dir_make_local", dir_make_local)
-    sm.set("dir_make_server", dir_make_server)
-    sm.set("dir_del_local", dir_del_local)
-    sm.set("file_del_local", file_del_local)
-    sm.set("file_del_server", file_del_server)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
 
 
@@ -707,12 +688,11 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
 
             try:
                 percentage = 100 - ((total - current ) * 100 ) / total
-
                 if percentage != last_progress[0]:
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:715", "updating upload progress failed", str(exc)
+                print "cba_sync.py:695", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -795,7 +775,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory, uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:798", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:778", "can't fnd", uf["local_file_path"]
     return memory, files_uploaded
 
 
@@ -833,15 +813,6 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
-    sm = SingletonMemory()
-    sm.set("file_downloads", [])
-    sm.set("file_uploads", [])
-    sm.set("dir_del_server", [])
-    sm.set("dir_make_local", [])
-    sm.set("dir_make_server", [])
-    sm.set("dir_del_local", [])
-    sm.set("file_del_local", [])
-    sm.set("file_del_server", [])
     if memory.has("session"):
         memory = authorized(memory, options)
 
@@ -861,7 +832,6 @@ def sync_server(memory, options):
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
-
         serverdirpaths = [x["doc"]["m_path"] for x in serverindex["doclist"]]
         for fpath in serverdirpaths:
             memory = add_path_history(fpath, memory)
@@ -901,7 +871,6 @@ def sync_server(memory, options):
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
     dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
-
     dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
         memory = del_path_history(fpath, memory)
@@ -911,7 +880,6 @@ def sync_server(memory, options):
 
     if memory.has("localpath_history"):
         localpath_history = memory.get("localpath_history")
-
         localpaths = [x[0] for x in localpath_history]
         for fpath in dir_del_server:
             for lfpath in localpaths:
@@ -922,7 +890,6 @@ def sync_server(memory, options):
 
     if memory.has("serverpath_history"):
         serverpath_history = memory.get("serverpath_history")
-
         serverpaths = [x[0] for x in serverpath_history]
         for fpath in dir_del_local:
             for lfpath in serverpaths:

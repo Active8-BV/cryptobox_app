@@ -230,7 +230,6 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_smp_all_cpu_apply(self):
         self.do_wait_for_tasks = False
-
         items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
         res_items = [x[0] + x[1] for x in items]
         res_items2 = smp_all_cpu_apply(add, items)

@@ -54,23 +54,14 @@ warning = (ln, w) ->
             add_output(w)
 
 
-set_output_buffers = (cba_main_proc) ->
-    if exist(cba_main_proc.stdout)
-        cba_main_proc.stdout.on "data", (data) ->
-            add_output("stdout:" + data)
-
-    if exist(cba_main_proc.stderr)
-        cba_main_proc.stderr.on "data", (data) ->
-            add_output("stderr:" + data)
-
-
 update_output = (scope) ->
     msgs = ""
 
     make_stream = (msg) ->
         msgs += msg + "\n"
     _.each(g_output, make_stream)
-    scope.cmd_output = msgs
+    if scope?
+        scope.cmd_output = msgs
 
 
 add_output = (msgs, scope) ->
@@ -120,16 +111,29 @@ warning = (ln, w) ->
             add_output(w)
 
 
-start_process = ->
-    print "cryptobox.cf:124", "start_process"
+set_output_buffers = (cba_main_proc) ->
+    if exist(cba_main_proc.stdout)
+        cba_main_proc.stdout.on "data", (data) ->
+            add_output("stdout:" + data)
+
+    if exist(cba_main_proc.stderr)
+        cba_main_proc.stderr.on "data", (data) ->
+            add_output("stderr:" + data)
+
+
+run_cba_main = (params) ->
+    print "cryptobox.cf:125", "start_process"
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
     cmd_folder = path.join(process.cwd(), "cba_commands")
-    cba_main = spawn.spawn(cmd_to_run, ["-i " + cmd_folder])
+    params.push("-i ")
+    cba_main = spawn.spawn(cmd_to_run, params)
     set_output_buffers(cba_main)
 
 
 run_command = (name, data, scope) ->
+    print "cryptobox.cf:135", name, data
+    sleep.sleep(1)
     scope.running_command = true
 
     if not exist(data)
@@ -146,10 +150,10 @@ run_command = (name, data, scope) ->
     fs.writeSync(fout, JSON.stringify(data))
     fs.closeSync(fout)
     result_cnt = 0
-
+    return
     try
         while result_cnt < 20
-            print "cryptobox.cf:152", result_path
+            print "cryptobox.cf:156", result_path
             if fs.existsSync(result_path)
                 data = null
                 error = false
@@ -168,7 +172,9 @@ run_command = (name, data, scope) ->
                 second = 1000000
             sleep.sleep(1)
             result_cnt += 1
+        throw "no result"
     finally
+        print "cryptobox.cf:177", "command cleaning up"
         scope.running_command = false
 
         if fs.existsSync(cmd_path)
@@ -462,7 +468,7 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:465", "quitting"
+        print "cryptobox.cf:471", "quitting"
         return
 
     g_second_counter += 1
@@ -568,13 +574,74 @@ cryptobox_ctrl = ($scope, memory, utils) ->
         $scope.form_change()
 
     set_data_user_config_once = _.once(set_data_user_config)
-    start_process_once = _.once(start_process)
-    set_data_user_config_once($scope)
-    start_process_once()
 
+    #start_process_once = _.once(start_process)
+    set_data_user_config_once($scope)
+
+    #start_process_once()
     #get_motivation($scope)
     set_menus_and_g_tray_icon($scope)
 
     second_interval_scoped = ->
         second_interval($scope)
-    setInterval(second_interval_scoped, 1000)
+
+    #setInterval(second_interval_scoped, 1000)
+    option = 
+        dir: $scope.cb_folder_text
+        username: $scope.cb_username
+        password: $scope.cb_password
+        cryptobox: $scope.cb_name
+        server: $scope.cb_server
+        check: "1"
+
+    option_to_string = (option) ->
+        cmd_str = ""
+
+        if option.dir?
+            cmd_str += "-f " + option.dir
+
+        if option.encrypt?
+            cmd_str += "-e " + option.encrypt
+
+        if option.decrypt?
+            cmd_str += "-d " + option.decrypt
+
+        if option.remove?
+            cmd_str += "-r " + option.remove
+
+        if option.clear?
+            cmd_str += "-c " + option.clear
+
+        if option.username?
+            cmd_str += "-u " + option.username
+
+        if option.password?
+            cmd_str += "-p " + option.password
+
+        if option.cryptobox?
+            cmd_str += "-b " + option.cryptobox
+
+        if option.sync?
+            cmd_str += "-s " + option.sync
+
+        if option.check?
+            cmd_str += "-t " + option.check
+
+        if option.treeseq?
+            cmd_str += "-l " + option.treeseq
+
+        if option.logout?
+            cmd_str += "-n " + option.logout
+
+        if option.treeseq?
+            cmd_str += "-x " + option.treeseq
+
+        if option.numdownloadthreads?
+            cmd_str += "-v " + option.numdownloadthreads
+
+        if option.server?
+            cmd_str += "-i " + option.server
+
+        if option.version?
+            cmd_str += "-m " + option.version
+    print "cryptobox.cf:647", option
