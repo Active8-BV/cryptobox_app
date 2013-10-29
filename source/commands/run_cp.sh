@@ -13,6 +13,7 @@ on_change_path cba_network.py
 on_change_path cba_sync.py
 on_change_path cba_file.py
 on_change_path tests.py
+python -OO cp.py -r 0 -f ../cbalib.coffee
 python -OO cp.py -r 0 -f ../cryptobox.coffee
 coffee -c -b ../cryptobox.coffee;
 mv ../cryptobox.js ../../Cryptobox/
