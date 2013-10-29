@@ -578,7 +578,8 @@ second_interval = function(scope) {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, memory, utils) {
-  var motivation_cb, motivation_options, set_data_user_config_once;
+  var dodigest, motivation_cb, motivation_options, set_data_user_config_once,
+    _this = this;
   $scope.cba_version = 0.1;
   $scope.cba_main = null;
   $scope.quitting = false;
@@ -683,9 +684,13 @@ cryptobox_ctrl = function($scope, memory, utils) {
   };
   motivation_cb = function(result, output) {
     if (result != null) {
-      return $scope.motivation = output;
+      return $scope.motivation = output.replace("\n", "<br/>");
     }
   };
   run_cba_main(motivation_options, motivation_cb);
-  return set_menus_and_g_tray_icon($scope);
+  set_menus_and_g_tray_icon($scope);
+  dodigest = function() {
+    return utils.force_digest($scope);
+  };
+  return setInterval(dodigest, 500);
 };
