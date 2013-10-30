@@ -547,8 +547,6 @@ class Memory(object):
             if os.path.exists(datadir):
                 mempath = os.path.join(datadir, "memory.pickle")
                 pickle_object(mempath, self.data, json_pickle=True)
-        except:
-            self.unlock()
         finally:
             if not keep_lock:
                 self.unlock()
@@ -574,8 +572,6 @@ class Memory(object):
                     except MemoryExpired:
                         pass
 
-        except:
-            self.unlock()
         finally:
             if not keep_lock:
                 self.unlock()
@@ -732,7 +728,7 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:735", curr, total, msg
+    print "cba_utils.py:731", curr, total, msg
     global last_update_string_len
     if total == 0:
         return
@@ -781,8 +777,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:784", "json parse errror"
-                        print "cba_utils.py:785", jdata
+                        print "cba_utils.py:780", "json parse errror"
+                        print "cba_utils.py:781", jdata
 
             except Exception, e:
                 handle_exception(e, False)

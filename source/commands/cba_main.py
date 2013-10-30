@@ -9,6 +9,7 @@ reload(sys)
 #noinspection PyUnresolvedReferences
 sys.setdefaultencoding("utf-8")
 import os
+import json
 import cPickle
 import multiprocessing.forking
 import multiprocessing
@@ -204,6 +205,23 @@ def cryptobox_command(options):
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
+        if options.getuservar:
+            if memory.has("uservar"):
+                uservar = memory.get("uservar")
+                print json.dumps(uservar)
+                return True
+            else:
+                return False
+        if options.storeuservar:
+            uservar = {"dir": options.basedir,
+                       "username": options.username,
+                       "password": options.password,
+                       "cryptobox": options.cryptobox,
+                       "numdownloadthreads": options.numdownloadthreads}
+            memory.replace("uservar", uservar)
+            memory.save(datadir)
+            return True
+
         if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
             return False
@@ -303,4 +321,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:306", "\nbye main"
+        print "cba_main.py:324", "\nbye main"

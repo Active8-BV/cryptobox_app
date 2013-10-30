@@ -625,6 +625,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
 
+    #noinspection PyDictCreation
     def test_user_vars(self):
         """
         test_user_vars
@@ -640,11 +641,13 @@ class CryptoboxAppTest(unittest.TestCase):
                      "sync": False,
                      "server": "http://127.0.0.1:8000",
                      "numdownloadthreads": 12}
-
+        options_d["storeuservar"] = True
         cboptions = Dict2Obj(options_d)
-        print "tests.py:644", cboptions
-
-        #cryptobox_command(self.cboptions)
+        self.assertTrue(cryptobox_command(cboptions))
+        del options_d["storeuservar"]
+        options_d["getuservar"] = True
+        cboptions = Dict2Obj(options_d)
+        self.assertTrue(cryptobox_command(cboptions))
 
 
 if __name__ == '__main__':
