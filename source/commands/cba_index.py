@@ -104,7 +104,10 @@ def get_encrypted_configs(options, name_stop=None):
         config_file_path = os.path.join(config_file_path, config[1])
         cryptoboxname = unpickle_object(config_file_path)
         cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
-        encrypted_configs.append({"cryptoboxname": cryptoboxname, "secret": secret, "config_file_path": config_file_path})
+        encrypted_configs.append({"cryptoboxname": cryptoboxname,
+                                  "secret": secret,
+                                  "config_file_path": config_file_path})
+
         if name_stop == cryptoboxname:
             return encrypted_configs
     return encrypted_configs
@@ -142,7 +145,11 @@ def hide_config(options, salt, secret):
                 hidden_name = "." + get_uuid(3)
 
             encrypted_name = encrypt_object(secret, options.cryptobox)
-            pickle_object(os.path.join(options.dir, hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
+            pickle_object(os.path.join(options.dir,
+                                                                                        hidden_name + ".cryptoboxfolder"),
+                                                                                        {"encrypted_name": encrypted_name,
+                                                                                        "salt": salt})
+
             os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
 
@@ -190,7 +197,13 @@ def index_files_visit(arg, dir_name, names):
     filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
     dirname_hash = make_sha1_hash(dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/"))
     nameshash = make_sha1_hash("".join(names))
-    folder = {"dirname": dir_name, "dirnamehash": dirname_hash, "filenames": [{'name': x} for x in filenames], "nameshash": nameshash}
+    folder = {"dirname": dir_name,
+              "dirnamehash": dirname_hash,
+
+              "filenames": [{'name': x} for x in filenames],
+                            
+              "nameshash": nameshash}
+
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
 
@@ -201,7 +214,12 @@ def make_local_index(options):
     @type options: optparse.Values, instance
     """
     datadir = get_data_dir(options)
-    args = {"DIR": options.dir, "folders": {"dirnames": {}, "filestats": {}}, "numfiles": 0}
+    args = {"DIR": options.dir,
+            "folders": {"dirnames": {},
+                       
+            "filestats": {}},
+                         
+            "numfiles": 0}
     os.path.walk(options.dir, index_files_visit, args)
 
     for dir_name in args["folders"]["dirnames"].copy():

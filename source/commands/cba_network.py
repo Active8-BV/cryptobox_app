@@ -257,7 +257,10 @@ def authorize(memory, options):
     @rtype session, results, memory: dict, list, Memory
     """
     session = requests.Session()
-    payload = {"username": options.username, "password": options.password, "trust_computer": True}
+    payload = {"username": options.username,
+               "password": options.password,
+               "trust_computer": True}
+
     result, memory = on_server(memory, options, "authorize", payload=payload, session=session)
     payload["trust_computer"] = True
     payload["trused_location_name"] = "Cryptobox"

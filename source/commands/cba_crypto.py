@@ -82,7 +82,9 @@ def encrypt_file_for_smp(secret, fin):
     chunk = fin.read()
     data_hash = make_checksum(chunk)
     enc_data = cipher.encrypt(chunk)
-    return {"initialization_vector": initialization_vector, "enc_data": enc_data, "data_hash": data_hash}
+    return {"initialization_vector": initialization_vector,
+            "enc_data": enc_data,
+            "data_hash": data_hash}
 
 
 def progress_file_cryption(p):
