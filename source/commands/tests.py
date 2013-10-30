@@ -616,6 +616,12 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
 
+    def test_user_vars(self):
+        """
+
+        """
+        self.do_wait_for_tasks = False
+        pass
 
 if __name__ == '__main__':
     unittest.main()

@@ -11,7 +11,7 @@ sys.setdefaultencoding("utf-8")
 import os
 
 import cPickle
-import time
+import multiprocessing.forking
 import multiprocessing
 import random
 from optparse import OptionParser
@@ -20,7 +20,8 @@ from cba_index import restore_hidden_config, ensure_directory, hide_config, inde
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
-import multiprocessing.forking
+from tendo import singleton
+
 
 
 def monkeypatch_popen():
@@ -89,6 +90,9 @@ def add_options():
     parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
     parser.add_option("-v", "--version", dest="version", action='store_true', help="client version", metavar="VERSION")
     parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
+    parser.add_option("-y", "--storeuservar", dest="storeuservar", help="store user variables", metavar="STOREUSERVAR")
+    parser.add_option("-z", "--getuservar", dest="getuservar", help="get user variables", metavar="GETUSERVAR")
+
     return parser.parse_args()
 
 
@@ -142,6 +146,7 @@ def cryptobox_command(options):
     @rtype: bool
     """
     try:
+
         if options.acommand:
             print options.acommand + ":",
             if options.acommand == "open_folder":
@@ -287,6 +292,8 @@ def cryptobox_command(options):
 
 
 def main():
+    #noinspection PyUnusedLocal
+    single_instance = singleton.SingleInstance()
     (options, args) = add_options()
     cryptobox_command(options)
 

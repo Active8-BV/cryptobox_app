@@ -238,10 +238,14 @@ run_cba_main = function(options, cb) {
     return output += data;
   });
   execution_done = function(event) {
-    if (event > 0) {
+    if (output.indexOf("Another instance is already running, quitting.") >= 0) {
       return cb(false, output);
     } else {
-      return cb(true, output);
+      if (event > 0) {
+        return cb(false, output);
+      } else {
+        return cb(true, output);
+      }
     }
   };
   return cba_main.on("exit", execution_done);
@@ -269,6 +273,7 @@ store_user_var = function(k, v) {
       }
       return db.put(record, function(e, r) {
         if (exist(e)) {
+          print("cryptobox.cf:191", e.error, "/", e.reason);
           throw e;
         }
         if (exist(r)) {
@@ -562,7 +567,7 @@ check_all_progress = function(scope) {
 
 second_interval = function(scope) {
   if (scope.quitting) {
-    print("cryptobox.cf:443", "quitting");
+    print("cryptobox.cf:448", "quitting");
     return;
   }
   g_second_counter += 1;
@@ -578,8 +583,7 @@ second_interval = function(scope) {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, memory, utils) {
-  var dodigest, motivation_cb, motivation_options, set_data_user_config_once,
-    _this = this;
+  var motivation_cb, motivation_options, set_data_user_config_once;
   $scope.cba_version = 0.1;
   $scope.cba_main = null;
   $scope.quitting = false;
@@ -683,14 +687,11 @@ cryptobox_ctrl = function($scope, memory, utils) {
     "motivation": true
   };
   motivation_cb = function(result, output) {
-    if (result != null) {
-      return $scope.motivation = output.replace("\n", "<br/>");
+    if (result) {
+      $scope.motivation = output.replace("\n", "<br/>");
+      return utils.force_digest($scope);
     }
   };
   run_cba_main(motivation_options, motivation_cb);
-  set_menus_and_g_tray_icon($scope);
-  dodigest = function() {
-    return utils.force_digest($scope);
-  };
-  return setInterval(dodigest, 500);
+  return set_menus_and_g_tray_icon($scope);
 };
