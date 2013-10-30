@@ -158,10 +158,14 @@ run_cba_main = (options, cb) ->
         output += data
 
     execution_done = (event) ->
-        if event > 0
+        if output.indexOf("Another instance is already running, quitting.") >= 0
             cb(false, output)
         else
-            cb(true, output)
+            if event > 0
+                cb(false, output)
+            else
+                cb(true, output)
+
     cba_main.on("exit", execution_done)
 
 
@@ -184,6 +188,7 @@ store_user_var = (k, v) ->
                     record._rev = d._rev
             db.put record, (e, r) ->
                 if exist(e)
+                    print "cryptobox.cf:191", e.error, "/", e.reason
                     throw e
 
                 if exist(r)
@@ -440,7 +445,7 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:443", "quitting"
+        print "cryptobox.cf:448", "quitting"
         return
 
     g_second_counter += 1
@@ -489,10 +494,10 @@ cryptobox_ctrl = ($scope, memory, utils) ->
         return $scope.progress_bar_item != 0
 
     $scope.get_progress_item = ->
-        {width:$scope.progress_bar_item + "%"}
+        {width: $scope.progress_bar_item + "%"}
 
     $scope.get_progress = ->
-        {width:$scope.progress_bar + "%"}
+        {width: $scope.progress_bar + "%"}
 
     $scope.get_lock_buttons = ->
         return $scope.lock_buttons
@@ -551,14 +556,11 @@ cryptobox_ctrl = ($scope, memory, utils) ->
     set_data_user_config_once($scope)
 
     #start_process_once()
-    motivation_options = {"motivation":true}
+    motivation_options = {"motivation": true}
 
     motivation_cb = (result, output) ->
-        if result?
+        if result
             $scope.motivation = output.replace("\n", "<br/>")
+            utils.force_digest($scope)
     run_cba_main(motivation_options, motivation_cb)
     set_menus_and_g_tray_icon($scope)
-
-    dodigest = =>
-        utils.force_digest($scope)
-    setInterval(dodigest, 500)
