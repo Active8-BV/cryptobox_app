@@ -105,7 +105,16 @@ class CryptoboxAppTest(unittest.TestCase):
         self.django_running = self.wait_for_django_server(False)
         self.db_name = "test"
         server = "http://127.0.01:8000/"
-        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
+        self.options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
+                          "encrypt": True,
+                          "remove": False,
+                          "username": "rabshakeh",
+                          "password": "kjhfsd98",
+                          "cryptobox": self.db_name,
+                          "clear": False,
+                          "sync": False,
+                          "server": server,
+                          "numdownloadthreads": 12}
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         if self.start_servers:
@@ -618,10 +627,25 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_user_vars(self):
         """
-
+        test_user_vars
         """
         self.do_wait_for_tasks = False
-        pass
+        options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
+                     "encrypt": True,
+                     "remove": False,
+                     "username": "rabshakeh",
+                     "password": "kjhfsd98",
+                     "cryptobox": self.db_name,
+                     "clear": False,
+                     "sync": False,
+                     "server": "http://127.0.0.1:8000",
+                     "numdownloadthreads": 12}
+
+        cboptions = Dict2Obj(options_d)
+        print "tests.py:644", cboptions
+
+        #cryptobox_command(self.cboptions)
+
 
 if __name__ == '__main__':
     unittest.main()

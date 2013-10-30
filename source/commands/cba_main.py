@@ -9,7 +9,6 @@ reload(sys)
 #noinspection PyUnresolvedReferences
 sys.setdefaultencoding("utf-8")
 import os
-
 import cPickle
 import multiprocessing.forking
 import multiprocessing
@@ -21,7 +20,6 @@ from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
 from tendo import singleton
-
 
 
 def monkeypatch_popen():
@@ -92,7 +90,6 @@ def add_options():
     parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
     parser.add_option("-y", "--storeuservar", dest="storeuservar", help="store user variables", metavar="STOREUSERVAR")
     parser.add_option("-z", "--getuservar", dest="getuservar", help="get user variables", metavar="GETUSERVAR")
-
     return parser.parse_args()
 
 
@@ -138,6 +135,7 @@ def output(msg):
     sys.stdout.write("\n")
     sys.stdout.flush()
 
+
 def cryptobox_command(options):
     """
     @param options: dictionary with options
@@ -145,18 +143,18 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-    try:
 
+    try:
         if options.acommand:
-            print options.acommand + ":",
+            print "cba_main.py:149"
             if options.acommand == "open_folder":
                 if options.dir:
-                    print options.dir
+                    print "cba_main.py:152", options.dir
                     open_folder(options.dir)
                 else:
-                    print "no folder given(-f)"
+                    print "cba_main.py:155", "no folder given(-f)"
             else:
-                print "unknown command"
+                print "cba_main.py:157", "unknown command"
             return
 
         if options.motivation:
@@ -287,7 +285,6 @@ def cryptobox_command(options):
     finally:
         delete_progress_file("progress")
         delete_progress_file("item_progress")
-
     return True
 
 
@@ -306,4 +303,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:289", "\nbye main"
+        print "cba_main.py:306", "\nbye main"

@@ -197,7 +197,10 @@ def make_directories_local(memory, options, localindex, folders):
     for f in folders:
         ensure_directory(f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
+        arg = {"DIR": options.dir,
+               "folders": {"dirnames": {}},
+                          
+               "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -235,7 +238,8 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name, "relname": dirname_rel}
+            folder = {"name": dir_name,
+                      "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
@@ -466,13 +470,27 @@ def get_server_index(memory, options):
 
     tree_seq = get_tree_sequence(memory, options)
     memory.replace("tree_seq", tree_seq)
-    result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
+    result,
+                                                                 memory = on_server(memory,
+                                                                 options,
+                                                                 "tree",
+                                                                 payload={'listonly': True},
+                                                                         
+                                                                 session=memory.get("session"))
+
     if not result[0]:
         if memory.has("authorized"):
             memory.delete("authorized")
 
         memory = authorize_user(memory, options)
-        result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
+        result,
+                                                                     memory = on_server(memory,
+                                                                     options,
+                                                                     "tree",
+                                                                     payload={'listonly': True},
+                                                                             
+                                                                     session=memory.get("session"))
+
         if not result[0]:
             raise TreeLoadError()
 
@@ -567,7 +585,10 @@ def diff_files_locally(memory, options, localindex, serverindex):
             seen_local_file_before, memory = in_local_file_history(memory, local_file_path)
 
             if not seen_local_file_before:
-                upload_file_object = {"local_file_path": local_file_path, "parent_short_id": None, "path": local_file_path}
+                upload_file_object = {"local_file_path": local_file_path,
+                                      "parent_short_id": None,
+                                      "path": local_file_path}
+
                 file_uploads.append(upload_file_object)
 
     file_del_local = []
@@ -588,7 +609,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:591", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:612", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -692,14 +713,18 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:695", "updating upload progress failed", str(exc)
+                print "cba_sync.py:716", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
+        params = {'file': file_object,
+                  "uuid": uuid.uuid4().hex,
+                  "parent": parent,
+                  "path": rel_path}
+
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
 
@@ -775,7 +800,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory, uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:778", "can't fnd", uf["local_file_path"]
+            print "cba_sync.py:803", "can't fnd", uf["local_file_path"]
     return memory, files_uploaded
 
 
