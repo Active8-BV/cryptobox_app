@@ -201,7 +201,6 @@ def index_files_visit(arg, dir_name, names):
               "dirnamehash": dirname_hash,
 
               "filenames": [{'name': x} for x in filenames],
-                            
               "nameshash": nameshash}
 
     arg["folders"]["dirnames"][dirname_hash] = folder
@@ -216,9 +215,7 @@ def make_local_index(options):
     datadir = get_data_dir(options)
     args = {"DIR": options.dir,
             "folders": {"dirnames": {},
-                       
             "filestats": {}},
-                         
             "numfiles": 0}
     os.path.walk(options.dir, index_files_visit, args)
 
