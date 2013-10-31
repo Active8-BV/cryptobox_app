@@ -480,7 +480,11 @@ def get_server_index(memory, options):
             raise TreeLoadError()
 
     serverindex = result[1]
-    serverindex["dirlist"] = tuple(list(set([os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"]])))
+    dirlistfiles = [os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"] if x["doc"]["m_nodetype"] == "file"]
+    dirlistfolders = [x["doc"]["m_path"] for x in serverindex["doclist"] if x["doc"]["m_nodetype"] == "folder"]
+    dirlistserver = dirlistfiles
+    dirlistserver.extend(dirlistfolders)
+    serverindex["dirlist"] = tuple(list(set(dirlistserver)))
     serverindex["doclist"] = tuple(serverindex["doclist"])
     memory.replace("serverindex", serverindex)
     return serverindex, memory
