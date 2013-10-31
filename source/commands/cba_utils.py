@@ -14,6 +14,7 @@ import json
 import subprocess
 import jsonpickle
 from Crypto.Hash import SHA
+
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -74,30 +75,14 @@ def unpickle_object(path):
     return cPickle.load(open(path, "rb"))
 
 
-def update_item_progress(p):
+def output(msg):
     """
-    update_progress
-    @type p:int
+    @type msg: str, unicode
     """
-
-    try:
-        if 0 < int(p) <= 100:
-            open(os.path.join(os.getcwd(), "item_progress"), "w").write(str(p))
-    except Exception, e:
-        handle_exception(e, False)
-
-
-def update_memory_progress(p):
-    """
-    update_memory_progress
-    @type p:int
-    """
-
-    try:
-        if 0 < int(p) <= 100:
-            open(os.path.join(os.getcwd(), "progress"), "w").write(str(p))
-    except Exception, e:
-        handle_exception(e, False)
+    msg = str(msg)
+    sys.stdout.write(msg)
+    sys.stdout.write("\n")
+    sys.stdout.flush()
 
 
 def smp_all_cpu_apply(method, items, progress_callback=None):
@@ -285,6 +270,7 @@ def stack_trace(depth=6, line_num_only=False):
     @type line_num_only: only return the line number of the ecxeption
     """
     import traceback
+
     stack = traceback.format_stack()
     stack.reverse()
     space = ""
@@ -315,7 +301,6 @@ def stack_trace(depth=6, line_num_only=False):
 
     return error
 
-
 #noinspection PyUnresolvedReferences
 def handle_exception(exc, again=True, ret_err=False):
     """
@@ -328,6 +313,7 @@ def handle_exception(exc, again=True, ret_err=False):
     """
     import sys
     import traceback
+
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -382,6 +368,7 @@ def handle_exception(exc, again=True, ret_err=False):
         return error.replace("\033[95m", "")
     else:
         import sys
+
         sys.stderr.write(str(error) + '\033[0m')
 
     if again:
@@ -721,6 +708,19 @@ def del_local_file_history(memory, relative_path_name):
     return memory
 
 
+def update_item_progress(p):
+    """
+    update_progress
+    @type p:int
+    """
+
+    try:
+        if 0 < int(p) <= 100:
+            output(json.dumps({"item_progress": p}))
+    except Exception, e:
+        handle_exception(e, False)
+
+
 def update_progress(curr, total, msg, console=False):
     """
     @type curr: int
@@ -728,8 +728,6 @@ def update_progress(curr, total, msg, console=False):
     @type msg: str or unicode
     @type console: bool
     """
-    print "cba_utils.py:731", curr, total, msg
-    global last_update_string_len
     if total == 0:
         return
 
@@ -737,15 +735,8 @@ def update_progress(curr, total, msg, console=False):
 
     if progress > 100:
         progress = 100
-    update_memory_progress(progress)
-    msg = msg + " " + str(curr) + "/" + str(total)
-    update_string = "\r\033[94m[{0}{1}] {2}% {3}\033[0m".format(progress / 2 * "#", (50 - progress / 2) * " ", progress, msg)
-
-    if console:
-        sys.stderr.write(update_string + "\n")
-        sys.stderr.flush()
-
-    last_update_string_len = len(update_string)
+    if 0 < int(progress) <= 100:
+        output(json.dumps({"progress": progress, "msg": msg}))
 
 
 def check_command_folder(command_folder):

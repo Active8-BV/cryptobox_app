@@ -785,7 +785,7 @@ def upload_files(memory, options, serverindex, file_uploads):
         update_item_progress(len(files_uploaded) + 1)
         log("upload", uf["local_file_path"])
         if os.path.exists(uf["local_file_path"]):
-            update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading")
+            update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_file_path"])
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_file_path"], path_to_relative_path_unix_style(memory, uf["local_file_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
