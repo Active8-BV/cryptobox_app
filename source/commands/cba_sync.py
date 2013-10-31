@@ -658,13 +658,13 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     # prune directories to delete from files to download
     dir_del_server = []
-
+    file_download_dirs = list(set([x["dirname_of_path"] for x in file_downloads]))
     for dds_path in dir_del_server_tmp:
         if len(file_downloads) > 0:
-            for dfl in set([x["dirname_of_path"] for x in file_downloads]):
-                if dfl not in dir_del_server_tmp:
-                    dir_del_server.append(dds_path)
 
+            #for dfl in file_download_dirs:
+            if dds_path not in file_download_dirs:
+                dir_del_server.append(dds_path)
         else:
             dir_del_server.append(dds_path)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content
