@@ -15,7 +15,7 @@ import multiprocessing.forking
 import multiprocessing
 import random
 from optparse import OptionParser
-from cba_utils import output, strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
+from cba_utils import output, output_json, strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -125,8 +125,6 @@ def delete_progress_file(fname):
         os.remove(p)
 
 
-
-
 def all_item_zero_len(items):
     """
     @type items: list
@@ -146,34 +144,6 @@ def cryptobox_command(options):
     """
 
     try:
-        if not options.check and not options.treeseq and not options.logout:
-            if not options.encrypt and not options.decrypt:
-                log("No encrypt directive given (-e)")
-                return False
-        if options.decrypt:
-            if options.remove:
-                log("option remove (-r) cannot be used together with decrypt (dataloss)")
-                return False
-            if options.sync:
-                log("option sync (-s) cannot be used together with decrypt (hashmismatch)")
-                return False
-            if options.check:
-                log("option check (-o) cannot be used together with decrypt (hashmismatch)")
-                return False
-
-        if not options.password:
-            log("No password given (-p or --password)")
-            return False
-
-        if options.username or options.cryptobox:
-            if not options.username:
-                log("No username given (-u or --username)")
-                return False
-
-            if not options.cryptobox:
-                log("No cryptobox given (-b or --cryptobox)")
-                return False
-
         if options.acommand:
             print "cba_main.py:148"
             if options.acommand == "open_folder":
@@ -191,6 +161,37 @@ def cryptobox_command(options):
             q = qlist[random.randint(0, len(qlist)) - 1]
             output(q[0] + "\n\n- " + q[1])
             return
+
+        if not options.check and not options.treeseq and not options.logout:
+            if not options.encrypt and not options.decrypt:
+                log("No encrypt directive given (-e)")
+                return False
+
+        if options.decrypt:
+            if options.remove:
+                log("option remove (-r) cannot be used together with decrypt (dataloss)")
+                return False
+
+            if options.sync:
+                log("option sync (-s) cannot be used together with decrypt (hashmismatch)")
+                return False
+
+            if options.check:
+                log("option check (-o) cannot be used together with decrypt (hashmismatch)")
+                return False
+
+        if not options.password:
+            log("No password given (-p or --password)")
+            return False
+
+        if options.username or options.cryptobox:
+            if not options.username:
+                log("No username given (-u or --username)")
+                return False
+
+            if not options.cryptobox:
+                log("No cryptobox given (-b or --cryptobox)")
+                return False
 
         if isinstance(options, dict):
             options = Dict2Obj(options)
@@ -219,7 +220,7 @@ def cryptobox_command(options):
 
         if not options.decrypt:
             if quick_lock_check(options):
-                log("Cryptobox locked")
+                output_json({"locked": True})
                 return False
 
         if not options.encrypt:
@@ -237,10 +238,7 @@ def cryptobox_command(options):
             log("DIR [", options.dir, "] does not exist")
             return False
 
-
         if options.sync:
-
-
             if not options.username:
                 log("No username given (-u or --username)")
                 return False
@@ -267,7 +265,6 @@ def cryptobox_command(options):
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
-
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
                                   "file_uploads": file_uploads,
@@ -277,7 +274,8 @@ def cryptobox_command(options):
                                   "dir_del_local": dir_del_local,
                                   "file_del_local": file_del_local,
                                   "all_synced": all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])}
-                    output(json.dumps(outputdict))
+
+                    output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
@@ -293,13 +291,9 @@ def cryptobox_command(options):
         secret = None
 
         if options.encrypt:
-
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
 
         if options.decrypt:
-
-
-
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
         check_and_clean_dir(options)
@@ -315,6 +309,7 @@ def cryptobox_command(options):
 
 def main():
     single_instance = singleton.SingleInstance()
+
     #noinspection PyUnusedLocal
     (options, args) = add_options()
     cryptobox_command(options)
@@ -328,4 +323,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:320", "\nbye main"
+        print "cba_main.py:326", "\nbye main"

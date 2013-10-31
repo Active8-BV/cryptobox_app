@@ -14,7 +14,6 @@ import json
 import subprocess
 import jsonpickle
 from Crypto.Hash import SHA
-
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -83,6 +82,13 @@ def output(msg):
     sys.stdout.write(msg)
     sys.stdout.write("\n")
     sys.stdout.flush()
+
+
+def output_json(dict_obj):
+    """
+    @type dict_obj: dict
+    """
+    output(json.dumps(dict_obj))
 
 
 def smp_all_cpu_apply(method, items, progress_callback=None):
@@ -270,7 +276,6 @@ def stack_trace(depth=6, line_num_only=False):
     @type line_num_only: only return the line number of the ecxeption
     """
     import traceback
-
     stack = traceback.format_stack()
     stack.reverse()
     space = ""
@@ -301,6 +306,7 @@ def stack_trace(depth=6, line_num_only=False):
 
     return error
 
+
 #noinspection PyUnresolvedReferences
 def handle_exception(exc, again=True, ret_err=False):
     """
@@ -313,7 +319,6 @@ def handle_exception(exc, again=True, ret_err=False):
     """
     import sys
     import traceback
-
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -359,8 +364,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:376", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:377", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:367", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:368", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -368,7 +373,6 @@ def handle_exception(exc, again=True, ret_err=False):
         return error.replace("\033[95m", "")
     else:
         import sys
-
         sys.stderr.write(str(error) + '\033[0m')
 
     if again:
@@ -735,6 +739,7 @@ def update_progress(curr, total, msg, console=False):
 
     if progress > 100:
         progress = 100
+
     if 0 < int(progress) <= 100:
         output(json.dumps({"progress": progress, "msg": msg}))
 
@@ -768,8 +773,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:780", "json parse errror"
-                        print "cba_utils.py:781", jdata
+                        print "cba_utils.py:776", "json parse errror"
+                        print "cba_utils.py:777", jdata
 
             except Exception, e:
                 handle_exception(e, False)
