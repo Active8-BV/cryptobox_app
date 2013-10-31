@@ -274,7 +274,6 @@ update_sync_state = (scope) ->
 
     result_sync_state = (result, output) ->
         if result
-            print "cryptobox.cf:277", output
             sync_results = JSON.parse(output)
             scope.file_downloads = sync_results.file_downloads
             scope.file_uploads = sync_results.file_uploads
@@ -455,7 +454,7 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:458", "quitting"
+        print "cryptobox.cf:457", "quitting"
         return
 
     g_second_counter += 1
@@ -556,7 +555,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
             if result
                 add_output("sync ok")
-                print "cryptobox.cf:559", output
+                print "cryptobox.cf:558", output
         run_cba_main("sync server", option, sync_cb)
 
     $scope.encrypt_btn = ->
@@ -573,7 +572,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
             if result
                 add_output("sync ok")
-                print "cryptobox.cf:576", output
+                print "cryptobox.cf:575", output
         run_cba_main("encrypt", option, sync_cb)
 
     $scope.decrypt_btn = ->
@@ -603,7 +602,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             $scope.lock_buttons = false
 
         (err) ->
-            print "cryptobox.cf:606", err
+            print "cryptobox.cf:605", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)

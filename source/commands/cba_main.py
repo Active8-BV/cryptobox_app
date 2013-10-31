@@ -15,7 +15,7 @@ import multiprocessing.forking
 import multiprocessing
 import random
 from optparse import OptionParser
-from cba_utils import strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
+from cba_utils import output, strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -125,14 +125,6 @@ def delete_progress_file(fname):
         os.remove(p)
 
 
-def output(msg):
-    """
-    @type msg: str, unicode
-    """
-    msg = str(msg)
-    sys.stdout.write(msg)
-    sys.stdout.write("\n")
-    sys.stdout.flush()
 
 
 def all_item_zero_len(items):
@@ -154,6 +146,34 @@ def cryptobox_command(options):
     """
 
     try:
+        if not options.check and not options.treeseq and not options.logout:
+            if not options.encrypt and not options.decrypt:
+                log("No encrypt directive given (-e)")
+                return False
+        if options.decrypt:
+            if options.remove:
+                log("option remove (-r) cannot be used together with decrypt (dataloss)")
+                return False
+            if options.sync:
+                log("option sync (-s) cannot be used together with decrypt (hashmismatch)")
+                return False
+            if options.check:
+                log("option check (-o) cannot be used together with decrypt (hashmismatch)")
+                return False
+
+        if not options.password:
+            log("No password given (-p or --password)")
+            return False
+
+        if options.username or options.cryptobox:
+            if not options.username:
+                log("No username given (-u or --username)")
+                return False
+
+            if not options.cryptobox:
+                log("No cryptobox given (-b or --cryptobox)")
+                return False
+
         if options.acommand:
             print "cba_main.py:148"
             if options.acommand == "open_folder":
@@ -217,23 +237,6 @@ def cryptobox_command(options):
             log("DIR [", options.dir, "] does not exist")
             return False
 
-        if not options.check and not options.treeseq and not options.logout:
-            if not options.encrypt and not options.decrypt:
-                log("No encrypt or decrypt directive given (-d or -e)")
-                return False
-
-        if not options.password:
-            log("No password given (-p or --password)")
-            return False
-
-        if options.username or options.cryptobox:
-            if not options.username:
-                log("No username given (-u or --username)")
-                return False
-
-            if not options.cryptobox:
-                log("No cryptobox given (-b or --cryptobox)")
-                return False
 
         if options.sync:
 
@@ -296,9 +299,6 @@ def cryptobox_command(options):
         if options.decrypt:
 
 
-            if options.remove:
-                log("option remove (-r) cannot be used together with decrypt (dataloss)")
-                return False
 
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
