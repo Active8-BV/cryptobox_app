@@ -124,6 +124,7 @@ class CryptoboxAppTest(unittest.TestCase):
                 os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
                 self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
                 self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+
         self.wait_for_django_server()
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -221,7 +222,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs")
         self.reset_cb_db()
 
-    def complete_reset(self):
+    def reset_cb_dir(self):
         """
         complete_reset
         """
@@ -234,7 +235,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_reset_all
         """
         self.do_wait_for_tasks = False
-        self.complete_reset()
+        self.reset_cb_dir()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
 
@@ -296,7 +297,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_index_and_encrypt
         """
-        self.complete_reset()
+        self.reset_cb_dir()
         self.unzip_testfiles_synced()
         self.do_wait_for_tasks = False
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
@@ -323,7 +324,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_index_encrypt_decrypt_clean
         """
         self.do_wait_for_tasks = False
-        self.complete_reset()
+        self.reset_cb_dir()
         self.unzip_testfiles_clean()
         os.system("rm -Rf " + get_blob_dir(self.cboptions))
         self.cboptions.remove = True
@@ -386,7 +387,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_compare_server_tree_with_local_tree_method_folders
         """
-        self.complete_reset()
+        self.reset_cb_dir()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
@@ -410,7 +411,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_clean_tree
         """
-        self.complete_reset()
+        self.reset_cb_dir()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
 
@@ -517,7 +518,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_delete_local_folder
         """
-        self.complete_reset()
+        self.reset_cb_dir()
         self.reset_cb_db_clean()
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.mkdir("testdata/testmap/foo")
@@ -546,7 +547,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_delete_local_folder
         """
-        self.complete_reset()
+        self.reset_cb_dir()
         self.reset_cb_db_clean()
         os.mkdir("testdata/testmap/foo")
         os.system("ls > testdata/testmap/foo/test.txt")
@@ -615,7 +616,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_set_dir_to_non_empty_syncfolder
         """
-        self.complete_reset()
+        self.reset_cb_dir()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
         os.system("rm -Rf testdata/testmap/.cryptobox")
@@ -626,22 +627,26 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
 
-    #noinspection PyDictCreation
-    def test_user_vars(self):
+    def test_subdirs(self):
         """
-        test_user_vars
+        test_subdirs
         """
         self.do_wait_for_tasks = False
-        options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
-                     "cryptobox": "test"}
+        self.reset_cb_dir()
+        self.reset_cb_db_clean()
 
-        options_d["storeuservar"] = json.dumps(options_d)
-        cboptions = Dict2Obj(options_d)
-        self.assertTrue(cryptobox_command(cboptions))
-        del options_d["storeuservar"]
-        options_d["getuservar"] = True
-        cboptions = Dict2Obj(options_d)
-        self.assertTrue(cryptobox_command(cboptions))
+        os.system("mkdir -p testdata/testmap/foo/bar/hello")
+
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        os.system("rmdir testdata/testmap/foo/bar/hello")
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
+        self.assertEqual(len(dir_del_server), 1)
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        os.system("rm -Rf testdata/testmap/foo/bar")
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
+        self.assertEqual(len(dir_del_server), 1)
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+
 
 
 if __name__ == '__main__':
