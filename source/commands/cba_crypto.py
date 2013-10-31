@@ -184,7 +184,7 @@ def encrypt_object(secret, obj):
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
-def decrypt_object(secret, obj_string, key=None, salt=None):
+def decrypt_object(secret, obj_string, key=None, salt=None, progress_callback=update_item_progress):
     """
     @type secret: str or unicode
     @type obj_string: str
@@ -199,4 +199,4 @@ def decrypt_object(secret, obj_string, key=None, salt=None):
             raise Exception("no salt")
 
         secret = password_derivation(key, salt)
-    return cPickle.load(decrypt_file_smp(secret, data, update_item_progress)), secret
+    return cPickle.load(decrypt_file_smp(secret, data, progress_callback)), secret

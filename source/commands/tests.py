@@ -124,7 +124,6 @@ class CryptoboxAppTest(unittest.TestCase):
                 os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
                 self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
                 self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-
         self.wait_for_django_server()
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -634,9 +633,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.reset_cb_dir()
         self.reset_cb_db_clean()
-
         os.system("mkdir -p testdata/testmap/foo/bar/hello")
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rmdir testdata/testmap/foo/bar/hello")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
@@ -646,7 +643,6 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-
 
 
 if __name__ == '__main__':

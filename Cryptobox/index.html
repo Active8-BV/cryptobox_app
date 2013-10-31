@@ -59,12 +59,12 @@
         <div class="col-sm-12">
             <form class="form-horizontal" role="form">
                 <div class="btn-group btn-group">
-                    <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-success" ng-click="sync_btn()"><i class="fa fa-refresh" style="margin-right: 4px"></i>sync with server</button>
+                    <button type="button" ng-disabled="disable_sync_button" class="btn btn-success" ng-click="sync_btn()"><i class="fa fa-refresh" style="margin-right: 4px"></i><i class="fa fa-refresh fa-spin" style="margin-right: 4px"></i>sync with server</button>
                 </div>
 
                 <div class="btn-group btn-group">
-                    <button type="button" ng-disabled="get_lock_buttons()||disable_encrypt_button" class="btn btn-danger" ng-click="encrypt_btn()"><i class="fa fa-lock" style="margin-right: 4px"></i>encrypt</button>
-                    <button type="button" ng-disabled="get_lock_buttons()||disable_decrypt_button" class="btn btn-info" ng-click="decrypt_btn()"><i class="fa fa-unlock" style="margin-right: 4px"></i>decrypt</button>
+                    <button type="button" ng-disabled="disable_encrypt_button" class="btn btn-danger" ng-click="encrypt_btn()"><i class="fa fa-lock" style="margin-right: 4px"></i>encrypt</button>
+                    <button type="button" ng-disabled="disable_decrypt_button" class="btn btn-success" ng-click="decrypt_btn()"><i class="fa fa-unlock" style="margin-right: 4px"></i>decrypt</button>
                 </div>
 
                 <div class="btn-group btn-group pull-right">

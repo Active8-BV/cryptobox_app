@@ -103,7 +103,7 @@ def get_encrypted_configs(options, name_stop=None):
         config_file_path = os.path.join(options.basedir, config[0])
         config_file_path = os.path.join(config_file_path, config[1])
         cryptoboxname = unpickle_object(config_file_path)
-        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
+        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"], progress_callback=None)
         encrypted_configs.append({"cryptoboxname": cryptoboxname,
                                   "secret": secret,
                                   "config_file_path": config_file_path})
