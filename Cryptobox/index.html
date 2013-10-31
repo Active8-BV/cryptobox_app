@@ -30,7 +30,8 @@
         <div class="col-sm-6">
             <blockquote>
                 <img src="images/logo-cryptobox.png"><br/>
-                <p class="lead" ng-show="cryptobox_locked">local data encrypted <i class="icon-lock" style="color:#fe7474;"></i></p>
+
+                <p class="lead" ng-show="cryptobox_locked">local data encrypted <i class="fa fa-lock" style="color:#fe7474;"></i></p>
                 <h6 ng-bind-html-unsafe="motivation"></h6>
             </blockquote>
 
@@ -57,16 +58,19 @@
     <div class="row">
         <div class="col-sm-12">
             <form class="form-horizontal" role="form">
-                <div class="btn-group btn-group pull-left">
-                    <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-default" ng-click="sync_btn()"><i class="icon-refresh" style="margin-right: 4px"></i>sync with server</button>
-                    <button type="button" ng-disabled="get_lock_buttons()||disable_encrypt_button" class="btn btn-default" ng-click="encrypt_btn()"><i class="icon-lock" style="margin-right: 4px"></i>encrypt and hide local files</button>
-                    <button type="button" ng-disabled="get_lock_buttons()||disable_decrypt_button" class="btn btn-default" ng-click="decrypt_btn()"><i class="icon-unlock" style="margin-right: 4px"></i>decrypt and build local file tree</button>
+                <div class="btn-group btn-group">
+                    <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-success" ng-click="sync_btn()"><i class="fa fa-refresh" style="margin-right: 4px"></i>sync with server</button>
+                </div>
+
+                <div class="btn-group btn-group">
+                    <button type="button" ng-disabled="get_lock_buttons()||disable_encrypt_button" class="btn btn-danger" ng-click="encrypt_btn()"><i class="fa fa-lock" style="margin-right: 4px"></i>encrypt</button>
+                    <button type="button" ng-disabled="get_lock_buttons()||disable_decrypt_button" class="btn btn-info" ng-click="decrypt_btn()"><i class="fa fa-unlock" style="margin-right: 4px"></i>decrypt</button>
                 </div>
 
                 <div class="btn-group btn-group pull-right">
-                    <button type="button" ng-disabled="get_lock_buttons()" class="btn btn-default" ng-click="debug_btn()"><i class="icon-search" style="margin-right: 4px"></i>debug</button>
-                    <button type="button" ng-disabled="get_lock_buttons()" class="btn btn-default" ng-click="open_website()"><i class="icon-external-link" style="margin-right: 4px"></i>website</button>
-                    <button type="button" ng-disabled="get_lock_buttons()" class="btn btn-default" ng-click="open_folder()"><i class="icon-folder-open" style="margin-right: 4px"></i>folder</button>
+                    <button type="button" class="btn btn-default" ng-click="debug_btn()"><i class="fa fa-search" style="margin-right: 4px"></i>debug</button>
+                    <button type="button" class="btn btn-default" ng-click="open_website()"><i class="fa fa-external-link" style="margin-right: 4px"></i>website</button>
+                    <button type="button" class="btn btn-default" ng-click="open_folder()"><i class="fa fa-folder-open" style="margin-right: 4px"></i>folder</button>
                 </div>
             </form>
         </div>
@@ -120,11 +124,14 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-3 control-label" for="show_debug">show log</label>
+                <label class="col-sm-3 control-label" for="show_debug" ng-click="toggle_debug()">show log</label>
 
                 <div class="col-sm-9" style="margin-top: 4px;">
-                    <input id="show_debug" type="checkbox" ng-model="show_debug" ng-change="form_change()">
-                    <button type="button" id="btn_donw" class="btn btn-default pull-right" ng-click="toggle_settings()">done</button>
+                    <input id="show_debug" type="checkbox" ng-model="show_debug">
+
+                    <div class="btn-group btn-group pull-right">
+                        <button type="button" id="btn_donw" class="btn btn-success" ng-click="form_save()" ng-disabled="!form_changed"><i class="fa fa-save"></i>&nbsp;save</button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -134,7 +141,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="file_downloads">
                 <tr class="success">
-                    <td><i class="icon-file"></i>&nbsp;files to download</td>
+                    <td><i class="fa fa-file"></i>&nbsp;files to download</td>
                 </tr>
                 <tr ng-repeat="f in file_downloads">
                     <td>{{ cb_folder_text }}{{ f.doc.m_path }}</td>
@@ -147,7 +154,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="file_uploads">
                 <tr class="success">
-                    <td><i class="icon-file"></i>&nbsp;files to upload</td>
+                    <td><i class="fa fa-file"></i>&nbsp;files to upload</td>
                 </tr>
                 <tr ng-repeat="f in file_uploads">
                     <td>{{ f.local_file_path }}</td>
@@ -160,7 +167,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="dir_make_local">
                 <tr class="success">
-                    <td><i class="icon-folder-close"></i>&nbsp;folders make local</td>
+                    <td><i class="fa fa-folder"></i>&nbsp;folders make local</td>
                 </tr>
                 <tr ng-repeat="f in dir_make_local">
                     <td>{{ f.name }}</td>
@@ -173,7 +180,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="dir_make_server">
                 <tr class="success">
-                    <td><i class="icon-folder-close"></i>&nbsp;folders to make on server</td>
+                    <td><i class="fa fa-folder"></i>&nbsp;folders to make on server</td>
                 </tr>
                 <tr ng-repeat="f in dir_make_server">
                     <td>{{ f.dirname }}</td>
@@ -186,7 +193,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="dir_del_server">
                 <tr class="danger">
-                    <td><i class="icon-folder-close"></i>&nbsp;folders to delete on server</td>
+                    <td><i class="fa fa-folder"></i>&nbsp;folders to delete on server</td>
                 </tr>
                 <tr ng-repeat="f in dir_del_server">
                     <td>{{ f }}</td>
@@ -199,7 +206,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="dir_del_local">
                 <tr class="danger">
-                    <td><i class="icon-folder-close"></i>&nbsp;folders to delete local</td>
+                    <td><i class="fa fa-folder"></i>&nbsp;folders to delete local</td>
                 </tr>
                 <tr ng-repeat="f in dir_del_local">
                     <td>{{ f.dirname }}</td>
@@ -212,7 +219,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="file_del_server">
                 <tr class="danger">
-                    <td><i class="icon-file"></i>&nbsp;files to delete on server</td>
+                    <td><i class="fa fa-file"></i>&nbsp;files to delete on server</td>
                 </tr>
                 <tr ng-repeat="f in file_del_server">
                     <td>{{ f }}</td>
@@ -226,7 +233,7 @@
         <div class="col-sm-12">
             <table class="table" ng-show="file_del_local">
                 <tr class="danger">
-                    <td><i class="icon-file"></i>&nbsp;files to delete on local</td>
+                    <td><i class="fa fa-file"></i>&nbsp;files to delete on local</td>
                 </tr>
                 <tr ng-repeat="f in file_del_local">
                     <td>{{ f }}</td>
@@ -238,7 +245,7 @@
     <div class="row">
         <div class="col-sm-12" ng-show="show_debug">
             <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
-            <button type="button" class="close" ng-click="clear_msg_buffer()" aria-hidden="true" style="margin: 8px;"><i class="icon-trash"></i></button>
+            <button type="button" class="close" ng-click="clear_msg_buffer()" aria-hidden="true" style="margin: 8px;"><i class="fa fa-trash-o"></i></button>
 
             <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
         </div>

@@ -115,6 +115,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
+
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         if self.start_servers:
@@ -632,16 +633,9 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.do_wait_for_tasks = False
         options_d = {"dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/testmap",
-                     "encrypt": True,
-                     "remove": False,
-                     "username": "rabshakeh",
-                     "password": "kjhfsd98",
-                     "cryptobox": self.db_name,
-                     "clear": False,
-                     "sync": False,
-                     "server": "http://127.0.0.1:8000",
-                     "numdownloadthreads": 12}
-        options_d["storeuservar"] = True
+                     "cryptobox": "test"}
+
+        options_d["storeuservar"] = json.dumps(options_d)
         cboptions = Dict2Obj(options_d)
         self.assertTrue(cryptobox_command(cboptions))
         del options_d["storeuservar"]

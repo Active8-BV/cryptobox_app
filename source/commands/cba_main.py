@@ -89,8 +89,6 @@ def add_options():
     parser.add_option("-u", "--username", dest="username", help="cryptobox username", metavar="USERNAME")
     parser.add_option("-v", "--version", dest="version", action='store_true', help="client version", metavar="VERSION")
     parser.add_option("-x", "--server", dest="server", help="server address", metavar="SERVERADDRESS")
-    parser.add_option("-y", "--storeuservar", dest="storeuservar", help="store user variables", metavar="STOREUSERVAR")
-    parser.add_option("-z", "--getuservar", dest="getuservar", help="get user variables", metavar="GETUSERVAR")
     return parser.parse_args()
 
 
@@ -137,6 +135,16 @@ def output(msg):
     sys.stdout.flush()
 
 
+def all_item_zero_len(items):
+    """
+    @type items: list
+    """
+    for l in items:
+        if len(l) != 0:
+            return False
+    return True
+
+
 def cryptobox_command(options):
     """
     @param options: dictionary with options
@@ -147,15 +155,15 @@ def cryptobox_command(options):
 
     try:
         if options.acommand:
-            print "cba_main.py:149"
+            print "cba_main.py:148"
             if options.acommand == "open_folder":
                 if options.dir:
-                    print "cba_main.py:152", options.dir
+                    print "cba_main.py:151", options.dir
                     open_folder(options.dir)
                 else:
-                    print "cba_main.py:155", "no folder given(-f)"
+                    print "cba_main.py:154", "no folder given(-f)"
             else:
-                print "cba_main.py:157", "unknown command"
+                print "cba_main.py:156", "unknown command"
             return
 
         if options.motivation:
@@ -205,23 +213,6 @@ def cryptobox_command(options):
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
-        if options.getuservar:
-            if memory.has("uservar"):
-                uservar = memory.get("uservar")
-                print json.dumps(uservar)
-                return True
-            else:
-                return False
-        if options.storeuservar:
-            uservar = {"dir": options.basedir,
-                       "username": options.username,
-                       "password": options.password,
-                       "cryptobox": options.cryptobox,
-                       "numdownloadthreads": options.numdownloadthreads}
-            memory.replace("uservar", uservar)
-            memory.save(datadir)
-            return True
-
         if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
             return False
@@ -245,6 +236,8 @@ def cryptobox_command(options):
                 return False
 
         if options.sync:
+
+
             if not options.username:
                 log("No username given (-u or --username)")
                 return False
@@ -271,6 +264,17 @@ def cryptobox_command(options):
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+
+                    outputdict = {"file_del_server": file_del_server,
+                                  "file_downloads": file_downloads,
+                                  "file_uploads": file_uploads,
+                                  "dir_del_server": dir_del_server,
+                                  "dir_make_local": dir_make_local,
+                                  "dir_make_server": dir_make_server,
+                                  "dir_del_local": dir_del_local,
+                                  "file_del_local": file_del_local,
+                                  "all_synced": all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])}
+                    output(json.dumps(outputdict))
                 elif options.sync:
                     if not options.encrypt:
                         log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
@@ -286,9 +290,12 @@ def cryptobox_command(options):
         secret = None
 
         if options.encrypt:
+
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
 
         if options.decrypt:
+
+
             if options.remove:
                 log("option remove (-r) cannot be used together with decrypt (dataloss)")
                 return False
@@ -307,8 +314,8 @@ def cryptobox_command(options):
 
 
 def main():
-    #noinspection PyUnusedLocal
     single_instance = singleton.SingleInstance()
+    #noinspection PyUnusedLocal
     (options, args) = add_options()
     cryptobox_command(options)
 
@@ -321,4 +328,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:324", "\nbye main"
+        print "cba_main.py:320", "\nbye main"
