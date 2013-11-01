@@ -225,24 +225,13 @@ def strcmp(s1, s2):
     return s1 == s2
 
 
-def log(*arg):
-    """
-    log
-    @param arg: list objects
-    @type arg:
-    """
-    msg = " ".join([str(s) for s in arg]).strip(" ")
-    sys.stderr.write(msg + "\n")
-    sys.stderr.flush()
-
-
 def exit_app_warning(*arg):
     """
     exit_app_warning
     @param arg: list objects
     @type arg:
     """
-    log("cba_utils.py:40", *arg)
+    print "cba_utils.py:234", arg
     sys.exit(1)
 
 
@@ -327,17 +316,16 @@ def handle_exception(exc, again=True, ret_err=False):
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    error = "\n\033[95m" + log_date_time_string() + " ---------------------------\n"
-    error += "\033[95m" + log_date_time_string() + "   !!! EXCEPTION !!!\n"
-    error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
+    error = log_date_time_string() + " ---------------------------\n"
+    error += log_date_time_string() + "   !!! EXCEPTION !!!\n"
+    error += log_date_time_string() + " ---------------------------\n"
     items = traceback.extract_tb(exc_traceback)
 
     #items.reverse()
     leni = 0
-    error += "\033[93m" + log_date_time_string() + " " + str(exc_type) + "\n"
-    error += "\033[93m" + log_date_time_string() + " " + str(exc) + "\n"
-    error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
-    error += "\033[93m"
+    error += log_date_time_string() + " " + str(exc_type) + "\n"
+    error += log_date_time_string() + " " + str(exc) + "\n"
+    error += log_date_time_string() + " ---------------------------\n"
 
     try:
         linenumsize = 0
@@ -366,23 +354,23 @@ def handle_exception(exc, again=True, ret_err=False):
             error += fname_number + " | " + tabs + val + "\n"
 
         if len(items) < 4:
-            error += stack_trace()
+            error += stack_trace() 
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:371", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:372", exc, '\033[m'
+        print "cba_utils.py:359", e
+        print "cba_utils.py:360", exc
 
-    error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
+    error += log_date_time_string() + " ---------------------------\n"
 
     if ret_err:
-        return error.replace("\033[95m", "")
+        return error
     else:
         import sys
-        sys.stderr.write(str(error) + '\033[0m')
+        sys.stderr.write(str(error))
 
     if again:
         raise exc
 
-    return "\033[93m" + error
+    return error
 
 
 def get_uuid(size):
@@ -778,8 +766,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:781", "json parse errror"
-                        print "cba_utils.py:782", jdata
+                        print "cba_utils.py:769", "json parse errror"
+                        print "cba_utils.py:770", jdata
 
             except Exception, e:
                 handle_exception(e, False)

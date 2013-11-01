@@ -233,18 +233,20 @@ def cryptobox_command(options):
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
-        throw Exception("yo")
+
+        raise Exception("yo")
+
         if not os.path.exists(options.basedir):
-            print "cba_main.py:238", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:240", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:243", "No username given (-u or --username)"
+                print "cba_main.py:245", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:247", "No password given (-p or --password)"
+                print "cba_main.py:249", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -278,11 +280,11 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:281", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:283", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:285", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:287", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -323,4 +325,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:326", "\nbye main"
+        print "cba_main.py:328", "\nbye main"
