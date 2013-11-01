@@ -15,7 +15,7 @@ import multiprocessing
 import random
 from optparse import OptionParser
 from cba_utils import output, output_json, strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
-from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, check_and_clean_dir, decrypt_and_build_filetree, quick_lock_check
+from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
@@ -289,14 +289,14 @@ def cryptobox_command(options):
         salt = secret = None
         if options.encrypt:
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
+
         if options.decrypt:
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
-        check_and_clean_dir(options)
+        reset_cryptobox_local(options)
         memory.save(datadir)
         if options.remove and salt and secret:
             hide_config(options, salt, secret)
-
     except Exception, e:
         handle_exception(e, False)
     finally:
@@ -322,4 +322,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:326", "\nbye main"
+        print "cba_main.py:325", "\nbye main"

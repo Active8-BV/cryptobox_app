@@ -100,15 +100,18 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
     pool = Pool(processes=multiprocessing.cpu_count())
     results_cnt = [0]
 
-    def done_proc(result_func):
+    def progress_callback_wrapper(result_func):
         """
-        done_downloading
+        progress_callback
         @type result_func: object
         """
         if progress_callback:
             results_cnt[0] += 1
             perc = float(results_cnt[0]) / (float(len(items)) / 100)
-            progress_callback(perc)
+            if results_cnt[0] == 1 and perc == 100:
+                pass
+            else:
+                progress_callback(perc-3)
 
         return result_func
 
@@ -124,7 +127,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
             base_params_list.append(item)
 
         params = tuple(base_params_list)
-        result = pool.apply_async(method, params, callback=done_proc)
+        result = pool.apply_async(method, params, callback=progress_callback_wrapper)
         calculation_result.append(result)
     pool.close()
     pool.join()
