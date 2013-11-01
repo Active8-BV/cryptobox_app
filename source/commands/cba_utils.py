@@ -108,6 +108,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
         if progress_callback:
             results_cnt[0] += 1
             perc = float(results_cnt[0]) / (float(len(items)) / 100)
+
             if results_cnt[0] == 1 and perc == 100:
                 pass
             else:
@@ -367,8 +368,8 @@ def handle_exception(exc, again=True, ret_err=False):
         if len(items) < 4:
             error += stack_trace()
     except Exception, e:
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:367", e, '\033[m'
-        print "\033[93m" + log_date_time_string(), "cba_utils.py:368", exc, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:371", e, '\033[m'
+        print "\033[93m" + log_date_time_string(), "cba_utils.py:372", exc, '\033[m'
 
     error += "\033[95m" + log_date_time_string() + " ---------------------------\n"
 
@@ -569,6 +570,7 @@ class Memory(object):
         finally:
             if not keep_lock:
                 self.unlock()
+
         return False
 
     def set_add_value(self, list_name, value):
@@ -776,8 +778,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:775", "json parse errror"
-                        print "cba_utils.py:776", jdata
+                        print "cba_utils.py:781", "json parse errror"
+                        print "cba_utils.py:782", jdata
 
             except Exception, e:
                 handle_exception(e, False)

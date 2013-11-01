@@ -220,20 +220,20 @@ def dirs_on_server(memory, options, unique_dirs_server):
     dirs_make_local = []
 
     # check if they are really removed or just new
+
     if memory.has("localpath_history"):
         local_path_history = memory.get("localpath_history")
         local_path_history_disk = [os.path.join(options.dir, x[0].lstrip(os.sep)) for x in local_path_history]
         local_path_history_disk_folders = [x for x in local_path_history_disk if os.path.isdir(x)]
         local_path_history_disk_file_folders = [os.path.dirname(x) for x in local_path_history_disk if not os.path.isdir(x)]
         local_path_history_disk_folders.extend(local_path_history_disk_file_folders)
-
         local_path_history_disk_folders = tuple(set(local_path_history_disk_folders))
         local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk_folders]
+
         if len(local_folders_removed) == 0:
             dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if x not in local_path_history_disk_folders and not os.path.exists(np)]
     else:
         local_folders_removed = []
-
 
     for dir_name in local_folders_removed:
         dirname_rel = dir_name.replace(options.dir, "")
@@ -619,7 +619,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:602", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:622", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -723,7 +723,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:706", "updating upload progress failed", str(exc)
+                print "cba_sync.py:726", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -810,7 +810,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path_path"], path_to_relative_path_unix_style(memory, uf["local_path_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:793", "can't fnd", uf["local_path_path"]
+            print "cba_sync.py:813", "can't fnd", uf["local_path_path"]
     return memory, files_uploaded
 
 
