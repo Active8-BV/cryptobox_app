@@ -318,48 +318,19 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
-    def itest_index_encrypt_decrypt_clean(self):
+    def test_encrypt_hide_decrypt(self):
         """
-        test_index_encrypt_decrypt_clean
+        encrypt_hide_decrypt
         """
-        self.do_wait_for_tasks = False
+        #decrypt_and_build_filetree, hide_config
         self.reset_cb_dir()
-        self.unzip_testfiles_clean()
-        os.system("rm -Rf " + get_blob_dir(self.cboptions))
-        self.cboptions.remove = True
-        salt, secret, self.cbmemory, localindex1 = index_and_encrypt(self.cbmemory, self.cboptions)
-        datadir = get_data_dir(self.cboptions)
-        self.cbmemory.save(datadir)
+        self.unzip_testfiles_synced()
+        self.do_wait_for_tasks = False
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         hide_config(self.cboptions, salt, secret)
-        self.assertEqual(count_files_dir(self.cboptions.dir), 7)
-        self.cbmemory = decrypt_and_build_filetree(self.cbmemory, self.cboptions)
-        os.system("rm -Rf " + get_blob_dir(self.cboptions))
-        salt, secret, self.cbmemory, localindex2 = index_and_encrypt(self.cbmemory, self.cboptions)
-        self.max_diff = None
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
+        pass
 
-        def remove_atime(index):
-            """
-            remove_atime
-            @type index: dict
-            """
-
-            def del_atime(ix, k):
-                """
-                del_atime
-                @type ix: dict
-                @type k: dict
-                """
-                del ix[k]["st_atime"]
-                del ix[k]["st_ctime"]
-                return ix
-
-            filestats = [del_atime(index["filestats"], x) for x in index["filestats"]]
-            index["filestats"] = filestats[0]
-            return index
-
-        localindex1 = remove_atime(localindex1)
-        localindex2 = remove_atime(localindex2)
-        self.assertEquals(localindex1["filestats"], localindex2["filestats"])
 
     def test_index_clear(self):
         self.do_wait_for_tasks = False

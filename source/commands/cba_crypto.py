@@ -67,16 +67,17 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def encrypt_file_for_smp(secret, fin):
+def encrypt_file_for_smp(secret, chunk):
     """
     @param secret: pkdf2 secre
     @type secret: str
-    @param fin: file object
-    @type fin: file, FileIO
+    @param chunk: file object
+    @type chunk: unicode, str
     @return: salt, hash, init, chunk sizes and encrypted data temp file
     @rtype: tuple
     """
     Random.atfork()
+    fin = StringIO(chunk)
     initialization_vector = Random.new().read(AES.block_size)
     cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     chunk = fin.read()
@@ -92,16 +93,6 @@ def progress_file_cryption(p):
     @type p: int
     """
     update_item_progress(p)
-
-
-def encrypt_a_file(secret, chunk):
-    """
-    encrypt_a_file
-    @type secret: str, unicode
-    @type chunk: unicode, str
-    """
-    Random.atfork()
-    return encrypt_file_for_smp(secret, StringIO(chunk))
 
 
 def encrypt_file_smp(secret, fname, progress_callback):
@@ -124,7 +115,7 @@ def encrypt_file_smp(secret, fname, progress_callback):
         chunk = fobj.read(two_mb)
 
     chunklist = [(secret, chunk) for chunk in chunklist]
-    encrypted_file_chunks = smp_all_cpu_apply(encrypt_a_file, chunklist, progress_callback)
+    encrypted_file_chunks = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
     return encrypted_file_chunks
 
 

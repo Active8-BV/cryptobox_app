@@ -9,7 +9,6 @@ reload(sys)
 #noinspection PyUnresolvedReferences
 sys.setdefaultencoding("utf-8")
 import os
-import json
 import cPickle
 import multiprocessing.forking
 import multiprocessing
@@ -145,15 +144,15 @@ def cryptobox_command(options):
 
     try:
         if options.acommand:
-            print "cba_main.py:148"
+            print "cba_main.py:147"
             if options.acommand == "open_folder":
                 if options.dir:
-                    print "cba_main.py:151", options.dir
+                    print "cba_main.py:150", options.dir
                     open_folder(options.dir)
                 else:
-                    print "cba_main.py:154", "no folder given(-f)"
+                    print "cba_main.py:153", "no folder given(-f)"
             else:
-                print "cba_main.py:156", "unknown command"
+                print "cba_main.py:155", "unknown command"
             return
 
         if options.motivation:
@@ -287,18 +286,17 @@ def cryptobox_command(options):
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
 
-        salt = None
-        secret = None
-
+        salt = secret = None
         if options.encrypt:
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
-
         if options.decrypt:
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
         check_and_clean_dir(options)
         memory.save(datadir)
-        hide_config(options, salt, secret)
+        if options.remove and salt and secret:
+            hide_config(options, salt, secret)
+
     except Exception, e:
         handle_exception(e, False)
     finally:
@@ -308,6 +306,7 @@ def cryptobox_command(options):
 
 
 def main():
+    #noinspection PyUnusedLocal
     single_instance = singleton.SingleInstance()
 
     #noinspection PyUnusedLocal
