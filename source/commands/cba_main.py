@@ -231,7 +231,7 @@ def cryptobox_command(options):
             log("datadir is None")
 
         memory = Memory()
-        memory.load(datadir)
+        initial_run = memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
             log("DIR [", options.dir, "] does not exist")
@@ -263,7 +263,7 @@ def cryptobox_command(options):
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
-                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_file_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
                                   "file_uploads": file_uploads,

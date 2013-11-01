@@ -169,6 +169,7 @@ run_cba_main = (name, options, cb, cb_stdout) ->
         #print "cryptobox.cf:157", new Date().getTime(), data
         output += data
     cba_main.stderr.on "data", (data) ->
+        print "cryptobox.cf:172", data
 
         #print "cryptobox.cf:160", new Date().getTime(), data
         output += data
@@ -178,7 +179,7 @@ run_cba_main = (name, options, cb, cb_stdout) ->
 
             #print "cryptobox.cf:165", new Date().getTime(), "execution done"
             if output.indexOf("Another instance is already running, quitting.") >= 0
-                print "cryptobox.cf:181", "already running"
+                print "cryptobox.cf:182", "already running"
                 cb(false, output)
             else
                 if event > 0
@@ -254,7 +255,7 @@ set_user_var_scope = (name, scope_name, scope, $q) ->
             p.resolve()
 
         (err) ->
-            warning "cryptobox.cf:257", err
+            warning "cryptobox.cf:258", err
             p.reject(err)
     )
     p.promise
@@ -317,7 +318,7 @@ update_sync_state = (scope) ->
                         scope.disable_sync_button = false
 
             catch ex
-                print "cryptobox.cf:320", ex
+                print "cryptobox.cf:321", ex
 
     run_cba_main("update_sync_state", option, result_sync_state)
 
@@ -479,7 +480,7 @@ check_all_progress = (scope) ->
 
 second_interval = (scope) ->
     if scope.quitting
-        print "cryptobox.cf:482", "quitting"
+        print "cryptobox.cf:483", "quitting"
         return
 
     g_second_counter += 1
@@ -571,7 +572,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         sync_cb = (result, output) ->
             if result
                 add_output("sync ok")
-                print "cryptobox.cf:574", output
+                update_sync_state($scope)
         run_cba_main("sync server", option, sync_cb)
 
     $scope.encrypt_btn = ->
@@ -584,7 +585,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         sync_cb = (result, output) ->
             if result
                 add_output("encrypted")
-                print "cryptobox.cf:587", output
+                print "cryptobox.cf:588", output
         run_cba_main("encrypt", option, sync_cb)
 
     $scope.decrypt_btn = ->
@@ -596,7 +597,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             if result
                 $scope.disable_sync_button = true
                 add_output("decrypted")
-                print "cryptobox.cf:599", output
+                print "cryptobox.cf:600", output
         run_cba_main("decrypt", option, sync_cb)
 
     $scope.open_folder = ->
@@ -619,7 +620,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             start_watch($scope)
 
         (err) ->
-            print "cryptobox.cf:622", err
+            print "cryptobox.cf:623", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)

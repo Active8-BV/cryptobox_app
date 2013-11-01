@@ -238,6 +238,7 @@ run_cba_main = function(name, options, cb, cb_stdout) {
     return output += data;
   });
   cba_main.stderr.on("data", function(data) {
+    print("cryptobox.cf:172", data);
     return output += data;
   });
   execution_done = function(event) {
@@ -245,7 +246,7 @@ run_cba_main = function(name, options, cb, cb_stdout) {
       _this = this;
     defer_callback = function() {
       if (output.indexOf("Another instance is already running, quitting.") >= 0) {
-        print("cryptobox.cf:181", "already running");
+        print("cryptobox.cf:182", "already running");
         return cb(false, output);
       } else {
         if (event > 0) {
@@ -333,7 +334,7 @@ set_user_var_scope = function(name, scope_name, scope, $q) {
     }
     return p.resolve();
   }, function(err) {
-    warning("cryptobox.cf:257", err);
+    warning("cryptobox.cf:258", err);
     return p.reject(err);
   });
   return p.promise;
@@ -398,7 +399,7 @@ update_sync_state = function(scope) {
         }
       } catch (_error) {
         ex = _error;
-        return print("cryptobox.cf:320", ex);
+        return print("cryptobox.cf:321", ex);
       }
     }
   };
@@ -579,7 +580,7 @@ check_all_progress = function(scope) {
 
 second_interval = function(scope) {
   if (scope.quitting) {
-    print("cryptobox.cf:482", "quitting");
+    print("cryptobox.cf:483", "quitting");
     return;
   }
   g_second_counter += 1;
@@ -680,7 +681,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     sync_cb = function(result, output) {
       if (result) {
         add_output("sync ok");
-        return print("cryptobox.cf:574", output);
+        return update_sync_state($scope);
       }
     };
     return run_cba_main("sync server", option, sync_cb);
@@ -695,7 +696,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     sync_cb = function(result, output) {
       if (result) {
         add_output("encrypted");
-        return print("cryptobox.cf:587", output);
+        return print("cryptobox.cf:588", output);
       }
     };
     return run_cba_main("encrypt", option, sync_cb);
@@ -709,7 +710,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
       if (result) {
         $scope.disable_sync_button = true;
         add_output("decrypted");
-        return print("cryptobox.cf:599", output);
+        return print("cryptobox.cf:600", output);
       }
     };
     return run_cba_main("decrypt", option, sync_cb);
@@ -732,7 +733,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     update_sync_state($scope);
     return start_watch($scope);
   }, function(err) {
-    print("cryptobox.cf:622", err);
+    print("cryptobox.cf:623", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);
