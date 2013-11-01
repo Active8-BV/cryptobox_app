@@ -390,14 +390,14 @@ def get_uuid(size):
     unique_id = _uu.uuid4().int
     alphabet = "bcdfghjkmnpqrstvwxz"
     alphabet_length = len(alphabet)
-    output = ""
+    output_guid = ""
 
     while unique_id > 0:
         digit = unique_id % alphabet_length
-        output += alphabet[digit]
+        output_guid += alphabet[digit]
         unique_id = int(unique_id / alphabet_length)
 
-    return output[0:size]
+    return output_guid[0:size]
 
 
 class MemoryNoKey(Exception):
@@ -725,12 +725,11 @@ def update_item_progress(p):
         handle_exception(e, False)
 
 
-def update_progress(curr, total, msg, console=False):
+def update_progress(curr, total, msg):
     """
     @type curr: int
     @type total: int
     @type msg: str or unicode
-    @type console: bool
     """
     if total == 0:
         return
@@ -773,8 +772,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:776", "json parse errror"
-                        print "cba_utils.py:777", jdata
+                        print "cba_utils.py:775", "json parse errror"
+                        print "cba_utils.py:776", jdata
 
             except Exception, e:
                 handle_exception(e, False)
