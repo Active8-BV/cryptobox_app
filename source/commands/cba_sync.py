@@ -53,7 +53,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
 
         for local_path in local_paths:
             memory = add_local_path_history(memory, local_path["doc"]["m_path"])
-    print "cba_sync.py:56", "done downloading files"
+    
     local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
     if len(local_paths_not_written) > 0:
