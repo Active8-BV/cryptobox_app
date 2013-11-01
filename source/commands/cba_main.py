@@ -163,33 +163,33 @@ def cryptobox_command(options):
 
         if not options.check and not options.treeseq and not options.logout:
             if not options.encrypt and not options.decrypt:
-                log("No encrypt directive given (-e)")
+                print "cba_main.py:166", "No encrypt directive given (-e)"
                 return False
 
         if options.decrypt:
             if options.remove:
-                log("option remove (-r) cannot be used together with decrypt (dataloss)")
+                print "cba_main.py:171", "option remove (-r) cannot be used together with decrypt (dataloss)"
                 return False
 
             if options.sync:
-                log("option sync (-s) cannot be used together with decrypt (hashmismatch)")
+                print "cba_main.py:175", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
                 return False
 
             if options.check:
-                log("option check (-o) cannot be used together with decrypt (hashmismatch)")
+                print "cba_main.py:179", "option check (-o) cannot be used together with decrypt (hashmismatch)"
                 return False
 
         if not options.password:
-            log("No password given (-p or --password)")
+            print "cba_main.py:183", "No password given (-p or --password)"
             return False
 
         if options.username or options.cryptobox:
             if not options.username:
-                log("No username given (-u or --username)")
+                print "cba_main.py:188", "No username given (-u or --username)"
                 return False
 
             if not options.cryptobox:
-                log("No cryptobox given (-b or --cryptobox)")
+                print "cba_main.py:192", "No cryptobox given (-b or --cryptobox)"
                 return False
 
         if isinstance(options, dict):
@@ -206,11 +206,11 @@ def cryptobox_command(options):
         options.numdownloadthreads = 8
 
         if not options.dir:
-            log("Need DIR -f or --dir to continue")
+            print "cba_main.py:209", "Need DIR -f or --dir to continue"
             return False
 
         if not options.cryptobox:
-            log("No cryptobox given -b or --cryptobox")
+            print "cba_main.py:213", "No cryptobox given -b or --cryptobox"
             return False
 
         options.basedir = options.dir
@@ -228,22 +228,23 @@ def cryptobox_command(options):
         datadir = get_data_dir(options)
         ensure_directory(datadir)
         if not datadir:
-            log("datadir is None")
+            print "cba_main.py:231", "datadir is None"
 
         memory = Memory()
-        initial_run = memory.load(datadir)
+        memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
+        throw Exception("yo")
         if not os.path.exists(options.basedir):
-            log("DIR [", options.dir, "] does not exist")
+            print "cba_main.py:238", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                log("No username given (-u or --username)")
+                print "cba_main.py:243", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                log("No password given (-p or --password)")
+                print "cba_main.py:247", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -277,11 +278,11 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        log("A sync step should always be followed by an encrypt step (-e or --encrypt)")
+                        print "cba_main.py:281", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        log("cryptobox is locked, nothing can be added now first decrypt (-d)")
+                        print "cba_main.py:285", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -322,4 +323,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:325", "\nbye main"
+        print "cba_main.py:326", "\nbye main"

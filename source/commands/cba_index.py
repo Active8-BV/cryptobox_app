@@ -6,7 +6,7 @@ import os
 import shutil
 import base64
 from Crypto import Random
-from cba_utils import log, strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object
+from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object
 from cba_crypto import password_derivation, make_sha1_hash, encrypt_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
@@ -161,26 +161,6 @@ def quick_lock_check(options):
     return False
 
 
-def get_secret(memory, options):
-    """
-    get_secret
-    @type memory: Memory
-    @type options: optparse.Values, instance
-    """
-    password = options.password
-    current_localindex = get_localindex(memory)
-    salt = None
-
-    if current_localindex:
-        if "salt_b64" in current_localindex:
-            salt = base64.decodestring(current_localindex["salt_b64"])
-
-    if not salt:
-        salt = Random.new().read(32)
-
-    return salt, password_derivation(password, salt)
-
-
 def index_files_visit(arg, dir_name, names):
     """
     @type arg: dict
@@ -230,10 +210,19 @@ def index_and_encrypt(memory, options):
     datadir = get_data_dir(options)
 
     if quick_lock_check(options):
-        log("cba_index.py:140", "cryptobox is locked, nothing can be added now first decrypt (-d)")
+        print "cba_index.py:213", "cryptobox is locked, nothing can be added now first decrypt (-d)"
         return None, None, memory, localindex
 
-    salt, secret = get_secret(memory, options)
+    salt = None
+
+    if memory.has("salt_b64"):
+        salt = base64.decodestring(memory.get("salt_b64"))
+
+    if not salt:
+        salt = Random.new().read(32)
+        memory.set("salt_b64", base64.encodestring(salt))
+
+    secret = password_derivation(options.password, salt)
     ensure_directory(datadir)
     new_blobs = {}
     file_cnt = 0
@@ -262,7 +251,6 @@ def index_and_encrypt(memory, options):
         if len(new_blobs) > 0:
             encrypt_new_blobs(secret, new_blobs)
 
-    localindex["salt_b64"] = base64.encodestring(salt)
     memory = store_localindex(memory, localindex)
 
     if options.remove:
@@ -317,12 +305,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        log("check_and_clean_dir needs clear and encrypt option")
+        print "cba_index.py:308", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            log("clear options cannot be used together with encrypt, possible data loss")
+            print "cba_index.py:313", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -339,7 +327,7 @@ def decrypt_and_build_filetree(memory, options):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        log("nothing to decrypt", datadir, "does not exists")
+        print "cba_index.py:330", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     blobdir = os.path.join(datadir, "blobs")
@@ -360,7 +348,7 @@ def decrypt_and_build_filetree(memory, options):
 
     processed_files = 0
     numfiles = len(hashes)
-    secret = password_derivation(password, base64.decodestring(localindex["salt_b64"]))
+    secret = password_derivation(password, base64.decodestring(memory.get("salt_b64")))
 
     for fhash in hashes:
         processed_files += 1
