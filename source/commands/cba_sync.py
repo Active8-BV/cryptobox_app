@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, log, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -31,14 +31,14 @@ def download_blob(memory, options, node):
     return result, node["content_hash_latest_timestamp"][0]
 
 
-def get_unique_content(memory, options, all_unique_nodes, local_path_paths):
+def get_unique_content(memory, options, all_unique_nodes, local_paths):
     """
     @type memory: Memory
     @type options: istance
     @type all_unique_nodes: dict
-    @type local_path_paths: list
+    @type local_paths: list
     """
-    if len(local_path_paths) == 0:
+    if len(local_paths) == 0:
         return memory
 
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
@@ -49,14 +49,14 @@ def get_unique_content(memory, options, all_unique_nodes, local_path_paths):
         downloaded_files_cnt += 1
         update_progress(downloaded_files_cnt, len(unique_nodes), "download")
         content, content_hash = download_blob(memory, options, node)
-        memory = write_blobs_to_filepaths(memory, options, local_path_paths, content, content_hash)
+        memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
 
-        for local_path_path in local_path_paths:
-            memory = add_local_path_history(memory, local_path_path["doc"]["m_path"])
-    log("done downloading files")
-    local_path_paths_not_written = [fp for fp in local_path_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
+        for local_path in local_paths:
+            memory = add_local_path_history(memory, local_path["doc"]["m_path"])
+    print "cba_sync.py:56", "done downloading files"
+    local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
-    if len(local_path_paths_not_written) > 0:
+    if len(local_paths_not_written) > 0:
         local_index = get_localindex(memory)
         local_path_hashes = {}
 
@@ -65,7 +65,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_path_paths):
                 if "hash" in f:
                     local_path_hashes[f["hash"]] = os.path.join(local_index["dirnames"][ldir]["dirname"], f["name"])
 
-        for lfnw in local_path_paths_not_written:
+        for lfnw in local_paths_not_written:
             w = False
 
             for lfh in local_path_hashes:
@@ -169,22 +169,28 @@ def server_path_to_shortid(memory, options, path):
     return None
 
 
-def remove_local_folders(dirs_del_local):
+def remove_local_folders(memory, dirs_del_local):
     """
+    @type memory: Memory
     @type dirs_del_local: list
     """
     for node in dirs_del_local:
         if os.path.exists(node["dirname"]):
             shutil.rmtree(node["dirname"], True)
+            memory = del_local_path_history(memory, node["dirname"])
+    return memory
 
 
-def remove_local_paths(file_del_local):
+def remove_local_paths(memory, file_del_local):
     """
+    @type memory: Memory
     @type file_del_local: list
     """
     for fpath in file_del_local:
         if os.path.exists(fpath):
             os.remove(fpath)
+            memory = del_local_path_history(memory, fpath)
+    return memory
 
 
 def make_directories_local(memory, options, localindex, folders):
@@ -196,6 +202,7 @@ def make_directories_local(memory, options, localindex, folders):
     """
     for f in folders:
         ensure_directory(f["name"])
+        memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
         arg = {"DIR": options.dir,
                "folders": {"dirnames": {}},
@@ -215,7 +222,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
     @type unique_dirs_server: set
     @rtype: list, Memory
     """
-    local_folders_removed = [np for np in [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server] if not os.path.exists(np)]
+    local_folders_removed_local_server = [np for np in [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server] if not os.path.exists(np)]
     dirs_del_server = []
     dirs_make_local = []
 
@@ -228,10 +235,16 @@ def dirs_on_server(memory, options, unique_dirs_server):
         local_path_history_disk_file_folders = [os.path.dirname(x) for x in local_path_history_disk if not os.path.isdir(x)]
         local_path_history_disk_folders.extend(local_path_history_disk_file_folders)
         local_path_history_disk_folders = tuple(set(local_path_history_disk_folders))
-        local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk_folders]
+        local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk_folders]
 
         if len(local_folders_removed) == 0:
-            dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if x not in local_path_history_disk_folders and not os.path.exists(np)]
+            local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk]
+
+            if len(local_folders_removed) == 0:
+
+                # first run
+                dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk_folders and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
+
     else:
         local_folders_removed = []
 
@@ -289,7 +302,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            log("waiting for tasks", num_tasks)
+                            print "cba_sync.py:305", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -590,26 +603,26 @@ def diff_files_locally(memory, options, localindex, serverindex):
                 local_pathnames_set.add(str(local_path))
 
     server_path_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
-    for local_path_path in local_pathnames_set:
-        if os.path.exists(local_path_path):
-            seen_local_path_before, memory = in_local_path_history(memory, local_path_path)
+    for local_path in local_pathnames_set:
+        if os.path.exists(local_path):
+            seen_local_path_before, memory = in_local_path_history(memory, local_path)
 
             if not seen_local_path_before:
-                upload_file_object = {"local_path_path": local_path_path,
+                upload_file_object = {"local_path": local_path,
                                       "parent_short_id": None,
-                                      "path": local_path_path}
+                                      "path": local_path}
 
                 file_uploads.append(upload_file_object)
 
     file_del_local = []
 
-    for local_path_path in local_pathnames_set:
-        if os.path.exists(local_path_path):
-            if local_path_path not in server_path_paths:
-                seen_local_path_before, memory = in_local_path_history(memory, local_path_path)
+    for local_path in local_pathnames_set:
+        if os.path.exists(local_path):
+            if local_path not in server_path_paths:
+                seen_local_path_before, memory = in_local_path_history(memory, local_path)
 
                 if seen_local_path_before:
-                    file_del_local.append(local_path_path)
+                    file_del_local.append(local_path)
 
     return file_uploads, file_del_local, memory
 
@@ -619,7 +632,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:622", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:635", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -656,10 +669,8 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
     # filter out file uploads from dirs to delete
-    #file_upload_dirs = set()
-    #dir_del_local_paths = list(set([x["dirname"] for x in dir_del_local]))
-    dir_del_local = [x for x in dir_del_local if x["dirname"] not in [os.path.dirname(y["local_path_path"]) for y in file_uploads] ]
-    dir_make_server = [x for x in dir_make_server if x["dirname"] not in [os.path.dirname(y["local_path_path"]) for y in file_uploads]]
+    dir_del_local = [x for x in dir_del_local if x["dirname"] not in [os.path.dirname(y["local_path"]) for y in file_uploads]]
+    dir_make_server = [x for x in dir_make_server if x["dirname"] not in [os.path.dirname(y["local_path"]) for y in file_uploads]]
 
     # filter out dirs to make from file_uploads:
     dir_make_server_tmp = []
@@ -668,7 +679,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
         add = True
 
         for fu in file_uploads:
-            if dms["dirname"] in fu["local_path_path"]:
+            if dms["dirname"] in fu["local_path"]:
                 add = False
 
         if add:
@@ -723,7 +734,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                     last_progress[0] = percentage
                     update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:726", "updating upload progress failed", str(exc)
+                print "cba_sync.py:737", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -790,12 +801,12 @@ def upload_files(memory, options, serverindex, file_uploads):
     """
     for uf in file_uploads:
         try:
-            uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_path_path"])
+            uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_path"])
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
     def add_size(lf):
-        lf["size"] = os.stat(lf["local_path_path"]).st_size
+        lf["size"] = os.stat(lf["local_path"]).st_size
         return f
 
     file_uploads = [add_size(f) for f in file_uploads]
@@ -804,13 +815,13 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     for uf in file_uploads:
         update_item_progress(len(files_uploaded) + 1)
-        log("upload", uf["local_path_path"])
-        if os.path.exists(uf["local_path_path"]):
-            update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path_path"])
-            file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path_path"], path_to_relative_path_unix_style(memory, uf["local_path_path"]), uf["parent_short_id"])
+        print "cba_sync.py:818", "upload", uf["local_path"]
+        if os.path.exists(uf["local_path"]):
+            update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path"])
+            file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:813", "can't fnd", uf["local_path_path"]
+            print "cba_sync.py:824", "can't fnd", uf["local_path"]
     return memory, files_uploaded
 
 
@@ -872,7 +883,7 @@ def sync_server(memory, options):
             memory = add_path_history(fpath, memory)
 
     if len(dir_del_local) > 0:
-        remove_local_folders(dir_del_local)
+        memory = remove_local_folders(memory, dir_del_local)
 
     if len(dir_make_local) > 0:
         memory = make_directories_local(memory, options, localindex, dir_make_local)
@@ -901,7 +912,7 @@ def sync_server(memory, options):
             memory = add_path_history(fpath, memory)
 
     if len(file_del_local) > 0:
-        remove_local_paths(file_del_local)
+        memory = remove_local_paths(memory, file_del_local)
 
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)

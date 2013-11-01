@@ -9,7 +9,7 @@ import base64
 import urllib
 import json
 import requests
-from cba_utils import log, Memory, update_item_progress
+from cba_utils import Memory, update_item_progress
 
 
 def get_b64mstyle():
@@ -108,7 +108,7 @@ def request_error(result):
     request_error
     @type result: str, unicode
     """
-    log(result.raw)
+    print "cba_network.py:111", result.raw
 
 
 class ServerForbidden(Exception):
@@ -295,7 +295,7 @@ def authorize_user(memory, options, force=False):
         memory.replace("authorized", True)
         return memory
     except PasswordException, p:
-        log(p, "not authorized")
+        print "cba_network.py:298", p, "not authorized"
         memory.replace("authorized", False)
         return memory
 

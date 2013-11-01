@@ -350,7 +350,7 @@ class CryptoboxAppTest(unittest.TestCase):
             datadir = get_data_dir(self.cboptions)
             memory = Memory()
             memory.load(datadir)
-            memory = decrypt_and_build_filetree(memory, options)
+            decrypt_and_build_filetree(memory, options)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), num_files)
 
     def test_index_clear(self):
