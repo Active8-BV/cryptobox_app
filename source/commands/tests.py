@@ -117,6 +117,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
+
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         if self.start_servers:
@@ -132,6 +133,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
         if self.start_servers:
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
+
         self.do_wait_for_tasks = True
         testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
@@ -161,14 +163,12 @@ class CryptoboxAppTest(unittest.TestCase):
         delete_progress_file("progress")
         delete_progress_file("item_progress")
 
-
     def unzip_testfiles_clean(self):
         """
         unzip_testfiles_clean
         """
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
-
         os.system("cd testdata; cp testmap_clean.zip test.zip")
         os.system("cd testdata; unzip -o test.zip > /dev/null")
         os.system("rm testdata/test.zip")
@@ -179,7 +179,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         ensure_directory(self.cboptions.dir)
         ensure_directory(get_data_dir(self.cboptions))
-
         os.system("cd testdata; cp testmap_synced.zip test.zip")
         os.system("cd testdata; unzip -o test.zip > /dev/null")
         os.system("rm testdata/test.zip")
@@ -327,9 +326,8 @@ class CryptoboxAppTest(unittest.TestCase):
         encrypt = 1
         decrypt = 1
         num_files = -1
+
         #decrypt_and_build_filetree, hide_config
-
-
         if encrypt:
             self.reset_cb_dir()
             self.unzip_testfiles_synced()
@@ -352,7 +350,6 @@ class CryptoboxAppTest(unittest.TestCase):
             datadir = get_data_dir(self.cboptions)
             memory = Memory()
             memory.load(datadir)
-
             memory = decrypt_and_build_filetree(memory, options)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), num_files)
 
