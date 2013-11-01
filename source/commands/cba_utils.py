@@ -565,10 +565,11 @@ class Memory(object):
                         self.has(k)
                     except MemoryExpired:
                         pass
-
+                return True
         finally:
             if not keep_lock:
                 self.unlock()
+        return False
 
     def set_add_value(self, list_name, value):
         """
@@ -635,9 +636,9 @@ def have_serverhash(memory, node_path):
     return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash_utils(node_path_relative))), memory
 
 
-def in_server_file_history(memory, relative_path_name):
+def in_server_path_history(memory, relative_path_name):
     """
-    in_server_file_history
+    in_server_path_history
     @type memory: Memory
     @type relative_path_name: str, unicode
     """
@@ -670,10 +671,10 @@ def del_serverhash(memory, relative_path_name):
     return memory
 
 
-def del_server_file_history(memory, relative_path_name):
+def del_server_path_history(memory, relative_path_name):
     """
     @type memory: Memory
-    del_server_file_history
+    del_server_path_history
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
@@ -681,10 +682,10 @@ def del_server_file_history(memory, relative_path_name):
     return memory
 
 
-def add_local_file_history(memory, relative_path_name):
+def add_local_path_history(memory, relative_path_name):
     """
     @type memory: Memory
-    add_local_file_history
+    add_local_path_history
     @type relative_path_name: str, unicode
     """
     fnode_hash = path_to_relative_path_unix_style(memory, relative_path_name)
@@ -692,20 +693,20 @@ def add_local_file_history(memory, relative_path_name):
     return memory
 
 
-def in_local_file_history(memory, relative_path_name):
+def in_local_path_history(memory, relative_path_name):
     """
     @type memory: Memory
-    in_local_file_history
+    in_local_path_history
     @type relative_path_name: str, unicode
     """
     fnode_hash = path_to_relative_path_unix_style(memory, relative_path_name)
     return memory.set_have_value("localpath_history", (fnode_hash, make_sha1_hash_utils(fnode_hash))), memory
 
 
-def del_local_file_history(memory, relative_path_name):
+def del_local_path_history(memory, relative_path_name):
     """
     @type memory: Memory
-    del_local_file_history
+    del_local_path_history
     @type relative_path_name: str, unicode
     """
     fnode_hash = path_to_relative_path_unix_style(memory, relative_path_name)
