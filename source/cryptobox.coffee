@@ -22,12 +22,6 @@ g_trayactions = new gui.Menu()
 g_tray.menu = g_trayactions
 g_menuactions = new gui.Menu()
 g_winmain.menu = g_menu
-
-
-debug = (obj) ->
-    console?.log? obj
-
-
 warning = (ln, w) ->
     if w?
         if w?.trim?
@@ -47,7 +41,6 @@ warning = (ln, w) ->
 add_output = (msgs) ->
     if msgs.indexOf(".cf") >= 0
         msgs = "> " + msgs
-    console?.log msgs
 
     add_msg = (msg) ->
         if msg.indexOf?
@@ -76,6 +69,8 @@ add_output = (msgs) ->
     else
         if msgs?
             g_output.push(msgs)
+    console.log msgs
+    return true
 
 
 print = (msg, others...) ->
@@ -117,10 +112,7 @@ warning = (ln, w) ->
 
 
 option_to_array = (name, option) ->
-    add_output(name)
-
     for k in _.keys(option)
-        add_output("|   " + k + ": " + option[k])
         if option[k] == true
             option[k] = "1"
 
@@ -128,24 +120,24 @@ option_to_array = (name, option) ->
             option[k] = "0"
 
     cmd_str = ""
-    cmd_str += " -a " + option.acommand if option.acommand?
-    cmd_str += " -b " + option.cryptobox if option.cryptobox?
-    cmd_str += " -c " + option.clear if option.clear?
-    cmd_str += " -d " + option.decrypt if option.decrypt?
-    cmd_str += " -e " + option.encrypt if option.encrypt?
-    cmd_str += " -f " + option.dir if option.dir?
-    cmd_str += " -l " + option.logout if option.logout?
-    cmd_str += " -m " + option.motivation if option.motivation?
-    cmd_str += " -n " + option.numdownloadthreads if option.numdownloadthreads?
-    cmd_str += " -o " + option.check if option.check?
-    cmd_str += " -p " + option.password if option.password?
-    cmd_str += " -r " + option.remove if option.remove?
-    cmd_str += " -s " + option.sync if option.sync?
-    cmd_str += " -t " + option.treeseq if option.treeseq?
-    cmd_str += " -u " + option.username if option.username?
-    cmd_str += " -v " + option.version if option.version?
-    cmd_str += " -x " + option.server if option.server?
-    print "cryptobox.cf:148", "python cba_main.py", cmd_str.trim()
+    cmd_str += " --acommand " + option.acommand if option.acommand?
+    cmd_str += " --cryptobox " + option.cryptobox if option.cryptobox?
+    cmd_str += " --clear " + option.clear if option.clear?
+    cmd_str += " --decrypt " + option.decrypt if option.decrypt?
+    cmd_str += " --encrypt " + option.encrypt if option.encrypt?
+    cmd_str += " --dir " + option.dir if option.dir?
+    cmd_str += " --logout " + option.logout if option.logout?
+    cmd_str += " --motivation " + option.motivation if option.motivation?
+    cmd_str += " --numdownloadthreads " + option.numdownloadthreads if option.numdownloadthreads?
+    cmd_str += " --check " + option.check if option.check?
+    cmd_str += " --password " + option.password if option.password?
+    cmd_str += " --remove " + option.remove if option.remove?
+    cmd_str += " --sync " + option.sync if option.sync?
+    cmd_str += " --treeseq " + option.treeseq if option.treeseq?
+    cmd_str += " --username " + option.username if option.username?
+    cmd_str += " --version " + option.version if option.version?
+    cmd_str += " --server " + option.server if option.server?
+    print "cryptobox.cf:140", "python cba_main.py", cmd_str.trim()
     param_array = []
 
     push_param_array = (i) ->
@@ -164,26 +156,29 @@ run_cba_main = (name, options, cb, cb_stdout) ->
     cmd_to_run = path.join(cmd_to_run, "cba_main")
     cba_main = child_process.spawn(cmd_to_run, params)
     output = ""
+    error = ""
     cba_main.stdout.on "data", (data) ->
         if cb_stdout?
             cb_stdout(data)
         else
             output += data
     cba_main.stderr.on "data", (data) ->
-        print "cryptobox.cf:173", "----- ERROR -----"
-        print "cryptobox.cf:174", data
-        print "cryptobox.cf:175", "-----------------"
+        error += data
 
     execution_done = (event) ->
         defer_callback = =>
             if output.indexOf("Another instance is already running, quitting.") >= 0
-                print "cryptobox.cf:180", "already running"
+                print "cryptobox.cf:171", "already running"
                 cb(false, output)
             else
-                if event > 0
-                    cb(false, output)
+                if _.size(error) > 0
+                    print "cryptobox.cf:175", error
+                    cb(false, error)
                 else
-                    cb(true, output)
+                    if event > 0
+                        cb(false, output)
+                    else
+                        cb(true, output)
 
         setTimeout(defer_callback, 1)
     cba_main.on("exit", execution_done)
@@ -253,7 +248,7 @@ set_user_var_scope = (name, scope_name, scope, $q) ->
             p.resolve()
 
         (err) ->
-            warning "cryptobox.cf:256", err
+            warning "cryptobox.cf:251", err
             p.reject(err)
     )
     p.promise
@@ -316,7 +311,8 @@ update_sync_state = (scope) ->
                         scope.disable_sync_button = false
 
             catch ex
-                print "cryptobox.cf:319", ex
+                print "cryptobox.cf:314", ex
+                print "cryptobox.cf:315", output
         return result
 
     run_cba_main("update_sync_state", option, result_sync_state)
@@ -335,8 +331,7 @@ start_watch = (scope) ->
                     if not String(f).contains("memory.pickle")
                         if typeof f is "object" and prev is null and curr is null
                             return
-
-                        add_output("local filechange: " + f)
+                        print "cryptobox.cf:334", "filechange", f
                         if prev is null
                             scope.request_update_sync_state = true
                         else if curr.nlink is 0
@@ -455,41 +450,6 @@ set_menus_and_g_tray_icon = (scope) ->
     scope.$watch "show_settings", scope.update_menu_checks
 
 
-progress_checker = (fname, scope) ->
-    fprogress = path.join(process.cwd(), fname)
-
-    if fs.existsSync(fprogress)
-        data = fs.readFileSync(fprogress)
-        data = parseInt(data, 10)
-
-        if exist(data)
-            add_output(fname, data)
-            scope[fname] = parseInt(data, 10)
-            fs.unlinkSync(fprogress)
-
-    if scope[fname] >= 100
-        scope[fname] = 100
-
-
-check_all_progress = (scope) ->
-    progress_checker("progress", scope)
-    progress_checker("item_progress", scope)
-
-
-second_interval = (scope) ->
-    if scope.quitting
-        print "cryptobox.cf:481", "quitting"
-        return
-
-    g_second_counter += 1
-    start_watch(scope)
-    check_all_progress(scope)
-    update_output(scope)
-    get_all_smemory(scope)
-    if g_second_counter % 10 == 0
-        run_command("last_ping", "", scope)
-
-
 set_motivation = ($scope) ->
     motivation_cb = (result, output) ->
         if result
@@ -560,7 +520,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.form_save()
 
     $scope.sync_btn = ->
-        add_output("start sync")
+        print "cryptobox.cf:523", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -569,7 +529,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                add_output("sync ok")
+                print "cryptobox.cf:532", "sync ok"
                 update_sync_state($scope)
         run_cba_main("sync server", option, sync_cb)
 
@@ -582,8 +542,8 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                add_output("encrypted")
-                print "cryptobox.cf:586", output
+                print "cryptobox.cf:545", "encrypted"
+                print "cryptobox.cf:546", output
         run_cba_main("encrypt", option, sync_cb)
 
     $scope.decrypt_btn = ->
@@ -593,11 +553,22 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
+                print "cryptobox.cf:556", "decrypted"
                 $scope.disable_sync_button = true
-                add_output("decrypted")
+                $scope.request_update_sync_state = true
 
         sync_progress_callback = (output) ->
-            print "cryptobox.cf:600", output
+            try
+                output = JSON.parse(output)
+
+                if output.progress?
+                    print "cryptobox.cf:565", "progress", output.progress
+
+                if output.item_progress?
+                    print "cryptobox.cf:568", "item_progress", output.item_progress
+            catch err
+                print "cryptobox.cf:570", "error", output
+                print "cryptobox.cf:571", err
         run_cba_main("decrypt", option, sync_cb, sync_progress_callback)
 
     $scope.open_folder = ->
@@ -620,7 +591,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             start_watch($scope)
 
         (err) ->
-            print "cryptobox.cf:623", err
+            print "cryptobox.cf:594", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)

@@ -14,7 +14,7 @@ import multiprocessing.forking
 import multiprocessing
 import random
 from optparse import OptionParser
-from cba_utils import output, output_json, strcmp, Dict2Obj, log, Memory, handle_exception, open_folder
+from cba_utils import output, output_json, strcmp, Dict2Obj, Memory, handle_exception, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -111,7 +111,7 @@ def consoledict(*args):
             else:
                 dbs += " " + str(s)
 
-    log(dbs)
+    print dbs
 
 
 def delete_progress_file(fname):
@@ -233,8 +233,6 @@ def cryptobox_command(options):
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
-
-        raise Exception("yo")
 
         if not os.path.exists(options.basedir):
             print "cba_main.py:240", "DIR [", options.dir, "] does not exist"

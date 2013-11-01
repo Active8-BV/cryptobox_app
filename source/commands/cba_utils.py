@@ -255,49 +255,13 @@ def timestamp_to_string(ts, short=False):
     return s
 
 
-def log_date_time_string():
+def error_prefix():
     """
-    log_date_time_string
+    error_prefix
     """
-    return "[" + timestamp_to_string(time.time()) + "]"
+    return ">"
 
 
-def stack_trace(depth=6, line_num_only=False):
-    """
-    stack_trace
-    @param depth: stack depth
-    @type line_num_only: only return the line number of the ecxeption
-    """
-    import traceback
-    stack = traceback.format_stack()
-    stack.reverse()
-    space = ""
-    cnt = 0
-    error = ""
-
-    for line in stack:
-        if cnt > 1:
-            s = line
-            parsed_line = s.strip().replace("\n", ":").split(",")
-            error += space
-            error += "/".join(parsed_line[0].split("/")[len(parsed_line[0].split("/")) - 2:]).replace('"', '')
-            error += ":"
-
-            if line_num_only:
-                return error + parsed_line[1].replace("line ", "").strip()
-
-            error += parsed_line[1].replace("line ", "").strip()
-            error += parsed_line[2].replace("  ", " ").replace("  ", " ").replace("  ", " ")
-            space += "  "
-            error += "\n"
-
-        cnt += 1
-
-        if len(space) > len("  " * depth):
-            error += ("  " * depth) + "....\n"
-            break
-
-    return error
 
 
 #noinspection PyUnresolvedReferences
@@ -316,50 +280,19 @@ def handle_exception(exc, again=True, ret_err=False):
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
     exc_type, exc_value, exc_traceback = sys.exc_info()
-    error = log_date_time_string() + " ---------------------------\n"
-    error += log_date_time_string() + "   !!! EXCEPTION !!!\n"
-    error += log_date_time_string() + " ---------------------------\n"
-    items = traceback.extract_tb(exc_traceback)
+    error = error_prefix() + " ---------------------------\n"
+    error += error_prefix() + "   !!! EXCEPTION !!!\n"
+    error += error_prefix() + " ---------------------------\n"
+    error += error_prefix() + " " + str(exc_type) + "\n"
+    error += error_prefix() + " " + str(exc) + "\n"
+    error += error_prefix() + " ---------------------------\n"
 
-    #items.reverse()
-    leni = 0
-    error += log_date_time_string() + " " + str(exc_type) + "\n"
-    error += log_date_time_string() + " " + str(exc) + "\n"
-    error += log_date_time_string() + " ---------------------------\n"
+    stack = traceback.format_stack()
+    stack.reverse()
 
-    try:
-        linenumsize = 0
 
-        for line in items:
-            fnamesplit = str(line[0]).split("/")
-            fname = "/".join(fnamesplit[len(fnamesplit) - 2:])
-            ls = len(fname + ":" + str(line[1]))
-
-            if ls > linenumsize:
-                linenumsize = ls
-        items.reverse()
-
-        for line in items:
-            leni += 1
-            tabs = leni * "  "
-            fnamesplit = str(line[0]).split("/")
-            fname = "/".join(fnamesplit[len(fnamesplit) - 2:])
-            fname_number = fname + ":" + str(line[1])
-            fname_number += (" " * (linenumsize - len(fname_number)))
-            val = ""
-
-            if line[3]:
-                val = line[3]
-
-            error += fname_number + " | " + tabs + val + "\n"
-
-        if len(items) < 4:
-            error += stack_trace() 
-    except Exception, e:
-        print "cba_utils.py:359", e
-        print "cba_utils.py:360", exc
-
-    error += log_date_time_string() + " ---------------------------\n"
+    for line in stack:
+        error += line
 
     if ret_err:
         return error
