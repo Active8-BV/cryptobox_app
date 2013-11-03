@@ -1,4 +1,5 @@
 source/commands/testdata/test.dump
+source/commands/testdata/test
 source/commands/testdata/100MB.zip
 
 source/commands/error.html
