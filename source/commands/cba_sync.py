@@ -815,13 +815,14 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     for uf in file_uploads:
         update_item_progress(len(files_uploaded) + 1)
-        print "cba_sync.py:818", "upload", uf["local_path"]
+
         if os.path.exists(uf["local_path"]):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path"])
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
         else:
-            print "cba_sync.py:824", "can't fnd", uf["local_path"]
+            update_progress(len(files_uploaded) + 1, len(file_uploads), "can't fnd" + uf["local_path"])
+
     return memory, files_uploaded
 
 

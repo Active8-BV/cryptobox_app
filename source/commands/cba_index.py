@@ -6,7 +6,7 @@ import os
 import shutil
 import base64
 from Crypto import Random
-from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object
+from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json
 from cba_crypto import password_derivation, make_sha1_hash, encrypt_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
@@ -172,8 +172,7 @@ def index_files_visit(arg, dir_name, names):
     nameshash = make_sha1_hash("".join(names))
     folder = {"dirname": dir_name, "dirnamehash": dirname_hash,
 
-              "filenames": [{'name': x} for x in filenames],
-                             "nameshash": nameshash}
+              "filenames": [{'name': x} for x in filenames], "nameshash": nameshash}
 
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
@@ -185,10 +184,7 @@ def make_local_index(options):
     @type options: optparse.Values, instance
     """
     datadir = get_data_dir(options)
-    args = {"DIR": options.dir,
-            "folders": {"dirnames": {},
-            "filestats": {}},
-            "numfiles": 0}
+    args = {"DIR": options.dir, "folders": {"dirnames": {}, "filestats": {}}, "numfiles": 0}
     os.path.walk(options.dir, index_files_visit, args)
 
     for dir_name in args["folders"]["dirnames"].copy():
@@ -228,7 +224,10 @@ def index_and_encrypt(memory, options):
     file_cnt = 0
     new_objects = 0
     hash_set_on_disk = set()
-
+    processed_files = 0
+    numfiles = 0
+    for dirhash in localindex["dirnames"]:
+        numfiles += len(localindex["dirnames"][dirhash]["filenames"])
     for dirhash in localindex["dirnames"]:
         for fname in localindex["dirnames"][dirhash]["filenames"]:
             file_cnt += 1
@@ -236,6 +235,8 @@ def index_and_encrypt(memory, options):
             file_path = os.path.join(file_dir, fname["name"])
 
             if os.path.exists(file_path):
+                update_progress(processed_files, numfiles, "indexing " + os.path.basename(file_path))
+
                 filedata, localindex = make_cryptogit_hash(file_path, datadir, localindex)
                 fname["hash"] = filedata["filehash"]
                 hash_set_on_disk.add(filedata["filehash"])
@@ -262,7 +263,7 @@ def index_and_encrypt(memory, options):
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
             processed_files += 1
-            update_progress(processed_files, numfiles, "deleting")
+            update_progress(processed_files, numfiles, "delete "+os.path.basename(fpath))
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
             else:
