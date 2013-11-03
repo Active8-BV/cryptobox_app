@@ -647,7 +647,7 @@ def update_item_progress(p):
 
     try:
         if 0 < int(p) <= 100:
-            output(json.dumps({"item_progress": p}))
+            output_json({"item_progress": p})
     except Exception, e:
         handle_exception(e, False)
 
@@ -667,7 +667,7 @@ def update_progress(curr, total, msg):
         progress = 100
 
     if 0 < int(progress) <= 100:
-        output(json.dumps({"global_progress": progress, "msg": msg}))
+        output_json({"global_progress": progress, "msg": msg})
 
 
 def check_command_folder(command_folder):
