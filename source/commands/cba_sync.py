@@ -698,6 +698,15 @@ def get_sync_changes(memory, options, localindex, serverindex):
                 dir_del_server.append(dds_path)
         else:
             dir_del_server.append(dds_path)
+
+    def add_size_relpath(lf):
+        lf["size"] = os.stat(lf["local_path"]).st_size
+        lf["rel_path"] = lf["path"].replace(options.dir, "")
+        return f
+
+    file_uploads = [add_size_relpath(f) for f in file_uploads]
+    file_uploads = sorted(file_uploads, key=lambda k: k["size"])
+
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content
 
 
@@ -805,12 +814,7 @@ def upload_files(memory, options, serverindex, file_uploads):
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
-    def add_size(lf):
-        lf["size"] = os.stat(lf["local_path"]).st_size
-        return f
 
-    file_uploads = [add_size(f) for f in file_uploads]
-    file_uploads = sorted(file_uploads, key=lambda k: k["size"])
     files_uploaded = []
 
     for uf in file_uploads:
