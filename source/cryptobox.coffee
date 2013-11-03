@@ -297,6 +297,7 @@ update_sync_state = (scope) ->
         check: true
 
     result_sync_state = (result, output) ->
+        print "cryptobox.cf:300", result
         if result
             try
                 sync_results = JSON.parse(output)
@@ -321,8 +322,11 @@ update_sync_state = (scope) ->
                         scope.disable_sync_button = false
 
             catch ex
-                print "cryptobox.cf:324", ex
-                print "cryptobox.cf:325", output
+                print "cryptobox.cf:325", ex
+                print "cryptobox.cf:326", output
+        else
+            scope.request_update_sync_state = true
+
         return result
 
     run_cba_main("update_sync_state", option, result_sync_state)
@@ -341,7 +345,7 @@ start_watch = (scope) ->
                     if not String(f).contains("memory.pickle")
                         if typeof f is "object" and prev is null and curr is null
                             return
-                        print "cryptobox.cf:344", "filechange", f
+                        print "cryptobox.cf:348", "filechange", f
                         if prev is null
                             scope.request_update_sync_state = true
                         else if curr.nlink is 0
@@ -483,9 +487,9 @@ g_progress_callback = (scope, output) ->
         if output.msg?
             scope.progress_message = output.msg
     catch err
-        print "cryptobox.cf:486", "error"
-        print "cryptobox.cf:487", stored_output
-        print "cryptobox.cf:488", err
+        print "cryptobox.cf:490", "error"
+        print "cryptobox.cf:491", stored_output
+        print "cryptobox.cf:492", err
 
 
 reset_bars_timer = null
@@ -569,7 +573,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.form_save()
 
     $scope.sync_btn = ->
-        print "cryptobox.cf:572", "start sync"
+        print "cryptobox.cf:576", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -580,7 +584,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:583", "sync ok"
+                print "cryptobox.cf:587", "sync ok"
                 $scope.state_syncing = false
                 $scope.disable_sync_button = false
                 $scope.progress_bar_item = 100
@@ -597,7 +601,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:600", "encrypted"
+                print "cryptobox.cf:604", "encrypted"
                 $scope.request_update_sync_state = true
                 $scope.progress_bar_item = 100
                 $scope.progress_bar_item = 100
@@ -613,7 +617,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:616", "decrypted"
+                print "cryptobox.cf:620", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
                 $scope.progress_bar_item = 100
@@ -625,7 +629,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         option.acommand = "open_folder"
 
         open_cb = (result, output) ->
-            print "cryptobox.cf:628", result, output
+            print "cryptobox.cf:632", result, output
         run_cba_main("open_folder", option, open_cb)
 
     $scope.open_website = ->
@@ -645,7 +649,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             start_watch($scope)
 
         (err) ->
-            print "cryptobox.cf:648", err
+            print "cryptobox.cf:652", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
@@ -661,7 +665,6 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.cmd_output = output_msg
         utils.force_digest($scope)
         if $scope.request_update_sync_state
-            if update_sync_state($scope)
-                $scope.request_update_sync_state = false
+            update_sync_state($scope)
         reset_bars($scope)
     setInterval(digester, 250)
