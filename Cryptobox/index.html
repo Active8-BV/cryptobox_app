@@ -180,7 +180,7 @@
                 </tr>
                 <tr ng-repeat="f in dir_make_local">
                     <td><i class="fa fa-plus"></i></td>
-                    <td>{{ f.name }}</td>
+                    <td>{{ f.relname }}</td>
                 </tr>
             </table>
         </div>
@@ -195,7 +195,7 @@
                 </tr>
                 <tr ng-repeat="f in dir_make_server">
                     <td><i class="fa fa-plus"></i></td>
-                    <td>{{ f.dirname }}</td>
+                    <td>{{ f }}</td>
                 </tr>
             </table>
         </div>
@@ -205,8 +205,8 @@
         <div class="col-sm-12">
             <table class="table" ng-show="dir_del_server">
                 <tr class="danger">
-                    <td width="1"><i class="fa fa-gears"></i></td>
-                    <td><i class="fa fa-folder"></i>folders to delete on server</td>
+                    <td width="1"><i class="fa fa-folder-o"></i></td>
+                    <td><i class="fa fa-cloud"></i>&nbsp;folders to delete on server</td>
                 </tr>
                 <tr ng-repeat="f in dir_del_server">
                     <td><i class="fa fa-times"></i></td>
@@ -235,9 +235,11 @@
         <div class="col-sm-12">
             <table class="table" ng-show="file_del_server">
                 <tr class="danger">
-                    <td><i class="fa fa-file"></i>&nbsp;files to delete on server</td>
+                    <td width="1"><i class="fa fa-file-o"></i></td>
+                    <td><i class="fa fa-cloud"></i>&nbsp;files to delete on server</td>
                 </tr>
                 <tr ng-repeat="f in file_del_server">
+                    <td><i class="fa fa-times"></i></td>
                     <td>{{ f }}</td>
                 </tr>
             </table>
@@ -249,9 +251,11 @@
         <div class="col-sm-12">
             <table class="table" ng-show="file_del_local">
                 <tr class="danger">
-                    <td><i class="fa fa-file"></i>&nbsp;files to delete local</td>
+                    <td width="1"><i class="fa fa-file-o"></i></td>
+                    <td><i class="fa fa-gears"></i>&nbsp;files to delete local</td>
                 </tr>
                 <tr ng-repeat="f in file_del_local">
+                    <td><i class="fa fa-times"></i></td>
                     <td>{{ f }}</td>
                 </tr>
             </table>
