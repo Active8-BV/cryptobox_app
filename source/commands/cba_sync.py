@@ -14,9 +14,10 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, output_json
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
+from cba_file import write_file, read_file
 
 
 def download_blob(memory, options, node):
@@ -47,13 +48,26 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
         downloaded_files_cnt += 1
-        update_progress(downloaded_files_cnt, len(unique_nodes), "downloading "+ str(node["doc"]["m_name"]))
+        update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
         memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
 
         for local_path in local_paths:
             memory = add_local_path_history(memory, local_path["doc"]["m_path"])
 
+    for lp in local_paths:
+        source_path = None
+        file_path = os.path.join(options.dir, lp["doc"]["m_path"].lstrip(os.path.sep))
+
+        if not os.path.exists(file_path):
+            for lph in all_unique_nodes:
+                if lph == lp["content_hash_latest_timestamp"][0]:
+                    source_path = os.path.join(options.dir, all_unique_nodes[lph]["doc"]["m_path"].lstrip(os.path.sep))
+                    break
+        if source_path:
+            st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data = read_file(source_path, True)
+            st_mtime = int(lp["content_hash_latest_timestamp"][1])
+            write_file(file_path, data, st_mtime, st_mtime, st_mode, st_uid, st_gid)
     local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
     if len(local_paths_not_written) > 0:
@@ -294,7 +308,7 @@ def wait_for_tasks(memory, options):
                     num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
                     if initial_num_tasks == -1:
                         initial_num_tasks = num_tasks
-                    update_progress(initial_num_tasks-num_tasks, initial_num_tasks, "waiting for tasks to finish on server")
+                    update_progress(initial_num_tasks - num_tasks, initial_num_tasks, "waiting for tasks to finish on server")
                     if num_tasks == 0:
                         return memory
 
@@ -745,7 +759,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
+        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path, "ufile_name": os.path.basename(file_object.name)}
 
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)

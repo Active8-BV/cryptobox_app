@@ -253,6 +253,7 @@ def cryptobox_command(options):
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
         elif options.treeseq:
+            memory = authorize_user(memory, options)
             tree_seq = get_tree_sequence(memory, options)
             output_json({"tree_seq": tree_seq})
             return True
