@@ -14,7 +14,7 @@ import multiprocessing.forking
 import multiprocessing
 import random
 from optparse import OptionParser
-from cba_utils import output, output_json, strcmp, Dict2Obj, Memory, handle_exception, open_folder
+from cba_utils import output, output_json, strcmp, Dict2Obj, Memory, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -253,9 +253,9 @@ def cryptobox_command(options):
             result, memory = on_server(memory, options, "logoutserver", {}, memory.get("session"))
             return result[0]
         elif options.treeseq:
-            if memory.has("session"):
-                memory, smemory = get_tree_sequence(memory, options)
-                return smemory.get("tree_sequence")
+            tree_seq = get_tree_sequence(memory, options)
+            output_json({"tree_seq": tree_seq})
+            return True
         elif options.password and options.username and options.cryptobox:
             memory = authorize_user(memory, options, force=True)
 
@@ -300,8 +300,6 @@ def cryptobox_command(options):
         memory.save(datadir)
         if options.remove and salt and secret:
             hide_config(options, salt, secret)
-    except Exception, e:
-        handle_exception(e, False)
     finally:
         delete_progress_file("progress")
         delete_progress_file("item_progress")
