@@ -691,11 +691,15 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         _.each(g_output, make_stream)
         $scope.cmd_output = output_msg
         utils.force_digest($scope)
+        reset_bars($scope)
+    setInterval(digester, 250)
+
+    two_second_interval = ->
         if $scope.request_update_sync_state
             if $scope.progress_bar == 0
                 update_sync_state($scope)
-        reset_bars($scope)
-    setInterval(digester, 250)
+
+    setInterval(two_second_interval, 2000)
 
     ten_second_interval = ->
         option = get_option($scope)
@@ -709,5 +713,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                         $scope.request_update_sync_state = true
 
                 $scope.tree_sequence = ts
-        run_cba_main("treeseq", option, tree_sequence_cb)
+
+        if $scope.progress_bar == 0
+            run_cba_main("treeseq", option, tree_sequence_cb)
     setInterval(ten_second_interval, 10000)

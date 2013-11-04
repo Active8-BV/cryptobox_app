@@ -646,7 +646,7 @@ reset_bars = function(scope) {
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
 
 cryptobox_ctrl = function($scope, memory, utils, $q) {
-  var digester, once_motivation, progress_callback, ten_second_interval;
+  var digester, once_motivation, progress_callback, ten_second_interval, two_second_interval;
   $scope.cba_version = 0.1;
   $scope.cba_main = null;
   $scope.quitting = false;
@@ -820,14 +820,17 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     _.each(g_output, make_stream);
     $scope.cmd_output = output_msg;
     utils.force_digest($scope);
-    if ($scope.request_update_sync_state) {
-      if ($scope.progress_bar === 0) {
-        update_sync_state($scope);
-      }
-    }
     return reset_bars($scope);
   };
   setInterval(digester, 250);
+  two_second_interval = function() {
+    if ($scope.request_update_sync_state) {
+      if ($scope.progress_bar === 0) {
+        return update_sync_state($scope);
+      }
+    }
+  };
+  setInterval(two_second_interval, 2000);
   ten_second_interval = function() {
     var option, tree_sequence_cb;
     option = get_option($scope);
@@ -844,7 +847,9 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
         return $scope.tree_sequence = ts;
       }
     };
-    return run_cba_main("treeseq", option, tree_sequence_cb);
+    if ($scope.progress_bar === 0) {
+      return run_cba_main("treeseq", option, tree_sequence_cb);
+    }
   };
   return setInterval(ten_second_interval, 10000);
 };
