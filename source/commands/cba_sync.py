@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, output_json
 from cba_file import ensure_directory
 from cba_crypto import make_sha1_hash
 
@@ -47,7 +47,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
         downloaded_files_cnt += 1
-        update_progress(downloaded_files_cnt, len(unique_nodes), "downloading")
+        update_progress(downloaded_files_cnt, len(unique_nodes), "downloading "+ str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
         memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
 
