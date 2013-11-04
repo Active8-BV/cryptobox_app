@@ -809,6 +809,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     files_uploaded = []
 
     for uf in file_uploads:
+        update_item_progress(1)
 
         if os.path.exists(uf["local_path"]):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path"])
