@@ -803,9 +803,14 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   once_motivation($scope);
   set_menus_and_g_tray_icon($scope);
   digester = function() {
-    var make_stream, output_msg;
+    var make_stream, output_msg, reset_progress_bar_item;
     if ($scope.progress_bar_item >= 100) {
-      $scope.progress_bar_item = 0;
+      reset_progress_bar_item = function() {
+        if ($scope.progress_bar_item >= 100) {
+          return $scope.progress_bar_item = 0;
+        }
+      };
+      setTimeout(reset_progress_bar_item, 300);
     }
     output_msg = "";
     make_stream = function(msg) {

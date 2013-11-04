@@ -115,7 +115,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
     for node in local_dirs_not_on_server:
         if os.path.exists(node["dirname"]):
             rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
-
+            node["relname"] = rel_dirname
             if rel_dirname not in serverindex["dirlist"]:
                 folder_timestamp = os.stat(node["dirname"]).st_mtime
                 if int(folder_timestamp) >= int(tree_timestamp):
@@ -204,9 +204,7 @@ def make_directories_local(memory, options, localindex, folders):
         ensure_directory(f["name"])
         memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir,
-               "folders": {"dirnames": {}},
-               "numfiles": 0}
+        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -241,7 +239,6 @@ def dirs_on_server(memory, options, unique_dirs_server):
             local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk]
 
             if len(local_folders_removed) == 0:
-
                 # first run
                 dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk_folders and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
 
@@ -270,8 +267,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name,
-                      "relname": dirname_rel}
+            folder = {"name": dir_name, "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
@@ -283,6 +279,7 @@ def wait_for_tasks(memory, options):
     @type memory: Memory
     @type options: optparse.Values, instance
     """
+    initial_num_tasks = -1
     while True:
         session = None
 
@@ -295,7 +292,9 @@ def wait_for_tasks(memory, options):
             if len(result) > 1:
                 if result[1]:
                     num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
-
+                    if initial_num_tasks == -1:
+                        initial_num_tasks = num_tasks
+                    update_progress(initial_num_tasks-num_tasks, initial_num_tasks, "waiting for tasks (" + str(num_tasks) + ")")
                     if num_tasks == 0:
                         return memory
 
@@ -608,9 +607,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
 
             if not seen_local_path_before:
-                upload_file_object = {"local_path": local_path,
-                                      "parent_short_id": None,
-                                      "path": local_path}
+                upload_file_object = {"local_path": local_path, "parent_short_id": None, "path": local_path}
 
                 file_uploads.append(upload_file_object)
 
@@ -750,10 +747,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object,
-                  "uuid": uuid.uuid4().hex,
-                  "parent": parent,
-                  "path": rel_path}
+        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path}
 
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -814,11 +808,9 @@ def upload_files(memory, options, serverindex, file_uploads):
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
-
     files_uploaded = []
 
     for uf in file_uploads:
-
 
         if os.path.exists(uf["local_path"]):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path"])

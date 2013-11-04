@@ -677,7 +677,11 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     digester = ->
         if $scope.progress_bar_item >= 100
-            $scope.progress_bar_item = 0
+
+            reset_progress_bar_item = ->
+                if $scope.progress_bar_item >= 100
+                    $scope.progress_bar_item = 0
+            setTimeout(reset_progress_bar_item, 300)
 
         output_msg = ""
 
