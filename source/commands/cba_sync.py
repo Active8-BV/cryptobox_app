@@ -47,7 +47,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     for node in unique_nodes:
         downloaded_files_cnt += 1
-        update_progress(downloaded_files_cnt, len(unique_nodes), "download")
+        update_progress(downloaded_files_cnt, len(unique_nodes), "downloading")
         content, content_hash = download_blob(memory, options, node)
         memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
 
@@ -294,7 +294,7 @@ def wait_for_tasks(memory, options):
                     num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
                     if initial_num_tasks == -1:
                         initial_num_tasks = num_tasks
-                    update_progress(initial_num_tasks-num_tasks, initial_num_tasks, "waiting for tasks (" + str(num_tasks) + ")")
+                    update_progress(initial_num_tasks-num_tasks, initial_num_tasks, "waiting for tasks to finish on server")
                     if num_tasks == 0:
                         return memory
 
@@ -478,10 +478,8 @@ def get_tree_sequence(memory, options):
     @type memory: Memory
     @type options: optparse.Values, instance
     """
-    if not memory.has("session"):
-        return -1
-
     clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
+
     return int(clock_tree_seq[1])
 
 

@@ -667,7 +667,10 @@ def update_progress(curr, total, msg):
         progress = 100
 
     if 0 < int(progress) <= 100:
-        output_json({"global_progress": progress, "msg": msg})
+        if len(msg) > 0:
+            output_json({"global_progress": progress, "msg": msg})
+        else:
+            output_json({"global_progress": progress})
 
 
 def check_command_folder(command_folder):
