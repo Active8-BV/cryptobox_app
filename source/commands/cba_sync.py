@@ -121,7 +121,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
                 if int(folder_timestamp) >= int(tree_timestamp):
                     dirs_make_server.append(node)
                 else:
-                    if node["dirname"] not in server_dir_history:
+                    if node["dirname"].replace(options.dir, "") not in server_dir_history:
                         dirs_make_server.append(node)
                     else:
                         dirs_del_local.append(node)
