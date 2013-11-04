@@ -162,7 +162,7 @@ def cryptobox_command(options):
 
         #noinspection PyUnusedLocal
         single_instance = singleton.SingleInstance()
-        
+
         if not options.check and not options.treeseq and not options.logout:
             if not options.encrypt and not options.decrypt:
                 print "cba_main.py:166", "No encrypt directive given (-e)"
