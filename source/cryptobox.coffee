@@ -39,7 +39,7 @@ warning = (ln, w) ->
 
 
 add_output = (msgs) ->
-    if msgs.indexOf(".cf") >= 0
+    if msgs?.indexOf?(".cf") >= 0
         msgs = "> " + msgs
 
     add_msg = (msg) ->
@@ -278,16 +278,23 @@ set_data_user_config = (scope, $q) ->
     promises.push(set_user_var_scope("cb_password", null, scope, $q))
     promises.push(set_user_var_scope("cb_name", null, scope, $q))
     promises.push(set_user_var_scope("cb_server", null, scope, $q))
-    promises.push(set_user_var_scope("show_settings", null, scope, $q))
     promises.push(set_user_var_scope("show_debug", null, scope, $q))
+    promises.push(set_user_var_scope("show_settings", null, scope, $q))
 
     $q.all(promises).then(
         ->
             if not exist(scope.cb_server)
                 scope.cb_server = cb_server_url
-            p.resolve()
+
+            if exist(scope.cb_username) && exist(scope.cb_password) && exist(scope.cb_name)
+                p.resolve()
+            else
+                scope.show_settings = true
+                p.reject("not all data")
 
         (err) ->
+            scope.cb_name = "test"
+            scope.show_settings = true
             p.reject(err)
     )
     return p.promise
@@ -337,8 +344,8 @@ update_sync_state = (scope) ->
                         scope.disable_sync_button = false
 
             catch ex
-                print "cryptobox.cf:340", ex
-                print "cryptobox.cf:341", output
+                print "cryptobox.cf:347", ex
+                print "cryptobox.cf:348", output
         return result
 
     run_cba_main("update_sync_state", option, result_sync_state)
@@ -357,7 +364,7 @@ start_watch = (scope) ->
                     if not String(f).contains("memory.pickle")
                         if typeof f is "object" and prev is null and curr is null
                             return
-                        print "cryptobox.cf:360", "filechange", f
+                        print "cryptobox.cf:367", "filechange", f
                         if prev is null
                             scope.request_update_sync_state = true
                         else if curr.nlink is 0
@@ -502,9 +509,9 @@ g_progress_callback = (scope, output) ->
         if !scope.$$phase
             scope.$apply()
     catch err
-        print "cryptobox.cf:505", "error"
-        print "cryptobox.cf:506", stored_output
-        print "cryptobox.cf:507", err
+        print "cryptobox.cf:512", "error"
+        print "cryptobox.cf:513", stored_output
+        print "cryptobox.cf:514", err
 
 
 reset_bars_timer = null
@@ -594,7 +601,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.sync_requested = true
 
     do_sync = ->
-        print "cryptobox.cf:597", "start sync"
+        print "cryptobox.cf:604", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -606,7 +613,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:609", "sync ok"
+                print "cryptobox.cf:616", "sync ok"
                 $scope.state_syncing = false
                 $scope.disable_sync_button = false
                 $scope.disable_encrypt_button = false
@@ -625,7 +632,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:628", "encrypted"
+                print "cryptobox.cf:635", "encrypted"
                 $scope.request_update_sync_state = true
                 $scope.progress_bar = 100
                 $scope.progress_bar_item = 100
@@ -642,7 +649,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:645", "decrypted"
+                print "cryptobox.cf:652", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
                 $scope.progress_bar = 100
@@ -654,7 +661,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         option.acommand = "open_folder"
 
         open_cb = (result, output) ->
-            print "cryptobox.cf:657", result, output
+            print "cryptobox.cf:664", result, output
         run_cba_main("open_folder", option, open_cb)
 
     $scope.open_website = ->
@@ -674,7 +681,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             start_watch($scope)
 
         (err) ->
-            print "cryptobox.cf:677", err
+            print "cryptobox.cf:684", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
