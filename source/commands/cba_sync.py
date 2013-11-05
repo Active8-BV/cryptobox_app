@@ -252,7 +252,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         local_path_history_disk_file_folders = [os.path.dirname(x) for x in local_path_history_disk if not os.path.isdir(x)]
         local_path_history_disk_folders.extend(local_path_history_disk_file_folders)
         local_path_history_disk_folders = tuple(set(local_path_history_disk_folders))
-        local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk_folders]
+        local_folders_removed = [x for x in local_folders_removed_local_server if x not in local_path_history_disk_folders]
 
         if len(local_folders_removed) == 0:
             local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk]
@@ -842,13 +842,10 @@ def upload_files(memory, options, serverindex, file_uploads):
     files_uploaded = []
 
     for uf in file_uploads:
-        update_item_progress(1)
+        update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading " + os.path.basename(uf["local_path"]))
         if os.path.exists(uf["local_path"]):
-            update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path"])
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
-        else:
-            update_progress(len(files_uploaded) + 1, len(file_uploads), "can't fnd" + uf["local_path"])
 
     return memory, files_uploaded
 
