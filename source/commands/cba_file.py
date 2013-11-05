@@ -175,8 +175,10 @@ def get_mtime_and_content_hash(fpath):
     """
     if not os.path.exists(fpath):
         return None, None
+
     if os.path.isdir(fpath):
         return None, None
+
     file_dict = read_file_to_fdict(fpath, read_data=True)
     filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     return file_dict["st_mtime"], filehash
@@ -268,8 +270,10 @@ def in_local_path_history(memory, fpath):
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
     mtime_chash = get_mtime_and_content_hash(fpath)
+
     if mtime_chash == (None, None):
         inpath = False
+
         if memory.has("localpath_history"):
             collection = memory.get("localpath_history")
 
@@ -277,8 +281,10 @@ def in_local_path_history(memory, fpath):
                 if relative_path == v[0]:
                     inpath = True
                     break
+
     else:
         inpath = memory.set_have_value("localpath_history", (relative_path, fpath, mtime_chash))
+
     return inpath, memory
 
 
@@ -289,19 +295,23 @@ def del_local_path_history(memory, fpath):
     @type relative_path_name: str, unicode
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
+
     if memory.has("localpath_history"):
         collection = memory.get("localpath_history")
         new_collection = []
 
         for v in collection:
             delete = False
+
             if relative_path == v[0]:
                 delete = True
             elif fpath == v[1]:
                 delete = True
             elif str(v[0]).startswith(relative_path):
                 delete = True
+
             if not delete:
                 new_collection.append(v)
         memory.replace("localpath_history", set(new_collection))
+
     return memory

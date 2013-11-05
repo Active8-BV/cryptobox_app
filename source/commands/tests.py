@@ -68,7 +68,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:71", "print_progress", p
+    print "tests.py:71", _progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -188,6 +188,7 @@ class CryptoboxAppTest(unittest.TestCase):
         reset_cb_db_clean
         """
         server = "http://127.0.0.1:5984/"
+
         for i in range(0, 3):
             try:
                 if self.db_name in list(couchdb.Server(server)):
@@ -294,6 +295,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions.sync = False
         localindex_check = cPickle.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
+
         #cPickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 

@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json
 from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
 from cba_crypto import make_sha1_hash
 from cba_file import write_file, read_file
@@ -47,17 +47,17 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     downloaded_files_cnt = 0
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
     unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size"])
+
     for node in unique_nodes:
         downloaded_files_cnt += 1
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
         update_item_progress(100)
-        memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
-
-        for local_path in local_paths:
-            memory = add_local_path_history(memory, os.path.join(options.dir, local_path["doc"]["m_path"].lstrip(os.sep)))
+        memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
+        output_json({"file_downloads": file_nodes_left})
 
     for lp in local_paths:
+        memory = add_local_path_history(memory, os.path.join(options.dir, lp["doc"]["m_path"].lstrip(os.sep)))
         source_path = None
         file_path = os.path.join(options.dir, lp["doc"]["m_path"].lstrip(os.path.sep))
 
@@ -327,7 +327,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:328", "waiting for tasks", num_tasks
+                            print "cba_sync.py:330", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -654,7 +654,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:655", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:657", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -768,7 +768,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:769", "updating upload progress failed", str(exc)
+                print "cba_sync.py:771", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))

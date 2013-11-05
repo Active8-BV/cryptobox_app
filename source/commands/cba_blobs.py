@@ -39,7 +39,6 @@ def encrypt_new_blobs(secret, new_blobs):
         processed_files += 1
 
 
-
 def decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret):
     """
     @param blobdir: str or unicode
@@ -105,6 +104,7 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
     @type downloaded_fhash: unicode
     """
     files_same_hash = []
+    file_nodes_copy = file_nodes
 
     for sfile in file_nodes:
         fhash = sfile["content_hash_latest_timestamp"][0]
@@ -115,5 +115,6 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
     for fnode in files_same_hash:
         memory = add_server_path_history(memory, fnode["doc"]["m_path"])
         write_blob_to_filepath(memory, fnode, options, data)
+        file_nodes_copy.remove(fnode)
 
-    return memory
+    return memory,file_nodes_copy
