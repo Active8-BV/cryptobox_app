@@ -172,7 +172,8 @@ def index_files_visit(arg, dir_name, names):
     nameshash = make_sha1_hash("".join(names))
     folder = {"dirname": dir_name, "dirnamehash": dirname_hash,
 
-              "filenames": [{'name': x} for x in filenames], "nameshash": nameshash}
+              "filenames": [{'name': x} for x in filenames],
+                             "nameshash": nameshash}
 
     arg["folders"]["dirnames"][dirname_hash] = folder
     arg["numfiles"] += len(filenames)
@@ -184,7 +185,10 @@ def make_local_index(options):
     @type options: optparse.Values, instance
     """
     datadir = get_data_dir(options)
-    args = {"DIR": options.dir, "folders": {"dirnames": {}, "filestats": {}}, "numfiles": 0}
+    args = {"DIR": options.dir,
+            "folders": {"dirnames": {},
+            "filestats": {}},
+            "numfiles": 0}
     os.path.walk(options.dir, index_files_visit, args)
 
     for dir_name in args["folders"]["dirnames"].copy():
@@ -226,8 +230,10 @@ def index_and_encrypt(memory, options):
     hash_set_on_disk = set()
     processed_files = 0
     numfiles = 0
+
     for dirhash in localindex["dirnames"]:
         numfiles += len(localindex["dirnames"][dirhash]["filenames"])
+
     for dirhash in localindex["dirnames"]:
         for fname in localindex["dirnames"][dirhash]["filenames"]:
             file_cnt += 1
@@ -236,7 +242,6 @@ def index_and_encrypt(memory, options):
 
             if os.path.exists(file_path):
                 update_progress(processed_files, numfiles, "indexing " + os.path.basename(file_path))
-
                 filedata, localindex = make_cryptogit_hash(file_path, datadir, localindex)
                 fname["hash"] = filedata["filehash"]
                 hash_set_on_disk.add(filedata["filehash"])
@@ -306,12 +311,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        print "cba_index.py:308", "check_and_clean_dir needs clear and encrypt option"
+        print "cba_index.py:314", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            print "cba_index.py:313", "clear options cannot be used together with encrypt, possible data loss"
+            print "cba_index.py:319", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -328,7 +333,7 @@ def decrypt_and_build_filetree(memory, options):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        print "cba_index.py:330", "nothing to decrypt", datadir, "does not exists"
+        print "cba_index.py:336", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     blobdir = os.path.join(datadir, "blobs")

@@ -483,7 +483,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_sync_new_file(self):
         """
-
+        test_sync_new_file
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
@@ -495,11 +495,16 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_sync_changed_file(self):
         """
-
+        test_sync_changed_file
         """
-        self.reset_cb_db_synced()
-        self.unzip_testfiles_synced()
+        self.reset_cb_db_clean()
+        ensure_directory(self.cboptions.dir)
+        os.system("echo 'hello' > testdata/test/hello.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        os.system("echo 'hello world' > testdata/test/hello.txt")
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
+        self.assertEqual(len(file_uploads), 1)
+
 
     def test_find_short_ids(self):
         """

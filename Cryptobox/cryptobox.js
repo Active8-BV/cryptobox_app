@@ -8,7 +8,7 @@ path = require("path");
 
 fs = require("fs");
 
-watch = require("watch");
+watch = require("node-watch");
 
 gui = require('nw.gui');
 
@@ -452,7 +452,7 @@ start_watch = function(scope) {
       watch_path = path.join(scope.cb_folder_text, scope.cb_name);
       if (fs.existsSync(watch_path)) {
         scope.file_watch_started = true;
-        return watch.watchTree(watch_path, function(f, curr, prev) {
+        return watch(watch_path, function(f) {
           if (!String(f).contains("memory.pickle")) {
             if (typeof f === "object" && prev === null && curr === null) {
               return;
