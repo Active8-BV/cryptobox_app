@@ -55,7 +55,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
         memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
 
         for local_path in local_paths:
-            memory = add_local_path_history(memory, local_path["doc"]["m_path"])
+            memory = add_local_path_history(memory, os.path.join(options.dir, local_path["doc"]["m_path"].lstrip(os.sep)))
 
     for lp in local_paths:
         source_path = None
