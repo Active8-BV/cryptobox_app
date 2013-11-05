@@ -228,24 +228,29 @@ def cryptobox_command(options):
             restore_hidden_config(options)
         ensure_directory(options.dir)
         datadir = get_data_dir(options)
+
+        if options.clear:
+            output_json({"info_message": "cryptobox cache removed: " + datadir})
+            return
+
         ensure_directory(datadir)
         if not datadir:
-            print "cba_main.py:233", "datadir is None"
+            print "cba_main.py:238", "datadir is None"
 
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
-            print "cba_main.py:239", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:244", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:244", "No username given (-u or --username)"
+                print "cba_main.py:249", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:248", "No password given (-p or --password)"
+                print "cba_main.py:253", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -275,16 +280,22 @@ def cryptobox_command(options):
                                   "dir_make_server": dir_make_server,
                                   "dir_del_local": dir_del_local,
                                   "file_del_local": file_del_local,
-                                  "all_synced": all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])}
-
+                                  "all_synced": all_item_zero_len([file_del_server,
+                                  file_downloads,
+                                  file_uploads,
+                                  dir_del_server,
+                                  dir_make_local,
+                                  dir_make_server,
+                                  dir_del_local,
+                                  file_del_local])}
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:283", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:294", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:287", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:298", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -320,4 +331,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:323", "\nbye main"
+        print "cba_main.py:334", "\nbye main"
