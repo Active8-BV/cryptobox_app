@@ -289,7 +289,19 @@ def del_local_path_history(memory, fpath):
     @type relative_path_name: str, unicode
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
+    if memory.has("localpath_history"):
+        collection = memory.get("localpath_history")
+        new_collection = []
 
-    if memory.set_have_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path))):
-        memory.set_delete_value("localpath_history", (relative_path, fpath, get_mtime_and_content_hash(fpath)))
+        for v in collection:
+            delete = False
+            if relative_path == v[0]:
+                delete = True
+            elif fpath == v[1]:
+                delete = True
+            elif str(v[0]).startswith(relative_path):
+                delete = True
+            if not delete:
+                new_collection.append(v)
+        memory.replace("localpath_history", set(new_collection))
     return memory
