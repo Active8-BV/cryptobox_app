@@ -230,7 +230,7 @@ def download_server(memory, options, url):
                 if divider > 0:
                     percentage = int(float(downloaded_bytes) / divider)
                     if percentage != prev_percenage:
-                        if time.time() - last_update > 500:
+                        if time.time() - last_update > 0.5:
                             update_item_progress(percentage)
                             last_update = time.time()
 

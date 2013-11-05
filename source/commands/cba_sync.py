@@ -46,10 +46,12 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     downloaded_files_cnt = 0
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
+    unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size"])
     for node in unique_nodes:
         downloaded_files_cnt += 1
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
+        update_item_progress(100)
         memory = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
 
         for local_path in local_paths:
@@ -758,7 +760,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
 
             try:
                 if param:
-                    if time.time() - param.last_cb_time > 500:
+                    if time.time() - param.last_cb_time > 0.5:
                         param.last_cb_time = time.time()
                         percentage = 100 - ((total - current ) * 100) / total
                         if percentage != last_progress[0]:
