@@ -3,7 +3,7 @@
 file operations
 """
 import os
-from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress, output_json
+from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress, output_json, make_sha1_hash_utils
 from cba_crypto import make_sha1_hash, decrypt_file_smp, encrypt_file_smp
 
 
@@ -167,3 +167,113 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     del file_dict["data"]
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
+
+
+def get_mtime_and_content_hash(fpath):
+    """
+    @type fpath: str or unicode
+    """
+    file_dict = read_file_to_fdict(fpath, read_data=True)
+    filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
+    return file_dict["st_mtime"], filehash
+
+
+def path_to_relative_path_unix_style(memory, relative_path_name):
+    """
+    path_to_relative_path_unix_style
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_name = relative_path_name.replace(memory.get("cryptobox_folder"), "")
+    relative_path_unix_style = relative_path_name.replace(os.path.sep, "/")
+    return relative_path_unix_style
+
+
+def have_serverhash(memory, node_path):
+    """
+    have_serverhash
+    @type memory: Memory
+    @type node_path: str, unicode
+    """
+    node_path_relative = path_to_relative_path_unix_style(memory, node_path)
+    return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash_utils(node_path_relative))), memory
+
+
+def in_server_path_history(memory, relative_path_name):
+    """
+    in_server_path_history
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
+    has_server_hash, memory = have_serverhash(memory, relative_path_unix_style)
+    return has_server_hash, memory
+
+
+def add_server_path_history(memory, relative_path_name):
+    """
+    add_server_path_history
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
+    memory.set_add_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
+    return memory
+
+
+def del_serverhash(memory, relative_path_name):
+    """
+    del_serverhash
+    @type memory: Memory
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
+
+    if memory.set_have_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style))):
+        memory.set_delete_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
+    return memory
+
+
+def del_server_path_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    del_server_path_history
+    @type relative_path_name: str, unicode
+    """
+    relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
+    memory = del_serverhash(memory, relative_path_unix_style)
+    return memory
+
+
+def add_local_path_history(memory, fpath):
+    """
+    @type memory: Memory
+    add_local_path_history
+    @type fpath: str, unicode
+    """
+    relative_path = path_to_relative_path_unix_style(memory, fpath)
+    memory.set_add_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path)))
+    return memory
+
+
+def in_local_path_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    in_local_path_history
+    @type relative_path_name: str, unicode
+    """
+    relative_path = path_to_relative_path_unix_style(memory, relative_path_name)
+    return memory.set_have_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path))), memory
+
+
+def del_local_path_history(memory, relative_path_name):
+    """
+    @type memory: Memory
+    del_local_path_history
+    @type relative_path_name: str, unicode
+    """
+    relative_path = path_to_relative_path_unix_style(memory, relative_path_name)
+
+    if memory.set_have_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path))):
+        memory.set_delete_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path)))
+    return memory
