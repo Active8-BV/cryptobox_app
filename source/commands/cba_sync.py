@@ -64,10 +64,12 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                 if lph == lp["content_hash_latest_timestamp"][0]:
                     source_path = os.path.join(options.dir, all_unique_nodes[lph]["doc"]["m_path"].lstrip(os.path.sep))
                     break
+
         if source_path:
             st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data = read_file(source_path, True)
             st_mtime = int(lp["content_hash_latest_timestamp"][1])
             write_file(file_path, data, st_mtime, st_mtime, st_mode, st_uid, st_gid)
+
     local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 
     if len(local_paths_not_written) > 0:
@@ -130,6 +132,7 @@ def dirs_on_local(memory, options, localindex, dirname_hashes_server, serverinde
         if os.path.exists(node["dirname"]):
             rel_dirname = path_to_relative_path_unix_style(memory, node["dirname"])
             node["relname"] = rel_dirname
+
             if rel_dirname not in serverindex["dirlist"]:
                 folder_timestamp = os.stat(node["dirname"]).st_mtime
                 if int(folder_timestamp) >= int(tree_timestamp):
@@ -218,7 +221,9 @@ def make_directories_local(memory, options, localindex, folders):
         ensure_directory(f["name"])
         memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
+        arg = {"DIR": options.dir,
+               "folders": {"dirnames": {}},
+               "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -253,6 +258,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
             local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk]
 
             if len(local_folders_removed) == 0:
+
                 # first run
                 dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk_folders and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
 
@@ -281,7 +287,8 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name, "relname": dirname_rel}
+            folder = {"name": dir_name,
+                      "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
@@ -294,6 +301,7 @@ def wait_for_tasks(memory, options):
     @type options: optparse.Values, instance
     """
     initial_num_tasks = -1
+
     while True:
         session = None
 
@@ -306,8 +314,10 @@ def wait_for_tasks(memory, options):
             if len(result) > 1:
                 if result[1]:
                     num_tasks = len([x for x in result[1] if x["m_command_object"] != "StorePassword"])
+
                     if initial_num_tasks == -1:
                         initial_num_tasks = num_tasks
+
                     update_progress(initial_num_tasks - num_tasks, initial_num_tasks, "waiting for tasks to finish on server")
                     if num_tasks == 0:
                         return memory
@@ -315,7 +325,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:305", "waiting for tasks", num_tasks
+                            print "cba_sync.py:328", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -493,7 +503,6 @@ def get_tree_sequence(memory, options):
     @type options: optparse.Values, instance
     """
     clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
-
     return int(clock_tree_seq[1])
 
 
@@ -619,8 +628,9 @@ def diff_files_locally(memory, options, localindex, serverindex):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
 
             if not seen_local_path_before:
-                upload_file_object = {"local_path": local_path, "parent_short_id": None, "path": local_path}
-
+                upload_file_object = {"local_path": local_path,
+                                      "parent_short_id": None,
+                                      "path": local_path}
                 file_uploads.append(upload_file_object)
 
     file_del_local = []
@@ -641,7 +651,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:635", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:654", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -715,7 +725,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
-
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content
 
 
@@ -745,22 +754,30 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             @type total:
             prog_callback
             """
-
             try:
-                percentage = 100 - ((total - current ) * 100 ) / total
-                if percentage != last_progress[0]:
-                    last_progress[0] = percentage
-                    update_item_progress(percentage)
+                if param:
+                    if time.time() - param.last_cb_time > 500:
+                        param.last_cb_time = time.time()
+
+                        percentage = 100 - ((total - current ) * 100) / total
+                        if percentage != last_progress[0]:
+                            last_progress[0] = percentage
+                            update_item_progress(percentage)
             except Exception, exc:
-                print "cba_sync.py:737", "updating upload progress failed", str(exc)
+                print "cba_sync.py:764", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path, "ufile_name": os.path.basename(file_object.name)}
+        params = {'file': file_object,
+                  "uuid": uuid.uuid4().hex,
+                  "parent": parent,
+                  "path": rel_path,
+                  "ufile_name": os.path.basename(file_object.name)}
 
+        poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
 
@@ -824,7 +841,6 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     for uf in file_uploads:
         update_item_progress(1)
-
         if os.path.exists(uf["local_path"]):
             update_progress(len(files_uploaded) + 1, len(file_uploads), "upload: " + uf["local_path"])
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])

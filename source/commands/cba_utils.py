@@ -262,8 +262,6 @@ def error_prefix():
     return ">"
 
 
-
-
 #noinspection PyUnresolvedReferences
 def handle_exception(exc, again=True, ret_err=False):
     """
@@ -286,10 +284,8 @@ def handle_exception(exc, again=True, ret_err=False):
     error += error_prefix() + " " + str(exc_type) + "\n"
     error += error_prefix() + " " + str(exc) + "\n"
     error += error_prefix() + " ---------------------------\n"
-
     stack = traceback.format_stack()
     stack.reverse()
-
 
     for line in stack:
         error += line
@@ -702,8 +698,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:769", "json parse errror"
-                        print "cba_utils.py:770", jdata
+                        print "cba_utils.py:701", "json parse errror"
+                        print "cba_utils.py:702", jdata
 
             except Exception, e:
                 handle_exception(e, False)
