@@ -173,6 +173,8 @@ def get_mtime_and_content_hash(fpath):
     """
     @type fpath: str or unicode
     """
+    if not os.path.exists(fpath):
+        return None, None
     file_dict = read_file_to_fdict(fpath, read_data=True)
     filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     return file_dict["st_mtime"], filehash
@@ -252,28 +254,28 @@ def add_local_path_history(memory, fpath):
     @type fpath: str, unicode
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
-    memory.set_add_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path)))
+    memory.set_add_value("localpath_history", (relative_path, fpath, get_mtime_and_content_hash(fpath)))
     return memory
 
 
-def in_local_path_history(memory, relative_path_name):
+def in_local_path_history(memory, fpath):
     """
     @type memory: Memory
     in_local_path_history
     @type relative_path_name: str, unicode
     """
-    relative_path = path_to_relative_path_unix_style(memory, relative_path_name)
-    return memory.set_have_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path))), memory
+    relative_path = path_to_relative_path_unix_style(memory, fpath)
+    return memory.set_have_value("localpath_history", (relative_path, fpath, get_mtime_and_content_hash(fpath))), memory
 
 
-def del_local_path_history(memory, relative_path_name):
+def del_local_path_history(memory, fpath):
     """
     @type memory: Memory
     del_local_path_history
     @type relative_path_name: str, unicode
     """
-    relative_path = path_to_relative_path_unix_style(memory, relative_path_name)
+    relative_path = path_to_relative_path_unix_style(memory, fpath)
 
     if memory.set_have_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path))):
-        memory.set_delete_value("localpath_history", (relative_path, make_sha1_hash_utils(relative_path)))
+        memory.set_delete_value("localpath_history", (relative_path, fpath, get_mtime_and_content_hash(fpath)))
     return memory
