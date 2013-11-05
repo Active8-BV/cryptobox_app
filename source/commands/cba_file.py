@@ -178,7 +178,6 @@ def get_mtime_and_content_hash(fpath):
     if os.path.isdir(fpath):
         return None, None
     file_dict = read_file_to_fdict(fpath, read_data=True)
-    
     filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     return file_dict["st_mtime"], filehash
 
