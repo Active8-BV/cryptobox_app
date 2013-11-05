@@ -590,7 +590,7 @@ def diff_new_files_on_server(memory, options, server_path_nodes, dirs_scheduled_
         server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
 
         if os.path.exists(server_path_to_local):
-            memory = add_local_path_history(memory, server_path_to_local)
+            pass
         else:
             seen_local_path_before, memory = in_local_path_history(memory, server_path_to_local)
 
