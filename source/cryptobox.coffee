@@ -2,7 +2,7 @@
 child_process = require("child_process")
 path = require("path")
 fs = require("fs")
-watch = require("watch")
+watch = require("node-watch")
 gui = require('nw.gui')
 
 #gui.Window.get().showDevTools()
@@ -210,7 +210,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record = 
+        record =
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -300,7 +300,7 @@ set_data_user_config = (scope, $q) ->
 
 
 update_sync_state = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -359,7 +359,7 @@ start_watch = (scope) ->
 
             if fs.existsSync(watch_path)
                 scope.file_watch_started = true
-                watch.watchTree watch_path, (f, curr, prev) ->
+                watch watch_path, (f) ->
                     if not String(f).contains("memory.pickle")
                         if typeof f is "object" and prev is null and curr is null
                             return
@@ -394,7 +394,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = ($scope) ->
-    option = 
+    option =
         dir: $scope.cb_folder_text
         username: $scope.cb_username
         password: $scope.cb_password

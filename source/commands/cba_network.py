@@ -214,21 +214,27 @@ def download_server(memory, options, url):
 
         raise ServerError(result.reason)
 
-    size = int(result.headers['Content-Length'].strip())
-    downloaded_bytes = 0
-    fileb = []
+    if "Content-Length" in result.headers:
+        size = int(result.headers['Content-Length'].strip())
+        downloaded_bytes = 0
+        fileb = []
+        prev_percenage = -1
+        for buf in result.iter_content(1024):
+            if buf:
+                fileb.append(buf)
+                downloaded_bytes += len(buf)
+                divider = float(size) / 100
 
-    for buf in result.iter_content(1024):
-        if buf:
-            fileb.append(buf)
-            downloaded_bytes += len(buf)
-            divider = float(size) / 100
+                if divider > 0:
+                    percentage = int(float(downloaded_bytes) / divider)
+                    if percentage != prev_percenage:
+                        update_item_progress(percentage)
+                        prev_percenage = percentage
 
-            if divider > 0:
-                percentage = int(float(downloaded_bytes) / divider)
-                update_item_progress(percentage)
+        content = b"".join(fileb)
+    else:
+        content = result.content
 
-    content = b"".join(fileb)
     return content
 
 

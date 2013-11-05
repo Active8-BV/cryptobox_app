@@ -483,7 +483,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_sync_new_file(self):
         """
-        remove a folder on server and add same folder locally
+
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
@@ -492,6 +492,14 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("ls > testdata/test/all_types/listing.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.all_changes_asserted_zero()
+
+    def test_sync_changed_file(self):
+        """
+
+        """
+        self.reset_cb_db_synced()
+        self.unzip_testfiles_synced()
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
     def test_find_short_ids(self):
         """
