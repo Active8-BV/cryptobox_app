@@ -128,10 +128,10 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="col-sm-3 control-label" for="show_debug" ng-click="toggle_debug()">show log</label>
+                <label class="col-sm-3 control-label" for="show_debug">show log</label>
 
                 <div class="col-sm-9" style="margin-top: 4px;">
-                    <input id="show_debug" type="checkbox" ng-model="show_debug">
+                    <input id="show_debug" type="checkbox" ng-click="form_save()" ng-model="show_debug">
 
                     <div class="btn-group btn-group pull-right">
                         <button type="button" id="btn_donw" class="btn btn-success" ng-click="form_save()" ng-disabled="!form_changed"><i class="fa fa-save"></i>&nbsp;save</button>

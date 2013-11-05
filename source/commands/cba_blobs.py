@@ -34,9 +34,10 @@ def encrypt_new_blobs(secret, new_blobs):
 
     for fhash in new_blobs:
         ensure_directory(new_blobs[fhash]["blobdir"])
+        update_progress(processed_files, numfiles, "encrypting: " + os.path.basename(new_blobs[fhash]["fpath"]))
         read_and_encrypt_file(new_blobs[fhash]["fpath"], new_blobs[fhash]["blobpath"], secret)
         processed_files += 1
-        update_progress(processed_files, numfiles, "encrypting: " + os.path.basename(new_blobs[fhash]["fpath"]))
+
 
 
 def decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret):
