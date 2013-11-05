@@ -505,7 +505,6 @@ class CryptoboxAppTest(unittest.TestCase):
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
 
-
     def test_find_short_ids(self):
         """
         test_find_short_ids

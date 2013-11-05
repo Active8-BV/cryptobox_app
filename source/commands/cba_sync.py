@@ -14,8 +14,8 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
-from cba_file import ensure_directory
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory
+from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style
 from cba_crypto import make_sha1_hash
 from cba_file import write_file, read_file
 
@@ -631,6 +631,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
                 upload_file_object = {"local_path": local_path,
                                       "parent_short_id": None,
                                       "path": local_path}
+
                 file_uploads.append(upload_file_object)
 
     file_del_local = []
@@ -651,7 +652,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:654", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:655", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -754,17 +755,18 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             @type total:
             prog_callback
             """
+
             try:
                 if param:
                     if time.time() - param.last_cb_time > 500:
                         param.last_cb_time = time.time()
-
                         percentage = 100 - ((total - current ) * 100) / total
                         if percentage != last_progress[0]:
                             last_progress[0] = percentage
                             update_item_progress(percentage)
+
             except Exception, exc:
-                print "cba_sync.py:764", "updating upload progress failed", str(exc)
+                print "cba_sync.py:769", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))

@@ -220,6 +220,7 @@ def download_server(memory, options, url):
         fileb = []
         prev_percenage = -1
         last_update = time.time()
+
         for buf in result.iter_content(1024):
             if buf:
                 fileb.append(buf)
@@ -232,6 +233,7 @@ def download_server(memory, options, url):
                         if time.time() - last_update > 500:
                             update_item_progress(percentage)
                             last_update = time.time()
+
                         prev_percenage = percentage
 
         content = b"".join(fileb)
@@ -304,7 +306,7 @@ def authorize_user(memory, options, force=False):
         memory.replace("authorized", True)
         return memory
     except PasswordException, p:
-        print "cba_network.py:305", p, "not authorized"
+        print "cba_network.py:309", p, "not authorized"
         memory.replace("authorized", False)
         return memory
 
