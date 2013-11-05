@@ -175,6 +175,8 @@ def get_mtime_and_content_hash(fpath):
     """
     if not os.path.exists(fpath):
         return None, None
+    if os.path.isdir(fpath):
+        return None, None
     file_dict = read_file_to_fdict(fpath, read_data=True)
     filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     return file_dict["st_mtime"], filehash
@@ -262,10 +264,22 @@ def in_local_path_history(memory, fpath):
     """
     @type memory: Memory
     in_local_path_history
-    @type relative_path_name: str, unicode
+    @type fpath: str, unicode
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
-    return memory.set_have_value("localpath_history", (relative_path, fpath, get_mtime_and_content_hash(fpath))), memory
+    mtime_chash = get_mtime_and_content_hash(fpath)
+    if mtime_chash == (None, None):
+        inpath = False
+        if memory.has("localpath_history"):
+            collection = memory.get("localpath_history")
+
+            for v in collection:
+                if relative_path == v[0]:
+                    inpath = True
+                    break
+    else:
+        inpath = memory.set_have_value("localpath_history", (relative_path, fpath, mtime_chash))
+    return inpath, memory
 
 
 def del_local_path_history(memory, fpath):

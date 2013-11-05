@@ -68,7 +68,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:71", p
+    print "tests.py:71", "print_progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -289,8 +289,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cboptions.sync = False
         localindex_check = cPickle.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
-
-        #pickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
+        #cPickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
     def test_index_and_encrypt(self):
@@ -523,6 +522,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_dir()
         self.reset_cb_db_clean()
+        ensure_directory(self.cboptions.dir)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.mkdir("testdata/test/foo")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
@@ -552,6 +552,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_dir()
         self.reset_cb_db_clean()
+        ensure_directory(self.cboptions.dir)
         os.mkdir("testdata/test/foo")
         os.system("ls > testdata/test/foo/test.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
