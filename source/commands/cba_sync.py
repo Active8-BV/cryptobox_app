@@ -166,7 +166,7 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     @type dirs_make_server: list
     @rtype: Memory
     """
-    foldernames = [dir_name["dirname"].replace(options.dir, "").lstrip(os.sep) for dir_name in dirs_make_server]
+    foldernames = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_make_server]
     for dir_name in foldernames:
         add_server_path_history(memory, dir_name)
 

@@ -124,8 +124,8 @@ class CryptoboxAppTest(unittest.TestCase):
             if not self.django_running:
                 os.system("ps aux | grep -ie cronjobe | awk '{print $2}' | xargs kill -9")
                 os.system("ps aux | grep -ie runserver | awk '{print $2}' | xargs kill -9")
-                self.server = subprocess.Popen(["/usr/local/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
-                self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+                self.server = subprocess.Popen(["/usr/bin/python", "manage.py", "runserver"], cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server")
+                self.cronjob = subprocess.Popen(["/usr/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
         self.wait_for_django_server()
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -188,18 +188,23 @@ class CryptoboxAppTest(unittest.TestCase):
         reset_cb_db_clean
         """
         server = "http://127.0.0.1:5984/"
+        for i in range(0, 3):
+            try:
+                if self.db_name in list(couchdb.Server(server)):
+                    couchdb.Server(server).delete(self.db_name)
 
-        if self.db_name in list(couchdb.Server(server)):
-            couchdb.Server(server).delete(self.db_name)
-
-        if self.db_name not in list(couchdb.Server(server)):
-            couchdb.Server(server).create(self.db_name)
+                if self.db_name not in list(couchdb.Server(server)):
+                    couchdb.Server(server).create(self.db_name)
+                break
+            except:
+                pass
         os.system("rm -Rf testdata/test")
         os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
         dbase = CouchDBServer(self.db_name, ["http://127.0.0.1:5984/"], memcached_server_list=["127.0.0.1:11211"])
         sync_all_views(dbase, ["couchdb_api", "crypto_api"])
+        time.sleep(0.4)
 
     def reset_cb_db_clean(self):
         """
