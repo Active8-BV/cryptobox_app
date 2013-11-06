@@ -99,8 +99,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
     """
     pool = Pool(processes=multiprocessing.cpu_count())
     results_cnt = [0]
-
     last_update = [time.time()]
+
     def progress_callback_wrapper(result_func):
         """
         progress_callback
@@ -108,7 +108,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
         """
         if progress_callback:
             now = time.time()
-
             results_cnt[0] += 1
             perc = float(results_cnt[0]) / (float(len(items)) / 100)
 
@@ -147,6 +146,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
     pool.terminate()
     if progress_callback_wrapper:
         progress_callback_wrapper(100)
+
     return calculation_result_values
 
 
@@ -238,7 +238,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:234", arg
+    print "cba_utils.py:241", arg
     sys.exit(1)
 
 
@@ -604,8 +604,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:600", "json parse errror"
-                        print "cba_utils.py:601", jdata
+                        print "cba_utils.py:607", "json parse errror"
+                        print "cba_utils.py:608", jdata
 
             except Exception, e:
                 handle_exception(e, False)
