@@ -678,6 +678,17 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
+    def test_remove_directory(self):
+        self.do_wait_for_tasks = False
+        self.reset_cb_dir()
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        os.system("rm -Rf testdata/test/smalltest")
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
+        self.assertEqual(len(dir_del_server), 1)
+        self.assertEqual(len(file_del_server), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
