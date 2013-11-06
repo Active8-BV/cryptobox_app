@@ -74,12 +74,15 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size"])
 
     for node in unique_nodes:
-        downloaded_files_cnt += 1
+
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
         update_item_progress(100)
         memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
         output_json({"file_downloads": file_nodes_left})
+        downloaded_files_cnt += 1
+
+    update_progress(downloaded_files_cnt, len(unique_nodes), "downloading done")
 
     for lp in local_paths:
         memory = add_local_path_history(memory, os.path.join(options.dir, lp["doc"]["m_path"].lstrip(os.sep)))
