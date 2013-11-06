@@ -230,7 +230,7 @@ def cryptobox_command(options):
         datadir = get_data_dir(options)
 
         if options.clear:
-            output_json({"info_message": "cryptobox cache removed: " + datadir})
+            output_json({"info_message": "cryptobox cache removed: " + options.clear})
             return
 
         ensure_directory(datadir)
