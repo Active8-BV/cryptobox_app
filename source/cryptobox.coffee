@@ -739,14 +739,14 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             output_msg += msg + "\n"
         _.each(g_output, make_stream)
         $scope.cmd_output = output_msg
-        utils.force_digest($scope)
         reset_bars($scope)
         $scope.error_message = g_error_message
 
         if $scope.sync_requested
             $scope.sync_requested = false
             do_sync()
-    setInterval(digester, 250)
+        utils.force_digest($scope)
+    setInterval(digester, 100)
 
     two_second_interval = ->
         if $scope.request_update_sync_state

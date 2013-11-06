@@ -68,7 +68,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:71", _progress", p
+    print "tests.py:71", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):

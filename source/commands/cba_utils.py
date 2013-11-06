@@ -115,7 +115,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
             if results_cnt[0] == 1 and perc == 100:
                 pass
             else:
-                if now - last_update[0] > 0.1:
+                if now - last_update[0] > 0.01:
                     progress_callback(perc)
                     last_update[0] = now
 
@@ -145,6 +145,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
         else:
             calculation_result_values.append(result.get())
     pool.terminate()
+    if progress_callback_wrapper:
+        progress_callback_wrapper(100)
     return calculation_result_values
 
 
