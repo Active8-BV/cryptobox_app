@@ -604,8 +604,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:607", "json parse errror"
-                        print "cba_utils.py:608", jdata
+                        print "cba_utils.py:608", "json parse errror"
+                        print "cba_utils.py:609", jdata
 
             except Exception, e:
                 handle_exception(e, False)
