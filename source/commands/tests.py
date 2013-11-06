@@ -34,6 +34,8 @@ from cba_file import ensure_directory
 from cba_crypto import make_checksum, \
     encrypt_file_smp, \
     decrypt_file_smp
+
+
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -67,7 +69,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:70", p
+    print "tests.py:72", p
 
 
 def count_files_dir(fpath):
@@ -88,7 +90,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:91", "progress", p
+    print "tests.py:93", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):

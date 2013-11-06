@@ -15,7 +15,8 @@ from cba_index import quick_lock_check, \
     TreeLoadError, \
     index_files_visit, \
     make_local_index, \
-    get_localindex
+    get_localindex, \
+    store_localindex
 from cba_blobs import write_blobs_to_filepaths, \
     have_blob
 from cba_network import download_server, \
@@ -351,7 +352,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:354", "waiting for tasks", num_tasks
+                            print "cba_sync.py:355", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -655,14 +656,20 @@ def diff_files_locally(memory, options, localindex, serverindex):
             if not seen_local_path_before:
                 upload_file_object = {"local_path": local_path,
                                       "parent_short_id": None,
-                                      "rel_path": local_path.replace(options.dir, "")}
+                                      "rel_path": local_path.replace(options.dir,
+                                      "")}
 
                 corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
                 if len(corresponding_server_nodes) == 0:
                     file_uploads.append(upload_file_object)
                 else:
-                    content_hash = 
+                    filedata, localindex = make_cryptogit_hash(upload_file_object["local_path"], options.dir, localindex)
+
+                    if not strcmp(corresponding_server_nodes[0]["content_hash_latest_timestamp"][0], filedata["filehash"]):
+                        file_uploads.append(upload_file_object)
+                    else:
+                        memory = add_local_path_history(memory, upload_file_object["local_path"])
 
     file_del_local = []
     server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
@@ -674,7 +681,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
                 if seen_local_path_before:
                     file_del_local.append(local_path)
 
-    return file_uploads, file_del_local, memory
+    return file_uploads, file_del_local, memory, localindex
 
 
 def print_pickle_variable_for_debugging(var, varname):
@@ -682,7 +689,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:685", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:692", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -715,7 +722,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_path_nodes, dir_del_server_tmp)
 
     #local files
-    file_uploads, file_del_local, memory = diff_files_locally(memory, options, localindex, serverindex)
+    file_uploads, file_del_local, memory, localindex = diff_files_locally(memory, options, localindex, serverindex)
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
     # filter out file uploads from dirs to delete
@@ -755,6 +762,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
+    memory = store_localindex(memory, localindex)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content
 
 
@@ -795,7 +803,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:798", "updating upload progress failed", str(exc)
+                print "cba_sync.py:806", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
