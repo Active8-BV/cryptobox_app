@@ -624,7 +624,6 @@ def diff_files_locally(memory, options, localindex, serverindex):
                 local_path = os.path.join(ft[0], fname["name"])
                 local_pathnames_set.add(str(local_path))
 
-    server_path_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
@@ -632,12 +631,12 @@ def diff_files_locally(memory, options, localindex, serverindex):
             if not seen_local_path_before:
                 upload_file_object = {"local_path": local_path,
                                       "parent_short_id": None,
-                                      "path": local_path}
+                                      "rel_path": local_path.replace(options.dir, "")}
 
                 file_uploads.append(upload_file_object)
 
     file_del_local = []
-
+    server_path_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             if local_path not in server_path_paths:
@@ -654,7 +653,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:657", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:656", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -723,7 +722,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     def add_size_relpath(lf):
         lf["size"] = os.stat(lf["local_path"]).st_size
-        lf["rel_path"] = lf["path"].replace(options.dir, "")
         return f
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
@@ -768,7 +766,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:771", "updating upload progress failed", str(exc)
+                print "cba_sync.py:770", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
