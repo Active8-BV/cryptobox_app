@@ -5,21 +5,41 @@ unit test for app commands
 __author__ = 'rabshakeh'
 import unittest
 import random
-from subprocess import Popen, PIPE
+from subprocess import Popen, \
+    PIPE
 import couchdb
 import requests
 from cba_main import cryptobox_command
 from cba_utils import *
-from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
-from cba_blobs import get_blob_dir, get_data_dir
+from cba_index import make_local_index, \
+    index_and_encrypt, \
+    reset_cryptobox_local, \
+    hide_config, \
+    restore_hidden_config, \
+    decrypt_and_build_filetree
+from cba_blobs import get_blob_dir, \
+    get_data_dir
 from cba_network import authorize_user
-from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
+from cba_sync import get_server_index, \
+    parse_serverindex, \
+    instruct_server_to_delete_folders, \
+    dirs_on_local, \
+    path_to_server_shortid, \
+    wait_for_tasks, \
+    sync_server, \
+    get_sync_changes, \
+    short_id_to_server_path, \
+    NoSyncDirFound
 from cba_file import ensure_directory
-from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
+from cba_crypto import make_checksum, \
+    encrypt_file_smp, \
+    decrypt_file_smp
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
-from couchdb_api import MemcachedServer, CouchDBServer, sync_all_views
+from couchdb_api import MemcachedServer, \
+    CouchDBServer, \
+    sync_all_views
 
 #noinspection PyUnresolvedReferences
 import crypto_api
@@ -47,7 +67,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:50", p
+    print "tests.py:70", p
 
 
 def count_files_dir(fpath):
@@ -68,7 +88,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:71", "progress", p
+    print "tests.py:91", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):

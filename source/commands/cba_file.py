@@ -3,8 +3,15 @@
 file operations
 """
 import os
-from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress, output_json, make_sha1_hash_utils
-from cba_crypto import make_sha1_hash, decrypt_file_smp, encrypt_file_smp
+from cba_utils import strcmp, \
+    pickle_object, \
+    unpickle_object, \
+    update_item_progress, \
+    output_json, \
+    make_sha1_hash_utils
+from cba_crypto import make_sha1_hash, \
+    decrypt_file_smp, \
+    encrypt_file_smp
 
 
 def ensure_directory(path):

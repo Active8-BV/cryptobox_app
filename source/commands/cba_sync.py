@@ -11,13 +11,37 @@ import urllib
 import shutil
 import urllib2
 import poster
-from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex
-from cba_blobs import write_blobs_to_filepaths, have_blob
-from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json
-from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, make_cryptogit_hash
+from cba_index import quick_lock_check, \
+    TreeLoadError, \
+    index_files_visit, \
+    make_local_index, \
+    get_localindex
+from cba_blobs import write_blobs_to_filepaths, \
+    have_blob
+from cba_network import download_server, \
+    on_server, \
+    NotAuthorized, \
+    authorize_user, \
+    authorized
+from cba_utils import handle_exception, \
+    strcmp, \
+    exit_app_warning, \
+    update_progress, \
+    update_item_progress, \
+    Memory, \
+    output_json
+from cba_file import ensure_directory, \
+    add_server_path_history, \
+    in_server_path_history, \
+    add_local_path_history, \
+    in_local_path_history, \
+    del_server_path_history, \
+    del_local_path_history, \
+    path_to_relative_path_unix_style, \
+    make_cryptogit_hash
 from cba_crypto import make_sha1_hash
-from cba_file import write_file, read_file
+from cba_file import write_file, \
+    read_file
 
 
 def download_blob(memory, options, node):
@@ -327,7 +351,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:330", "waiting for tasks", num_tasks
+                            print "cba_sync.py:354", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -632,11 +656,13 @@ def diff_files_locally(memory, options, localindex, serverindex):
                 upload_file_object = {"local_path": local_path,
                                       "parent_short_id": None,
                                       "rel_path": local_path.replace(options.dir, "")}
+
                 corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
+
                 if len(corresponding_server_nodes) == 0:
                     file_uploads.append(upload_file_object)
                 else:
-                    content_hash =
+                    content_hash = 
 
     file_del_local = []
     server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
@@ -656,7 +682,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:656", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:685", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -769,7 +795,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:769", "updating upload progress failed", str(exc)
+                print "cba_sync.py:798", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
