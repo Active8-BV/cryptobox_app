@@ -7,10 +7,12 @@ import cPickle
 import zlib
 from cStringIO import StringIO
 from Crypto import Random
-from Crypto.Hash import SHA, SHA512
+from Crypto.Hash import SHA, \
+    SHA512
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import smp_all_cpu_apply, update_item_progress
+from cba_utils import smp_all_cpu_apply, \
+    update_item_progress
 
 
 def make_sha1_hash(data):

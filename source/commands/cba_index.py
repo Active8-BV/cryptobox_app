@@ -6,10 +6,24 @@ import os
 import shutil
 import base64
 from Crypto import Random
-from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json
-from cba_crypto import password_derivation, make_sha1_hash, encrypt_object, decrypt_object
-from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
-from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
+from cba_utils import strcmp, \
+    get_uuid, \
+    update_progress, \
+    unpickle_object, \
+    Memory, \
+    pickle_object, \
+    output_json
+from cba_crypto import password_derivation, \
+    make_sha1_hash, \
+    encrypt_object, \
+    decrypt_object
+from cba_blobs import encrypt_new_blobs, \
+    get_data_dir, \
+    decrypt_blob_to_filepaths
+from cba_file import ensure_directory, \
+    decrypt_file_and_write, \
+    read_and_encrypt_file, \
+    make_cryptogit_hash
 
 
 class TreeLoadError(Exception):
@@ -210,7 +224,7 @@ def index_and_encrypt(memory, options):
     datadir = get_data_dir(options)
 
     if quick_lock_check(options):
-        print "cba_index.py:213", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+        print "cba_index.py:227", "cryptobox is locked, nothing can be added now first decrypt (-d)"
         return None, None, memory, localindex
 
     salt = None
@@ -312,12 +326,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        print "cba_index.py:315", "check_and_clean_dir needs clear and encrypt option"
+        print "cba_index.py:329", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            print "cba_index.py:320", "clear options cannot be used together with encrypt, possible data loss"
+            print "cba_index.py:334", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -334,7 +348,7 @@ def decrypt_and_build_filetree(memory, options):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        print "cba_index.py:337", "nothing to decrypt", datadir, "does not exists"
+        print "cba_index.py:351", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     output_json({"msg": "preparing decrypt"})
