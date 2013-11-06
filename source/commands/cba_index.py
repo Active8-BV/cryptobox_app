@@ -6,7 +6,7 @@ import os
 import shutil
 import base64
 from Crypto import Random
-from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object
+from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json
 from cba_crypto import password_derivation, make_sha1_hash, encrypt_object, decrypt_object
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
@@ -221,7 +221,7 @@ def index_and_encrypt(memory, options):
     if not salt:
         salt = Random.new().read(32)
         memory.set("salt_b64", base64.encodestring(salt))
-
+    output_json({"msg": "preparing encrypt"})
     secret = password_derivation(options.password, salt)
     ensure_directory(datadir)
     new_blobs = {}
@@ -325,7 +325,7 @@ def reset_cryptobox_local(options):
 
 def decrypt_and_build_filetree(memory, options):
     """
-    decrypt_and_build_filetree 
+    decrypt_and_build_filetree
     @type memory: Memory
     @type options: optparse.Values, instance
     """
@@ -335,7 +335,7 @@ def decrypt_and_build_filetree(memory, options):
     if not os.path.exists(datadir):
         print "cba_index.py:336", "nothing to decrypt", datadir, "does not exists"
         return memory
-
+    output_json({"msg": "preparing decrypt"})
     blobdir = os.path.join(datadir, "blobs")
     localindex = get_localindex(memory)
     hashes = set()

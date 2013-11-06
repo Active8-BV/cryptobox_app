@@ -873,15 +873,15 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     };
     _.each(g_output, make_stream);
     $scope.cmd_output = output_msg;
-    utils.force_digest($scope);
     reset_bars($scope);
     $scope.error_message = g_error_message;
     if ($scope.sync_requested) {
       $scope.sync_requested = false;
-      return do_sync();
+      do_sync();
     }
+    return utils.force_digest($scope);
   };
-  setInterval(digester, 250);
+  setInterval(digester, 100);
   two_second_interval = function() {
     if ($scope.request_update_sync_state) {
       if ($scope.progress_bar === 0) {

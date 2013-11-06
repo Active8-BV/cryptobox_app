@@ -13,6 +13,7 @@ import cPickle
 import multiprocessing.forking
 import multiprocessing
 import random
+import shutil
 from optparse import OptionParser
 from cba_utils import output, output_json, strcmp, Dict2Obj, Memory, open_folder
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
@@ -73,7 +74,7 @@ def add_options():
     parser = OptionParser()
     parser.add_option("-a", "--acommand", dest="acommand", help="a helper command", metavar="ACOMMAND")
     parser.add_option("-b", "--cryptobox", dest="cryptobox", help="cryptobox slug", metavar="CRYPTOBOX")
-    parser.add_option("-c", "--clear", dest="clear", action='store_true', help="clear all cryptobox data", metavar="CLEAR")
+    parser.add_option("-c", "--clear", dest="clear", help="clear all cryptobox data", metavar="CLEAR")
     parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
     parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files", metavar="ENCRYPT")
     parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
@@ -229,8 +230,9 @@ def cryptobox_command(options):
         ensure_directory(options.dir)
         datadir = get_data_dir(options)
 
-        if options.clear:
-            output_json({"info_message": "cryptobox cache removed: " + options.clear})
+        if options.clear == "1":
+            shutil.rmtree(datadir)
+            output_json({"info_message": "cryptobox cache removed: " + str(datadir)})
             return
 
         ensure_directory(datadir)
@@ -261,7 +263,7 @@ def cryptobox_command(options):
             tree_seq = get_tree_sequence(memory, options)
             output_json({"tree_seq": tree_seq})
             return True
-        elif options.password and options.username and options.cryptobox:
+        elif options.password and options.username and options.cryptobox and (options.sync or options.check):
             memory = authorize_user(memory, options, force=True)
 
             if memory.get("authorized"):
