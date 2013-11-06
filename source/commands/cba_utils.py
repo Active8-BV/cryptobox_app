@@ -100,19 +100,24 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
     pool = Pool(processes=multiprocessing.cpu_count())
     results_cnt = [0]
 
+    last_update = [time.time()]
     def progress_callback_wrapper(result_func):
         """
         progress_callback
         @type result_func: object
         """
         if progress_callback:
+            now = time.time()
+
             results_cnt[0] += 1
             perc = float(results_cnt[0]) / (float(len(items)) / 100)
 
             if results_cnt[0] == 1 and perc == 100:
                 pass
             else:
-                progress_callback(perc-3)
+                if now - last_update[0] > 0.1:
+                    progress_callback(perc)
+                    last_update[0] = now
 
         return result_func
 

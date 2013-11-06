@@ -325,7 +325,7 @@ def reset_cryptobox_local(options):
 
 def decrypt_and_build_filetree(memory, options):
     """
-    decrypt_and_build_filetree
+    decrypt_and_build_filetree 
     @type memory: Memory
     @type options: optparse.Values, instance
     """
@@ -350,18 +350,18 @@ def decrypt_and_build_filetree(memory, options):
                 fpath = os.path.join(localindex["dirnames"][dirhash]["dirname"], cfile["name"])
 
                 if not os.path.exists(fpath):
-                    hashes.add(cfile["hash"])
+                    hashes.add((cfile["hash"], cfile["name"]))
 
     processed_files = 0
     numfiles = len(hashes)
     secret = password_derivation(password, base64.decodestring(memory.get("salt_b64")))
 
-    for fhash in hashes:
+    for cfile in hashes:
         processed_files += 1
-        update_progress(processed_files, numfiles, "")
+        update_progress(processed_files, numfiles, cfile[1])
 
         #noinspection PyUnusedLocal
-        paths = decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret)
+        paths = decrypt_blob_to_filepaths(blobdir, localindex, cfile[0], secret)
 
     memory = store_localindex(memory, localindex)
     return memory
