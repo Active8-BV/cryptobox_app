@@ -269,7 +269,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
     @type unique_dirs_server: set
     @rtype: list, Memory
     """
-    local_folders_removed_local_server = [np for np in [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server] if not os.path.exists(np)]
+    local_folders_removed = [np for np in [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server] if not os.path.exists(np)]
     dirs_del_server = []
     dirs_make_local = []
 
@@ -282,10 +282,10 @@ def dirs_on_server(memory, options, unique_dirs_server):
         local_path_history_disk_file_folders = [os.path.dirname(x) for x in local_path_history_disk if not os.path.isdir(x)]
         local_path_history_disk_folders.extend(local_path_history_disk_file_folders)
         local_path_history_disk_folders = tuple(set(local_path_history_disk_folders))
-        local_folders_removed = [x for x in local_folders_removed_local_server if x not in local_path_history_disk_folders]
+        local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk_folders]
 
         if len(local_folders_removed) == 0:
-            local_folders_removed = [x for x in local_folders_removed_local_server if x in local_path_history_disk]
+            local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
             if len(local_folders_removed) == 0:
 
