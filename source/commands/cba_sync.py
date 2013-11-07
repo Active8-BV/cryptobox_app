@@ -199,10 +199,8 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     for foldername in foldernames:
         payload = {"foldername": foldername}
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
-
     wait_for_tasks(memory, options)
     serverindex, memory = get_server_index(memory, options)
-
     return serverindex, memory
 
 
@@ -278,15 +276,17 @@ def dirs_on_server(memory, options, unique_dirs_server):
 
     if memory.has("localpath_history"):
         local_path_history = memory.get("localpath_history")
+
         # absolute paths
         local_path_history_disk = [os.path.join(options.dir, x[0].lstrip(os.sep)) for x in local_path_history]
+
         # filter out folders previously seen
         local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
         if len(local_folders_removed) == 0:
+
             # first run
             dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
-
     else:
         local_folders_removed = []
 
@@ -350,7 +350,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:356", "waiting for tasks", num_tasks
+                            print "cba_sync.py:353", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -690,7 +690,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:696", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:693", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -804,7 +804,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:810", "updating upload progress failed", str(exc)
+                print "cba_sync.py:807", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -980,6 +980,7 @@ def sync_server(memory, options):
 
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
+
     for fpath in file_del_server:
         memory = del_path_history(fpath, memory)
 
