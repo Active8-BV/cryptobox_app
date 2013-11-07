@@ -200,6 +200,7 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
         payload = {"foldername": foldername}
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
 
+
     serverindex, memory = get_server_index(memory, options)
     return serverindex, memory
 
@@ -267,7 +268,8 @@ def dirs_on_server(memory, options, unique_dirs_server):
     @type unique_dirs_server: set
     @rtype: list, Memory
     """
-    local_folders_removed = [np for np in [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server] if not os.path.exists(np)]
+    absolute_unique_dirs_server = [os.path.join(options.dir, np.lstrip(os.path.sep)) for np in unique_dirs_server]
+    local_folders_removed = [np for np in absolute_unique_dirs_server if not os.path.exists(np)]
     dirs_del_server = []
     dirs_make_local = []
 
@@ -275,20 +277,14 @@ def dirs_on_server(memory, options, unique_dirs_server):
 
     if memory.has("localpath_history"):
         local_path_history = memory.get("localpath_history")
+        # absolute paths
         local_path_history_disk = [os.path.join(options.dir, x[0].lstrip(os.sep)) for x in local_path_history]
-        local_path_history_disk_folders = [x for x in local_path_history_disk if os.path.isdir(x)]
-        local_path_history_disk_file_folders = [os.path.dirname(x) for x in local_path_history_disk if not os.path.isdir(x)]
-        local_path_history_disk_folders.extend(local_path_history_disk_file_folders)
-        local_path_history_disk_folders = tuple(set(local_path_history_disk_folders))
-        local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk_folders]
+        # filter out folders previously seen
+        local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
         if len(local_folders_removed) == 0:
-            local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
-
-            if len(local_folders_removed) == 0:
-
-                # first run
-                dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk_folders and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
+            # first run
+            dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
 
     else:
         local_folders_removed = []
@@ -550,7 +546,7 @@ def get_server_index(memory, options):
 
     if not memory.get("authorized"):
         raise NotAuthorized("get_server_index")
-
+    wait_for_tasks(memory, options)
     tree_seq = get_tree_sequence(memory, options)
     memory.replace("tree_seq", tree_seq)
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
