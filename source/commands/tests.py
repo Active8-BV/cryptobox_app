@@ -30,12 +30,11 @@ from cba_sync import get_server_index, \
     get_sync_changes, \
     short_id_to_server_path, \
     NoSyncDirFound
-from cba_file import ensure_directory
+from cba_file import ensure_directory, \
+    make_cryptogit_hash
 from cba_crypto import make_checksum, \
     encrypt_file_smp, \
     decrypt_file_smp
-
-
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -69,7 +68,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:72", p
+    print "tests.py:71", p
 
 
 def count_files_dir(fpath):
@@ -90,7 +89,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:93", "progress", p
+    print "tests.py:92", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -139,7 +138,6 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
-
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         if self.start_servers:
@@ -681,6 +679,9 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
     def test_remove_directory(self):
+        """
+        test_remove_directory
+        """
         self.do_wait_for_tasks = False
         self.reset_cb_dir()
         self.reset_cb_db_clean()
@@ -689,6 +690,17 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/test/smalltest")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 1)
+        self.assertEqual(len(file_del_server), 0)
+
+    def test_hash(self):
+        """
+        test_hash
+        """
+        fpath = "testdata/1MB.zip"
+        localindex = {"filestats": {}}
+        fd, localindex = make_cryptogit_hash(fpath, self.cboptions.dir, localindex)
+        self.assertEqual(fd["filehash"], "5883e5acf7dd7f7c7b8936aa4300ca124aa0f0a5")
+
 
 if __name__ == '__main__':
     unittest.main()

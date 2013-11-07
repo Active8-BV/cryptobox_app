@@ -108,6 +108,7 @@ def encrypt_file_smp(secret, fname, progress_callback):
     else:
         fobj = fname
 
+    return fobj.read()
     two_mb = (2 * (2 ** 20))
     chunklist = []
     chunk = fobj.read(two_mb)
