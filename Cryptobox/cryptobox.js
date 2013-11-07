@@ -243,6 +243,7 @@ run_cba_main = function(name, options, cb, cb_stdout) {
     if (String(data).indexOf("error_message") >= 0) {
       error = JSON.parse(data);
       g_error_message = error.error_message;
+      add_output(g_error_message);
     }
     if (cb_stdout != null) {
       if (String(data).indexOf("\n") >= 0) {
@@ -272,7 +273,7 @@ run_cba_main = function(name, options, cb, cb_stdout) {
     defer_callback = function() {
       var errorm;
       if (already_running(output)) {
-        print("cryptobox.cf:195", "already running");
+        print("cryptobox.cf:196", "already running");
         return cb(false, output);
       } else {
         if (_.size(error) > 0) {
@@ -373,7 +374,7 @@ set_user_var_scope = function(name, scope_name, scope, $q) {
     }
     return p.resolve();
   }, function(err) {
-    warning("cryptobox.cf:279", err);
+    warning("cryptobox.cf:280", err);
     return p.reject(err);
   });
   return p.promise;
@@ -475,8 +476,8 @@ update_sync_state = function(scope) {
         }
       } catch (_error) {
         ex = _error;
-        print("cryptobox.cf:377", ex);
-        print("cryptobox.cf:378", output);
+        print("cryptobox.cf:378", ex);
+        print("cryptobox.cf:379", output);
       }
     }
     return result;
@@ -494,7 +495,7 @@ start_watch = function(scope) {
         scope.file_watch_started = true;
         return watch(watch_path, function(f) {
           if (!String(f).contains("memory.pickle")) {
-            print("cryptobox.cf:395", "filechange", f);
+            print("cryptobox.cf:396", "filechange", f);
             return scope.request_update_sync_state = true;
           }
         });
@@ -661,16 +662,26 @@ g_progress_callback = function(scope, output) {
     }
   } catch (_error) {
     err = _error;
-    print("cryptobox.cf:542", "error");
-    print("cryptobox.cf:543", stored_output);
-    return print("cryptobox.cf:544", err);
+    print("cryptobox.cf:543", "error");
+    print("cryptobox.cf:544", stored_output);
+    return print("cryptobox.cf:545", err);
   }
 };
 
 reset_bars_timer = null;
 
 reset_bars = function(scope) {
-  var now;
+  var now, reset_progress_bar_item;
+  if (scope.progress_bar_item >= 100) {
+    reset_progress_bar_item = function() {
+      if (scope.progress_bar > 0) {
+        if (scope.progress_bar_item >= 100) {
+          return scope.progress_bar_item = 0;
+        }
+      }
+    };
+    setTimeout(reset_progress_bar_item, 300);
+  }
   if (reset_bars_timer == null) {
     if (scope.progress_bar >= 100 && (scope.progress_bar_item >= 100 || scope.progress_bar_item === 0)) {
       return reset_bars_timer = new Date().getTime();
@@ -769,7 +780,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   };
   do_sync = function() {
     var option, sync_cb;
-    print("cryptobox.cf:641", "start sync");
+    print("cryptobox.cf:651", "start sync");
     $scope.disable_sync_button = true;
     option = get_option($scope);
     option.encrypt = true;
@@ -780,7 +791,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_sync_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:653", "sync ok");
+        print("cryptobox.cf:663", "sync ok");
         $scope.state_syncing = false;
         $scope.disable_sync_button = false;
         $scope.disable_encrypt_button = false;
@@ -801,7 +812,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_sync_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:672", "encrypted");
+        print("cryptobox.cf:682", "encrypted");
         $scope.request_update_sync_state = true;
         $scope.progress_bar = 100;
         return $scope.progress_bar_item = 100;
@@ -817,7 +828,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_decrypt_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:686", "decrypted");
+        print("cryptobox.cf:696", "decrypted");
         $scope.disable_sync_button = true;
         $scope.request_update_sync_state = true;
         $scope.progress_bar = 100;
@@ -831,7 +842,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option = get_option($scope);
     option.acommand = "open_folder";
     open_cb = function(result, output) {
-      return print("cryptobox.cf:698", result, output);
+      return print("cryptobox.cf:708", result, output);
     };
     return run_cba_main("open_folder", option, open_cb);
   };
@@ -841,7 +852,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option.encrypt = true;
     option.clear = true;
     clear_cb = function(result, output) {
-      return print("cryptobox.cf:707", result, output);
+      return print("cryptobox.cf:717", result, output);
     };
     return run_cba_main("reset_cache", option, clear_cb, progress_callback);
   };
@@ -860,22 +871,14 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     update_sync_state($scope);
     return start_watch($scope);
   }, function(err) {
-    print("cryptobox.cf:727", err);
+    print("cryptobox.cf:737", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);
   once_motivation($scope);
   set_menus_and_g_tray_icon($scope);
   digester = function() {
-    var make_stream, output_msg, reset_progress_bar_item;
-    if ($scope.progress_bar_item >= 100) {
-      reset_progress_bar_item = function() {
-        if ($scope.progress_bar_item >= 100) {
-          return $scope.progress_bar_item = 0;
-        }
-      };
-      setTimeout(reset_progress_bar_item, 300);
-    }
+    var make_stream, output_msg;
     output_msg = "";
     make_stream = function(msg) {
       return output_msg += msg + "\n";

@@ -114,7 +114,9 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
             if results_cnt[0] == 1 and perc == 100:
                 pass
             else:
-                if now - last_update[0] > 0.01:
+                if now - last_update[0] > 0.1:
+                    if perc > 100:
+                        perc = 100
                     progress_callback(perc)
                     last_update[0] = now
 
@@ -238,7 +240,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:241", arg
+    print "cba_utils.py:243", arg
     sys.exit(1)
 
 
@@ -270,10 +272,8 @@ def error_prefix():
 
 
 #noinspection PyUnresolvedReferences
-def handle_exception(exc, again=True, ret_err=False):
+def handle_exception(again=True, ret_err=False):
     """
-    @param exc: Exception
-    @type exc:
     @param again: bool
     @type again:
     @param ret_err: bool
@@ -289,9 +289,9 @@ def handle_exception(exc, again=True, ret_err=False):
     error += error_prefix() + "   !!! EXCEPTION !!!\n"
     error += error_prefix() + " ---------------------------\n"
     error += error_prefix() + " " + str(exc_type) + "\n"
-    error += error_prefix() + " " + str(exc) + "\n"
+    error += error_prefix() + " " + str(exc_value) + "\n"
     error += error_prefix() + " ---------------------------\n"
-    stack = traceback.format_stack()
+    stack = traceback.format_exception(exc_type, exc_value, exc_traceback)
     stack.reverse()
 
     for line in stack:
@@ -550,8 +550,8 @@ def update_item_progress(p):
     try:
         if 0 < int(p) <= 100:
             output_json({"item_progress": p})
-    except Exception, e:
-        handle_exception(e, False)
+    except Exception:
+        handle_exception(False)
 
 
 def update_progress(curr, total, msg):
@@ -604,11 +604,11 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:607", "json parse errror"
-                        print "cba_utils.py:608", jdata
+                        print "cba_utils.py:609", "json parse errror"
+                        print "cba_utils.py:610", jdata
 
-            except Exception, e:
-                handle_exception(e, False)
+            except Exception:
+                handle_exception(False)
             finally:
                 if str(fp).endswith(".cmd"):
                     if os.path.exists(fp):

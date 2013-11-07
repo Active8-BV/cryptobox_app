@@ -20,7 +20,8 @@ from cba_utils import output, \
     strcmp, \
     Dict2Obj, \
     Memory, \
-    open_folder
+    open_folder, \
+    handle_exception
 from cba_index import restore_hidden_config, \
     ensure_directory, \
     hide_config, \
@@ -339,11 +340,18 @@ def cryptobox_command(options):
 def main():
     #noinspection PyUnusedLocal
     (options, args) = add_options()
-    cryptobox_command(options)
+    try:
+        4 / 0
+        cryptobox_command(options)
+    except Exception:
+        exs = handle_exception(False, True)
+        output_json({"error_message": exs})
+        raise
 
 
 if strcmp(__name__, '__main__'):
     try:
+
 
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
