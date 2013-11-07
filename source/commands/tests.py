@@ -5,22 +5,43 @@ unit test for app commands
 __author__ = 'rabshakeh'
 import unittest
 import random
-from subprocess import Popen, PIPE
+from subprocess import Popen, \
+    PIPE
 import couchdb
 import requests
 from cba_main import cryptobox_command
 from cba_utils import *
-from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
-from cba_blobs import get_blob_dir, get_data_dir
+from cba_index import make_local_index, \
+    index_and_encrypt, \
+    reset_cryptobox_local, \
+    hide_config, \
+    restore_hidden_config, \
+    decrypt_and_build_filetree
+from cba_blobs import get_blob_dir, \
+    get_data_dir
 from cba_network import authorize_user
-from cba_sync import get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
+from cba_sync import get_server_index, \
+    parse_serverindex, \
+    instruct_server_to_delete_folders, \
+    dirs_on_local, \
+    path_to_server_shortid, \
+    wait_for_tasks, \
+    sync_server, \
+    get_sync_changes, \
+    short_id_to_server_path, \
+    NoSyncDirFound
 from cba_file import ensure_directory
-from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
+from cba_crypto import make_checksum, \
+    encrypt_file_smp, \
+    decrypt_file_smp
+
 
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
-from couchdb_api import MemcachedServer, CouchDBServer, sync_all_views
+from couchdb_api import MemcachedServer, \
+    CouchDBServer, \
+    sync_all_views
 
 #noinspection PyUnresolvedReferences
 import crypto_api
@@ -107,7 +128,17 @@ class CryptoboxAppTest(unittest.TestCase):
         self.django_running = self.wait_for_django_server(False)
         self.db_name = "test"
         server = "http://127.0.01:8000/"
-        self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata", "dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/test", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
+        self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata",
+                          "dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/test",
+                          "encrypt": True,
+                          "remove": False,
+                          "username": "rabshakeh",
+                          "password": "kjhfsd98",
+                          "cryptobox": self.db_name,
+                          "clear": False,
+                          "sync": False,
+                          "server": server,
+                          "numdownloadthreads": 12}
 
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
@@ -173,7 +204,6 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("cd testdata; cp testmap_synced.zip test.zip")
         os.system("cd testdata; unzip -o test.zip > /dev/null")
         os.system("rm testdata/test.zip")
-
         self.cbmemory.load(get_data_dir(self.cboptions))
 
     def reset_cb_db(self):
@@ -428,7 +458,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("date > testdata/test/all_types/date.txt")
         os.system("mkdir testdata/test/map3")
@@ -660,8 +689,6 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/test/smalltest")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 1)
-        self.assertEqual(len(file_del_server), 0)
-
 
 if __name__ == '__main__':
     unittest.main()
