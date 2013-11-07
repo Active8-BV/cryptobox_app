@@ -194,14 +194,15 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     """
     foldernames = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_make_server]
     for dir_name in foldernames:
-        add_server_path_history(memory, dir_name)
+        memory = add_path_history(dir_name, memory)
 
     for foldername in foldernames:
         payload = {"foldername": foldername}
         result, memory = on_server(memory, options, "docs/makefolder", payload=payload, session=memory.get("session"))
 
-
+    wait_for_tasks(memory, options)
     serverindex, memory = get_server_index(memory, options)
+
     return serverindex, memory
 
 
@@ -546,7 +547,7 @@ def get_server_index(memory, options):
 
     if not memory.get("authorized"):
         raise NotAuthorized("get_server_index")
-    wait_for_tasks(memory, options)
+
     tree_seq = get_tree_sequence(memory, options)
     memory.replace("tree_seq", tree_seq)
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
@@ -972,14 +973,13 @@ def sync_server(memory, options):
 
         for fpath in files_uploaded:
             memory = add_path_history(fpath, memory)
+            memory = add_path_history(os.path.dirname(fpath), memory)
 
     if len(file_del_local) > 0:
         memory = remove_local_paths(memory, file_del_local)
 
     file_del_server = possible_new_dirs_extend(file_del_server, memory)
     file_del_local = possible_new_dirs_extend(file_del_local, memory)
-    dir_del_server = possible_new_dirs_extend(dir_del_server, memory)
-    dir_del_local = possible_new_dirs_extend([x["dirname"] for x in dir_del_local], memory)
     for fpath in file_del_server:
         memory = del_path_history(fpath, memory)
 
