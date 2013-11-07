@@ -671,16 +671,13 @@ g_progress_callback = function(scope, output) {
 reset_bars_timer = null;
 
 reset_bars = function(scope) {
-  var now, reset_progress_bar_item;
+  var now;
   if (scope.progress_bar_item >= 100) {
-    reset_progress_bar_item = function() {
-      if (scope.progress_bar > 0) {
-        if (scope.progress_bar_item >= 100) {
-          return scope.progress_bar_item = 0;
-        }
+    if (scope.progress_bar > 0) {
+      if (scope.progress_bar_item >= 100) {
+        scope.progress_bar_item = 0;
       }
-    };
-    setTimeout(reset_progress_bar_item, 300);
+    }
   }
   if (reset_bars_timer == null) {
     if (scope.progress_bar >= 100 && (scope.progress_bar_item >= 100 || scope.progress_bar_item === 0)) {
@@ -780,7 +777,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   };
   do_sync = function() {
     var option, sync_cb;
-    print("cryptobox.cf:651", "start sync");
+    print("cryptobox.cf:647", "start sync");
     $scope.disable_sync_button = true;
     option = get_option($scope);
     option.encrypt = true;
@@ -791,7 +788,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_sync_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:663", "sync ok");
+        print("cryptobox.cf:659", "sync ok");
         $scope.state_syncing = false;
         $scope.disable_sync_button = false;
         $scope.disable_encrypt_button = false;
@@ -812,7 +809,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_sync_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:682", "encrypted");
+        print("cryptobox.cf:678", "encrypted");
         $scope.request_update_sync_state = true;
         $scope.progress_bar = 100;
         return $scope.progress_bar_item = 100;
@@ -828,7 +825,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_decrypt_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:696", "decrypted");
+        print("cryptobox.cf:692", "decrypted");
         $scope.disable_sync_button = true;
         $scope.request_update_sync_state = true;
         $scope.progress_bar = 100;
@@ -842,7 +839,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option = get_option($scope);
     option.acommand = "open_folder";
     open_cb = function(result, output) {
-      return print("cryptobox.cf:708", result, output);
+      return print("cryptobox.cf:704", result, output);
     };
     return run_cba_main("open_folder", option, open_cb);
   };
@@ -852,7 +849,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option.encrypt = true;
     option.clear = true;
     clear_cb = function(result, output) {
-      return print("cryptobox.cf:717", result, output);
+      return print("cryptobox.cf:713", result, output);
     };
     return run_cba_main("reset_cache", option, clear_cb, progress_callback);
   };
@@ -871,7 +868,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     update_sync_state($scope);
     return start_watch($scope);
   }, function(err) {
-    print("cryptobox.cf:737", err);
+    print("cryptobox.cf:733", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);

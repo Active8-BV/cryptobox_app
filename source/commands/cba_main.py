@@ -341,7 +341,6 @@ def main():
     #noinspection PyUnusedLocal
     (options, args) = add_options()
     try:
-        4 / 0
         cryptobox_command(options)
     except Exception:
         exs = handle_exception(False, True)
