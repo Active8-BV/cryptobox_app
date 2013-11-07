@@ -74,14 +74,12 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size"])
 
     for node in unique_nodes:
-
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
         update_item_progress(100)
         memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
         output_json({"file_downloads": file_nodes_left})
         downloaded_files_cnt += 1
-
     update_progress(downloaded_files_cnt, len(unique_nodes), "downloading done")
 
     for lp in local_paths:
@@ -355,7 +353,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:355", "waiting for tasks", num_tasks
+                            print "cba_sync.py:356", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -550,6 +548,9 @@ def get_server_index(memory, options):
     if not memory.has("session"):
         memory = authorize_user(memory, options)
 
+    if not memory.get("authorized"):
+        raise NotAuthorized("get_server_index")
+
     tree_seq = get_tree_sequence(memory, options)
     memory.replace("tree_seq", tree_seq)
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
@@ -692,7 +693,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:692", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:696", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -806,7 +807,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:806", "updating upload progress failed", str(exc)
+                print "cba_sync.py:810", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
