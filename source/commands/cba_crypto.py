@@ -9,7 +9,8 @@ from cStringIO import StringIO
 from Crypto import Random
 from Crypto.Hash import SHA, \
     SHA512
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, \
+    Blowfish
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import smp_all_cpu_apply, \
     update_item_progress
@@ -80,8 +81,11 @@ def encrypt_file_for_smp(secret, chunk):
     """
     Random.atfork()
     fin = StringIO(chunk)
-    initialization_vector = Random.new().read(AES.block_size)
-    cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+
+    #initialization_vector = Random.new().read(AES.block_size)
+    #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    initialization_vector = Random.new().read(Blowfish.block_size)
+    cipher = Blowfish.new(secret, Blowfish.MODE_CBC, initialization_vector)
     chunk = fin.read()
     data_hash = make_checksum(chunk)
     enc_data = cipher.encrypt(chunk)
@@ -108,7 +112,6 @@ def encrypt_file_smp(secret, fname, progress_callback):
     else:
         fobj = fname
 
-    return fobj.read()
     two_mb = (2 * (2 ** 20))
     chunklist = []
     chunk = fobj.read(two_mb)
@@ -138,10 +141,12 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
     if not secret:
         raise Exception("no secret in decrypt file")
 
-    if 16 != len(initialization_vector):
+    if 8 != len(initialization_vector):
         raise Exception("initialization_vector len is not 16")
 
-    cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    cipher = Blowfish.new(secret, Blowfish.MODE_CBC, initialization_vector)
+
+    #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     dec_data = cipher.decrypt(encrypted_data)
     calculated_hash = make_checksum(dec_data)
     if data_hash != calculated_hash:

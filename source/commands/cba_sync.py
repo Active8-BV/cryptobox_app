@@ -824,8 +824,8 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         #noinspection PyUnusedLocal
         result = urllib2.urlopen(request)
         return file_path
-    except Exception, e:
-        handle_exception(e, False)
+    except Exception:
+        handle_exception(False)
 
 
 def possible_new_dirs(file_path, memory):

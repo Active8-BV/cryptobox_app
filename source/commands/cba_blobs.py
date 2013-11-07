@@ -62,8 +62,8 @@ def decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret):
     try:
         fdir = os.path.join(blobdir, fhash[:2])
         return decrypt_write_file(localindex, fdir, fhash, secret)
-    except Exception, e:
-        handle_exception(e, False)
+    except Exception:
+        handle_exception(False)
 
 
 def have_blob(options, blob_hash):

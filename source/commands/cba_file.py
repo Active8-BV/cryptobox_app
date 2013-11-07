@@ -276,21 +276,15 @@ def in_local_path_history(memory, fpath):
     @type fpath: str, unicode
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
-    mtime_chash = get_mtime_and_content_hash(fpath)
+    inpath = False
 
-    if mtime_chash == (None, None):
-        inpath = False
+    if memory.has("localpath_history"):
+        collection = memory.get("localpath_history")
 
-        if memory.has("localpath_history"):
-            collection = memory.get("localpath_history")
-
-            for v in collection:
-                if relative_path == v[0]:
-                    inpath = True
-                    break
-
-    else:
-        inpath = memory.set_have_value("localpath_history", (relative_path, fpath, mtime_chash))
+        for v in collection:
+            if relative_path == v[0]:
+                inpath = True
+                break
 
     return inpath, memory
 
