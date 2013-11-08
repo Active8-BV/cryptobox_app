@@ -24,7 +24,7 @@ def ensure_directory(path):
 
 def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
     """
-    @type path: unicode
+    @type path: str
     @type data: str or unicode
     @type a_time: int
     @type m_time: int

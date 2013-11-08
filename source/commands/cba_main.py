@@ -129,7 +129,7 @@ def consoledict(*args):
             else:
                 dbs += " " + str(s)
 
-    print "cba_main.py:131", dbs
+    print "cba_main.py:132", dbs
 
 
 def delete_progress_file(fname):
@@ -162,14 +162,14 @@ def cryptobox_command(options):
 
     try:
         if options.acommand:
-            print "cba_main.py:164"
+            print "cba_main.py:165"
             if options.acommand == "open_folder":
                 if options.dir:
                     open_folder(os.path.join(options.dir, options.cryptobox))
                 else:
-                    print "cba_main.py:169", "no folder given(-f)"
+                    print "cba_main.py:170", "no folder given(-f)"
             else:
-                print "cba_main.py:171", "unknown command"
+                print "cba_main.py:172", "unknown command"
             return
 
         if options.motivation:
@@ -183,33 +183,33 @@ def cryptobox_command(options):
 
         if not options.check and not options.treeseq and not options.logout:
             if not options.encrypt and not options.decrypt:
-                print "cba_main.py:185", "No encrypt directive given (-e)"
+                print "cba_main.py:186", "No encrypt directive given (-e)"
                 return False
 
         if options.decrypt:
             if options.remove:
-                print "cba_main.py:190", "option remove (-r) cannot be used together with decrypt (dataloss)"
+                print "cba_main.py:191", "option remove (-r) cannot be used together with decrypt (dataloss)"
                 return False
 
             if options.sync:
-                print "cba_main.py:194", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:195", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
                 return False
 
             if options.check:
-                print "cba_main.py:198", "option check (-o) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:199", "option check (-o) cannot be used together with decrypt (hashmismatch)"
                 return False
 
         if not options.password:
-            print "cba_main.py:202", "No password given (-p or --password)"
+            print "cba_main.py:203", "No password given (-p or --password)"
             return False
 
         if options.username or options.cryptobox:
             if not options.username:
-                print "cba_main.py:207", "No username given (-u or --username)"
+                print "cba_main.py:208", "No username given (-u or --username)"
                 return False
 
             if not options.cryptobox:
-                print "cba_main.py:211", "No cryptobox given (-b or --cryptobox)"
+                print "cba_main.py:212", "No cryptobox given (-b or --cryptobox)"
                 return False
 
         if isinstance(options, dict):
@@ -226,11 +226,11 @@ def cryptobox_command(options):
         options.numdownloadthreads = 8
 
         if not options.dir:
-            print "cba_main.py:228", "Need DIR -f or --dir to continue"
+            print "cba_main.py:229", "Need DIR -f or --dir to continue"
             return False
 
         if not options.cryptobox:
-            print "cba_main.py:232", "No cryptobox given -b or --cryptobox"
+            print "cba_main.py:233", "No cryptobox given -b or --cryptobox"
             return False
 
         options.basedir = options.dir
@@ -254,22 +254,22 @@ def cryptobox_command(options):
 
         ensure_directory(datadir)
         if not datadir:
-            print "cba_main.py:256", "datadir is None"
+            print "cba_main.py:257", "datadir is None"
 
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
-            print "cba_main.py:262", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:263", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:267", "No username given (-u or --username)"
+                print "cba_main.py:268", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:271", "No password given (-p or --password)"
+                print "cba_main.py:272", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -311,11 +311,11 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:313", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:314", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:317", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:318", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -340,21 +340,21 @@ def cryptobox_command(options):
 def main():
     #noinspection PyUnusedLocal
     (options, args) = add_options()
+
     try:
         cryptobox_command(options)
     except Exception:
         exs = handle_exception(False, True)
         output_json({"error_message": exs})
-        raise
 
+        raise
 
 if strcmp(__name__, '__main__'):
     try:
-
 
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:353", "\nbye main"
+        print "cba_main.py:360", "\nbye main"

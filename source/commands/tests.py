@@ -212,14 +212,6 @@ class CryptoboxAppTest(unittest.TestCase):
         reset_cb_db_clean
         """
         server = "http://127.0.0.1:5984/"
-
-
-        if self.db_name in list(couchdb.Server(server)):
-            couchdb.Server(server).delete(self.db_name)
-
-        if self.db_name not in list(couchdb.Server(server)):
-            couchdb.Server(server).create(self.db_name)
-
         os.system("rm -Rf testdata/test")
         os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
