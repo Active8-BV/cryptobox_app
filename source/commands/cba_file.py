@@ -7,9 +7,9 @@ from cba_utils import strcmp, \
     pickle_object, \
     unpickle_object, \
     update_item_progress, \
-    output_json, \
-    make_sha1_hash_utils
+    output_json
 from cba_crypto import make_sha1_hash, \
+    make_sha1_hash_file, \
     decrypt_file_smp, \
     encrypt_file_smp
 
@@ -133,7 +133,6 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     file_blob = {"data": decrypt_file_smp(secret,
                  blob_enc,
                  update_item_progress).read()}
-
     paths = []
 
     for dirhash in localindex["dirnames"]:
@@ -161,8 +160,8 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @type localindex: dict
     @return: @rtype:
     """
-    file_dict = read_file_to_fdict(fpath, read_data=True)
-    filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
+    file_dict = read_file_to_fdict(fpath)
+    filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath)
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
     filedata = {"filehash": filehash,
@@ -170,7 +169,6 @@ def make_cryptogit_hash(fpath, datadir, localindex):
                 "blobpath": blobpath,
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
-
     del file_dict["data"]
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
@@ -209,7 +207,7 @@ def have_serverhash(memory, node_path):
     @type node_path: str, unicode
     """
     node_path_relative = path_to_relative_path_unix_style(memory, node_path)
-    return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash_utils(node_path_relative))), memory
+    return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash(node_path_relative))), memory
 
 
 def in_server_path_history(memory, relative_path_name):
@@ -230,7 +228,7 @@ def add_server_path_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
-    memory.set_add_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
+    memory.set_add_value("serverpath_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
     return memory
 
 
@@ -242,8 +240,8 @@ def del_serverhash(memory, relative_path_name):
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
 
-    if memory.set_have_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style))):
-        memory.set_delete_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_utils(relative_path_unix_style)))
+    if memory.set_have_value("serverpath_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style))):
+        memory.set_delete_value("serverpath_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
     return memory
 
 
@@ -293,7 +291,6 @@ def del_local_path_history(memory, fpath):
     """
     @type memory: Memory
     del_local_path_history
-    @type relative_path_name: str, unicode
     """
     relative_path = path_to_relative_path_unix_style(memory, fpath)
 

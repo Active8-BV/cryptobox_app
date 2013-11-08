@@ -674,15 +674,13 @@ def diff_files_locally(memory, options, localindex, serverindex):
 
             else:
                 # is it changed?
-                if len(corresponding_server_nodes) == 0:
-                    raise Exception("impossible, we should have seen the file before")
+                if len(corresponding_server_nodes) != 0:
+                    filestats = read_file_to_fdict(local_path)
 
-                filestats = read_file_to_fdict(local_path)
-
-                if filestats["st_ctime"] > corresponding_server_nodes[0]["content_hash_latest_timestamp"][1]:
-                    filedata, localindex = make_cryptogit_hash(local_path, options.dir, localindex)
-                    if filedata["filehash"] != corresponding_server_nodes[0]["content_hash_latest_timestamp"][0]:
-                        file_uploads.append(upload_file_object)
+                    if filestats["st_ctime"] > corresponding_server_nodes[0]["content_hash_latest_timestamp"][1]:
+                        filedata, localindex = make_cryptogit_hash(local_path, options.dir, localindex)
+                        if filedata["filehash"] != corresponding_server_nodes[0]["content_hash_latest_timestamp"][0]:
+                            file_uploads.append(upload_file_object)
 
     file_del_local = []
     server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
@@ -702,7 +700,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:705", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:703", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -791,6 +789,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
 
     """
 
+    #noinspection PyBroadException
     try:
         if not session:
             raise NotAuthorized("trying to upload without a session")
@@ -816,7 +815,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:819", "updating upload progress failed", str(exc)
+                print "cba_sync.py:818", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -828,6 +827,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
+
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)

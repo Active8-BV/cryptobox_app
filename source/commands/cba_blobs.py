@@ -59,6 +59,7 @@ def decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret):
     @type secret:
     """
 
+    #noinspection PyBroadException
     try:
         fdir = os.path.join(blobdir, fhash[:2])
         return decrypt_write_file(localindex, fdir, fhash, secret)

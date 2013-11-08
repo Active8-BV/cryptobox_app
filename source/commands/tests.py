@@ -7,7 +7,6 @@ import unittest
 import random
 from subprocess import Popen, \
     PIPE
-import couchdb
 import requests
 from cba_main import cryptobox_command
 from cba_utils import *
@@ -70,7 +69,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:73", p
+    print "tests.py:72", p
 
 
 def count_files_dir(fpath):
@@ -91,7 +90,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:94", "progress", p
+    print "tests.py:93", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -216,7 +215,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
-        dbase = CouchDBServer(self.db_name, ["http://127.0.0.1:5984/"], memcached_server_list=["127.0.0.1:11211"])
+        dbase = CouchDBServer(self.db_name, [server], memcached_server_list=["127.0.0.1:11211"])
         sync_all_views(dbase, ["couchdb_api", "crypto_api"])
         time.sleep(0.5)
 
