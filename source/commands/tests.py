@@ -350,7 +350,7 @@ class CryptoboxAppTest(unittest.TestCase):
         if encrypt:
             self.reset_cb_dir()
             self.unzip_testfiles_synced()
-            os.system("cp testdata/20MB.zip testdata/test")
+            os.system("cp testdata/1GB.zip testdata/test")
             self.do_wait_for_tasks = False
             self.cboptions.remove = True
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
