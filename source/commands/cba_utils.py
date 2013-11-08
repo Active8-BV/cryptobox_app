@@ -23,6 +23,9 @@ def open_folder(path):
     """
     :param path:
     """
+    if not os.path.exists(path):
+        output_json({"error_message": "folder does not exist"})
+        return
     if sys.platform == 'darwin':
         subprocess.check_call(['open', '--', path])
     elif sys.platform == 'linux2':

@@ -7,13 +7,10 @@ import cPickle
 import zlib
 from cStringIO import StringIO
 from Crypto import Random
-from Crypto.Hash import SHA, \
-    SHA512
-from Crypto.Cipher import AES, \
-    XOR
+from Crypto.Hash import SHA, SHA512
+from Crypto.Cipher import AES, XOR
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import smp_all_cpu_apply, \
-    update_item_progress
+from cba_utils import smp_all_cpu_apply, update_item_progress
 
 
 def make_sha1_hash(data):
@@ -26,20 +23,37 @@ def make_sha1_hash(data):
     return sha.hexdigest()
 
 
+def make_checksum(data):
+    """
+    @type data: str, unicode
+    @rtype: str, unicode
+    """
+
+    try:
+        crc = base64.encodestring(str(zlib.adler32(data)))
+        return crc.strip().rstrip("=")
+    except OverflowError:
+        return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
+
+
 def make_sha1_hash_file(prefix, fpath):
     """ make hash
     @type prefix: str
     @type fpath: str
     """
+
     sha = SHA.new()
     sha.update(prefix)
     fp = open(fpath)
-    two_mb = (2 * (2 ** 20))
-    chunk = fp.read(two_mb)
-
+    one_mb = (1 * (2 ** 20))
+    chunksize = one_mb / 2
+    chunk = fp.read(chunksize)
+    crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
+    sha.update(crc)
     while chunk:
-        sha.update(chunk)
-        chunk = fp.read(two_mb)
+        crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
+        sha.update(crc)
+        chunk = fp.read(chunksize)
 
     return sha.hexdigest()
 
@@ -107,9 +121,7 @@ def encrypt_file_for_smp(secret, chunk):
     chunk = fin.read()
     enc_data = cipher.encrypt(chunk)
     data_hash = make_checksum(chunk)
-    return {"initialization_vector": initialization_vector,
-            "enc_data": enc_data,
-            "data_hash": data_hash}
+    return {"initialization_vector": initialization_vector, "enc_data": enc_data, "data_hash": data_hash}
 
 
 def progress_file_cryption(p):
