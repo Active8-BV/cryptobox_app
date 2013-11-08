@@ -162,7 +162,6 @@ def cryptobox_command(options):
 
     try:
         if options.acommand:
-            print "cba_main.py:165"
             if options.acommand == "open_folder":
                 if options.dir:
                     open_folder(os.path.join(options.dir, options.cryptobox))
