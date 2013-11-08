@@ -93,7 +93,7 @@ def encrypt_file_for_smp(secret, chunk):
     padding = [plen] * plen
     padding = pack('b' * plen, *padding)
     enc_data = cipher.encrypt(chunk+padding)
-    data_hash = make_checksum(chunk+padding)
+    data_hash = make_checksum(chunk)
     return {"initialization_vector": initialization_vector,
             "enc_data": enc_data,
             "data_hash": data_hash}
@@ -152,7 +152,7 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
     cipher = Blowfish.new(secret, Blowfish.MODE_CBC, initialization_vector)
 
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
-    dec_data = cipher.decrypt(encrypted_data)
+    dec_data = cipher.decrypt(encrypted_data).strip("\b")
     calculated_hash = make_checksum(dec_data)
     if data_hash != calculated_hash:
         raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
