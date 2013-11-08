@@ -9,11 +9,11 @@ from cStringIO import StringIO
 from Crypto import Random
 from Crypto.Hash import SHA, \
     SHA512
-from Crypto.Cipher import AES, XOR
+from Crypto.Cipher import AES, \
+    XOR
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import smp_all_cpu_apply, \
     update_item_progress
-from struct import pack
 
 
 def make_sha1_hash(data):
@@ -23,6 +23,24 @@ def make_sha1_hash(data):
     """
     sha = SHA.new()
     sha.update(data)
+    return sha.hexdigest()
+
+
+def make_sha1_hash_file(prefix, fpath):
+    """ make hash
+    @type prefix: str
+    @type fpath: str
+    """
+    sha = SHA.new()
+    sha.update(prefix)
+    fp = open(fpath)
+    two_mb = (2 * (2 ** 20))
+    chunk = fp.read(two_mb)
+
+    while chunk:
+        sha.update(chunk)
+        chunk = fp.read(two_mb)
+
     return sha.hexdigest()
 
 
@@ -81,9 +99,9 @@ def encrypt_file_for_smp(secret, chunk):
     """
     Random.atfork()
     fin = StringIO(chunk)
-
     initialization_vector = Random.new().read(AES.block_size)
-    liv = len(initialization_vector)
+
+    #liv = len(initialization_vector)
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     cipher = XOR.new(secret)
     chunk = fin.read()
@@ -104,10 +122,10 @@ def progress_file_cryption(p):
 def encrypt_file_smp(secret, fname, progress_callback):
     """
     @type secret: str, unicode
-    @type fname: str, unicode
+    @type fname: str, StringIO
     @type progress_callback: function
     """
-    if isinstance(fname, str) or isinstance(fname, unicode):
+    if isinstance(fname, str):
         fobj = open(fname)
     else:
         fobj = fname
@@ -147,7 +165,6 @@ def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vecto
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     cipher = XOR.new(secret)
     dec_data = cipher.decrypt(encrypted_data)
-
     calculated_hash = make_checksum(dec_data)
     if data_hash != calculated_hash:
         raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")

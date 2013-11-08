@@ -13,7 +13,6 @@ import cPickle
 import json
 import subprocess
 import jsonpickle
-from Crypto.Hash import SHA
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -30,16 +29,6 @@ def open_folder(path):
         subprocess.check_call(['gnome-open', '--', path])
     elif sys.platform == 'windows':
         subprocess.check_call(['explorer', path])
-
-
-def make_sha1_hash_utils(data):
-    """ make hash
-    @param data:
-    @type data:
-    """
-    sha = SHA.new()
-    sha.update(data)
-    return sha.hexdigest()
 
 
 def json_object(path, targetobject):
@@ -240,7 +229,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:243", arg
+    print "cba_utils.py:232", arg
     sys.exit(1)
 
 
@@ -547,6 +536,7 @@ def update_item_progress(p):
     @type p:int
     """
 
+    #noinspection PyBroadException
     try:
         if 0 < int(p) <= 100:
             output_json({"item_progress": p})
@@ -588,6 +578,7 @@ def check_command_folder(command_folder):
         fp = os.path.join(command_folder, fp)
 
         if os.path.exists(fp):
+            #noinspection PyBroadException
             try:
                 if str(fp).endswith(".cmd"):
                     fin = open(fp)
@@ -604,8 +595,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:607", "json parse errror"
-                        print "cba_utils.py:608", jdata
+                        print "cba_utils.py:598", "json parse errror"
+                        print "cba_utils.py:599", jdata
 
             except Exception:
                 handle_exception(False)
