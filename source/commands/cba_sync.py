@@ -39,7 +39,8 @@ from cba_file import ensure_directory, \
     del_server_path_history, \
     del_local_path_history, \
     path_to_relative_path_unix_style, \
-    make_cryptogit_hash
+    make_cryptogit_hash, \
+    read_file_to_fdict
 from cba_crypto import make_sha1_hash
 from cba_file import write_file, \
     read_file
@@ -350,7 +351,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:353", "waiting for tasks", num_tasks
+                            print "cba_sync.py:354", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -653,15 +654,14 @@ def diff_files_locally(memory, options, localindex, serverindex):
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
+            upload_file_object = {"local_path": local_path,
+                                  "parent_short_id": None,
+                                  "rel_path": local_path.replace(options.dir,
+                                  "")}
+
+            corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
             if not seen_local_path_before:
-                upload_file_object = {"local_path": local_path,
-                                      "parent_short_id": None,
-                                      "rel_path": local_path.replace(options.dir,
-                                      "")}
-
-                corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
-
                 if len(corresponding_server_nodes) == 0:
                     file_uploads.append(upload_file_object)
                 else:
@@ -671,6 +671,18 @@ def diff_files_locally(memory, options, localindex, serverindex):
                         file_uploads.append(upload_file_object)
                     else:
                         memory = add_local_path_history(memory, upload_file_object["local_path"])
+
+            else:
+                # is it changed?
+                if len(corresponding_server_nodes) == 0:
+                    raise Exception("impossible, we should have seen the file before")
+
+                filestats = read_file_to_fdict(local_path)
+
+                if filestats["st_ctime"] > corresponding_server_nodes[0]["content_hash_latest_timestamp"][1]:
+                    filedata, localindex = make_cryptogit_hash(local_path, options.dir, localindex)
+                    if filedata["filehash"] != corresponding_server_nodes[0]["content_hash_latest_timestamp"][0]:
+                        file_uploads.append(upload_file_object)
 
     file_del_local = []
     server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
@@ -690,7 +702,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:693", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:705", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -804,7 +816,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:807", "updating upload progress failed", str(exc)
+                print "cba_sync.py:819", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -816,7 +828,6 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
-
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)

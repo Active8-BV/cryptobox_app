@@ -14,8 +14,8 @@ from Crypto.Cipher import AES, \
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import smp_all_cpu_apply, \
     update_item_progress
-
 from struct import pack
+
 
 def make_sha1_hash(data):
     """ make hash
@@ -83,12 +83,12 @@ def encrypt_file_for_smp(secret, chunk):
     Random.atfork()
     fin = StringIO(chunk)
     bs = Blowfish.block_size
+
     #initialization_vector = Random.new().read(AES.block_size)
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     initialization_vector = Random.new().read(Blowfish.block_size)
     cipher = Blowfish.new(secret, Blowfish.MODE_CBC, initialization_vector)
     chunk = fin.read()
-
     plen = bs - divmod(len(chunk), bs)[1]
     padding = [plen] * plen
     padding = pack('b' * plen, *padding)
