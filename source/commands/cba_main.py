@@ -174,7 +174,7 @@ def cryptobox_command(options):
         if options.motivation:
             qlist = cPickle.load(open("quotes.list"))
             q = qlist[random.randint(0, len(qlist)) - 1]
-            output(q[0] + "\n\n- " + q[1])
+            output_json({"motivation":q[0] + "\n\n- " + q[1]})
             return
 
         #noinspection PyUnusedLocal
