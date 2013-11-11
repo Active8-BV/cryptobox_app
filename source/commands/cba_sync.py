@@ -426,19 +426,16 @@ class NoParentFound(Exception):
     pass
 
 
-def path_to_server_parent_guid(memory, options, serverindex, path):
+def path_to_server_guid(memory, options, serverindex, parent_path):
     """
     @type memory: Memory
     @param options:
     @type options:
-    @param path:
-    @type path:
+    @type parent_path:
     @type serverindex: dict
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
-    parent_path = path.replace(options.dir, "")
-    parent_path = os.path.dirname(parent_path)
     result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
 
     if len(result) > 1:
@@ -463,7 +460,7 @@ def path_to_server_parent_guid(memory, options, serverindex, path):
     if not shortid:
         raise NoParentFound(parent_path)
 
-    return shortid, parent_path, memory
+    return shortid, memory
 
 
 class MultiplePathsForSID(Exception):
@@ -882,9 +879,22 @@ def upload_files(memory, options, serverindex, file_uploads):
     @type serverindex: dict
     @type file_uploads: list
     """
+    path_guid_cache = {}
+
+    cnt = 0
     for uf in file_uploads:
         try:
-            uf["parent_short_id"], uf["parent_path"], memory = path_to_server_parent_guid(memory, options, serverindex, uf["local_path"])
+            parent_path = uf["local_path"].replace(options.dir, "")
+            parent_path = os.path.dirname(parent_path)
+
+            uf["parent_path"] = parent_path
+            if parent_path in path_guid_cache:
+                uf["parent_short_id"] = path_guid_cache[parent_path]
+            else:
+                uf["parent_short_id"], memory = path_to_server_guid(memory, options, serverindex, parent_path)
+                path_guid_cache[parent_path] = uf["parent_short_id"]
+                update_progress(cnt, len(file_uploads), "checking path " + parent_path)
+            cnt += 1
         except NoParentFound:
             uf["parent_short_id"] = uf["parent_path"] = ""
 
