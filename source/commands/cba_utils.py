@@ -12,9 +12,11 @@ import uuid as _uu
 import cPickle
 import json
 import subprocess
-import jsonpickle
 import base64
 import urllib
+
+import jsonpickle
+
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -272,7 +274,6 @@ def error_prefix():
     """
     return ">"
 
-
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
     """
@@ -283,6 +284,7 @@ def handle_exception(again=True, ret_err=False):
     """
     import sys
     import traceback
+
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -303,6 +305,7 @@ def handle_exception(again=True, ret_err=False):
         return error
     else:
         import sys
+
         sys.stderr.write(str(error))
 
     if again:
@@ -658,6 +661,7 @@ def get_b64mstyle():
     """
     return "data:b64encode:mstyle,"
 
+
 def key_ascii(s):
     """
     @param s:
@@ -674,6 +678,7 @@ def key_ascii(s):
             s2 += c
 
     return s2.encode("ascii")
+
 
 def b64_encode_mstyle(s):
     """
@@ -692,7 +697,9 @@ def b64_encode_mstyle(s):
     except KeyError:
         s = key_ascii(s)
 
+
     s = base64.encodestring(s).replace("=", "-").replace("\n", "")
     s = b64mstyle + s
+
     return s
 

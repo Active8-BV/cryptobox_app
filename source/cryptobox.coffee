@@ -721,7 +721,12 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         run_cba_main("open_folder", option, open_cb)
 
     $scope.open_website = ->
-        gui.Shell.openExternal($scope.cb_server + $scope.cb_name)
+        option = get_option($scope)
+        option.acommand = "open_website"
+
+        open_cb = (result, output) ->
+            pass
+        run_cba_main("open_website", option, open_cb)
 
     $scope.toggle_settings = ->
         $scope.show_settings = !$scope.show_settings
@@ -736,7 +741,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             update_sync_state($scope)
 
         (err) ->
-            print "cryptobox.cf:739", err
+            print "cryptobox.cf:744", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
