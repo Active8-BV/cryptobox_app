@@ -732,6 +732,10 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.show_settings = !$scope.show_settings
         $scope.form_save()
 
+    $scope.toggle_debug = ->
+        $scope.show_debug = !$scope.show_debug
+        print "cryptobox.cf:737", $scope.show_debug
+
     $scope.clear_msg_buffer = ->
         g_output = []
         utils.force_digest($scope)
@@ -741,7 +745,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             update_sync_state($scope)
 
         (err) ->
-            print "cryptobox.cf:744", err
+            print "cryptobox.cf:748", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
@@ -757,6 +761,10 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.cmd_output = output_msg
         reset_bars($scope)
         $scope.error_message = g_error_message
+
+        if g_error_message?
+            $scope.subject_message_mail = String(g_error_message).split("> ---------------------------")[2].split(">")[3].trim()
+            $scope.error_message_mail = String(g_error_message).replace(/\n/g, "%0A")
 
         if $scope.sync_requested
             $scope.sync_requested = false
