@@ -900,12 +900,14 @@ def upload_files(memory, options, serverindex, file_uploads):
             uf["parent_short_id"] = uf["parent_path"] = ""
 
     files_uploaded = []
-
+    file_uploads_left = file_uploads
     for uf in file_uploads:
         update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading " + os.path.basename(uf["local_path"]))
         if os.path.exists(uf["local_path"]):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
+        file_uploads_left.remove(uf)
+        output_json({"file_uploads": file_uploads_left})
 
     return memory, files_uploaded
 
