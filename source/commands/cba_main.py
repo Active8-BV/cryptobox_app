@@ -167,7 +167,8 @@ def cryptobox_command(options):
                 encoded_password = b64_encode_mstyle(options.password)
                 m = Memory()
                 m = authorize_user(m, options, force=True)
-                encoded_token = b64_encode_mstyle(m.get("session").cookies.get("c_token"))
+                encoded_token = b64_encode_mstyle("session_token:" + m.get("session_token"))
+
 
                 webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token)
                 #webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_password)
