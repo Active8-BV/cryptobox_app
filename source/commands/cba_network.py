@@ -282,6 +282,7 @@ def authorize(memory, options):
         results["cryptobox"] = options.cryptobox
         results["payload"] = payload
         memory.set("session_token", results["session_token"])
+        memory.set("private_key", results["private_key"])
         return session, results, memory
     else:
         raise PasswordException(options.username)
