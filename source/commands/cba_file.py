@@ -130,9 +130,8 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     @type secret:
     """
     blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
-    file_blob = {"data": decrypt_file_smp(secret,
-                 blob_enc,
-                 update_item_progress).read()}
+    data = decrypt_file_smp(secret, blob_enc, update_item_progress).read()
+    file_blob = {"data": data}
     paths = []
 
     for dirhash in localindex["dirnames"]:
@@ -169,6 +168,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
                 "blobpath": blobpath,
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
+
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
 

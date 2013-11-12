@@ -13,6 +13,8 @@ import cPickle
 import json
 import subprocess
 import jsonpickle
+import base64
+import urllib
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -24,8 +26,9 @@ def open_folder(path):
     :param path:
     """
     if not os.path.exists(path):
-        output_json({"error_message": "folder does not exist"})
+        output_json({"message": "folder does not exist"})
         return
+
     if sys.platform == 'darwin':
         subprocess.check_call(['open', '--', path])
     elif sys.platform == 'linux2':
@@ -81,6 +84,13 @@ def output_json(dict_obj):
     @type dict_obj: dict
     """
     output(json.dumps(dict_obj))
+
+
+def message_json(msg):
+    """
+    @type msg: str
+    """
+    output_json({"message": msg})
 
 
 def smp_all_cpu_apply(method, items, progress_callback=None):
@@ -232,7 +242,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:232", arg
+    print "cba_utils.py:243", arg
     sys.exit(1)
 
 
@@ -598,8 +608,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:598", "json parse errror"
-                        print "cba_utils.py:599", jdata
+                        print "cba_utils.py:609", "json parse errror"
+                        print "cba_utils.py:610", jdata
 
             except Exception:
                 handle_exception(False)
@@ -640,3 +650,49 @@ def add_command_result_to_folder(command_folder, data):
         raise Exception("no name in result object")
 
     open(os.path.join(command_folder, data["name"] + ".result"), "w").write(json.dumps(data))
+
+
+def get_b64mstyle():
+    """
+    @return: @rtype:
+    """
+    return "data:b64encode:mstyle,"
+
+def key_ascii(s):
+    """
+    @param s:
+    @type s:
+    @return: @rtype:
+    """
+    if not isinstance(s, str) and not isinstance(s, unicode):
+        return s
+
+    s2 = ""
+
+    for c in s:
+        if c in "_012345678909ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz":
+            s2 += c
+
+    return s2.encode("ascii")
+
+def b64_encode_mstyle(s):
+    """
+    @param s:
+    @type s:
+    @return: @rtype:
+    """
+    if not isinstance(s, str) and not isinstance(s, unicode):
+        return s
+
+    b64mstyle = get_b64mstyle()
+    if s.find(b64mstyle) != -1:
+        return s
+    try:
+        s = urllib.quote(s, safe='~()*!.\'')
+    except KeyError:
+        s = key_ascii(s)
+
+    s = base64.encodestring(s).replace("=", "-").replace("\n", "")
+    s = b64mstyle + s
+    return s
+

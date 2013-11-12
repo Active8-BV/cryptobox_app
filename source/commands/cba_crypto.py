@@ -7,10 +7,13 @@ import cPickle
 import zlib
 from cStringIO import StringIO
 from Crypto import Random
-from Crypto.Hash import SHA, SHA512
-from Crypto.Cipher import AES, XOR
+from Crypto.Hash import SHA, \
+    SHA512
+from Crypto.Cipher import AES, \
+    XOR
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import smp_all_cpu_apply, update_item_progress
+from cba_utils import smp_all_cpu_apply, \
+    update_item_progress
 
 
 def make_sha1_hash(data):
@@ -41,7 +44,6 @@ def make_sha1_hash_file(prefix, fpath):
     @type prefix: str
     @type fpath: str
     """
-
     sha = SHA.new()
     sha.update(prefix)
     fp = open(fpath)
@@ -50,6 +52,7 @@ def make_sha1_hash_file(prefix, fpath):
     chunk = fp.read(chunksize)
     crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
     sha.update(crc)
+
     while chunk:
         crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
         sha.update(crc)
@@ -121,7 +124,9 @@ def encrypt_file_for_smp(secret, chunk):
     chunk = fin.read()
     enc_data = cipher.encrypt(chunk)
     data_hash = make_checksum(chunk)
-    return {"initialization_vector": initialization_vector, "enc_data": enc_data, "data_hash": data_hash}
+    return {"initialization_vector": initialization_vector,
+            "enc_data": enc_data,
+            "data_hash": data_hash}
 
 
 def progress_file_cryption(p):
