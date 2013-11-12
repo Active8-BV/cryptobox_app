@@ -853,7 +853,13 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     return run_cba_main("open_folder", option, open_cb);
   };
   $scope.open_website = function() {
-    return gui.Shell.openExternal($scope.cb_server + $scope.cb_name);
+    var open_cb, option;
+    option = get_option($scope);
+    option.acommand = "open_website";
+    open_cb = function(result, output) {
+      return pass;
+    };
+    return run_cba_main("open_website", option, open_cb);
   };
   $scope.toggle_settings = function() {
     $scope.show_settings = !$scope.show_settings;
@@ -866,7 +872,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   set_data_user_config($scope, $q).then(function() {
     return update_sync_state($scope);
   }, function(err) {
-    print("cryptobox.cf:739", err);
+    print("cryptobox.cf:744", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);

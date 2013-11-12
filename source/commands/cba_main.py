@@ -165,8 +165,12 @@ def cryptobox_command(options):
                     message_json("cryptobox missing")
                     return
                 encoded_password = b64_encode_mstyle(options.password)
+                m = Memory()
+                m = authorize_user(m, options, force=True)
+                encoded_token = b64_encode_mstyle(m.get("session").cookies.get("c_token"))
 
-                webbrowser.open(options.server + options.cryptobox + "/autologin/" + options.username + "/" +encoded_password, new=0)
+                webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token)
+                #webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_password)
             else:
                 print "cba_main.py:185", "unknown command"
             return
