@@ -80,7 +80,7 @@
             <div class="btn-group btn-group pull-right">
                 <button type="button" class="btn btn-danger" ng-click="reset_cache()"><i class="fa fa-warning" style="margin-right: 4px"></i>reset</button>
                 <button type="button" class="btn btn-default" ng-click="open_website()"><i class="fa fa-external-link" style="margin-right: 4px"></i>website</button>
-                <button type="button" class="btn btn-default" ng-click="open_folder()"><i class="fa fa-folder-open" style="margin-right: 4px"></i>folder</button>
+                <button type="button" ng-disabled="disable_folder_button" class="btn btn-default" ng-click="open_folder()"><i class="fa fa-folder-open" style="margin-right: 4px"></i>folder</button>
             </div>
         </form>
     </div>

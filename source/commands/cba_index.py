@@ -224,7 +224,7 @@ def index_and_encrypt(memory, options):
     datadir = get_data_dir(options)
 
     if quick_lock_check(options):
-        print "cba_index.py:227", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+        output_json({"message": "cryptobox is locked, nothing can be added now first decrypt (-d)"})
         return None, None, memory, localindex
 
     salt = None
@@ -283,7 +283,7 @@ def index_and_encrypt(memory, options):
         for fname in ld:
             fpath = os.path.join(options.dir, fname)
             processed_files += 1
-            update_progress(processed_files, numfiles, "delete "+os.path.basename(fpath))
+            update_progress(processed_files, numfiles, "delete " + os.path.basename(fpath))
             if os.path.isdir(fpath):
                 shutil.rmtree(fpath, True)
             else:

@@ -306,8 +306,7 @@ def authorize_user(memory, options, force=False):
         memory.replace("session", session)
         memory.replace("authorized", True)
         return memory
-    except PasswordException, p:
-        print "cba_network.py:310", p, "not authorized"
+    except PasswordException:
         memory.replace("authorized", False)
         return memory
 
