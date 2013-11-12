@@ -118,9 +118,10 @@ parse_json = (data) ->
                 return JSON.parse(data)
 
     catch
-
-        #print "cryptobox.cf:121", "could not parse json", data
         pass
+
+        #print "cryptobox.cf:121", "could not parse json"
+        #print "cryptobox.cf:122", data
     return null
 
 
@@ -150,7 +151,7 @@ option_to_array = (name, option) ->
     cmd_str += " --username " + option.username if option.username?
     cmd_str += " --version " + option.version if option.version?
     cmd_str += " --server " + option.server if option.server?
-    print "cryptobox.cf:153", "python cba_main.py", cmd_str.trim()
+    print "cryptobox.cf:154", "python cba_main.py", cmd_str.trim()
     param_array = []
 
     push_param_array = (i) ->
@@ -177,33 +178,34 @@ run_cba_main = (name, options, cb, cb_stdout) ->
     g_cba_main = cba_main
     output = ""
     error = ""
+    buffereddata = ""
 
     stdout_data = (data) ->
-
         if String(data).indexOf("error_message") >= 0
             error = parse_json(data)
             g_error_message = error?.error_message
             add_output(g_error_message)
 
         if cb_stdout?
-            if String(data).indexOf("\n") >= 0
-                data = String(data).split("\n")
+            buffereddata += data
+            buffereddata = String(buffereddata).split("\n")
 
-                try_cb = (datachunk) ->
-                    if datachunk?
-                        if _.size(datachunk) > 0
-                            datachunk = parse_json(datachunk)
+            try_cb = (datachunk) ->
+                if datachunk?
+                    if _.size(datachunk) > 0
+                        datachunk = parse_json(datachunk)
 
-                            if datachunk?
-                                cb_stdout(datachunk)
+                        if datachunk?
+                            buffereddata = ""
+                            cb_stdout(datachunk)
 
-                _.each(data, try_cb)
-            else
-                data = parse_json(data)
+            _.each(buffereddata, try_cb)
 
-                if data?
-                    cb_stdout(data)
-
+            #pdata = parse_json(buffereddata)
+            #if pdata?
+            ##    print "cryptobox.cf:206", pdata
+            #    buffereddata = ""
+            #    cb_stdout(pdata)
         else
             output += data
     cba_main.stdout.on "data", stdout_data
@@ -247,7 +249,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record =
+        record = 
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -371,7 +373,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option =
+    option = 
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -428,7 +430,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = ($scope) ->
-    option =
+    option = 
         dir: $scope.cb_folder_text
         username: $scope.cb_username
         password: $scope.cb_password
@@ -519,7 +521,7 @@ set_menus_and_g_tray_icon = (scope) ->
 set_motivation = ($scope) ->
     motivation_cb = (result, output) ->
         if result
-            $scope.motivation = output.motivation.replace("\n", "<br/>")
+            $scope.motivation = output?.motivation.replace("\n", "<br/>")
 
     run_cba_main("motivation", {"motivation":true}, motivation_cb)
 
@@ -659,13 +661,14 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         g_progress_callback($scope, output)
 
     check_feedback_progress_callback = (output) ->
-        if output.file_uploads?
-            print "cryptobox.cf:665", output.file_uploads
+
+        #if output.file_uploads?
+        #    print "cryptobox.cf:666", output.file_uploads
         g_progress_callback($scope, output)
         set_sync_check_on_scope($scope, output)
 
     do_sync = ->
-        print "cryptobox.cf:670", "start sync"
+        print "cryptobox.cf:671", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -677,7 +680,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:682", "sync ok"
+                print "cryptobox.cf:683", "sync ok"
                 $scope.state_syncing = false
                 $scope.disable_sync_button = false
                 $scope.disable_encrypt_button = false
@@ -696,7 +699,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:701", "encrypted"
+                print "cryptobox.cf:702", "encrypted"
                 $scope.request_update_sync_state = true
                 $scope.progress_bar = 100
                 $scope.progress_bar_item = 100
@@ -710,7 +713,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:715", "decrypted"
+                print "cryptobox.cf:716", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
                 $scope.progress_bar = 100
@@ -739,7 +742,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.toggle_debug = ->
         $scope.show_debug = !$scope.show_debug
-        print "cryptobox.cf:744", $scope.show_debug
+        print "cryptobox.cf:745", $scope.show_debug
 
     $scope.clear_msg_buffer = ->
         g_output = []
@@ -750,7 +753,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             update_sync_state($scope)
 
         (err) ->
-            print "cryptobox.cf:755", err
+            print "cryptobox.cf:756", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
