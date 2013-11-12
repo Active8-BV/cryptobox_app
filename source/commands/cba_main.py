@@ -182,7 +182,6 @@ def cryptobox_command(options):
                     message_json("cryptobox missing")
                     return
 
-                encoded_password = b64_encode_mstyle(options.password)
                 m = Memory()
                 m = authorize_user(m, options, force=True)
                 encoded_token = b64_encode_mstyle("session_token:" + m.get("session_token"))
@@ -315,6 +314,7 @@ def cryptobox_command(options):
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+                    all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
                                   "file_uploads": file_uploads,
@@ -323,14 +323,7 @@ def cryptobox_command(options):
                                   "dir_make_server": dir_make_server,
                                   "dir_del_local": dir_del_local,
                                   "file_del_local": file_del_local,
-                                  "all_synced": all_item_zero_len([file_del_server,
-                                  file_downloads,
-                                  file_uploads,
-                                  dir_del_server,
-                                  dir_make_local,
-                                  dir_make_server,
-                                  dir_del_local,
-                                  file_del_local])}
+                                  "all_synced": all_synced}
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
