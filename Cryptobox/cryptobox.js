@@ -865,6 +865,10 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.show_settings = !$scope.show_settings;
     return $scope.form_save();
   };
+  $scope.toggle_debug = function() {
+    $scope.show_debug = !$scope.show_debug;
+    return print("cryptobox.cf:737", $scope.show_debug);
+  };
   $scope.clear_msg_buffer = function() {
     g_output = [];
     return utils.force_digest($scope);
@@ -872,7 +876,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   set_data_user_config($scope, $q).then(function() {
     return update_sync_state($scope);
   }, function(err) {
-    print("cryptobox.cf:744", err);
+    print("cryptobox.cf:748", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);
@@ -888,6 +892,10 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.cmd_output = output_msg;
     reset_bars($scope);
     $scope.error_message = g_error_message;
+    if (g_error_message != null) {
+      $scope.subject_message_mail = String(g_error_message).split("> ---------------------------")[2].split(">")[3].trim();
+      $scope.error_message_mail = String(g_error_message).replace(/\n/g, "%0A");
+    }
     if ($scope.sync_requested) {
       $scope.sync_requested = false;
       do_sync();
