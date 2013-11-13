@@ -169,6 +169,20 @@ def cryptobox_command(options):
                     open_folder(os.path.join(options.dir, options.cryptobox))
                 else:
                     print "cba_main.py:171", "no folder given(-f)"
+            elif options.acommand == "delete_blobs":
+                if not options.dir:
+                    message_json("dir mising")
+                    return
+                if not options.cryptobox:
+                    message_json("cryptobox mising")
+                    return
+                blobpath = os.path.join(options.dir, options.cryptobox)
+                blobpath = os.path.join(blobpath, ".cryptobox")
+                blobpath = os.path.join(blobpath, "blobs")
+                if os.path.exists(blobpath):
+                    shutil.rmtree(blobpath, True)
+                    message_json("encrypted cache emptied")
+                return
             elif options.acommand == "open_website":
                 if not options.username:
                     message_json("username mising")
@@ -184,9 +198,12 @@ def cryptobox_command(options):
 
                 m = Memory()
                 m = authorize_user(m, options, force=True)
-                encoded_token = b64_encode_mstyle("session_token:" + m.get("session_token"))
-                private_key = b64_encode_mstyle(m.get("private_key"))
-                webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token + "/" + private_key)
+                if m.get("authorized"):
+                    message_json("Username or password is not correct")
+                else:
+                    encoded_token = b64_encode_mstyle("session_token:" + m.get("session_token"))
+                    private_key = b64_encode_mstyle(m.get("private_key"))
+                    webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token + "/" + private_key)
             else:
                 print "cba_main.py:191", "unknown command"
             return
@@ -304,9 +321,9 @@ def cryptobox_command(options):
             return True
         elif options.password and options.username and options.cryptobox and (options.sync or options.check):
             memory = authorize_user(memory, options, force=True)
-
             if not memory.get("authorized"):
-                output_json({"message": "username of password incorrect"})
+                message_json("Username or password is not correct")
+                output_json({"instruction": "lock_buttons_password_wrong"})
                 return
 
             if memory.get("authorized"):
