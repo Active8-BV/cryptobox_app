@@ -526,7 +526,12 @@ def get_tree_sequence(memory, options):
     @type options: optparse.Values, instance
     """
     clock_tree_seq, memory = on_server(memory, options, "clock", {}, memory.get("session"))
-    return int(clock_tree_seq[1])
+
+    if clock_tree_seq:
+        if len(clock_tree_seq) > 1:
+            return int(clock_tree_seq[1])
+    else:
+        return None
 
 
 def get_server_index(memory, options):
@@ -547,7 +552,10 @@ def get_server_index(memory, options):
         raise NotAuthorized("get_server_index")
 
     tree_seq = get_tree_sequence(memory, options)
-    memory.replace("tree_seq", tree_seq)
+
+    if tree_seq:
+        memory.replace("tree_seq", tree_seq)
+
     result, memory = on_server(memory, options, "tree", payload={'listonly': True}, session=memory.get("session"))
     if not result[0]:
         if memory.has("authorized"):
@@ -697,7 +705,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:700", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:708", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -853,7 +861,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:856", "updating upload progress failed", str(exc)
+                print "cba_sync.py:864", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -865,6 +873,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
+
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -1003,7 +1012,7 @@ def sync_server(memory, options):
     # update seen server history files
     localindex = make_local_index(options)
     memory.replace("localindex", localindex)
-    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)

@@ -297,7 +297,10 @@ def cryptobox_command(options):
         elif options.treeseq:
             memory = authorize_user(memory, options)
             tree_seq = get_tree_sequence(memory, options)
-            output_json({"tree_seq": tree_seq})
+
+            if tree_seq:
+                output_json({"tree_seq": tree_seq})
+
             return True
         elif options.password and options.username and options.cryptobox and (options.sync or options.check):
             memory = authorize_user(memory, options, force=True)
@@ -313,7 +316,7 @@ def cryptobox_command(options):
                     ensure_directory(options.dir)
                     serverindex, memory = get_server_index(memory, options)
                     localindex = make_local_index(options)
-                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
+                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
@@ -328,11 +331,11 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:331", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:334", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:335", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:338", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -383,4 +386,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:386", "\nbye main"
+        print "cba_main.py:389", "\nbye main"
