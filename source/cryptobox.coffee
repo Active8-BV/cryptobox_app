@@ -167,47 +167,47 @@ already_running = (output) ->
     return false
 
 
-run_cba_main = (name, options, cb, cb_stdout) ->
-    if !exist(cb)
-        throw "run_cba_main needs a cb parameter (callback)"
+run_cba_main = (name, options, cb_done, cb_intermediate) ->
+    if !exist(cb_done)
+        throw "run_cba_main needs a cb_done parameter (callback)"
 
-    params = option_to_array(name, options)
-    cmd_to_run = path.join(process.cwd(), "commands")
-    cmd_to_run = path.join(cmd_to_run, "cba_main")
-    cba_main = child_process.spawn(cmd_to_run, params)
+    #params = option_to_array(name, options)
+    cmd_to_run = path.join(process.cwd(), "cba_main")
+    cba_main = child_process.spawn(cmd_to_run, "")
     g_cba_main = cba_main
     output = ""
     error = ""
-    buffereddata = ""
+    data = ""
+    intermediate_cnt = 0
 
     stdout_data = (data) ->
-        if String(data).indexOf("error_message") >= 0
-            error = parse_json(data)
-            g_error_message = error?.error_message
-            add_output(g_error_message)
+        output += data
+        ssp = String(output).split("\n")
 
-        if cb_stdout?
-            buffereddata += data
-            buffereddata = String(buffereddata).split("\n")
+        has_data = (item) ->
+            if _.size(item) > 0
+                return true
+            return false
 
-            try_cb = (datachunk) ->
-                if datachunk?
-                    if _.size(datachunk) > 0
-                        datachunk = parse_json(datachunk)
+        ssp = _.filter(ssp, has_data)
+        nls = _.size(ssp)
 
-                        if datachunk?
-                            buffereddata = ""
-                            cb_stdout(datachunk)
+        if nls > 0
+            loop_cnt = 0
 
-            _.each(buffereddata, try_cb)
+            call_intermediate = (data) ->
+                if loop_cnt == intermediate_cnt
+                    pdata = null
 
-            #pdata = parse_json(buffereddata)
-            #if pdata?
-            ##    print "cryptobox.cf:206", pdata
-            #    buffereddata = ""
-            #    cb_stdout(pdata)
-        else
-            output += data
+                    if strEndsWith(data, "}")
+                        pdata = parse_json(data, true)
+
+                    if pdata
+                        cb_intermediate(pdata)
+                        intermediate_cnt += 1
+
+                loop_cnt += 1
+            _.each(ssp, call_intermediate)
     cba_main.stdout.on "data", stdout_data
 
     cba_main.stderr.on "data", (data) ->
@@ -217,23 +217,18 @@ run_cba_main = (name, options, cb, cb_stdout) ->
         g_cba_main = null
 
         if already_running(output)
-            print "cryptobox.cf:220", "already running"
-            cb(false, output)
+            print "node_test.cf:150", "already running"
+            cb_done(false, output)
         else
-            if _.size(error) > 0
-                if String(error).indexOf("error_message") >= 0
-                    errorm = parse_json(error)
-                    g_error_message = errorm.error_message
-                cb(false, error)
-            else
-                output = parse_json(output)
+            output = parse_json(output)
 
-                if event > 0
-                    cb(false, output)
-                else
-                    cb(true, output)
+            if event > 0
+                cb_done(false, output)
+            else
+                cb_done(true, output)
 
     cba_main.on("exit", execution_done)
+
 
 
 on_exit = ->
@@ -249,7 +244,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record = 
+        record =
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -373,7 +368,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -430,7 +425,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = ($scope) ->
-    option = 
+    option =
         dir: $scope.cb_folder_text
         username: $scope.cb_username
         password: $scope.cb_password
