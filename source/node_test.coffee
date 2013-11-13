@@ -97,6 +97,20 @@ print = (msg, others...) ->
             add_output(msg)
 
 
+cnt_char = (data, c) ->
+    _.size(String(data).split(c))-1
+
+
+possible_json = (data) ->
+    if cnt_char(data, "{") == cnt_char(data, "}")
+        try
+            JSON.parse(data)
+            return true
+        catch ex
+            return false
+    return false
+
+
 run_cba_main = (name, options, cb_done, cb_intermediate) ->
     if !exist(cb_done)
         throw "run_cba_main needs a cb_done parameter (callback)"
@@ -129,7 +143,7 @@ run_cba_main = (name, options, cb_done, cb_intermediate) ->
                 if loop_cnt == intermediate_cnt
                     pdata = null
 
-                    if strEndsWith(data, "}")
+                    if possible_json(data)
                         pdata = parse_json(data, true)
 
                     if pdata
@@ -147,7 +161,7 @@ run_cba_main = (name, options, cb_done, cb_intermediate) ->
         g_cba_main = null
 
         if already_running(output)
-            print "node_test.cf:150", "already running"
+            print "node_test.cf:164", "already running"
             cb_done(false, output)
         else
             output = parse_json(output)
@@ -161,13 +175,13 @@ run_cba_main = (name, options, cb_done, cb_intermediate) ->
 
 
 cb_done = (r, o) ->
-    print "node_test.cf:164", r
+    print "node_test.cf:178", r
 
     p = (d) ->
-        print "node_test.cf:167", d.message
+        print "node_test.cf:181", d.message
     _.each(o, p)
 
 
 cb_current = (o) ->
-    print "node_test.cf:172", o
+    print "node_test.cf:186", o
 run_cba_main("foo", {}, cb_done, cb_current)

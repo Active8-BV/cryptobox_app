@@ -901,6 +901,8 @@ def upload_files(memory, options, serverindex, file_uploads):
 
     files_uploaded = []
     file_uploads_left = file_uploads
+    file_uploads = sorted(file_uploads, key=lambda k: k["size"])
+
     for uf in file_uploads:
         update_progress(len(files_uploaded) + 1, len(file_uploads), "uploading " + os.path.basename(uf["local_path"]))
         if os.path.exists(uf["local_path"]):
