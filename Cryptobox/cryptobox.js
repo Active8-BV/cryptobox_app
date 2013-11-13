@@ -861,8 +861,6 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
         $scope.state_syncing = false;
         $scope.disable_sync_button = false;
         $scope.disable_encrypt_button = false;
-        $scope.progress_bar = 100;
-        $scope.progress_bar_item = 100;
         return $scope.request_update_sync_state = true;
       }
     };
