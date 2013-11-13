@@ -354,10 +354,6 @@ def cryptobox_command(options):
 
 
 def main():
-    l = range(0, 1000000)
-    output_json({"message": l})
-    return
-
     #noinspection PyUnusedLocal
     (options, args) = add_options()
 
