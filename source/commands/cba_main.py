@@ -354,6 +354,12 @@ def cryptobox_command(options):
 
 
 def main():
+    from cba_utils import message_json
+    message_json("hello")
+    message_json("world")
+    message_json(str(range(0, 10000)))
+    message_json(str(range(0, 1000000)))
+    return
     #noinspection PyUnusedLocal
     (options, args) = add_options()
 
