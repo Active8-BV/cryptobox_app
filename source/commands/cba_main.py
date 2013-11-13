@@ -360,17 +360,27 @@ def cryptobox_command(options):
         salt = secret = None
         if options.encrypt:
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
+            output_json({"msg": ""})
+            output_json({"item_progress": 0})
+            output_json({"global_progress": 0})
 
         if options.decrypt:
             if not options.clear == "1":
                 memory = decrypt_and_build_filetree(memory, options)
+                output_json({"msg": ""})
+                output_json({"item_progress": 0})
+                output_json({"global_progress": 0})
+
         reset_cryptobox_local(options)
         memory.save(datadir)
         if options.remove and salt and secret:
             hide_config(options, salt, secret)
+            output_json({"msg": ""})
+            output_json({"item_progress": 0})
+            output_json({"global_progress": 0})
+
     finally:
-        delete_progress_file("progress")
-        delete_progress_file("item_progress")
+        pass
     return True
 
 
