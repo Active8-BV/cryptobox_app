@@ -198,7 +198,7 @@ def cryptobox_command(options):
 
                 m = Memory()
                 m = authorize_user(m, options, force=True)
-                if m.get("authorized"):
+                if not m.get("authorized"):
                     message_json("Username or password is not correct")
                 else:
                     encoded_token = b64_encode_mstyle("session_token:" + m.get("session_token"))
