@@ -4,7 +4,6 @@
 some utility functions
 """
 import sys
-
 reload(sys)
 
 #noinspection PyUnresolvedReferences
@@ -17,10 +16,28 @@ import multiprocessing
 import random
 import shutil
 from optparse import OptionParser
-from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle
-from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
-from cba_network import authorize_user, on_server
-from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
+from cba_utils import output_json, \
+    strcmp, \
+    Dict2Obj, \
+    Memory, \
+    open_folder, \
+    handle_exception, \
+    message_json, \
+    b64_encode_mstyle
+from cba_index import restore_hidden_config, \
+    ensure_directory, \
+    hide_config, \
+    index_and_encrypt, \
+    make_local_index, \
+    reset_cryptobox_local, \
+    decrypt_and_build_filetree, \
+    quick_lock_check
+from cba_network import authorize_user, \
+    on_server
+from cba_sync import sync_server, \
+    get_server_index, \
+    get_sync_changes, \
+    get_tree_sequence
 from cba_blobs import get_data_dir
 from tendo import singleton
 
@@ -35,6 +52,7 @@ def monkeypatch_popen():
 
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -64,7 +82,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -171,7 +188,7 @@ def cryptobox_command(options):
                 private_key = b64_encode_mstyle(m.get("private_key"))
                 webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token + "/" + private_key)
             else:
-                print "cba_main.py:192", "unknown command"
+                print "cba_main.py:191", "unknown command"
             return
 
         if options.motivation:
@@ -185,33 +202,33 @@ def cryptobox_command(options):
 
         if not options.check and not options.treeseq and not options.logout:
             if not options.encrypt and not options.decrypt:
-                print "cba_main.py:206", "No encrypt directive given (-e)"
+                print "cba_main.py:205", "No encrypt directive given (-e)"
                 return False
 
         if options.decrypt:
             if options.remove:
-                print "cba_main.py:211", "option remove (-r) cannot be used together with decrypt (dataloss)"
+                print "cba_main.py:210", "option remove (-r) cannot be used together with decrypt (dataloss)"
                 return False
 
             if options.sync:
-                print "cba_main.py:215", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:214", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
                 return False
 
             if options.check:
-                print "cba_main.py:219", "option check (-o) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:218", "option check (-o) cannot be used together with decrypt (hashmismatch)"
                 return False
 
         if not options.password:
-            print "cba_main.py:223", "No password given (-p or --password)"
+            print "cba_main.py:222", "No password given (-p or --password)"
             return False
 
         if options.username or options.cryptobox:
             if not options.username:
-                print "cba_main.py:228", "No username given (-u or --username)"
+                print "cba_main.py:227", "No username given (-u or --username)"
                 return False
 
             if not options.cryptobox:
-                print "cba_main.py:232", "No cryptobox given (-b or --cryptobox)"
+                print "cba_main.py:231", "No cryptobox given (-b or --cryptobox)"
                 return False
 
         if isinstance(options, dict):
@@ -228,11 +245,11 @@ def cryptobox_command(options):
         options.numdownloadthreads = 8
 
         if not options.dir:
-            print "cba_main.py:249", "Need DIR -f or --dir to continue"
+            print "cba_main.py:248", "Need DIR -f or --dir to continue"
             return False
 
         if not options.cryptobox:
-            print "cba_main.py:253", "No cryptobox given -b or --cryptobox"
+            print "cba_main.py:252", "No cryptobox given -b or --cryptobox"
             return False
 
         options.basedir = options.dir
@@ -256,22 +273,22 @@ def cryptobox_command(options):
 
         ensure_directory(datadir)
         if not datadir:
-            print "cba_main.py:277", "datadir is None"
+            print "cba_main.py:276", "datadir is None"
 
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
-            print "cba_main.py:283", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:282", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:288", "No username given (-u or --username)"
+                print "cba_main.py:287", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:292", "No password given (-p or --password)"
+                print "cba_main.py:291", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -298,15 +315,24 @@ def cryptobox_command(options):
                     localindex = make_local_index(options)
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
-                    outputdict = {"file_del_server": file_del_server, "file_downloads": file_downloads, "file_uploads": file_uploads, "dir_del_server": dir_del_server, "dir_make_local": dir_make_local, "dir_make_server": dir_make_server, "dir_del_local": dir_del_local, "file_del_local": file_del_local, "all_synced": all_synced}
+                    outputdict = {"file_del_server": file_del_server,
+                                  "file_downloads": file_downloads,
+                                  "file_uploads": file_uploads,
+                                  "dir_del_server": dir_del_server,
+                                  "dir_make_local": dir_make_local,
+                                  "dir_make_server": dir_make_server,
+                                  "dir_del_local": dir_del_local,
+                                  "file_del_local": file_del_local,
+                                  "all_synced": all_synced}
+
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:337", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:331", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:341", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:335", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -330,7 +356,6 @@ def cryptobox_command(options):
 
 def test_output():
     from cba_utils import message_json
-
     message_json("hello")
     message_json("world")
     message_json(str(range(0, 10000)))
@@ -350,7 +375,6 @@ def main():
 
         raise
 
-
 if strcmp(__name__, '__main__'):
     try:
 
@@ -359,4 +383,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:383", "\nbye main"
+        print "cba_main.py:386", "\nbye main"
