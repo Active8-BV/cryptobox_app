@@ -3,7 +3,7 @@ all:
 	mv ./source/cryptobox.js ./Cryptobox
 	./buildcommands.sh cba_main
 	cp ../www_cryptobox_nl/source/js/app_basic.min.js ./Cryptobox/js/
-	rm -rf ./build
+	rm -Rf ./build
 	mkdir ./build
 	cp -r ./node-webkit.app build/Cryptobox.app
 	cp Cryptobox/app.icns build/Cryptobox.app/Contents/Resources/nw.icns
@@ -15,7 +15,7 @@ all:
 
 app: 
 	cp ../www_cryptobox_nl/source/js/app_basic.min.js ./Cryptobox/js/
-	rm -rf ./build
+	rm -Rf ./build
 	mkdir ./build
 	cp -r ./node-webkit.app build/Cryptobox.app
 	cp Cryptobox/app.icns build/Cryptobox.app/Contents/Resources/nw.icns
@@ -24,7 +24,7 @@ app:
 
 package:
 	cp ../www_cryptobox_nl/source/js/app_basic.min.js ./Cryptobox/js/
-	rm -rf ./build
+	rm -Rf ./build
 	mkdir ./build
 	cp -r ./node-webkit.app build/Cryptobox.app
 	cp Cryptobox/app.icns build/Cryptobox.app/Contents/Resources/nw.icns
