@@ -78,6 +78,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
         content, content_hash = download_blob(memory, options, node)
         update_item_progress(100)
+        output_json({"item_progress": 0})
         memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
         output_json({"file_downloads": file_nodes_left})
         downloaded_files_cnt += 1
@@ -818,7 +819,8 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
-    renames_server, file_uploads, file_del_server, localindex = check_renames_server(options, localindex, serverindex, file_uploads, file_del_server)
+    renames_server = []
+    #renames_server, file_uploads, file_del_server, localindex = check_renames_server(options, localindex, serverindex, file_uploads, file_del_server)
     memory = store_localindex(memory, localindex)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, renames_server
 
@@ -957,6 +959,8 @@ def upload_files(memory, options, serverindex, file_uploads):
         if os.path.exists(uf["local_path"]):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
+            output_json({"item_progress": 0})
+
         file_uploads_left.remove(uf)
         output_json({"file_uploads": file_uploads_left})
 
@@ -1083,4 +1087,7 @@ def sync_server(memory, options):
             memory = del_path_history(fpath, memory)
 
     memory = wait_for_tasks(memory, options)
+    output_json({"item_progress": 0})
+    output_json({"global_progress": 0})
+    output_json({"msg": ""})
     return localindex, memory
