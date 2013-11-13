@@ -85,7 +85,7 @@ run_cba_main = function(name, options, cb, cb_stdout) {
     var errorm, g_error_message;
     g_cba_main = null;
     if (already_running(output)) {
-      print("cryptobox.cf:220", "already running");
+      print("node_test.cf:85", "already running");
       return cb(false, output);
     } else {
       if (_.size(error) > 0) {
@@ -107,4 +107,4 @@ run_cba_main = function(name, options, cb, cb_stdout) {
   return cba_main.on("exit", execution_done);
 };
 
-print("hello");
+print("node_test.cf:102", "hello");

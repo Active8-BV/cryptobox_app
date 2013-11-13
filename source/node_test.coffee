@@ -1,7 +1,9 @@
+
 fs = require("fs")
 assert = require('assert')
 path = require("path")
 _ = require('underscore')
+
 
 add_output = (msgs) ->
     console.log msgs
@@ -35,8 +37,8 @@ run_cba_main = (name, options, cb, cb_stdout) ->
         throw "run_cba_main needs a cb parameter (callback)"
 
     params = option_to_array(name, options)
-    cmd_to_run = path.join(process.cwd(), "commands")
-    cmd_to_run = path.join(cmd_to_run, "cba_main")
+    cmd_to_run = path.join(process.cwd(), "cba_main")
+
     cba_main = child_process.spawn(cmd_to_run, params)
     g_cba_main = cba_main
     output = ""
@@ -66,7 +68,7 @@ run_cba_main = (name, options, cb, cb_stdout) ->
 
             #pdata = parse_json(buffereddata)
             #if pdata?
-            ##    print "cryptobox.cf:206", pdata
+            ##    print "node_test.cf:71", pdata
             #    buffereddata = ""
             #    cb_stdout(pdata)
         else
@@ -80,7 +82,7 @@ run_cba_main = (name, options, cb, cb_stdout) ->
         g_cba_main = null
 
         if already_running(output)
-            print "cryptobox.cf:220", "already running"
+            print "node_test.cf:85", "already running"
             cb(false, output)
         else
             if _.size(error) > 0
@@ -98,4 +100,5 @@ run_cba_main = (name, options, cb, cb_stdout) ->
 
     cba_main.on("exit", execution_done)
 
-print "hello"
+
+run_cba_main("foo", )
