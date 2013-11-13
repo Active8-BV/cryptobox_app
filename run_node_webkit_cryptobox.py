@@ -12,10 +12,12 @@ def main():
 
         line = proc.stderr.readline()
         if line != '':
+            
+            
             if "INFO:CONSOLE" in line and not "cryptobox.cf" in line:
                 ls = line.split(", source: file")
                 if len(ls) > 0:
-                    msg = ls[0].replace("\n", "")
+                    msg = ls[0].replace("\n", "").replace('"', "")
                     if ", source: file" in line:
                         print "\033[93m" + msg + "\033[0m "
                     else:
@@ -23,7 +25,7 @@ def main():
             if "at" in line and "file://" in line:
                 ls = line.split("(file://")
                 if len(ls) > 0:
-                    msg = ls[0].replace("\n", "")
+                    msg = ls[0].replace("\n", "").replace('"', "")
                     print "\033[93m    " + msg + "\033[0m "
             elif "cryptobox.cf" in line:
                 ls = line.split("cryptobox.cf:")
@@ -41,7 +43,7 @@ def main():
                                 if cnt > 0:
                                     msg += " " + s
                                 cnt += 1
-                        print "\033[92m" + msg + "\033[0m "
+                        print "\033[92m" + msg.replace('"', "") + "\033[0m "
         else:
             break
 
