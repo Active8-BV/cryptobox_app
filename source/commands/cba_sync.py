@@ -700,6 +700,46 @@ def print_pickle_variable_for_debugging(var, varname):
     print "cba_sync.py:700", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
+def get_content_hash_server(options, serverindex, path):
+    rel_path = path.replace(options.dir, "")
+
+    doc = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == rel_path]
+
+    if len(doc) == 1:
+        return doc[0]["content_hash_latest_timestamp"][0]
+    return None
+
+
+def check_renames_server(options, localindex, serverindex, file_uploads, file_del_server):
+    """
+    check_renames
+    """
+    renames_server = []
+    file_uploads_remove = []
+    file_del_server_remove = []
+
+    for fu in file_uploads:
+        for fd in file_del_server:
+            fu_data, localindex = make_cryptogit_hash(fu["local_path"], options.dir, localindex)
+            fu_hash = fu_data["filehash"]
+            fd_hash = get_content_hash_server(options, serverindex, fd)
+
+            if fu_hash == fd_hash:
+                fd_rel_path = fd.replace(options.dir, "")
+                fu_rel_path = fu["local_path"].replace(options.dir, "")
+                ren_item = (fd_rel_path, fu_rel_path)
+                renames_server.append(ren_item)
+                file_uploads_remove.append(fu)
+                file_del_server_remove.append(fd)
+
+    for fur in file_uploads_remove:
+        file_uploads.remove(fur)
+
+    for fdr in file_del_server_remove:
+        file_del_server.remove(fdr)
+    return renames_server, file_uploads, file_del_server, localindex
+
+
 def get_sync_changes(memory, options, localindex, serverindex):
     """
     get_sync_changes
@@ -770,8 +810,9 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
+    renames_server, file_uploads, file_del_server, localindex = check_renames_server(options, localindex, serverindex, file_uploads, file_del_server)
     memory = store_localindex(memory, localindex)
-    return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content
+    return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, renames_server
 
 
 def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
@@ -812,7 +853,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:815", "updating upload progress failed", str(exc)
+                print "cba_sync.py:856", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -824,7 +865,6 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
-
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
