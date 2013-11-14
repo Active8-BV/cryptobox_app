@@ -31,7 +31,6 @@ def make_checksum(data):
     @type data: str, unicode
     @rtype: str, unicode
     """
-
     try:
         crc = base64.encodestring(str(zlib.adler32(data)))
         return crc.strip().rstrip("=")
