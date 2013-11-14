@@ -7,7 +7,6 @@ import unittest
 import random
 from subprocess import Popen, \
     PIPE
-import requests
 from cba_main import cryptobox_command
 from cba_utils import *
 from cba_index import make_local_index, \
