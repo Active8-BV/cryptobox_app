@@ -876,7 +876,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_sync_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:753", "encrypted");
+        print("cryptobox.cf:751", "encrypted");
         return $scope.request_update_sync_state = true;
       }
     };
@@ -890,7 +890,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_decrypt_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:765", "decrypted");
+        print("cryptobox.cf:763", "decrypted");
         $scope.disable_sync_button = true;
         return $scope.request_update_sync_state = true;
       }
@@ -902,7 +902,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option = get_option($scope);
     option.acommand = "open_folder";
     open_cb = function(result, output) {
-      return print("cryptobox.cf:775", "folder opened", result, output);
+      return print("cryptobox.cf:773", "folder opened", result, output);
     };
     return run_cba_main("open_folder", option, open_cb);
   };
@@ -921,7 +921,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   };
   $scope.toggle_debug = function() {
     $scope.show_debug = !$scope.show_debug;
-    return print("cryptobox.cf:792", $scope.show_debug);
+    return print("cryptobox.cf:790", $scope.show_debug);
   };
   $scope.clear_msg_buffer = function() {
     g_output = [];
@@ -930,7 +930,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   set_data_user_config($scope, $q).then(function() {
     return update_sync_state($scope);
   }, function(err) {
-    print("cryptobox.cf:803", err);
+    print("cryptobox.cf:801", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);

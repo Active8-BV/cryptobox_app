@@ -68,7 +68,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:72", p
+    print "tests.py:71", p
 
 
 def count_files_dir(fpath):
@@ -89,7 +89,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:93", "progress", p
+    print "tests.py:92", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -663,7 +663,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-
         self.assertTrue(self.files_synced())
         os.system("mv testdata/test/smalltest/test.cpp testdata/test/smalltest/test2.cpp")
         os.system("ls > testdata/test/all_types/test3.txt")
