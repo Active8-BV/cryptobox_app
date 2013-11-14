@@ -70,18 +70,6 @@ def make_hash(data):
     return sha.hexdigest()
 
 
-def make_checksum(data):
-    """
-    @type data: str, unicode
-    @rtype: str, unicode
-    """
-
-    try:
-        crc = base64.encodestring(str(zlib.adler32(data)))
-        return crc.strip().rstrip("=")
-    except OverflowError:
-        return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
-
 
 def password_derivation(key, salt):
     """
