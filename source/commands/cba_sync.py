@@ -411,7 +411,7 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     """
     payload = {"path1": path1,
                "path2": path2}
-    result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
+    result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
 
@@ -1028,6 +1028,9 @@ def sync_server(memory, options):
     localindex = make_local_index(options)
     memory.replace("localindex", localindex)
     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
+
+    for rp in rename_server:
+        memory = instruct_server_to_rename_path(memory, options, rp[0], rp[1])
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
