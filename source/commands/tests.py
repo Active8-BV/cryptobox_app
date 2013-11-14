@@ -401,7 +401,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
 
-        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local]:
+        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, rename_server]:
             if len(l) != 0:
                 return False
         return True
@@ -665,13 +665,14 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
 
-        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        #self.assertTrue(self.files_synced())
+        self.assertTrue(self.files_synced())
         os.system("mv testdata/test/smalltest/test.cpp testdata/test/smalltest/test2.cpp")
         os.system("ls > testdata/test/all_types/test3.txt")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
         self.assertEqual(len(rename_server), 1)
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        self.assertTrue(self.files_synced())
 
 
 if __name__ == '__main__':

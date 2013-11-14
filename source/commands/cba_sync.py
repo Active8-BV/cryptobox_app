@@ -820,7 +820,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
     renames_server = []
-    #renames_server, file_uploads, file_del_server, localindex = check_renames_server(options, localindex, serverindex, file_uploads, file_del_server)
+    renames_server, file_uploads, file_del_server, localindex = check_renames_server(options, localindex, serverindex, file_uploads, file_del_server)
     memory = store_localindex(memory, localindex)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, renames_server
 
