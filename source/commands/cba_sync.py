@@ -352,7 +352,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:354", "waiting for tasks", num_tasks
+                            print "cba_sync.py:355", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -399,6 +399,20 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
+    return memory
+
+
+def instruct_server_to_rename_path(memory, options, path1, path2):
+    """
+    @type memory: Memory
+    @type options: optparse.Values, instance
+    @type path1: str
+    @type path2: str
+    """
+    payload = {"path1": path1,
+               "path2": path2}
+    result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
+    memory = wait_for_tasks(memory, options)
     return memory
 
 
@@ -706,7 +720,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:708", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:722", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -819,7 +833,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
-
     renames_server, file_uploads, file_del_server, localindex = check_renames_server(options, localindex, serverindex, file_uploads, file_del_server)
     memory = store_localindex(memory, localindex)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, renames_server
@@ -863,7 +876,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:864", "updating upload progress failed", str(exc)
+                print "cba_sync.py:878", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -875,7 +888,6 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
-
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -960,7 +972,6 @@ def upload_files(memory, options, serverindex, file_uploads):
             file_path = upload_file(memory.get("session"), options.server, options.cryptobox, uf["local_path"], path_to_relative_path_unix_style(memory, uf["local_path"]), uf["parent_short_id"])
             files_uploaded.append(file_path)
             output_json({"item_progress": 0})
-
         file_uploads_left.remove(uf)
         output_json({"file_uploads": file_uploads_left})
 
