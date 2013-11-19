@@ -688,9 +688,9 @@ class CryptoboxAppTest(unittest.TestCase):
         instruct_server_to_rename_path(self.cbmemory, self.cboptions, "/smalltest/test.cpp", "/smalltest/test2.cpp")
         #os.system("ls > testdata/test/smalltest/test3.txt")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
-        #self.assertEqual(len(file_uploads), 1)
-        #self.assertEqual(len(rename_server), 1)
-        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        # self.assertEqual(len(file_uploads), 1)
+        # self.assertEqual(len(rename_server), 1)
+        # localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
         self.assertTrue(self.files_synced())
