@@ -30,7 +30,9 @@ from cba_sync import instruct_server_to_rename_path, \
     short_id_to_server_path, \
     NoSyncDirFound
 from cba_file import ensure_directory, \
-    make_cryptogit_hash
+    make_cryptogit_hash, \
+    make_sha1_hash_file, \
+    read_file_to_fdict
 from cba_crypto import make_checksum, \
     encrypt_file_smp, \
     decrypt_file_smp
@@ -67,7 +69,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:70", p
+    print "tests.py:72", p
 
 
 def count_files_dir(fpath):
@@ -88,7 +90,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:91", "progress", p
+    print "tests.py:93", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -673,6 +675,20 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
+    def test_hash_rename(self):
+        """
+        test_hash_rename
+        """
+        self.unzip_testfiles_clean()
+        fpath = "testdata/test/smalltest/test.cpp"
+        file_dict = read_file_to_fdict(fpath)
+        filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath)
+        os.system("mv testdata/test/smalltest/test.cpp testdata/test/smalltest/test2.cpp")
+        fpath = "testdata/test/smalltest/test2.cpp"
+        file_dict = read_file_to_fdict(fpath)
+        filehash2 = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath)
+        self.assertEqual(filehash, filehash2)
+
     def test_rename_server(self):
         """
         test_rename
@@ -686,13 +702,14 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
         instruct_server_to_rename_path(self.cbmemory, self.cboptions, "/smalltest/test.cpp", "/smalltest/test2.cpp")
+
         #os.system("ls > testdata/test/smalltest/test3.txt")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+
         # self.assertEqual(len(file_uploads), 1)
         # self.assertEqual(len(rename_server), 1)
         # localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-
         self.assertTrue(self.files_synced())
 
 

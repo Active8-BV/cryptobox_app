@@ -11,39 +11,13 @@ import urllib
 import shutil
 import urllib2
 import poster
-from cba_index import quick_lock_check, \
-    TreeLoadError, \
-    index_files_visit, \
-    make_local_index, \
-    get_localindex, \
-    store_localindex
-from cba_blobs import write_blobs_to_filepaths, \
-    have_blob
-from cba_network import download_server, \
-    on_server, \
-    NotAuthorized, \
-    authorize_user, \
-    authorized
-from cba_utils import handle_exception, \
-    strcmp, \
-    exit_app_warning, \
-    update_progress, \
-    update_item_progress, \
-    Memory, \
-    output_json
-from cba_file import ensure_directory, \
-    add_server_path_history, \
-    in_server_path_history, \
-    add_local_path_history, \
-    in_local_path_history, \
-    del_server_path_history, \
-    del_local_path_history, \
-    path_to_relative_path_unix_style, \
-    make_cryptogit_hash, \
-    read_file_to_fdict
-from cba_crypto import make_sha1_hash
-from cba_file import write_file, \
-    read_file
+from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex, store_localindex
+from cba_blobs import write_blobs_to_filepaths, have_blob, get_blob_dir
+from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, unpickle_object
+from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, make_cryptogit_hash, read_file_to_fdict
+from cba_crypto import make_sha1_hash, decrypt_file_smp, password_derivation
+from cba_file import write_file, read_file
 
 
 def download_blob(memory, options, node):
@@ -94,9 +68,21 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                 if lph == lp["content_hash_latest_timestamp"][0]:
                     source_path = os.path.join(options.dir, all_unique_nodes[lph]["doc"]["m_path"].lstrip(os.path.sep))
                     break
+        data = None
+        if not os.path.exists(source_path):
+            fhash = lp["content_hash_latest_timestamp"][0]
+            source_path = os.path.join(get_blob_dir(options), fhash[:2])
+            source_path = os.path.join(source_path, fhash[2:])
+            memory = add_path_history(file_path, memory)
+            blob_enc = unpickle_object(source_path)
+            secret = password_derivation(options.password, base64.decodestring(memory.get("salt_b64")))
+            data = decrypt_file_smp(secret, blob_enc, update_item_progress).read()
 
         if source_path:
-            st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data = read_file(source_path, True)
+            if not data:
+                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data = read_file(source_path, True)
+            else:
+                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data_tmp = read_file(source_path, False)
             st_mtime = int(lp["content_hash_latest_timestamp"][1])
             write_file(file_path, data, st_mtime, st_mtime, st_mode, st_uid, st_gid)
 
@@ -251,9 +237,7 @@ def make_directories_local(memory, options, localindex, folders):
         ensure_directory(f["name"])
         memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir,
-               "folders": {"dirnames": {}},
-               "numfiles": 0}
+        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -286,7 +270,6 @@ def dirs_on_server(memory, options, unique_dirs_server):
         local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
         if len(local_folders_removed) == 0:
-
             # first run
             dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
     else:
@@ -314,8 +297,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name,
-                      "relname": dirname_rel}
+            folder = {"name": dir_name, "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
@@ -352,7 +334,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:355", "waiting for tasks", num_tasks
+                            print "cba_sync.py:364", "waiting for tasks", num_tasks
 
                 else:
                     return memory
@@ -409,8 +391,7 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     @type path1: str
     @type path2: str
     """
-    payload = {"path1": path1,
-               "path2": path2}
+    payload = {"path1": path1, "path2": path2}
 
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
@@ -675,10 +656,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
-            upload_file_object = {"local_path": local_path,
-                                  "parent_short_id": None,
-                                  "rel_path": local_path.replace(options.dir,
-                                  "")}
+            upload_file_object = {"local_path": local_path, "parent_short_id": None, "rel_path": local_path.replace(options.dir, "")}
 
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
@@ -721,7 +699,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:724", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:733", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -877,18 +855,14 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:880", "updating upload progress failed", str(exc)
+                print "cba_sync.py:889", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object,
-                  "uuid": uuid.uuid4().hex,
-                  "parent": parent,
-                  "path": rel_path,
-                  "ufile_name": os.path.basename(file_object.name)}
+        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path, "ufile_name": os.path.basename(file_object.name)}
 
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
@@ -1012,6 +986,7 @@ def sync_server(memory, options):
     @type memory: Memory
     @type options: optparse.Values, instance
     @return: @rtype: @raise:
+
     """
     if memory.has("session"):
         memory = authorized(memory, options)
