@@ -871,7 +871,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                 if param:
                     if time.time() - param.last_cb_time > 0.5:
                         param.last_cb_time = time.time()
-                        percentage = 100 - ((total - current ) * 100) / total
+                        percentage = 100 - ((total - current) * 100) / total
                         if percentage != last_progress[0]:
                             last_progress[0] = percentage
                             update_item_progress(percentage)
@@ -1012,7 +1012,6 @@ def sync_server(memory, options):
     @type memory: Memory
     @type options: optparse.Values, instance
     @return: @rtype: @raise:
-
     """
     if memory.has("session"):
         memory = authorized(memory, options)
