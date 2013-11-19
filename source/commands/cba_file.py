@@ -168,7 +168,6 @@ def make_cryptogit_hash(fpath, datadir, localindex):
                 "blobpath": blobpath,
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
-
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
 
