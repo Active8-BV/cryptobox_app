@@ -679,7 +679,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         option.clear = true
 
         clear_cb = (result, output) ->
-            print "cryptobox.cf:682", result, output
+            pass
         run_cba_main("reset_cache", option, clear_cb, progress_callback)
 
     $scope.form_save = ->
