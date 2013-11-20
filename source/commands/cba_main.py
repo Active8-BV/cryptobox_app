@@ -11,12 +11,13 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import webbrowser
 import os
+import urllib2
+import json
 import cPickle
 import multiprocessing.forking
 import multiprocessing
 import random
 import shutil
-import requests
 from cStringIO import StringIO
 from optparse import OptionParser
 from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle
@@ -183,9 +184,7 @@ def cryptobox_command(options):
                 return
             elif options.acommand == "check_new_release":
                 current_hash = make_hash_path(options.compiled)
-                import urllib2
                 result = urllib2.urlopen("https://www.cryptobox.nl/st/data/cba_main.hash.json").read()
-                import json
                 result_json = json.loads(result)
                 new_release = not (current_hash == result_json["hash"])
                 output_json({"new_release": new_release})
