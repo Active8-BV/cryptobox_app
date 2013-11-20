@@ -183,8 +183,10 @@ def cryptobox_command(options):
                 return
             elif options.acommand == "check_new_release":
                 current_hash = make_hash_path(options.compiled)
-                result = requests.get("https://www.cryptobox.nl/st/data/cba_main.hash.json")
-                result_json = parse_http_result(result)
+                import urllib2
+                result = urllib2.urlopen("https://www.cryptobox.nl/st/data/cba_main.hash.json").read()
+                import json
+                result_json = json.loads(result)
                 new_release = not (current_hash == result_json["hash"])
                 output_json({"new_release": new_release})
                 return
@@ -236,6 +238,7 @@ def cryptobox_command(options):
             qlist = cPickle.load(open("quotes.list"))
             q = qlist[random.randint(0, len(qlist)) - 1]
             output_json({"motivation": q[0] + "\n\n- " + q[1]})
+
             return
 
         #noinspection PyUnusedLocal
