@@ -286,9 +286,11 @@ def index_and_encrypt(memory, options):
             processed_files += 1
             update_progress(processed_files, numfiles, "delete " + os.path.basename(fpath))
             if os.path.isdir(fpath):
-                shutil.rmtree(fpath, True)
+                if os.path.exists(fpath):
+                    shutil.rmtree(fpath, True)
             else:
-                os.remove(fpath)
+                if os.path.exists(fpath):
+                    os.remove(fpath)
 
     obsolute_blob_store_entries = set()
     blob_dirs = os.path.join(datadir, "blobs")
