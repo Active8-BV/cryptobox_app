@@ -179,7 +179,7 @@ def cryptobox_command(options):
                 if not options.input:
                     message_json("need input (-i)")
                 path = options.input
-                make_hash_path(path)
+                output_json({"hash":make_hash_path(path)})
                 return
             elif options.acommand == "check_new_release":
                 current_hash = make_hash_path(options.compiled)
