@@ -689,7 +689,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         store_user_var("cb_server", $scope.cb_server, $q)
         store_user_var("show_settings", $scope.show_settings, $q)
         store_user_var("show_debug", $scope.show_debug, $q)
-
+        
         get_user_var("cb_password", $q).then(
             (oldpassword) ->
                 if oldpassword != $scope.cb_password

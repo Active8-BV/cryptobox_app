@@ -15,6 +15,7 @@ import multiprocessing.forking
 import multiprocessing
 import random
 import shutil
+from cStringIO import StringIO
 from optparse import OptionParser
 from cba_utils import output_json, \
     strcmp, \
@@ -133,7 +134,7 @@ def consoledict(*args):
             else:
                 dbs += " " + str(s)
 
-    print "cba_main.py:134", dbs
+    print "cba_main.py:137", dbs
 
 
 def delete_progress_file(fname):
@@ -170,14 +171,25 @@ def cryptobox_command(options):
                 if options.dir:
                     open_folder(os.path.join(options.dir, options.cryptobox))
                 else:
-                    print "cba_main.py:171", "no folder given(-f)"
+                    print "cba_main.py:174", "no folder given(-f)"
             elif options.acommand == "hash":
                 if not options.input:
                     message_json("need input (-i)")
-                    if not os.path.exists(options.input):
-                        message_json("input file does not exist")
+
+                if not os.path.exists(options.input):
+                    message_json("input file does not exist")
+                else:
+                    if os.path.isdir(options.input):
+                        buf = StringIO()
+
+                        for p in [os.path.join(dp, f) for dp, dn, fn in os.walk(options.input) for f in fn]:
+                            buf.write(open(p).read())
+
+                        output_json({"hash": make_sha1_hash_file("", fpath="", strio=buf)})
                     else:
-                        output_json({"hash": make_sha1_hash_file(options.input)})
+                        output_json({"hash": make_sha1_hash_file("", options.input)})
+
+                return
             elif options.acommand == "delete_blobs":
                 if not options.dir:
                     message_json("dir mising")
@@ -219,7 +231,7 @@ def cryptobox_command(options):
                     private_key = b64_encode_mstyle(m.get("private_key"))
                     webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token + "/" + private_key)
             else:
-                print "cba_main.py:213", "unknown command"
+                print "cba_main.py:234", "unknown command"
             return
 
         if options.motivation:
@@ -233,33 +245,33 @@ def cryptobox_command(options):
 
         if not options.check and not options.treeseq and not options.logout:
             if not options.encrypt and not options.decrypt:
-                print "cba_main.py:227", "No encrypt directive given (-e)"
+                print "cba_main.py:248", "No encrypt directive given (-e)"
                 return False
 
         if options.decrypt:
             if options.remove:
-                print "cba_main.py:232", "option remove (-r) cannot be used together with decrypt (dataloss)"
+                print "cba_main.py:253", "option remove (-r) cannot be used together with decrypt (dataloss)"
                 return False
 
             if options.sync:
-                print "cba_main.py:236", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:257", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
                 return False
 
             if options.check:
-                print "cba_main.py:240", "option check (-o) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:261", "option check (-o) cannot be used together with decrypt (hashmismatch)"
                 return False
 
         if not options.password:
-            print "cba_main.py:244", "No password given (-p or --password)"
+            print "cba_main.py:265", "No password given (-p or --password)"
             return False
 
         if options.username or options.cryptobox:
             if not options.username:
-                print "cba_main.py:249", "No username given (-u or --username)"
+                print "cba_main.py:270", "No username given (-u or --username)"
                 return False
 
             if not options.cryptobox:
-                print "cba_main.py:253", "No cryptobox given (-b or --cryptobox)"
+                print "cba_main.py:274", "No cryptobox given (-b or --cryptobox)"
                 return False
 
         if isinstance(options, dict):
@@ -276,11 +288,11 @@ def cryptobox_command(options):
         options.numdownloadthreads = 8
 
         if not options.dir:
-            print "cba_main.py:270", "Need DIR -f or --dir to continue"
+            print "cba_main.py:291", "Need DIR -f or --dir to continue"
             return False
 
         if not options.cryptobox:
-            print "cba_main.py:274", "No cryptobox given -b or --cryptobox"
+            print "cba_main.py:295", "No cryptobox given -b or --cryptobox"
             return False
 
         options.basedir = options.dir
@@ -304,22 +316,22 @@ def cryptobox_command(options):
 
         ensure_directory(datadir)
         if not datadir:
-            print "cba_main.py:298", "datadir is None"
+            print "cba_main.py:319", "datadir is None"
 
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
-            print "cba_main.py:304", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:325", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:309", "No username given (-u or --username)"
+                print "cba_main.py:330", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:313", "No password given (-p or --password)"
+                print "cba_main.py:334", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -363,11 +375,11 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:357", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:378", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:361", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:382", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     localindex, memory = sync_server(memory, options)
@@ -426,4 +438,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:420", "\nbye main"
+        print "cba_main.py:441", "\nbye main"
