@@ -39,6 +39,7 @@ from cba_sync import sync_server, \
     get_sync_changes, \
     get_tree_sequence
 from cba_blobs import get_data_dir
+from cba_crypto import make_sha1_hash_file
 from tendo import singleton
 
 
@@ -97,6 +98,7 @@ def add_options():
     parser.add_option("-d", "--decrypt", dest="decrypt", action='store_true', help="decrypt and correct the directory", metavar="DECRYPT")
     parser.add_option("-e", "--encrypt", dest="encrypt", action='store_true', help="index and possible decrypt files", metavar="ENCRYPT")
     parser.add_option("-f", "--dir", dest="dir", help="index this DIR", metavar="DIR")
+    parser.add_option("-i", "--input", dest="input", help="some form of input", metavar="INPUT")
     parser.add_option("-l", "--logout", dest="logout", action='store_true', help="log session out", metavar="LOGOUT")
     parser.add_option("-m", "--motivation", dest="motivation", help="get motivational quote", metavar="MOTIVATION")
     parser.add_option("-n", "--numdownloadthreads", dest="numdownloadthreads", help="number if downloadthreads", metavar="NUMDOWNLOADTHREADS")
@@ -169,6 +171,13 @@ def cryptobox_command(options):
                     open_folder(os.path.join(options.dir, options.cryptobox))
                 else:
                     print "cba_main.py:171", "no folder given(-f)"
+            elif options.acommand == "hash":
+                if not options.input:
+                    message_json("need input (-i)")
+                    if not os.path.exists(options.input):
+                        message_json("input file does not exist")
+                    else:
+                        output_json({"hash": make_sha1_hash_file(options.input)})
             elif options.acommand == "delete_blobs":
                 if not options.dir:
                     message_json("dir mising")
