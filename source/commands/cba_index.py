@@ -329,12 +329,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        print "cba_index.py:330", "check_and_clean_dir needs clear and encrypt option"
+        print "cba_index.py:332", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            print "cba_index.py:335", "clear options cannot be used together with encrypt, possible data loss"
+            print "cba_index.py:337", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -351,7 +351,7 @@ def decrypt_and_build_filetree(memory, options):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        print "cba_index.py:352", "nothing to decrypt", datadir, "does not exists"
+        print "cba_index.py:354", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     output_json({"msg": "preparing decrypt"})

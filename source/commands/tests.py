@@ -715,7 +715,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-
         os.system("mv testdata/test/smalltest testdata/test/smalltest2")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
 
