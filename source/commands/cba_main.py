@@ -152,9 +152,9 @@ def make_hash_path(path):
             for p in [os.path.join(dp, f) for dp, dn, fn in os.walk(path) for f in fn]:
                 buf.write(open(p).read())
 
-            output_json({"hash": make_sha1_hash_file("", fpath="", strio=buf)})
+            return make_sha1_hash_file("", fpath="", strio=buf)
         else:
-            output_json({"hash": make_sha1_hash_file("", path)})
+            return make_sha1_hash_file("", path)
 
 
 def cryptobox_command(options):
@@ -183,8 +183,10 @@ def cryptobox_command(options):
                 return
             elif options.acommand == "check_new_release":
                 current_hash = make_hash_path(options.compiled)
-                result = requests.get()
-
+                result = requests.get("https://www.cryptobox.nl/st/data/cba_main.hash.json")
+                result_json = parse_http_result(result)
+                new_release = not (current_hash == result_json["hash"])
+                output_json({"new_release": new_release})
                 return
             elif options.acommand == "delete_blobs":
                 if not options.dir:
