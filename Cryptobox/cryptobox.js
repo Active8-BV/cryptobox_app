@@ -819,7 +819,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     get_user_var("cb_password", $q).then(function(oldpassword) {
       if (oldpassword !== $scope.cb_password) {
         delete_blobs($scope);
-        scope.lock_buttons_password_wrong = false;
+        $scope.lock_buttons_password_wrong = false;
       }
       return store_user_var("cb_password", $scope.cb_password, $q);
     }, function(err) {

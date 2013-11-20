@@ -529,9 +529,14 @@ def get_tree_sequence(memory, options):
 
     if clock_tree_seq:
         if len(clock_tree_seq) > 1:
-            return int(clock_tree_seq[1])
-    else:
-        return None
+            if clock_tree_seq[1]:
+                if isinstance(clock_tree_seq[1], int):
+                    return clock_tree_seq[1]
+                else:
+                    if len(clock_tree_seq[1]) > 0:
+                        return int(clock_tree_seq[1])
+
+    return None
 
 
 def get_server_index(memory, options):

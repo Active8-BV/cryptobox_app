@@ -694,7 +694,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             (oldpassword) ->
                 if oldpassword != $scope.cb_password
                     delete_blobs($scope)
-                    scope.lock_buttons_password_wrong = false
+                    $scope.lock_buttons_password_wrong = false
                 store_user_var("cb_password", $scope.cb_password, $q)
 
             (err) ->
