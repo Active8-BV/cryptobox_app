@@ -187,7 +187,7 @@ def cryptobox_command(options):
                 result = urllib2.urlopen("https://www.cryptobox.nl/st/data/cba_main.hash.json").read()
                 result_json = json.loads(result)
                 new_release = not (current_hash == result_json["hash"])
-                output_json({"new_release": new_release})
+                output_json({"new_release": new_release, "current_hash":current_hash, "hash_server":result_json["hash"]})
                 return
             elif options.acommand == "delete_blobs":
                 if not options.dir:
