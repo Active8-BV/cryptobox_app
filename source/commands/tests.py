@@ -36,6 +36,8 @@ from cba_file import ensure_directory, \
 from cba_crypto import make_checksum, \
     encrypt_file_smp, \
     decrypt_file_smp
+
+
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -69,7 +71,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:72", p
+    print "tests.py:74", p
 
 
 def count_files_dir(fpath):
@@ -90,7 +92,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:93", "progress", p
+    print "tests.py:95", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -117,6 +119,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
+
         self.cboptions = Dict2Obj(self.options_d)
         self.reset_cb_db_clean()
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
@@ -658,7 +661,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_rename_local(self):
         """
-        test_rename
+        test_rename_local
         """
         self.do_wait_for_tasks = False
         self.reset_cb_db_clean()
@@ -691,7 +694,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_rename_server(self):
         """
-        test_rename
+        test_rename_server
         """
         self.do_wait_for_tasks = False
         self.reset_cb_db_clean()
@@ -702,14 +705,25 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
         instruct_server_to_rename_path(self.cbmemory, self.cboptions, "/smalltest/test.cpp", "/smalltest/test2.cpp")
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        self.assertTrue(self.files_synced())
 
-        #os.system("ls > testdata/test/smalltest/test3.txt")
+    def test_rename_folder_local(self):
+        """
+        test_rename_folder_local
+        """
+        self.do_wait_for_tasks = False
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        os.system("rm -Rf testdata/test/all_types")
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        self.assertTrue(self.files_synced())
+        os.system("mv testdata/test/smalltest testdata/test/smalltest2")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
 
-        # self.assertEqual(len(file_uploads), 1)
-        # self.assertEqual(len(rename_server), 1)
-        # localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        #self.assertEqual(len(file_uploads), 1)
+        #self.assertEqual(len(rename_server), 1)
+        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
 
