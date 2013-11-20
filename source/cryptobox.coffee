@@ -833,7 +833,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 $scope.subject_message_mail = String(g_error_message).split("> ---------------------------")[2].split(">")[3].trim()
                 $scope.error_message_mail = String(g_error_message).replace(/\n/g, "%0A")
             catch
-            $scope.error_message_mail = null
+                $scope.error_message_mail = null
 
         if $scope.sync_requested
             $scope.sync_requested = false
