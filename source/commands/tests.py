@@ -713,17 +713,15 @@ class CryptoboxAppTest(unittest.TestCase):
         test_rename_folder_local
         """
         self.do_wait_for_tasks = False
-        self.reset_cb_db_clean()
-        self.unzip_testfiles_clean()
-        os.system("rm -Rf testdata/test/all_types")
-        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        self.assertTrue(self.files_synced())
+        self.reset_cb_db_synced()
+        self.unzip_testfiles_synced()
+
         os.system("mv testdata/test/smalltest testdata/test/smalltest2")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
 
         #self.assertEqual(len(file_uploads), 1)
         #self.assertEqual(len(rename_server), 1)
-        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
 
