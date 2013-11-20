@@ -805,7 +805,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option.encrypt = true;
     option.clear = true;
     clear_cb = function(result, output) {
-      return print("cryptobox.cf:682", result, output);
+      return pass;
     };
     return run_cba_main("reset_cache", option, clear_cb, progress_callback);
   };
