@@ -279,7 +279,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record =
+        record = 
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -403,7 +403,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option =
+    option = 
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -469,7 +469,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = (scope) ->
-    option =
+    option = 
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -618,7 +618,11 @@ check_for_new_release = (scope) ->
     option.acommand = "check_new_release"
 
     cb_check_new_release = (result, output) ->
-        print "cryptobox.cf:621", "cb_check_new_release", result, output
+        if result
+            print "cryptobox.cf:622", "cb_check_new_release", output.new_release, output.current_hash, output.hash_server
+            if output.new_release
+                scope.show_new_release_download_dialog = true
+
     run_cba_main("check_new_release", option, cb_check_new_release)
 
 
@@ -655,6 +659,8 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
     $scope.info_message = null
     $scope.disable_folder_button = false
     $scope.lock_buttons_password_wrong = false
+    $scope.show_new_release_download_dialog = true
+    $scope.show_new_release_download_dialog_message = "A new release of this app is available, click here to download"
     g_winmain.on('close', on_exit)
 
     $scope.debug_btn = ->
@@ -699,7 +705,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 store_user_var("cb_password", $scope.cb_password, $q)
 
             (err) ->
-                print "cryptobox.cf:702", "error setting password", err
+                print "cryptobox.cf:708", "error setting password", err
         )
         $scope.form_changed = false
         $scope.request_update_sync_state = true
@@ -724,7 +730,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             set_sync_check_on_scope($scope, output)
 
     do_sync = ->
-        print "cryptobox.cf:727", "start sync"
+        print "cryptobox.cf:733", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -736,7 +742,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:739", "sync ok"
+                print "cryptobox.cf:745", "sync ok"
                 $scope.state_syncing = false
                 $scope.disable_sync_button = false
                 $scope.disable_encrypt_button = false
@@ -753,7 +759,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:756", "encrypted"
+                print "cryptobox.cf:762", "encrypted"
                 $scope.request_update_sync_state = true
         run_cba_main("encrypt", option, sync_cb, progress_callback)
 
@@ -765,7 +771,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:768", "decrypted"
+                print "cryptobox.cf:774", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
         run_cba_main("decrypt", option, sync_cb, progress_callback)
@@ -795,7 +801,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.toggle_debug = ->
         $scope.show_debug = !$scope.show_debug
-        print "cryptobox.cf:798", $scope.show_debug
+        print "cryptobox.cf:804", $scope.show_debug
 
     $scope.clear_msg_buffer = ->
         g_output = []
@@ -806,7 +812,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             update_sync_state($scope)
 
         (err) ->
-            print "cryptobox.cf:809", err
+            print "cryptobox.cf:815", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
