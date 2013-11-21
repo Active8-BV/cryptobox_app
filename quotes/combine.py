@@ -1,4 +1,4 @@
-# coding=utf-8
+∂# coding=utf-8
 
 import pickle
 l = pickle.load(open("quotes.list"))

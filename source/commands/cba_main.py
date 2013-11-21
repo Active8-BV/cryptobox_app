@@ -10,6 +10,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import webbrowser
 import os
+import urlparse
 import urllib2
 import json
 import cPickle
@@ -27,7 +28,7 @@ from cba_utils import output_json, \
     open_folder, \
     handle_exception, \
     message_json, \
-    b64_encode_mstyle
+    b64_encode_mstyle, log_json
 from cba_index import restore_hidden_config, \
     ensure_directory, \
     hide_config, \
@@ -201,16 +202,26 @@ def cryptobox_command(options):
                 output_json({"hash": make_hash_path(path)})
                 return
             elif options.acommand == "check_new_release":
+                if not options.server:
+                    message_json("server mising")
+                if not options.compiled:
+                    message_json("compiled mising")
+                log_json(options.compiled)
                 current_hash = make_hash_path(options.compiled)
-                result = urllib2.urlopen("https://www.cryptobox.nl/st/data/cba_main.hash.json").read()
+                hash_url = urlparse.urljoin(options.server, "/st/data/cba_main.hash.json")
+                log_json(hash_url)
+                result = urllib2.urlopen(hash_url).read()
                 result_json = json.loads(result)
                 new_release = not (current_hash == result_json["hash"])
                 output_json({"new_release": new_release, "current_hash": current_hash, "hash_server": result_json["hash"]})
-                file_path = tkFileDialog.asksaveasfilename(parent=None, message="Cryptobox", initialfile='Cryptobox.dmg')
                 return
             elif options.acommand == "download_new_release":
+                if not options.server:
+                    message_json("server mising")
+
                 output_json({"msg": "Downloading Cryptobox.dmg"})
-                result = download_server(None, options, "https://www.cryptobox.nl/st/data/Cryptobox.dmg", output_name_item_percentage="global_progress")
+                download_url = urlparse.urljoin(options.server, "/st/data/Cryptobox.dmg")
+                result = download_server(None, options, download_url, output_name_item_percentage="global_progress")
                 output_json({"msg": ""})
                 output_json({"item_progress": 0})
                 output_json({"global_progress": 0})
