@@ -10,7 +10,7 @@ import urllib
 import json
 import requests
 from cba_utils import Memory, \
-    update_item_progress
+    update_item_progress, log_json
 
 
 def get_b64mstyle():
@@ -195,17 +195,21 @@ def on_server(memory, options, method, payload, session, files=None):
         on_server_lock.release()
 
 
-def download_server(memory, options, url):
+def download_server(memory, options, url, output_name_item_percentage=None):
     """
     download_server
-    @type memory: Memory
+    @type memory: Memory, None
     @type options: optparse.Values, instance
     @type url: str, unicode
+    @type output_name_item_percentage: str
     """
-    url = os.path.normpath(url)
-    url = options.server + options.cryptobox + "/" + url
-    session = memory.get("session")
-    result = session.get(url, timeout=3600, stream=True, verify=False)
+    if memory:
+        url = os.path.normpath(url)
+        url = options.server + options.cryptobox + "/" + url
+        session = memory.get("session")
+        result = session.get(url, timeout=3600, stream=True, verify=False)
+    else:
+        result = requests.get(url, timeout=3600, stream=True, verify=False)
 
     if result.status_code == 403:
         raise ServerForbidden(result.reason)
@@ -232,7 +236,10 @@ def download_server(memory, options, url):
                     percentage = int(float(downloaded_bytes) / divider)
                     if percentage != prev_percenage:
                         if time.time() - last_update > 0.5:
-                            update_item_progress(percentage)
+                            if output_name_item_percentage:
+                                update_item_progress(percentage, output_name_item_percentage)
+                            else:
+                                update_item_progress(percentage)
                             last_update = time.time()
 
                         prev_percenage = percentage
@@ -309,6 +316,7 @@ def authorize_user(memory, options, force=False):
         memory.replace("authorized", True)
         return memory
     except PasswordException:
+        log_json("not authorized")
         memory.replace("authorized", False)
         return memory
 
