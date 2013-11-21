@@ -1,0 +1,15 @@
+{
+    "name": "Cryptobox",
+    "description": "Cryptobox sync client",
+    "version": "0.1",
+    "main": "index.html",
+    "single-instance": true,
+    "window": {
+        "toolbar": false,
+        "frame": false,
+        "width": 1,        
+        "height": 1,
+        "always-on-top": false,
+        "fullscreen": false
+    }
+}
