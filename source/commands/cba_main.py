@@ -206,10 +206,10 @@ def cryptobox_command(options):
                     message_json("server mising")
                 if not options.compiled:
                     message_json("compiled mising")
-                log_json(options.compiled)
+                log_json("options.compiled: " + options.compiled)
                 current_hash = make_hash_path(options.compiled)
                 hash_url = urlparse.urljoin(options.server, "/st/data/cba_main.hash.json")
-                log_json(hash_url)
+                log_json("hash_url: " + hash_url)
                 result = urllib2.urlopen(hash_url).read()
                 result_json = json.loads(result)
                 new_release = not (current_hash == result_json["hash"])
