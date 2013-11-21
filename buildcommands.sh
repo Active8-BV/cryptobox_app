@@ -19,7 +19,9 @@ VERSIONER_PYTHON_PREFER_32_BIT=yes arch -i386 /usr/bin/python ./pyinstaller/pyin
 mv $1.spec ./source/commands/specs
 mkdir -p ./Cryptobox/commands
 cp ./dist/$1 ./Cryptobox/commands
+python ./source/commands/cba_main.py -a hash -i ./Cryptobox/commands/cba_main > ../www_cryptobox_nl/app/data/cba_main.hash.json
 echo ./dist/$1
+
 
 
 
