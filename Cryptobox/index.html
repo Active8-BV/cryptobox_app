@@ -67,6 +67,10 @@
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
             <i class="fa fa-info-circle"></i>&nbsp;{{info_message}}
         </div>
+        <div class="alert alert-info alert-dismissable" ng-show="show_new_release_download_dialog">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <i class="fa fa-download"></i>&nbsp;<a style="cursor: pointer;" ng-click="download_new_release()">{{show_new_release_download_dialog_message}}</a>
+        </div>
 
         <form class="form-horizontal" role="form">
             <div class="btn-group btn-group">
@@ -81,7 +85,7 @@
 
             <div class="btn-group btn-group pull-right">
                 <button type="button" class="btn btn-default" ng-click="reset_cache()"><i class="fa fa-warning" style="margin-right: 4px"></i>Reset</button>
-                <button type="button" class="btn btn-default" ng-click="check_update()"><i class="fa fa-download" style="margin-right: 4px"></i>Update</button>
+
 
                 <button type="button" class="btn btn-default" ng-click="open_website()"><i class="fa fa-external-link" style="margin-right: 4px"></i>Website</button>
                 <button type="button" ng-disabled="disable_folder_button" class="btn btn-default" ng-click="open_folder()"><i class="fa fa-folder-open" style="margin-right: 4px"></i>Folder</button>
