@@ -17,6 +17,7 @@ import multiprocessing.forking
 import multiprocessing
 import random
 import shutil
+import Tkinter, tkFileDialog
 from cStringIO import StringIO
 from optparse import OptionParser
 from cba_utils import output_json, \
@@ -36,7 +37,7 @@ from cba_index import restore_hidden_config, \
     decrypt_and_build_filetree, \
     quick_lock_check
 from cba_network import authorize_user, \
-    on_server
+    on_server, download_server
 from cba_sync import sync_server, \
     get_server_index, \
     get_sync_changes, \
@@ -205,6 +206,23 @@ def cryptobox_command(options):
                 result_json = json.loads(result)
                 new_release = not (current_hash == result_json["hash"])
                 output_json({"new_release": new_release, "current_hash": current_hash, "hash_server": result_json["hash"]})
+                file_path = tkFileDialog.asksaveasfilename(parent=None, message="Cryptobox", initialfile='Cryptobox.dmg')
+                return
+            elif options.acommand == "download_new_release":
+                output_json({"msg": "Downloading Cryptobox.dmg"})
+                result = download_server(None, options, "https://www.cryptobox.nl/st/data/Cryptobox.dmg", output_name_item_percentage="global_progress")
+                output_json({"msg": ""})
+                output_json({"item_progress": 0})
+                output_json({"global_progress": 0})
+
+                #be - defaultextension, -filetypes, -initialdir, -initialfile, -message, -parent, -title, -typevariable, or -command >> >
+                root = Tkinter.Tk()
+                root.withdraw()
+
+                file_path = tkFileDialog.asksaveasfilename(parent=None, message="Cryptobox", initialfile='Cryptobox.dmg')
+                if file_path:
+                    if os.path.exists(os.path.dirname(file_path)):
+                        open(file_path, "wb").write(result)
                 return
             elif options.acommand == "delete_blobs":
                 if not options.dir:

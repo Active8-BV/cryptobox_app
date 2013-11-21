@@ -15,6 +15,7 @@ import subprocess
 import base64
 import urllib
 import jsonpickle
+
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -91,6 +92,13 @@ def message_json(msg):
     @type msg: str
     """
     output_json({"message": msg})
+
+
+def log_json(msg):
+    """
+    @type msg: str
+    """
+    output_json({"log": msg})
 
 
 def smp_all_cpu_apply(method, items, progress_callback=None):
@@ -272,7 +280,6 @@ def error_prefix():
     """
     return ">"
 
-
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
     """
@@ -283,6 +290,7 @@ def handle_exception(again=True, ret_err=False):
     """
     import sys
     import traceback
+
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -303,6 +311,7 @@ def handle_exception(again=True, ret_err=False):
         return error
     else:
         import sys
+
         sys.stderr.write(str(error))
 
     if again:
@@ -543,16 +552,17 @@ class Memory(object):
         return True
 
 
-def update_item_progress(p):
+def update_item_progress(p, output_name="item_progress"):
     """
     update_progress
     @type p:int
+    @type output_name: str
     """
 
     #noinspection PyBroadException
     try:
         if 0 < int(p) <= 100:
-            output_json({"item_progress": p})
+            output_json({output_name: p})
     except Exception:
         handle_exception(False)
 

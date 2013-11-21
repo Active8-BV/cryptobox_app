@@ -5,10 +5,10 @@
     "main": "index.html",
     "single-instance": true,
     "window": {
-        "toolbar": true,
-        "frame": true,
-        "width": 800,        
-        "height": 1000,
+        "toolbar": false,
+        "frame": false,
+        "width": 1,        
+        "height": 1,
         "always-on-top": false,
         "fullscreen": false
     }

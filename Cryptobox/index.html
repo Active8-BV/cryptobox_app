@@ -24,21 +24,24 @@
 <body>
 
 <div ng-controller="cryptobox_ctrl">
+<div style="background-color: #272464">
+        &nbsp;<a ng-click="hide_window()"><i class="fa fa-times" style="color: white; cursor: pointer;"></i></a>
+
+</div>
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-12">
             <blockquote>
                 <img src="images/logo-cryptobox.png"><br/>
 
                 <p class="lead" ng-show="cryptobox_locked">local data encrypted <i class="fa fa-lock" style="color:#fe7474;"></i></p>
                 <h6 ng-bind-html-unsafe="motivation"></h6>
             </blockquote>
-
         </div>
-
-        <div class="col-sm-6">
-            <br/>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
             <small><br ng-hide="progress_message"/>{{progress_message}}</small>
             <div class="progress" style="max-height: 10px;">
                 <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress()">
@@ -59,9 +62,10 @@
 <div class="row">
     <div class="col-sm-12">
         <div class="alert alert-danger alert-dismissable" ng-show="error_message">
-            <a ng-show="error_message_mail" href="mailto:edj@vir2l.nl?cc=erik@a8.nl&Subject={{subject_message_mail}}&body={{error_message_mail}}" style="cursor: pointer;"><i class="fa fa-bug" ></i>&nbsp;report bug</a>
+            <a ng-show="error_message_mail" href="mailto:edj@vir2l.nl?cc=erik@a8.nl&Subject={{subject_message_mail}}&body={{error_message_mail}}" style="cursor: pointer;"><i class="fa fa-bug"></i>&nbsp;report bug</a>
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
             <pre style="background-color: #F2DEDE; border: #F2DEDE;">{{error_message}}</pre>
+
         </div>
         <div class="alert alert-info alert-dismissable" ng-show="info_message">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
@@ -76,20 +80,27 @@
             <div class="btn-group btn-group">
                 <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-success" ng-click="sync_btn()"><i class="fa fa-refresh" ng-hide="state_syncing" style="margin-right: 4px"></i><i class="fa fa-refresh fa-spin" ng-show="state_syncing" style="margin-right: 4px"></i>Sync</button>
                 <button type="button" ng-disabled="get_lock_buttons()||disable_check_button" class="btn btn-default" ng-click="check_btn()"><i class="fa fa-question" style="margin-right: 4px"></i>Check</button>
+
             </div>
+            <br/><br/>
 
             <div class="btn-group btn-group">
                 <button type="button" ng-disabled="get_lock_buttons()||disable_encrypt_button" class="btn btn-danger" ng-click="encrypt_btn()"><i class="fa fa-lock" style="margin-right: 4px"></i>Lock folder</button>
                 <button type="button" ng-disabled="get_lock_buttons()||disable_decrypt_button" class="btn btn-primary" ng-click="decrypt_btn()"><i class="fa fa-unlock" style="margin-right: 4px"></i>Unlock folder</button>
-            </div>
 
-            <div class="btn-group btn-group pull-right">
-                <button type="button" class="btn btn-default" ng-click="reset_cache()"><i class="fa fa-warning" style="margin-right: 4px"></i>Reset</button>
+            </div>
+            <br/><br/>
+
+            <div class="btn-group btn-group">
+                <button type="button" class="btn btn-default" ng-click="reset_cache()"><i class="fa fa-warning" style="margin-right: 4px"></i>reset</button>
+                <button type="button" class="btn btn-default" ng-click="debug_btn()"><i class="fa fa-bug" style="margin-right: 4px"></i>d</button>
 
 
                 <button type="button" class="btn btn-default" ng-click="open_website()"><i class="fa fa-external-link" style="margin-right: 4px"></i>Website</button>
                 <button type="button" ng-disabled="disable_folder_button" class="btn btn-default" ng-click="open_folder()"><i class="fa fa-folder-open" style="margin-right: 4px"></i>Folder</button>
+
             </div>
+
         </form>
     </div>
 </div>
@@ -231,7 +242,7 @@
                 <td><i class="fa fa-cloud"></i>&nbsp;folders to delete on server</td>
             </tr>
             <tr ng-repeat="f in dir_del_server">
-                <td><i class="fa fa-times"></i></td>
+                <td><i class="fa fa-trash-o"></i></td>
                 <td>{{ f }}</td>
             </tr>
         </table>
@@ -246,7 +257,7 @@
                 <td><i class="fa fa-gears"></i>&nbsp;folders to delete local</td>
             </tr>
             <tr ng-repeat="f in dir_del_local">
-                <td><i class="fa fa-times"></i></td>
+                <td><i class="fa fa-trash-o"></i></td>
                 <td>{{ f.dirname }}</td>
             </tr>
         </table>
@@ -261,7 +272,7 @@
                 <td><i class="fa fa-cloud"></i>&nbsp;files to delete on server</td>
             </tr>
             <tr ng-repeat="f in file_del_server">
-                <td><i class="fa fa-times"></i></td>
+                <td><i class="fa fa-trash-o"></i></td>
                 <td>{{ f }}</td>
             </tr>
         </table>
@@ -277,7 +288,7 @@
                 <td><i class="fa fa-gears"></i>&nbsp;files to delete local</td>
             </tr>
             <tr ng-repeat="f in file_del_local">
-                <td><i class="fa fa-times"></i></td>
+                <td><i class="fa fa-trash-o"></i></td>
                 <td>{{ f }}</td>
             </tr>
         </table>
