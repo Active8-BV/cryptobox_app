@@ -461,7 +461,8 @@ def cryptobox_command(options):
             output_json({"item_progress": 0})
             output_json({"global_progress": 0})
     finally:
-        timers.report_measurements()
+        #timers.report_measurements()
+        pass
 
     return True
 
