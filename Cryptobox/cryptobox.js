@@ -697,8 +697,8 @@ set_menus_and_g_tray_icon = function(scope) {
   add_g_traymenu_item("Cryptobox.nl", "images/fa-external-link.png", scope.open_website);
   add_g_traymenu_item("Cryptobox folder", "images/fa-folder-open.png", scope.open_folder);
   add_g_traymenu_seperator();
-  add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.close_window_menu);
-  return add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.debug_btn);
+  add_g_traymenu_item("Debug", "images/fa-bug.png", scope.debug_btn);
+  return add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.close_window_menu);
 };
 
 set_motivation = function($scope) {
