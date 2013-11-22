@@ -567,6 +567,7 @@ set_menus_and_g_tray_icon = (scope) ->
     scope.settings_menubaritem = add_checkbox_menu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
     scope.settings_menubar_g_tray = add_checkbox_g_traymenu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
     add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.close_window_menu )
+    add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.debug_btn )
 
     scope.update_menu_checks = ->
         scope.settings_menubaritem.checked = scope.show_settings
@@ -596,7 +597,7 @@ g_progress_callback = (scope, output) ->
         if !scope.$$phase
             scope.$apply()
     catch err
-        print "cryptobox.cf:599", "g_progress_callback", err
+        print "cryptobox.cf:600", "g_progress_callback", err
 
 
 reset_bars_timer = null
@@ -625,7 +626,7 @@ delete_blobs = (scope) ->
     option.acommand = "delete_blobs"
 
     cb_delete_blobs = (result, output) ->
-        print "cryptobox.cf:628", "blobs deleted", result, output
+        print "cryptobox.cf:629", "blobs deleted", result, output
     run_cba_main("delete_blobs", option, cb_delete_blobs)
 
 
@@ -708,6 +709,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.debug_btn = ->
         require('nw.gui').Window.get().showDevTools()
+        document.location = "debug.html"
 
     $scope.get_progress_item_show = ->
         return $scope.progress_bar_item != 0
@@ -745,7 +747,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 store_user_var("cb_password", $scope.cb_password, $q)
 
             (err) ->
-                print "cryptobox.cf:748", "error setting password", err
+                print "cryptobox.cf:750", "error setting password", err
         )
         $scope.form_changed = false
         $scope.request_update_sync_state = true
@@ -771,7 +773,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             set_sync_check_on_scope($scope, output)
 
     do_sync = ->
-        print "cryptobox.cf:774", "start sync"
+        print "cryptobox.cf:776", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -799,7 +801,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:802", "encrypted"
+                print "cryptobox.cf:804", "encrypted"
                 $scope.request_update_sync_state = true
         run_cba_main("encrypt", option, sync_cb, progress_callback)
 
@@ -811,7 +813,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:814", "decrypted"
+                print "cryptobox.cf:816", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
         run_cba_main("decrypt", option, sync_cb, progress_callback)
@@ -859,7 +861,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.toggle_debug = ->
         $scope.show_debug = !$scope.show_debug
-        print "cryptobox.cf:862", $scope.show_debug
+        print "cryptobox.cf:864", $scope.show_debug
 
     $scope.clear_msg_buffer = ->
         g_output = []
@@ -872,7 +874,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             check_for_new_release($scope)
 
         (err) ->
-            print "cryptobox.cf:875", err
+            print "cryptobox.cf:877", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)

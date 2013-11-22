@@ -15,7 +15,6 @@ import subprocess
 import base64
 import urllib
 import jsonpickle
-
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -250,7 +249,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:245", arg
+    print "cba_utils.py:252", arg
     sys.exit(1)
 
 
@@ -280,6 +279,7 @@ def error_prefix():
     """
     return ">"
 
+
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
     """
@@ -290,7 +290,6 @@ def handle_exception(again=True, ret_err=False):
     """
     import sys
     import traceback
-
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -311,7 +310,6 @@ def handle_exception(again=True, ret_err=False):
         return error
     else:
         import sys
-
         sys.stderr.write(str(error))
 
     if again:
@@ -618,8 +616,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:611", "json parse errror"
-                        print "cba_utils.py:612", jdata
+                        print "cba_utils.py:619", "json parse errror"
+                        print "cba_utils.py:620", jdata
 
             except Exception:
                 handle_exception(False)
@@ -707,3 +705,170 @@ def b64_encode_mstyle(s):
     s = base64.encodestring(s).replace("=", "-").replace("\n", "")
     s = b64mstyle + s
     return s
+
+g_start_time = time.time()
+
+
+#noinspection PyPep8Naming
+def console(*args):
+
+    """
+    @param args:
+    @type args:
+    @return: @rtype:
+    """
+    HOSTNAME = subprocess.check_output("hostname")
+
+    if "node" in HOSTNAME:
+        return
+    global g_start_time
+    runtime = "%0.2f" % float(time.time() - g_start_time)
+    dbs = str(runtime)
+    toggle = True
+    arguments = list(args)
+
+    def sanitize(santize_string):
+        """
+        @param santize_string:
+        @type santize_string:
+        @return: @rtype:
+        """
+        santize_string = str(santize_string)
+        santize_string = santize_string.replace("/__init__.py", "")
+        return santize_string
+
+    arguments = [sanitize(x) for x in arguments if x]
+
+
+    for s in arguments:
+        if toggle:
+            pass
+        else:
+            pass
+
+        toggle = not toggle
+        dbs += " |"
+
+        if s:
+            if s == arguments[len(arguments) - 1]:
+                dbs += " " + str(s)[:160].replace("\n", "")
+            else:
+                dbs += " " + str(s)[:160].replace("\n", "")
+
+                #if len(str(s)) < 10:
+                #    dbs += " " * (20 - len(str(s).replace("\033[91m", "")))
+
+    dbs += "\n"
+    log_json(dbs)
+    return
+
+
+class Timers(object):
+    """
+    Timers
+    """
+    timers = {}
+    done_timers = []
+    _instance = None
+    last_event = []
+    total = 0.0
+    print_totals = True
+    last_event_name = ""
+
+    def __new__(cls, *args, **kwargs):
+        """
+        @param cls:
+        @type cls:
+        @param args:
+        @type args:
+        @param kwargs:
+        @type kwargs:
+        @return:
+        @rtype:
+        """
+
+        #noinspection PyProtectedMember
+        if not cls._instance:
+            #noinspection PyArgumentList,PyAttributeOutsideInit
+            cls._instance = super(Timers, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def event(self, name):
+        """
+        @param name:
+        @type name:
+        @return: @rtype:
+        """
+        last_name = None
+
+        if len(self.last_event) > 0:
+            last_name = self.last_event.pop()
+
+            if name == last_name:
+                return
+
+        if last_name in self.timers:
+            if last_name in self.last_event:
+                self.last_event.remove(last_name)
+
+            result = {"name": last_name,
+                      "time": time.time() - self.timers[last_name]}
+            self.done_timers.append(result)
+            del self.timers[last_name]
+        self.last_event.append(name)
+        self.timers[name] = time.time()
+
+        #noinspection PyAttributeOutsideInit
+        self.last_event_name = name
+        return
+
+    def event_stop(self):
+        """
+        event_stop
+        """
+        self.event(self.last_event_name)
+
+    def print_result(self, result, total):
+        """
+        @param result:
+        @type result:
+        @param total:
+        @type total:
+        @return: @rtype:
+        """
+        total += float(result["time"])
+        fv = float(result["time"])
+        result["time"] = "%0.4f" % float(result["time"])
+        totals = "%0.4f" % total
+
+        if self.print_totals:
+            if fv > 0.35:
+                console(result["name"], str("* " + str(result["time"])+" *"), totals)
+            else:
+                console(result["name"], str(result["time"]), totals)
+        else:
+            if fv > 0.35:
+                console(result["name"], str("*" + str(result["time"]) + "*"))
+            else:
+                console(result["name"], str(result["time"]))
+
+        return total
+
+    #noinspection PyAttributeOutsideInit
+    def report_measurements(self):
+        """
+        report_measurements(self):
+        """
+        self.event("done")
+        total = 0.0
+
+        for result in self.done_timers:
+            total = self.print_result(result, total)
+
+        if self.print_totals:
+            totals = "%0.4f" % total
+            console("total runtime", totals)
+
+        self.timers = {}
+        self.done_timers = []
+        self.last_event = []
