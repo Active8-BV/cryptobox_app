@@ -32,7 +32,7 @@ from cba_utils import handle_exception, \
     update_item_progress, \
     Memory, \
     output_json, \
-    unpickle_object
+    unpickle_object, Timers
 from cba_file import ensure_directory, \
     add_server_path_history, \
     in_server_path_history, \
@@ -581,6 +581,7 @@ def get_server_index(memory, options):
     @return: index
     @rtype: dict, Memory
     """
+
     if not memory.has("session"):
         if memory.has("authorized"):
             memory.delete("authorized")
@@ -590,6 +591,7 @@ def get_server_index(memory, options):
 
     if not memory.get("authorized"):
         raise NotAuthorized("get_server_index")
+
 
     tree_seq = get_tree_sequence(memory, options)
 
@@ -615,6 +617,7 @@ def get_server_index(memory, options):
     serverindex["dirlist"] = tuple(list(set(dirlistserver)))
     serverindex["doclist"] = tuple(serverindex["doclist"])
     memory.replace("serverindex", serverindex)
+
     return serverindex, memory
 
 

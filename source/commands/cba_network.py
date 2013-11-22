@@ -10,7 +10,8 @@ import urllib
 import json
 import requests
 from cba_utils import Memory, \
-    update_item_progress, log_json
+    update_item_progress, \
+    log_json
 
 
 def get_b64mstyle():
@@ -104,14 +105,6 @@ def object_b64_mstyle(d):
     return d
 
 
-def request_error(result):
-    """
-    request_error
-    @type result: str, unicode
-    """
-    print "cba_network.py:112", result.raw
-
-
 class ServerForbidden(Exception):
     """
     ServerForbidden
@@ -142,9 +135,7 @@ def parse_http_result(result):
     if result.status_code == 403:
         raise ServerForbidden(result.reason)
 
-    if result.status_code == 500:
-        request_error(result)
-
+    if result.status_code >= 500:
         raise ServerError(result.reason)
 
     if result.raw.headers["content-type"] == "application/json":
@@ -215,8 +206,6 @@ def download_server(memory, options, url, output_name_item_percentage=None):
         raise ServerForbidden(result.reason)
 
     if result.status_code == 500:
-        request_error(result)
-
         raise ServerError(result.reason)
 
     if "Content-Length" in result.headers:
@@ -240,6 +229,7 @@ def download_server(memory, options, url, output_name_item_percentage=None):
                                 update_item_progress(percentage, output_name_item_percentage)
                             else:
                                 update_item_progress(percentage)
+
                             last_update = time.time()
 
                         prev_percenage = percentage
@@ -315,8 +305,8 @@ def authorize_user(memory, options, force=False):
         memory.replace("session", session)
         memory.replace("authorized", True)
         return memory
-    except PasswordException:
-        log_json("not authorized")
+    except Exception, ex:
+        log_json("not authorized: " + str(ex))
         memory.replace("authorized", False)
         return memory
 
