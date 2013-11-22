@@ -30,7 +30,7 @@
         &nbsp;<a ng-click="hide_window()"><i class="fa fa-search-minus" style="color: white; cursor: pointer;"></i></a>
 
 </div>
-
+<br/>
 <div class="container">
     <div class="row">
         <div class="col-sm-12">
@@ -42,28 +42,15 @@
 
         </div>
     </div>
-    <div class="row">
-        <div class="col-sm-12">
-            <small><br ng-hide="progress_message"/>{{progress_message}}</small>
-            <div class="progress" style="max-height: 10px;">
-                <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress()">
-                    <span class="sr-only"></span>
-                </div>
-            </div>
-
-            <div class="progress" style="max-height: 10px;">
-                <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress_item()">
-                    <span class="sr-only"></span>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <div class="container">
 <div class="row">
     <div class="col-sm-12">
+        Synced: <i class="fa fa-check" ng-hide="outofsync"></i><i class="fa fa-times" ng-show="outofsync"></i>
+        <br/><br/>
         <div class="alert alert-danger alert-dismissable" ng-show="error_message">
+
             <a ng-show="error_message_mail" href="mailto:edj@vir2l.nl?cc=erik@a8.nl&Subject={{subject_message_mail}}&body={{error_message_mail}}" style="cursor: pointer;"><i class="fa fa-bug"></i>&nbsp;report bug</a>
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
             <pre style="background-color: #F2DEDE; border: #F2DEDE;">{{error_message}}</pre>
@@ -155,131 +142,6 @@
             </div>
         </div>
     </form>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="file_downloads">
-            <tr class="success">
-                <td width="1"><i class="fa fa-file-o"></i></td>
-                <td width="85%"><i class="fa fa-cloud"></i>&nbsp;files to download</td>
-                <td><i class="fa fa-hdd-o"></i></td>
-            </tr>
-            <tr ng-repeat="f in file_downloads">
-                <td><i class="fa fa-cloud-download"></i></td>
-                <td width="85%">{{ f.doc.m_path }}</td>
-                <td>{{ f.doc.m_size }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="file_uploads">
-            <tr class="success">
-                <td width="1"><i class="fa fa-file-o"></i></td>
-                <td width="85%"><i class="fa fa-gears"></i>&nbsp;files to upload</td>
-                <td><i class="fa fa-hdd-o"></i></td>
-            </tr>
-            <tr ng-repeat="f in file_uploads">
-                <td><i class="fa fa-cloud-upload"></i></td>
-                <td width="85%">{{ f.rel_path }}</td>
-                <td>{{ f.size }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="dir_make_local">
-            <tr class="success">
-                <td width="1"><i class="fa fa-folder-o"></i></td>
-                <td><i class="fa fa-gears"></i>&nbsp;folders to make local</td>
-            </tr>
-            <tr ng-repeat="f in dir_make_local">
-                <td><i class="fa fa-plus"></i></td>
-                <td>{{ f.relname }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="dir_make_server">
-            <tr class="success">
-                <td width="1"><i class="fa fa-folder-o"></i></td>
-                <td><i class="fa fa-cloud"></i>&nbsp;folders to make on server</td>
-            </tr>
-            <tr ng-repeat="f in dir_make_server">
-                <td><i class="fa fa-plus"></i></td>
-                <td>{{ f.relname }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="dir_del_server">
-            <tr class="danger">
-                <td width="1"><i class="fa fa-folder-o"></i></td>
-                <td><i class="fa fa-cloud"></i>&nbsp;folders to delete on server</td>
-            </tr>
-            <tr ng-repeat="f in dir_del_server">
-                <td><i class="fa fa-trash-o"></i></td>
-                <td>{{ f }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="dir_del_local">
-            <tr class="danger">
-                <td width="1"><i class="fa fa-folder-o"></i></td>
-                <td><i class="fa fa-gears"></i>&nbsp;folders to delete local</td>
-            </tr>
-            <tr ng-repeat="f in dir_del_local">
-                <td><i class="fa fa-trash-o"></i></td>
-                <td>{{ f.dirname }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="file_del_server">
-            <tr class="danger">
-                <td width="1"><i class="fa fa-file-o"></i></td>
-                <td><i class="fa fa-cloud"></i>&nbsp;files to delete on server</td>
-            </tr>
-            <tr ng-repeat="f in file_del_server">
-                <td><i class="fa fa-trash-o"></i></td>
-                <td>{{ f }}</td>
-            </tr>
-        </table>
-    </div>
-</div>
-
-
-<div class="row" ng-hide="cryptobox_locked">
-    <div class="col-sm-12">
-        <table class="table" ng-show="file_del_local">
-            <tr class="danger">
-                <td width="1"><i class="fa fa-file-o"></i></td>
-                <td><i class="fa fa-gears"></i>&nbsp;files to delete local</td>
-            </tr>
-            <tr ng-repeat="f in file_del_local">
-                <td><i class="fa fa-trash-o"></i></td>
-                <td>{{ f }}</td>
-            </tr>
-        </table>
-    </div>
 </div>
 
 <div class="row">
