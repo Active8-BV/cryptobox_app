@@ -358,7 +358,6 @@ set_data_user_config = (scope, $q) ->
     promises.push(set_user_var_scope("cb_name", null, scope, $q))
     promises.push(set_user_var_scope("cb_server", null, scope, $q))
     promises.push(set_user_var_scope("show_debug", null, scope, $q))
-    promises.push(set_user_var_scope("show_settings", null, scope, $q))
 
     $q.all(promises).then(
         ->
@@ -379,6 +378,13 @@ set_data_user_config = (scope, $q) ->
     return p.promise
 
 
+outofsync = (scope, items) ->
+    scope.outofsync = false
+
+    if _.size(items) > 0
+        scope.outofsync = true
+
+
 set_sync_check_on_scope = (scope, sync_results) ->
     human_readable_size = (item) ->
         item.doc.m_size = g_format_file_size(item.doc.m_size)
@@ -387,29 +393,37 @@ set_sync_check_on_scope = (scope, sync_results) ->
         item.size = g_format_file_size(item.size)
 
     if sync_results.file_downloads?
+        outofsync(scope, scope.file_downloads)
         scope.file_downloads = sync_results.file_downloads
         _.each(scope.file_downloads, human_readable_size)
 
     if sync_results.file_uploads?
+        outofsync(scope, scope.file_uploads)
         scope.file_uploads = sync_results.file_uploads
         _.each(scope.file_uploads, human_readable_size2)
 
     if sync_results.dir_del_server?
+        outofsync(scope, scope.dir_del_server)
         scope.dir_del_server = sync_results.dir_del_server
 
     if sync_results.dir_make_local?
+        outofsync(scope, scope.dir_make_local)
         scope.dir_make_local = sync_results.dir_make_local
 
     if sync_results.dir_make_server?
+        outofsync(scope, scope.dir_make_server)
         scope.dir_make_server = sync_results.dir_make_server
 
     if sync_results.dir_del_local?
+        outofsync(scope, scope.dir_del_local)
         scope.dir_del_local = sync_results.dir_del_local
 
     if sync_results.file_del_local?
+        outofsync(scope, scope.file_del_local)
         scope.file_del_local = sync_results.file_del_local
 
     if sync_results.file_del_server?
+        outofsync(scope, scope.file_del_server)
         scope.file_del_server = sync_results.file_del_server
 
 
@@ -424,7 +438,7 @@ update_sync_state = (scope) ->
 
     result_sync_state = (result, sync_result_list) ->
         if scope.disable_check_button
-            print "cryptobox.cf:427", "check done"
+            print "cryptobox.cf:441", "check done"
             scope.disable_check_button = false
             scope.disable_sync_button = false
 
@@ -432,7 +446,7 @@ update_sync_state = (scope) ->
             process_sync_result = (sync_results) ->
                 if sync_results.instruction?
                     if sync_results.instruction == "lock_buttons_password_wrong"
-                        print "cryptobox.cf:435", sync_results.instruction
+                        print "cryptobox.cf:449", sync_results.instruction
                         scope.lock_buttons_password_wrong = true
                 else
                     scope.request_update_sync_state = false
@@ -451,8 +465,8 @@ update_sync_state = (scope) ->
                                     scope.disable_sync_button = false
 
                     catch ex
-                        print "cryptobox.cf:454", ex
-                        print "cryptobox.cf:455", sync_results
+                        print "cryptobox.cf:468", ex
+                        print "cryptobox.cf:469", sync_results
 
             _.each(sync_result_list, process_sync_result)
 
@@ -564,15 +578,8 @@ set_menus_and_g_tray_icon = (scope) ->
     add_g_traymenu_seperator()
 
     #g_winmain.menu.insert(new gui.MenuItem({label: 'Actions', submenu: g_menuactions}), 1);
-    scope.settings_menubaritem = add_checkbox_menu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
-    scope.settings_menubar_g_tray = add_checkbox_g_traymenu_item("Settings", "images/cog.png", scope.toggle_settings, scope.show_settings)
     add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.close_window_menu )
     add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.debug_btn )
-
-    scope.update_menu_checks = ->
-        scope.settings_menubaritem.checked = scope.show_settings
-        scope.settings_menubar_g_tray.checked = scope.show_settings
-    scope.$watch "show_settings", scope.update_menu_checks
 
 
 set_motivation = ($scope) ->
@@ -597,7 +604,7 @@ g_progress_callback = (scope, output) ->
         if !scope.$$phase
             scope.$apply()
     catch err
-        print "cryptobox.cf:600", "g_progress_callback", err
+        print "cryptobox.cf:607", "g_progress_callback", err
 
 
 reset_bars_timer = null
@@ -626,7 +633,7 @@ delete_blobs = (scope) ->
     option.acommand = "delete_blobs"
 
     cb_delete_blobs = (result, output) ->
-        print "cryptobox.cf:629", "blobs deleted", result, output
+        print "cryptobox.cf:636", "blobs deleted", result, output
     run_cba_main("delete_blobs", option, cb_delete_blobs)
 
 
@@ -651,7 +658,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
     $scope.progress_bar = 0
     $scope.progress_bar_item = 0
     $scope.progress_message = ""
-    $scope.show_settings = false
+    $scope.show_settings = true
     $scope.show_debug = false
     $scope.got_cb_name = false
     $scope.file_downloads = []
@@ -736,7 +743,6 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         store_user_var("cb_username", $scope.cb_username, $q)
         store_user_var("cb_name", $scope.cb_name, $q)
         store_user_var("cb_server", $scope.cb_server, $q)
-        store_user_var("show_settings", $scope.show_settings, $q)
         store_user_var("show_debug", $scope.show_debug, $q)
 
         get_user_var("cb_password", $q).then(
@@ -747,7 +753,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 store_user_var("cb_password", $scope.cb_password, $q)
 
             (err) ->
-                print "cryptobox.cf:750", "error setting password", err
+                print "cryptobox.cf:756", "error setting password", err
         )
         $scope.form_changed = false
         $scope.request_update_sync_state = true
@@ -773,7 +779,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             set_sync_check_on_scope($scope, output)
 
     do_sync = ->
-        print "cryptobox.cf:776", "start sync"
+        print "cryptobox.cf:782", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -801,7 +807,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:804", "encrypted"
+                print "cryptobox.cf:810", "encrypted"
                 $scope.request_update_sync_state = true
         run_cba_main("encrypt", option, sync_cb, progress_callback)
 
@@ -813,7 +819,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:816", "decrypted"
+                print "cryptobox.cf:822", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
         run_cba_main("decrypt", option, sync_cb, progress_callback)
@@ -832,36 +838,16 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.set_window_size_settings = ->
         g_winmain.moveTo((screen.width - 900), 32)
-        if $scope.show_settings
-            make_bigger = ->
-                if g_window_width < 800
-                    g_window_width += 100
-                else
-                    g_window_width = 800
-                g_winmain.resizeTo(g_window_width, 700)
-                if (g_window_width < 800)
-                    setTimeout(make_bigger, 1)
-            make_bigger()
-        else
-            make_smaller = ->
-                if g_window_width > 500
-                    g_window_width -= 100
-                else
-                    g_window_width = 500
-                g_winmain.resizeTo(g_window_width, 700)
-                if (g_window_width > 500)
-                    setTimeout(make_smaller, 1)
-            make_smaller()
+        g_winmain.resizeTo(800, 700)
 
     $scope.toggle_settings = ->
         g_winmain.show()
-        $scope.show_settings = !$scope.show_settings
         $scope.set_window_size_settings()
         $scope.form_save()
 
     $scope.toggle_debug = ->
         $scope.show_debug = !$scope.show_debug
-        print "cryptobox.cf:864", $scope.show_debug
+        print "cryptobox.cf:850", $scope.show_debug
 
     $scope.clear_msg_buffer = ->
         g_output = []
@@ -874,7 +860,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             check_for_new_release($scope)
 
         (err) ->
-            print "cryptobox.cf:877", err
+            print "cryptobox.cf:863", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
