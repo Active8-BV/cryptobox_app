@@ -25,137 +25,152 @@
 <body>
 
 <div ng-controller="cryptobox_ctrl">
-<div style="background-color: #272464">
+    <div style="background-color: #272464">
         &nbsp;<a ng-click="close_window()"><i class="fa fa-power-off" style="color: white; cursor: pointer;"></i></a>
         &nbsp;<a ng-click="hide_window()"><i class="fa fa-search-minus" style="color: white; cursor: pointer;"></i></a>
 
-</div>
-<br/>
-<div class="container">
-    <div class="row">
-        <div class="col-sm-12">
+    </div>
+    <br/>
 
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
 
 
                 <p class="lead" ng-show="cryptobox_locked">local data encrypted <i class="fa fa-lock" style="color:#fe7474;"></i></p>
 
 
+            </div>
         </div>
     </div>
-</div>
 
-<div class="container">
-<div class="row">
-    <div class="col-sm-12">
-        Synced: <i class="fa fa-check" ng-hide="outofsync"></i><i class="fa fa-times" ng-show="outofsync"></i>
-        <br/><br/>
-        <div class="alert alert-danger alert-dismissable" ng-show="error_message">
-
-            <a ng-show="error_message_mail" href="mailto:edj@vir2l.nl?cc=erik@a8.nl&Subject=[Cryptobox error]:{{subject_message_mail}}&body={{error_message_mail}}" style="cursor: pointer;"><i class="fa fa-bug"></i>&nbsp;report bug</a>
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <pre style="background-color: #F2DEDE; border: #F2DEDE;">{{error_message}}</pre>
-
-        </div>
-        <div class="alert alert-info alert-dismissable" ng-show="info_message">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <i class="fa fa-info-circle"></i>&nbsp;{{info_message}}
-        </div>
-        <div class="alert alert-info alert-dismissable" ng-show="show_new_release_download_dialog">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            <i class="fa fa-download"></i>&nbsp;<a style="cursor: pointer;" ng-click="download_new_release()">{{show_new_release_download_dialog_message}}</a>
-        </div>
-
-        <form class="form-horizontal" role="form">
-            <div class="btn-group btn-group">
-                <button type="button" ng-disabled="get_lock_buttons()||disable_check_button" class="btn btn-default" ng-click="check_btn()"><i class="fa fa-refresh" style="margin-right: 4px"></i>Check</button>
-                <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-default" ng-click="sync_btn()"><i class="fa fa-refresh" ng-hide="state_syncing" style="margin-right: 4px"></i><i class="fa fa-refresh fa-spin" ng-show="state_syncing" style="margin-right: 4px"></i>Sync</button>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6">
+                <small><br ng-hide="progress_message"/>{{progress_message}}</small>
             </div>
+            <div class="col-sm-6">
 
-            <div class="btn-group btn-group pull-right">
-                <button type="button" class="btn btn-default" ng-click="reset_cache()"><i class="fa fa-warning" style="margin-right: 4px"></i>Reset</button>
-                <button type="button" class="btn btn-default" ng-click="debug_btn()"><i class="fa fa-dashboard" style="margin-right: 4px"></i>Debug</button>
-            </div>
-        </form>
-    </div>
-</div>
-<div class="row">
-    <div class="col-sm-12">
-        <br/>
-    </div>
-</div>
+                <div class="progress" style="max-height: 4px;">
+                    <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress()">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
 
-<div class="well" ng-show="show_settings">
-    <button type="button" class="close" ng-click="toggle_settings()" aria-hidden="true" style="margin-top: -12px; margin-right: -8px;">&times;</button>
-    <br/>
-
-    <form class="form-horizontal" role="form">
-        <div class="form-group">
-            <label for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
-
-            <div class="col-sm-9">
-                <input type="text" class="form-control" ng_model="cb_folder_text" ng-change="form_change()" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
-
-                <div style='height: 0;width:0; overflow:hidden;'><input type="file" id="cb_folder" class="form-control" nwdirectory ng-file-select="file_input_change($files)"></div>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="cb_username">username</label>
-
-            <div class="col-sm-9">
-                <input type="text" class="form-control" ng-change="form_change()" id="cb_username" ng_model="cb_username" placeholder="username">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="cb_password">password</label>
-
-            <div class="col-sm-9">
-                <input type="password" class="form-control" ng-change="form_change()" id="cb_password" ng_model="cb_password" placeholder="password">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="cb_name">cryptobox naam</label>
-
-            <div class="col-sm-9">
-                <input type="text" class="form-control" ng-change="form_change()" id="cb_name" ng_model="cb_name" placeholder="naam cryptobox">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="cb_server">cryptobox server</label>
-
-            <div class="col-sm-9">
-                <select class="form-control" ng-change="form_change()" id="cb_server" ng_model="cb_server" placeholder="cryptobox server">
-                    <option selected="selected">https://www.cryptobox.nl/</option>
-                    <option>http://127.0.0.1:8000/</option>
-                </select>
-
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-3 control-label" for="show_debug">show log</label>
-
-            <div class="col-sm-9" style="margin-top: 4px;">
-                <input id="show_debug" type="checkbox" ng-click="form_save()" ng-model="show_debug">
-
-                <div class="btn-group btn-group pull-right">
-                    <button type="button" id="btn_donw" class="btn btn-success" ng-click="form_save()" ng-disabled="!form_changed"><i class="fa fa-save"></i>&nbsp;save</button>
+                <div class="progress" style="max-height: 4px;">
+                    <div class="progress-bar progress-bar-info" role="progressbar" ng-style="get_progress_item()">
+                        <span class="sr-only"></span>
+                    </div>
                 </div>
             </div>
+            <div class="col-sm-12">
+                <div class="alert alert-danger alert-dismissable" ng-show="error_message">
+
+                    <a ng-show="error_message_mail" href="mailto:edj@vir2l.nl?cc=erik@a8.nl&Subject=[Cryptobox error]:{{subject_message_mail}}&body={{error_message_mail}}" style="cursor: pointer;"><i class="fa fa-bug"></i>&nbsp;report bug</a>
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <pre style="background-color: #F2DEDE; border: #F2DEDE;">{{error_message}}</pre>
+
+                </div>
+                <div class="alert alert-info alert-dismissable" ng-show="info_message">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <i class="fa fa-info-circle"></i>&nbsp;{{info_message}}
+                </div>
+                <div class="alert alert-info alert-dismissable" ng-show="show_new_release_download_dialog">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <i class="fa fa-download"></i>&nbsp;<a style="cursor: pointer;" ng-click="download_new_release()">{{show_new_release_download_dialog_message}}</a>
+                </div>
+
+                <form class="form-horizontal" role="form">
+                    <div class="btn-group btn-group">
+                        <button type="button" ng-disabled="get_lock_buttons()||disable_check_button" class="btn btn-default" ng-click="check_btn()"><i class="fa fa-refresh" style="margin-right: 4px"></i>Check</button>
+                        <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-default" ng-click="sync_btn()"><i class="fa fa-refresh" ng-hide="state_syncing" style="margin-right: 4px"></i><i class="fa fa-refresh fa-spin" ng-show="state_syncing" style="margin-right: 4px"></i>Sync</button>
+                    </div>
+
+                    <div class="btn-group btn-group pull-right">
+                        <button type="button" class="btn btn-default" ng-click="reset_cache()"><i class="fa fa-warning" style="margin-right: 4px"></i>Reset</button>
+                        <button type="button" class="btn btn-default" ng-click="debug_btn()"><i class="fa fa-dashboard" style="margin-right: 4px"></i>Debug</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
-</div>
+        <div class="row">
+            <div class="col-sm-12">
+                <br/>
+            </div>
+        </div>
 
-<div class="row">
-    <div class="col-sm-12" ng-show="show_debug">
+        <div class="well" ng-show="show_settings">
+            <button type="button" class="close" ng-click="toggle_settings()" aria-hidden="true" style="margin-top: -12px; margin-right: -8px;">&times;</button>
+            <br/>
 
-        <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
-        <button type="button" class="close" ng-click="clear_msg_buffer()" aria-hidden="true" style="margin: 8px;"><i class="fa fa-trash-o"></i></button>
-        <button type="button" class="close" ng-click="debug_btn()"><i class="fa fa-search" style="margin: 8px"></i></button>
+            <form class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label for="cb_folder" class="col-sm-3 control-label">cryptobox folder</label>
 
-        <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng_model="cb_folder_text" ng-change="form_change()" placeholder="Cryptobox folder, klik om te veranderen" onclick="document.getElementById('cb_folder').click();">
+
+                        <div style='height: 0;width:0; overflow:hidden;'><input type="file" id="cb_folder" class="form-control" nwdirectory ng-file-select="file_input_change($files)"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_username">username</label>
+
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng-change="form_change()" id="cb_username" ng_model="cb_username" placeholder="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_password">password</label>
+
+                    <div class="col-sm-9">
+                        <input type="password" class="form-control" ng-change="form_change()" id="cb_password" ng_model="cb_password" placeholder="password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_name">cryptobox naam</label>
+
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" ng-change="form_change()" id="cb_name" ng_model="cb_name" placeholder="naam cryptobox">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="cb_server">cryptobox server</label>
+
+                    <div class="col-sm-9">
+                        <select class="form-control" ng-change="form_change()" id="cb_server" ng_model="cb_server" placeholder="cryptobox server">
+                            <option selected="selected">https://www.cryptobox.nl/</option>
+                            <option>http://127.0.0.1:8000/</option>
+                        </select>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label" for="show_debug">show log</label>
+
+                    <div class="col-sm-9" style="margin-top: 4px;">
+                        <input id="show_debug" type="checkbox" ng-click="form_save()" ng-model="show_debug">
+
+                        <div class="btn-group btn-group pull-right">
+                            <button type="button" id="btn_donw" class="btn btn-success" ng-click="form_save()" ng-disabled="!form_changed"><i class="fa fa-save"></i>&nbsp;save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12" ng-show="show_debug">
+
+                <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
+                <button type="button" class="close" ng-click="clear_msg_buffer()" aria-hidden="true" style="margin: 8px;"><i class="fa fa-trash-o"></i></button>
+                <button type="button" class="close" ng-click="debug_btn()"><i class="fa fa-search" style="margin: 8px"></i></button>
+
+                <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
+            </div>
+        </div>
+
     </div>
-</div>
-
-</div>
 </div>
 
 </body>
