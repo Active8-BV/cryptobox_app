@@ -439,7 +439,7 @@ def cryptobox_command(options):
                     ensure_directory(options.dir)
                     timers.event("check sync_server")
                     localindex, memory = sync_server(memory, options)
-
+                timers.report_measurements()
         salt = secret = None
         if options.encrypt:
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
@@ -461,7 +461,7 @@ def cryptobox_command(options):
             output_json({"item_progress": 0})
             output_json({"global_progress": 0})
     finally:
-        timers.report_measurements()
+
         pass
 
     return True
