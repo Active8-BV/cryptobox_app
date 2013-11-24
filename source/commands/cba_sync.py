@@ -710,15 +710,17 @@ def diff_files_locally(memory, options, localindex, serverindex):
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
             if not seen_local_path_before:
-                if len(corresponding_server_nodes) == 0:
+                if len(corresponding_server_nodes) == 0 or not corresponding_server_nodes:
                     file_uploads.append(upload_file_object)
                 else:
                     filedata, localindex = make_cryptogit_hash(upload_file_object["local_path"], options.dir, localindex)
-
-                    if not strcmp(corresponding_server_nodes[0]["content_hash_latest_timestamp"][0], filedata["filehash"]):
+                    if not corresponding_server_nodes[0]:
                         file_uploads.append(upload_file_object)
                     else:
-                        memory = add_local_path_history(memory, upload_file_object["local_path"])
+                        if not strcmp(corresponding_server_nodes[0]["content_hash_latest_timestamp"][0], filedata["filehash"]):
+                            file_uploads.append(upload_file_object)
+                        else:
+                            memory = add_local_path_history(memory, upload_file_object["local_path"])
 
             else:
                 # is it changed?
@@ -821,6 +823,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @type serverindex: dict
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content): tuple
     """
+    timers = Timers()
     print_state = False
 
     #print_state = True
@@ -830,26 +833,35 @@ def get_sync_changes(memory, options, localindex, serverindex):
         print_pickle_variable_for_debugging(localindex, "localindex")
         print_pickle_variable_for_debugging(serverindex, "serverindex")
 
+    timers.event("parse_serverindex")
     dirname_hashes_server, server_path_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
     # server dirs
+    timers.event("dirs_on_server")
     dir_del_server_tmp, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
 
     #local dirs
+    timers.event("dirs_on_local")
     dir_make_server, dir_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
 
     # find new files on server
+    timers.event("diff_new_files_on_server")
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_path_nodes, dir_del_server_tmp)
 
     #local files
+    timers.event("diff_files_locally")
     file_uploads, file_del_local, memory, localindex = diff_files_locally(memory, options, localindex, serverindex)
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
     # filter out file uploads from dirs to delete
+    timers.event("find dirs to delete")
     dir_del_local = [x for x in dir_del_local if x["dirname"] not in [os.path.dirname(y["local_path"]) for y in file_uploads]]
-    dir_make_server = [x for x in dir_make_server if x["dirname"] not in [os.path.dirname(y["local_path"]) for y in file_uploads]]
+    timers.event("find dirs to make on server")
+    dirnames_file_upload = [os.path.dirname(y["local_path"]) for y in file_uploads]
+    dir_make_server = [x for x in dir_make_server if x["dirname"] not in dirnames_file_upload]
 
     # filter out dirs to make from file_uploads:
+    timers.event("prune folder making")
     dir_make_server_tmp = []
 
     for dms in dir_make_server:
@@ -865,6 +877,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_make_server = dir_make_server_tmp
 
     # prune directories to delete from files to download
+    timers.event("prune folder deleting")
     dir_del_server = []
     file_download_dirs = list(set([x["dirname_of_path"] for x in file_downloads]))
     for dds_path in dir_del_server_tmp:
@@ -882,7 +895,9 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
+    timers.event("check_renames_server")
     renames_server, file_uploads, file_del_server, localindex = check_renames_server(memory, options, localindex, serverindex, file_uploads, file_del_server, dir_del_server)
+    timers.event("store_localindex")
     memory = store_localindex(memory, localindex)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, renames_server
 

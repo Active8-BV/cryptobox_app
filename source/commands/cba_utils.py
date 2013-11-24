@@ -842,12 +842,12 @@ class Timers(object):
         totals = "%0.4f" % total
 
         if self.print_totals:
-            if fv > 0.35:
+            if fv > 0.85:
                 console(result["name"], str("* " + str(result["time"])+" *"), totals)
             else:
                 console(result["name"], str(result["time"]), totals)
         else:
-            if fv > 0.35:
+            if fv > 0.85:
                 console(result["name"], str("*" + str(result["time"]) + "*"))
             else:
                 console(result["name"], str(result["time"]))
