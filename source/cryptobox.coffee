@@ -111,44 +111,6 @@ warning = (ln, w) ->
         else
             add_output(w)
 
-parse_json = (method, data, returnlist, debug) ->
-    try
-        output = []
-        datacopy = data
-        data = String(data).split("\n")
-
-        try_cb = (datachunk) ->
-            if datachunk?
-                if _.size(datachunk) > 0
-                    datachunk = JSON.parse(datachunk)
-
-                    if datachunk?
-                        if datachunk.error_message?
-                            g_error_message = datachunk?.error_message
-                            add_output("error> " + g_error_message)
-                        else if datachunk.log?
-                            console?.log? datachunk.log
-                        else if datachunk.message?
-                            g_info_message = datachunk.message
-                            add_output("info> " + g_info_message)
-                        else
-                            output.push(datachunk)
-
-        _.each(data, try_cb)
-    catch ex
-        if debug?
-            print "cryptobox.cf:140", method, "could not parse json", ex
-            console?.log? datacopy
-            return null
-    if not returnlist
-        if _.size(output) == 1
-            return output[0]
-
-        if _.size(output) > 1
-            require('nw.gui').Window.get().showDevTools()
-            print "cryptobox.cf:149", method, "parse_json multiple elements but returnlist is not requested"
-    return output
-
 
 option_to_array = (name, option) ->
     for k in _.keys(option)
@@ -208,6 +170,49 @@ possible_json = (data) ->
     return false
 
 
+parse_json = (method, data, givelist, debug) ->
+    try
+        output = []
+        datacopy = data
+        data = String(data).split("\n")
+
+        try_cb = (datachunk) ->
+            if datachunk?
+                if _.size(datachunk) > 0
+                    datachunk = JSON.parse(datachunk)
+
+                    if datachunk?
+                        if datachunk.error_message?
+                            g_error_message = datachunk?.error_message
+                            add_output("error> " + g_error_message)
+                        else if datachunk.log?
+                            console?.log? datachunk.log
+                        else if datachunk.message?
+                            g_info_message = datachunk.message
+                            add_output("info> " + g_info_message)
+                        else
+                            output.push(datachunk)
+
+        _.each(data, try_cb)
+    catch ex
+        if debug?
+            print "cryptobox.cf:199", method, "could not parse json", ex
+            console?.log? datacopy
+            return null
+
+    if not givelist
+        if _.size(output) == 1
+            return output[0]
+
+        if _.size(output) > 1
+
+            #require('nw.gui').Window.get().showDevTools()
+            print "cryptobox.cf:210", method, "parse_json multiple elements but givelist is not requested"
+            console?.log? datacopy
+
+    return output
+
+
 run_cba_main = (name, options, cb_done, cb_intermediate, give_list) ->
     cmd_to_run = path.join(process.cwd(), "commands")
     cmd_to_run = path.join(cmd_to_run, "cba_main")
@@ -264,7 +269,7 @@ run_cba_main = (name, options, cb_done, cb_intermediate, give_list) ->
         g_cba_main = null
 
         if already_running(output)
-            print "cryptobox.cf:267", "already running"
+            print "cryptobox.cf:272", "already running"
             if cb_done?
                 cb_done(false, output)
         else
@@ -345,7 +350,7 @@ set_user_var_scope = (name, scope_name, scope, $q) ->
             p.resolve()
 
         (err) ->
-            warning "cryptobox.cf:348", err
+            warning "cryptobox.cf:353", err
             p.reject(err)
     )
     p.promise
@@ -451,7 +456,7 @@ update_sync_state = (scope) ->
 
     result_sync_state = (result, sync_result_list) ->
         if scope.disable_check_button
-            print "cryptobox.cf:454", "check done"
+            print "cryptobox.cf:459", "check done"
             scope.disable_check_button = false
             scope.disable_sync_button = false
 
@@ -459,7 +464,7 @@ update_sync_state = (scope) ->
             process_sync_result = (sync_results) ->
                 if sync_results.instruction?
                     if sync_results.instruction == "lock_buttons_password_wrong"
-                        print "cryptobox.cf:462", sync_results.instruction
+                        print "cryptobox.cf:467", sync_results.instruction
                         scope.lock_buttons_password_wrong = true
                 else
                     scope.request_update_sync_state = false
@@ -478,8 +483,8 @@ update_sync_state = (scope) ->
                                     scope.disable_sync_button = false
 
                     catch ex
-                        print "cryptobox.cf:481", ex
-                        print "cryptobox.cf:482", sync_results
+                        print "cryptobox.cf:486", ex
+                        print "cryptobox.cf:487", sync_results
 
             _.each(sync_result_list, process_sync_result)
 
@@ -618,7 +623,7 @@ g_progress_callback = (scope, output) ->
         if !scope.$$phase
             scope.$apply()
     catch err
-        print "cryptobox.cf:621", "g_progress_callback", err
+        print "cryptobox.cf:626", "g_progress_callback", err
 
 
 reset_bars_timer = null
@@ -647,7 +652,7 @@ delete_blobs = (scope) ->
     option.acommand = "delete_blobs"
 
     cb_delete_blobs = (result, output) ->
-        print "cryptobox.cf:650", "blobs deleted", result, output
+        print "cryptobox.cf:655", "blobs deleted", result, output
     run_cba_main("delete_blobs", option, cb_delete_blobs)
 
 
@@ -767,7 +772,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 store_user_var("cb_password", $scope.cb_password, $q)
 
             (err) ->
-                print "cryptobox.cf:770", "error setting password", err
+                print "cryptobox.cf:775", "error setting password", err
         )
         $scope.form_changed = false
         $scope.request_update_sync_state = true
@@ -793,7 +798,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             set_sync_check_on_scope($scope, output)
 
     do_sync = ->
-        print "cryptobox.cf:796", "start sync"
+        print "cryptobox.cf:801", "start sync"
         $scope.disable_sync_button = true
         option = get_option($scope)
         option.encrypt = true
@@ -809,7 +814,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 $scope.disable_sync_button = false
                 $scope.disable_encrypt_button = false
                 $scope.request_update_sync_state = true
-        run_cba_main("sync_cb", option, sync_cb, check_feedback_progress_callback, true)
+        run_cba_main("sync_cb", option, sync_cb, check_feedback_progress_callback, false)
 
     $scope.encrypt_btn = ->
         option = get_option($scope)
@@ -821,7 +826,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:824", "encrypted"
+                print "cryptobox.cf:829", "encrypted"
                 $scope.request_update_sync_state = true
         run_cba_main("encrypt", option, sync_cb, progress_callback)
 
@@ -833,7 +838,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:836", "decrypted"
+                print "cryptobox.cf:841", "decrypted"
                 $scope.disable_sync_button = true
                 $scope.request_update_sync_state = true
         run_cba_main("decrypt", option, sync_cb, progress_callback)
@@ -861,7 +866,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.toggle_debug = ->
         $scope.show_debug = !$scope.show_debug
-        print "cryptobox.cf:864", $scope.show_debug
+        print "cryptobox.cf:869", $scope.show_debug
 
     $scope.clear_msg_buffer = ->
         g_output = []
@@ -874,7 +879,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             check_for_new_release($scope)
 
         (err) ->
-            print "cryptobox.cf:877", err
+            print "cryptobox.cf:882", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
