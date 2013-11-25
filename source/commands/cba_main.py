@@ -205,7 +205,7 @@ def cryptobox_command(options):
                 path = options.input
                 output_json({"hash": make_hash_path(path)})
                 return
-            elif options.acommand == "check_new_release":
+            elif options.acommand == "check_new_release": 
                 if not options.server:
                     message_json("server mising")
 
