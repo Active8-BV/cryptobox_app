@@ -362,8 +362,11 @@ def cryptobox_command(options):
         datadir = get_data_dir(options)
 
         if options.clear == "1":
-            shutil.rmtree(datadir)
-            output_json({"info_message": "cryptobox cache removed: " + str(datadir)})
+            if os.path.exists(datadir):
+                shutil.rmtree(datadir)
+                output_json({"info_message": "cryptobox cache removed: " + str(datadir)})
+            else:
+                output_json({"info_message": "cryptobox cache already removed: " + str(datadir)})
             return
 
         ensure_directory(datadir)

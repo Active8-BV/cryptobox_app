@@ -971,7 +971,7 @@ def possible_new_dirs(file_path, memory):
     @type memory: Memory
     """
     if file_path is None:
-        raise Exception("possible_new_dirs is None")
+        raise Exception("file_path is None")
 
     possible_new_dir_list = []
     file_dir = os.path.dirname(file_path)
@@ -993,7 +993,8 @@ def possible_new_dirs_extend(file_path_list, memory):
     @type memory: Memory
     """
     for file_path in file_path_list:
-        file_path_list.extend(possible_new_dirs(file_path, memory))
+        if file_path:
+            file_path_list.extend(possible_new_dirs(file_path, memory))
 
     file_path_list = list(set(file_path_list))
     file_path_list.sort()
