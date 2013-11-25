@@ -3,16 +3,8 @@
 blob routines, loosely based on git
 """
 import os
-from cba_utils import handle_exception, \
-    strcmp, \
-    update_progress, \
-    output_json
-from cba_file import read_and_encrypt_file, \
-    ensure_directory, \
-    decrypt_write_file, \
-    write_file, \
-    add_local_path_history, \
-    add_server_path_history
+from cba_utils import handle_exception, strcmp, update_progress, output_json
+from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file, add_local_path_history, add_server_path_history
 
 
 def get_data_dir(options):
@@ -126,4 +118,4 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
         write_blob_to_filepath(memory, fnode, options, data)
         file_nodes_copy.remove(fnode)
 
-    return memory,file_nodes_copy
+    return memory, file_nodes_copy

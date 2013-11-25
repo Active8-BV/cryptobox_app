@@ -691,11 +691,11 @@ set_menus_and_g_tray_icon = function(scope) {
   add_menu_seperator();
   g_show_hide_tray_item = add_g_traymenu_item("Hide", "images/fa-search-minus.png", scope.hide_window);
   add_g_traymenu_seperator();
-  g_encrypt_g_tray_item = add_g_traymenu_item("Lock folder", "images/lock.png", scope.encrypt_btn);
-  g_decrypt_g_tray_item = add_g_traymenu_item("Unlock", "images/unlock.png", scope.decrypt_btn);
+  add_g_traymenu_item("Website", "images/fa-external-link.png", scope.open_website);
+  add_g_traymenu_item("Folder", "images/fa-folder-open.png", scope.open_folder);
   add_g_traymenu_seperator();
-  add_g_traymenu_item("Cryptobox.nl", "images/fa-external-link.png", scope.open_website);
-  add_g_traymenu_item("Cryptobox folder", "images/fa-folder-open.png", scope.open_folder);
+  g_encrypt_g_tray_item = add_g_traymenu_item("Lock ", "images/lock.png", scope.encrypt_btn);
+  g_decrypt_g_tray_item = add_g_traymenu_item("Unlock", "images/unlock.png", scope.decrypt_btn);
   add_g_traymenu_seperator();
   add_g_traymenu_item("Debug", "images/fa-bug.png", scope.debug_btn);
   return add_g_traymenu_item("Quit", "images/fa-power-off.png", scope.close_window_menu);
@@ -1017,6 +1017,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   set_menus_and_g_tray_icon($scope);
   digester = function() {
     var clear_info, make_stream, output_msg;
+    $scope.progress_message = utils.capfirst($scope.progress_message);
     output_msg = "";
     if (utils.exist_truth($scope.lock_buttons_password_wrong)) {
       $scope.disable_encrypt_button = true;
