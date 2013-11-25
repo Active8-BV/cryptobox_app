@@ -374,7 +374,7 @@ def wait_for_tasks(memory, options):
                             print "cba_sync.py:374", "waiting for tasks", num_tasks
 
                 else:
-                    update_progress(100, "waiting for tasks to finish on server")
+                    update_progress(100, 100, "waiting for tasks to finish on server")
                     return memory
 
         time.sleep(1)
@@ -812,7 +812,7 @@ def check_renames_server(memory, options, localindex, serverindex, file_uploads,
 
     for fdr in file_del_server_remove:
         file_del_server.remove(fdr)
-    return renames_server, file_uploads, file_del_server_tmp, localindex
+    return renames_server, file_uploads, file_del_server, localindex
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
