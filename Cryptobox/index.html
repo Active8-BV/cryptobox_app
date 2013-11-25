@@ -30,11 +30,13 @@
         &nbsp;<a ng-click="hide_window()"><i class="fa fa-search-minus" style="color: white; cursor: pointer;"></i></a>
 
     </div>
+
     <br/>
 
     <div class="container">
         <div class="row">
             <div class="col-sm-12">
+
                 <p class="lead" ng-show="cryptobox_locked">local data encrypted <i class="fa fa-lock" style="color:#fe7474;"></i></p>
             </div>
         </div>
@@ -43,7 +45,16 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-6">
-                <small><br ng-hide="progress_message"/>{{progress_message}}</small>
+                <table>
+                    <tr>
+                        <td style="vertical-align: top;"><img src="images/logo-cryptobox.png" width="32"></td>
+                        <td style="vertical-align: top;">
+                            <small style="padding-left: 4px;">{{progress_message}}</small>
+                        </td>
+                    </tr>
+                </table>
+
+
             </div>
             <div class="col-sm-6">
 
@@ -59,6 +70,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row">
             <div class="col-sm-12">
                 <div class="alert alert-danger alert-dismissable" ng-show="error_message">
 
