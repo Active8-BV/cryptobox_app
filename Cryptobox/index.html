@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="cryptoboxApp">
+<html ng-app="cryptoboxApp" ng-controller="cryptobox_ctrl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +24,7 @@
 </head>
 <body>
 
-<div ng-controller="cryptobox_ctrl">
+<div>
     <div style="background-color: #272464">
         &nbsp;<a ng-click="close_window()"><i class="fa fa-power-off" style="color: white; cursor: pointer;"></i></a>
         &nbsp;<a ng-click="hide_window()"><i class="fa fa-search-minus" style="color: white; cursor: pointer;"></i></a>
@@ -47,9 +47,10 @@
             <div class="col-sm-6">
                 <table>
                     <tr>
-                        <td style="vertical-align: top;"><img src="images/logo-cryptobox.png" width="32"></td>
+                        <td style="vertical-align: top;"><img ng-hide="outofsync" src="images/logo-cryptobox.png" width="32"><img ng-show="outofsync" src="images/logo-cryptobox-dirty.png" width="32"></td>
                         <td style="vertical-align: top;">
-                            <small style="padding-left: 4px;">{{progress_message}}</small>
+                            <small style="padding-left: 4px;" ng-bind-html-unsafe="progress_message"></small>
+
                         </td>
                     </tr>
                 </table>
@@ -91,8 +92,8 @@
 
                 <form class="form-horizontal" role="form">
                     <div class="btn-group btn-group">
-                        <button type="button" ng-disabled="get_lock_buttons()||disable_check_button" class="btn btn-default" ng-click="check_btn()"><i class="fa fa-refresh" style="margin-right: 4px"></i>Check</button>
                         <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-default" ng-click="sync_btn()"><i class="fa fa-refresh" ng-hide="state_syncing" style="margin-right: 4px"></i><i class="fa fa-refresh fa-spin" ng-show="state_syncing" style="margin-right: 4px"></i>Sync</button>
+                        <button type="button" ng-disabled="get_lock_buttons()" class="btn btn-default" ng-click="open_folder()"><i class="fa fa-folder-open" style="margin-right: 4px"></i>Folder</button>
                     </div>
 
                     <div class="btn-group btn-group pull-right">
