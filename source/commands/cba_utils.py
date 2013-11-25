@@ -118,7 +118,10 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
         if progress_callback:
             now = time.time()
             results_cnt[0] += 1
-            perc = float(results_cnt[0]) / (float(len(items)) / 100)
+            try:
+                perc = float(results_cnt[0]) / (float(len(items)) / 100)
+            except ZeroDivisionError:
+                perc = 0
 
             if results_cnt[0] == 1 and perc == 100:
                 pass
