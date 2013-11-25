@@ -374,6 +374,7 @@ def wait_for_tasks(memory, options):
                             print "cba_sync.py:374", "waiting for tasks", num_tasks
 
                 else:
+                    update_progress(100, "waiting for tasks to finish on server")
                     return memory
 
         time.sleep(1)

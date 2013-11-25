@@ -439,7 +439,7 @@ def cryptobox_command(options):
                     ensure_directory(options.dir)
                     timers.event("check sync_server")
                     localindex, memory = sync_server(memory, options)
-                timers.report_measurements()
+                #timers.report_measurements()
         salt = secret = None
         if options.encrypt:
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
