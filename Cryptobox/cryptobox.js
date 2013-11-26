@@ -1088,11 +1088,6 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   setInterval(two_second_interval, 2000);
   ten_second_interval = function() {
     var option, tree_sequence_cb;
-    if ($scope.prev_progress_message === $scope.progress_message) {
-      $scope.progress_message = "";
-    } else {
-      $scope.prev_progress_message = $scope.progress_message;
-    }
     option = get_option($scope);
     option.treeseq = true;
     $scope.request_update_sync_state = true;
