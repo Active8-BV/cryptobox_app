@@ -39,19 +39,18 @@ def make_checksum(data):
         return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
 
 
-def make_sha1_hash_file(prefix, fpath, strio=None):
+def make_sha1_hash_file(prefix, data, fpi=None):
     """ make hash
     @type prefix: str
-    @type fpath: str
-    @type strio: StringIO
+    @type data: str, None
+    @type fpi: file, None, FileIO
     """
     sha = SHA.new()
     sha.update(prefix)
-    if strio:
-        fp = strio
-        fp.seek(0)
+    if not fpi:
+        fp = StringIO(data)
     else:
-        fp = open(fpath)
+        fp = fpi
 
     one_mb = (1 * (2 ** 20))
     chunksize = one_mb / 2
