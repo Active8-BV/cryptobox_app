@@ -1133,8 +1133,9 @@ def sync_server(memory, options):
         files_uploaded = possible_new_dirs_extend(files_uploaded, memory)
 
         for fpath in files_uploaded:
-            memory = add_path_history(fpath, memory)
-            memory = add_path_history(os.path.dirname(fpath), memory)
+            if fpath:
+                memory = add_path_history(fpath, memory)
+                memory = add_path_history(os.path.dirname(fpath), memory)
 
     if len(file_del_local) > 0:
         memory = remove_local_paths(memory, file_del_local)
