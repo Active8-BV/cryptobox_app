@@ -97,7 +97,6 @@ class EncryptionHashMismatch(Exception):
     """
     pass
 
-
 def encrypt_file_for_smp(secret, chunk):
     """
     @param secret: pkdf2 secre

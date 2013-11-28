@@ -125,7 +125,6 @@ class NotAuthorized(Exception):
     """
     pass
 
-
 def parse_http_result(result):
     """
     parse_http_result
@@ -257,7 +256,6 @@ class PasswordException(Exception):
     PasswordException
     """
     pass
-
 
 def authorize(memory, options):
     """

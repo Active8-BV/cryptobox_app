@@ -136,6 +136,7 @@ class CryptoboxAppTest(unittest.TestCase):
             if not os.path.exists(os.path.join("testdata", tfn)):
                 os.system("cd testdata; nohup wget http://download.thinkbroadband.com/" + tfn)
 
+
                 #noinspection PyPep8Naming
 
     def tearDown(self):
@@ -716,6 +717,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
         os.system("mv testdata/test/smalltest testdata/test/smalltest2")
+
         #noinspection PyUnusedLocal
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
 

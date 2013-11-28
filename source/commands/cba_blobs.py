@@ -3,8 +3,16 @@
 blob routines, loosely based on git
 """
 import os
-from cba_utils import handle_exception, strcmp, update_progress, output_json
-from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file, add_local_path_history, add_server_path_history
+from cba_utils import handle_exception, \
+    strcmp, \
+    update_progress, \
+    output_json
+from cba_file import read_and_encrypt_file, \
+    ensure_directory, \
+    decrypt_write_file, \
+    write_file, \
+    add_local_path_history, \
+    add_server_path_history
 
 
 def get_data_dir(options):
@@ -75,7 +83,6 @@ class NoTimeStamp(Exception):
     NoTimeStamp
     """
     pass
-
 
 def write_blob_to_filepath(memory, node, options, data):
     """
