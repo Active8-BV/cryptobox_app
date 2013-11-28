@@ -1037,7 +1037,6 @@ def upload_files(memory, options, serverindex, file_uploads):
             files_uploaded.append(file_path)
             output_json({"item_progress": 0})
         file_uploads_left.remove(uf)
-        output_json({"file_uploads": file_uploads_left})
 
     return memory, files_uploaded
 
