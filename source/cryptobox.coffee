@@ -14,7 +14,7 @@ g_show_hide_tray_item = null
 cb_server_url = "http://127.0.0.1:8000/"
 g_winmain = gui.Window.get()
 g_tray = new gui.Tray(
-    icon: "images/icon-client-signed-in-idle.png"
+    icon: "images/cryptoboxstatus-idle-lep.tiff"
 )
 
 
@@ -297,7 +297,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record = 
+        record =
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -446,7 +446,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -510,7 +510,7 @@ cryptobox_locked_status_change = (locked, scope) ->
         if g_decrypt_g_tray_item?
             g_decrypt_g_tray_item.enabled = true
     else
-        g_tray.icon = "images/icon-client-signed-in-idle.png"
+        g_tray.icon = "images/cryptoboxstatus-idle-lep.tiff"
         scope.disable_folder_button = false
         scope.disable_encrypt_button = false
         scope.disable_decrypt_button = true
@@ -524,7 +524,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
