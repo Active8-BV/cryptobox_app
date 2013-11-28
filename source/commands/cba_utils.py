@@ -227,7 +227,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
 
         if isinstance(item, tuple):
             for i in item:
-                if isinstance(i, file):
+                xx = type(i)
+                if isinstance(i, file) or isinstance(i, tempfile.SpooledTemporaryFile):
                     i.seek(0)
                     base_params_list.append(i.read())
                 else:
@@ -249,19 +250,21 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
         if not result.successful():
             result.get()
         else:
-            tf = tempfile.TemporaryFile("w+r")
+
             res = result.get()
 
             if isinstance(res, dict):
+                tf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
                 if "file_path" in res:
                     tf.write(open(res["file_path"]).read())
                     os.remove(res["file_path"])
                 else:
                     tf.write(str(res))
+                tf.seek(0)
+                calculation_result_values.append(tf)
             else:
-                tf.write(str(res))
-            tf.seek(0)
-            calculation_result_values.append(tf)
+                calculation_result_values.append(str(res))
+
     pool.terminate()
     return calculation_result_values
 

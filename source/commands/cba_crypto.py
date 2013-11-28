@@ -7,7 +7,6 @@ import tempfile
 import base64
 import cPickle
 import zlib
-import uuid
 from cStringIO import StringIO
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512
@@ -101,7 +100,7 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def encrypt_file_for_smp(secret, chunk, bucket_name, name, cnt):
+def encrypt_file_for_smp(secret, chunk):
     """
     @param secret: pkdf2 secre
     @type secret: str
@@ -113,16 +112,17 @@ def encrypt_file_for_smp(secret, chunk, bucket_name, name, cnt):
 
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     from Crypto.Cipher import XOR
+
     cipher = XOR.new(secret)
     data_hash = make_checksum(chunk)
     enc_data = cipher.encrypt(chunk)
-    data = {"initialization_vector": initialization_vector,
-            "enc_data": enc_data,
-            "data_hash": data_hash}
+    data = {"initialization_vector": initialization_vector, "enc_data": enc_data, "data_hash": data_hash}
 
     pdata = cPickle.dumps(data)
-    write_to_gcloud(bucket_name, name + "_" + str(cnt), pdata)
-    return True
+    ntf = tempfile.NamedTemporaryFile(delete=False)
+    ntf.delete = True
+    ntf.write(pdata)
+    return ntf.name
 
 
 def make_chunklist(fobj):
@@ -134,6 +134,7 @@ def make_chunklist(fobj):
     #noinspection PyBroadException
     try:
         import multiprocessing
+
         numcores = multiprocessing.cpu_count()
         fobj.seek(0, os.SEEK_END)
         fsize = fobj.tell()
@@ -148,7 +149,7 @@ def make_chunklist(fobj):
     chunk = fobj.read(chunksize)
 
     while chunk:
-        tf = tempfile.TemporaryFile()
+        tf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
         tf.write(chunk)
         chunklist.append(tf)
         chunk = fobj.read(chunksize)
@@ -156,39 +157,28 @@ def make_chunklist(fobj):
     return chunklist
 
 
-def encrypt_file_smp(secret, fname, bucket_name=None, name=None, progress_callback=None):
+def encrypt_file_smp(secret, fname, progress_callback=None):
     """
     @type secret: str, unicode
     @type fname: str, unicode
     @type progress_callback: function
     """
-    store_in_cloud = True
-
-    if not bucket_name or not name:
-
-        # use the cloud as a temp buffer
-        bucket_name = "tmp"
-        name = str(uuid.uuid4().hex)
-        store_in_cloud = False
-
     if isinstance(fname, str) or isinstance(fname, unicode):
         fobj = open(fname)
     else:
         fobj = fname
 
     chunklist = make_chunklist(fobj)
-    chunklist = [(secret, chunk_fp, bucket_name, name, cnt) for cnt, chunk_fp in enumerate(chunklist)]
+    chunklist = [(secret, chunk_fp) for chunk_fp in chunklist]
     encrypted_file_chunks = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
 
-    if store_in_cloud:
-        return len(encrypted_file_chunks)
-    else:
-        encrypted_file_chunks_data = []
+    encrypted_file_chunks_data = []
 
-        for i in range(0, len(encrypted_file_chunks)):
-            encrypted_file_chunks_data.append(read_from_gcloud(bucket_name, name + "_" + str(i)).read())
-            delete_from_gcloud(bucket_name, name + "_" + str(i))
-        return encrypted_file_chunks_data
+    for ntf_name in encrypted_file_chunks:
+        ntf = open(ntf_name)
+        encrypted_file_chunks_data.append(cPickle.loads(ntf.read()))
+        os.remove(ntf_name)
+    return encrypted_file_chunks_data
 
 
 def decrypt_chunk(secret, chunk):
@@ -207,6 +197,7 @@ def decrypt_chunk(secret, chunk):
 
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     from Crypto.Cipher import XOR
+
     cipher = XOR.new(secret)
     tf = tempfile.NamedTemporaryFile(delete=False)
     dec_data = cipher.decrypt(encrypted_data)
@@ -226,12 +217,11 @@ def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
     """
     chunks_param_sorted = [(secret, chunk) for chunk in enc_file_chunks]
     dec_file_chunks = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
-    dec_file = tempfile.TemporaryFile()
+    dec_file = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
 
     for chunk_dec_file in dec_file_chunks:
-        chunk_path = chunk_dec_file.read()
-        dec_file.write(open(chunk_path).read())
-        os.remove(chunk_path)
+        dec_file.write(open(chunk_dec_file).read())
+        os.remove(chunk_dec_file)
     dec_file.seek(0)
     return dec_file
 
