@@ -4,6 +4,7 @@
 some utility functions
 """
 import sys
+
 reload(sys)
 
 #noinspection PyUnresolvedReferences
@@ -21,31 +22,10 @@ import shutil
 import Tkinter, tkFileDialog
 from cStringIO import StringIO
 from optparse import OptionParser
-from cba_utils import output_json, \
-    strcmp, \
-    Dict2Obj, \
-    Memory, \
-    open_folder, \
-    handle_exception, \
-    message_json, \
-    b64_encode_mstyle, \
-    log_json, \
-    Timers
-from cba_index import restore_hidden_config, \
-    ensure_directory, \
-    hide_config, \
-    index_and_encrypt, \
-    make_local_index, \
-    reset_cryptobox_local, \
-    decrypt_and_build_filetree, \
-    quick_lock_check
-from cba_network import authorize_user, \
-    on_server, \
-    download_server
-from cba_sync import sync_server, \
-    get_server_index, \
-    get_sync_changes, \
-    get_tree_sequence
+from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle, log_json, Timers
+from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
+from cba_network import authorize_user, on_server, download_server
+from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
 from cba_crypto import make_sha1_hash_file
 from tendo import singleton
@@ -61,7 +41,6 @@ def monkeypatch_popen():
 
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -91,6 +70,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -175,7 +155,7 @@ def make_hash_path(path):
             for p in [os.path.join(dp, f) for dp, dn, fn in os.walk(path) for f in fn]:
                 buf.write(open(p).read())
 
-            return make_sha1_hash_file("", fpath="", strio=buf)
+            return make_sha1_hash_file("", fpi="", strio=buf)
         else:
             return make_sha1_hash_file("", path)
 
@@ -421,15 +401,7 @@ def cryptobox_command(options):
                     timers.event("check get_sync_changes")
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
-                    outputdict = {"file_del_server": file_del_server,
-                                  "file_downloads": file_downloads,
-                                  "file_uploads": file_uploads,
-                                  "dir_del_server": dir_del_server,
-                                  "dir_make_local": dir_make_local,
-                                  "dir_make_server": dir_make_server,
-                                  "dir_del_local": dir_del_local,
-                                  "file_del_local": file_del_local,
-                                  "all_synced": all_synced}
+                    outputdict = {"file_del_server": file_del_server, "file_downloads": file_downloads, "file_uploads": file_uploads, "dir_del_server": dir_del_server, "dir_make_local": dir_make_local, "dir_make_server": dir_make_server, "dir_del_local": dir_del_local, "file_del_local": file_del_local, "all_synced": all_synced}
 
                     output_json(outputdict)
                 elif options.sync:
@@ -444,7 +416,7 @@ def cryptobox_command(options):
                     timers.event("check sync_server")
                     localindex, memory = sync_server(memory, options)
 
-                #timers.report_measurements()
+                    #timers.report_measurements()
         salt = secret = None
         if options.encrypt:
             salt, secret, memory, localindex = index_and_encrypt(memory, options)
@@ -473,6 +445,7 @@ def cryptobox_command(options):
 
 def test_output():
     from cba_utils import message_json
+
     message_json("hello")
     message_json("world")
     message_json(str(range(0, 10000)))
@@ -491,6 +464,7 @@ def main():
         output_json({"error_message": exs})
 
         raise
+
 
 if strcmp(__name__, '__main__'):
     try:
