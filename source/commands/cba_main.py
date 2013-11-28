@@ -367,26 +367,27 @@ def cryptobox_command(options):
                 output_json({"info_message": "cryptobox cache removed: " + str(datadir)})
             else:
                 output_json({"info_message": "cryptobox cache already removed: " + str(datadir)})
+
             return
 
         ensure_directory(datadir)
         if not datadir:
-            print "cba_main.py:371", "datadir is None"
+            print "cba_main.py:375", "datadir is None"
 
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
-            print "cba_main.py:377", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:381", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:382", "No username given (-u or --username)"
+                print "cba_main.py:386", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:386", "No password given (-p or --password)"
+                print "cba_main.py:390", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -433,15 +434,16 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if not options.encrypt:
-                        print "cba_main.py:433", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
+                        print "cba_main.py:437", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
                         return False
 
                     if quick_lock_check(options):
-                        print "cba_main.py:437", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:441", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     timers.event("check sync_server")
                     localindex, memory = sync_server(memory, options)
+
                 #timers.report_measurements()
         salt = secret = None
         if options.encrypt:
@@ -464,7 +466,6 @@ def cryptobox_command(options):
             output_json({"item_progress": 0})
             output_json({"global_progress": 0})
     finally:
-
         pass
 
     return True
@@ -499,4 +500,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:497", "\nbye main"
+        print "cba_main.py:503", "\nbye main"

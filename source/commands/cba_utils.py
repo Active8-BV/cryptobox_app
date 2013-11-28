@@ -118,6 +118,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
         if progress_callback:
             now = time.time()
             results_cnt[0] += 1
+
             try:
                 perc = float(results_cnt[0]) / (float(len(items)) / 100)
             except ZeroDivisionError:
@@ -125,6 +126,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
 
             if results_cnt[0] == 1 and perc == 100:
                 pass
+
             else:
                 if now - last_update[0] > 0.1:
                     if perc > 100:
@@ -252,7 +254,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:252", arg
+    print "cba_utils.py:257", arg
     sys.exit(1)
 
 
@@ -373,7 +375,6 @@ class MemoryCorruption(Exception):
     MemoryCorruption
     """
     pass
-
 
 memory_lock = threading.Lock()
 
@@ -502,6 +503,7 @@ class Memory(object):
                         self.has(k)
                     except MemoryExpired:
                         pass
+
                 return True
         finally:
             if not keep_lock:
@@ -619,8 +621,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:619", "json parse errror"
-                        print "cba_utils.py:620", jdata
+                        print "cba_utils.py:624", "json parse errror"
+                        print "cba_utils.py:625", jdata
 
             except Exception:
                 handle_exception(False)
@@ -709,12 +711,12 @@ def b64_encode_mstyle(s):
     s = b64mstyle + s
     return s
 
+
 g_start_time = time.time()
 
 
 #noinspection PyPep8Naming
 def console(*args):
-
     """
     @param args:
     @type args:
@@ -741,11 +743,10 @@ def console(*args):
         return santize_string
 
     arguments = [sanitize(x) for x in arguments if x]
-
-
     for s in arguments:
         if toggle:
             pass
+
         else:
             pass
 
@@ -856,6 +857,7 @@ class Timers(object):
                 console(result["name"], str(result["time"]))
 
         return total
+
 
     #noinspection PyAttributeOutsideInit
     def report_measurements(self):

@@ -32,7 +32,9 @@ from cba_utils import handle_exception, \
     update_item_progress, \
     Memory, \
     output_json, \
-    unpickle_object, Timers
+    unpickle_object, \
+    Timers, \
+    log_json
 from cba_file import ensure_directory, \
     add_server_path_history, \
     in_server_path_history, \
@@ -371,7 +373,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:374", "waiting for tasks", num_tasks
+                            print "cba_sync.py:376", "waiting for tasks", num_tasks
 
                 else:
                     update_progress(100, 100, "waiting for tasks to finish on server")
@@ -431,7 +433,6 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     """
     payload = {"path1": path1,
                "path2": path2}
-
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -460,7 +461,6 @@ class NoParentFound(Exception):
     NoParentFound
     """
     pass
-
 
 def path_to_server_guid(memory, options, serverindex, parent_path):
     """
@@ -511,7 +511,6 @@ class NoPathFound(Exception):
     NoPathFound
     """
     pass
-
 
 def short_id_to_server_path(memory, serverindex, short_id):
     """
@@ -582,7 +581,6 @@ def get_server_index(memory, options):
     @return: index
     @rtype: dict, Memory
     """
-
     if not memory.has("session"):
         if memory.has("authorized"):
             memory.delete("authorized")
@@ -592,7 +590,6 @@ def get_server_index(memory, options):
 
     if not memory.get("authorized"):
         raise NotAuthorized("get_server_index")
-
 
     tree_seq = get_tree_sequence(memory, options)
 
@@ -618,7 +615,6 @@ def get_server_index(memory, options):
     serverindex["dirlist"] = tuple(list(set(dirlistserver)))
     serverindex["doclist"] = tuple(serverindex["doclist"])
     memory.replace("serverindex", serverindex)
-
     return serverindex, memory
 
 
@@ -669,6 +665,7 @@ def diff_new_files_on_server(memory, options, server_path_nodes, dirs_scheduled_
 
         if os.path.exists(server_path_to_local):
             pass
+
         else:
             seen_local_path_before, memory = in_local_path_history(memory, server_path_to_local)
 
@@ -715,6 +712,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
                     file_uploads.append(upload_file_object)
                 else:
                     filedata, localindex = make_cryptogit_hash(upload_file_object["local_path"], options.dir, localindex)
+
                     if not corresponding_server_nodes[0]:
                         file_uploads.append(upload_file_object)
                     else:
@@ -751,7 +749,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:748", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:752", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -833,7 +831,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
         print_pickle_variable_for_debugging(memory, "memory")
         print_pickle_variable_for_debugging(localindex, "localindex")
         print_pickle_variable_for_debugging(serverindex, "serverindex")
-
     timers.event("parse_serverindex")
     dirname_hashes_server, server_path_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
@@ -922,6 +919,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
 
         last_progress = [0]
 
+
         #noinspection PyUnusedLocal
         def prog_callback(param, current, total):
             """
@@ -941,7 +939,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:925", "updating upload progress failed", str(exc)
+                print "cba_sync.py:942", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -953,7 +951,6 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
-
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -1051,7 +1048,6 @@ class NoSyncDirFound(Exception):
     """
     pass
 
-
 def add_path_history(fpath, memory):
     """
     @type fpath:str, unicode
@@ -1128,7 +1124,7 @@ def sync_server(memory, options):
         memory = get_unique_content(memory, options, unique_content, file_downloads)
 
     if len(file_uploads) > 0:
-        raise Exception("uploads staan in de server admin voordat ze klaar zijn met uploaden")
+        log_json("uploads staan in de server admin voordat ze klaar zijn met uploaden")
         memory, files_uploaded = upload_files(memory, options, serverindex, file_uploads)
         files_uploaded = possible_new_dirs_extend(files_uploaded, memory)
 
