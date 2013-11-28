@@ -5,6 +5,7 @@ some utility functions
 import os
 import sys
 import math
+import tempfile
 import time
 import threading
 import multiprocessing
@@ -15,6 +16,7 @@ import subprocess
 import base64
 import urllib
 import jsonpickle
+
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -100,7 +102,7 @@ def log_json(msg):
     output_json({"log": msg})
 
 
-def smp_all_cpu_apply(method, items, progress_callback=None):
+def smp_all_cpu_apply_0(method, items, progress_callback=None):
     """
     @type method: function
     @type items: list
@@ -163,6 +165,108 @@ def smp_all_cpu_apply(method, items, progress_callback=None):
     if progress_callback_wrapper:
         progress_callback_wrapper(100)
 
+    return calculation_result_values
+
+
+def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dummy=False):
+    """
+    @type method: function
+    @type items: list
+    @type progress_callback: function
+    """
+    last_update = [time.time()]
+    results_cnt = [0]
+
+    def progress_callback_wrapper(result_func):
+        """
+        progress_callback
+        @type result_func: object
+        """
+        if progress_callback:
+            now = time.time()
+            results_cnt[0] += 1
+
+            try:
+                perc = float(results_cnt[0]) / (float(len(items)) / 100)
+            except ZeroDivisionError:
+                perc = 0
+
+            if results_cnt[0] == 1 and perc == 100:
+                pass
+
+            else:
+                if now - last_update[0] > 0.1:
+                    if perc > 100:
+                        perc = 100
+                    progress_callback(perc)
+                    last_update[0] = now
+
+        return result_func
+
+    if numprocs:
+        num_procs = numprocs
+    else:
+        try:
+            from multiprocessing import cpu_count
+
+            num_procs = cpu_count()
+        except Exception, e:
+            log_json(str(e))
+            num_procs = 16
+
+    if dummy:
+        from multiprocessing.dummy import Pool
+
+        pool = Pool(processes=num_procs)
+    else:
+        from multiprocessing import Pool
+
+        pool = Pool(processes=num_procs)
+
+    calculation_result = []
+    calculation_result_values = []
+
+    for item in items:
+        base_params_list = []
+
+        if isinstance(item, tuple):
+            for i in item:
+                if isinstance(i, file):
+                    i.seek(0)
+                    base_params_list.append(i.read())
+                else:
+                    base_params_list.append(i)
+
+        elif isinstance(item, file):
+            item.seek(0)
+            base_params_list.append(item.read())
+        else:
+            base_params_list.append(item)
+
+        params = tuple(base_params_list)
+        result = pool.apply_async(method, params, callback=progress_callback_wrapper)
+        calculation_result.append(result)
+    pool.close()
+    pool.join()
+
+    for result in calculation_result:
+        if not result.successful():
+            result.get()
+        else:
+            tf = tempfile.TemporaryFile("w+r")
+            res = result.get()
+
+            if isinstance(res, dict):
+                if "file_path" in res:
+                    tf.write(open(res["file_path"]).read())
+                    os.remove(res["file_path"])
+                else:
+                    tf.write(str(res))
+            else:
+                tf.write(str(res))
+            tf.seek(0)
+            calculation_result_values.append(tf)
+    pool.terminate()
     return calculation_result_values
 
 
@@ -284,7 +388,6 @@ def error_prefix():
     """
     return ">"
 
-
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
     """
@@ -295,6 +398,7 @@ def handle_exception(again=True, ret_err=False):
     """
     import sys
     import traceback
+
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -315,6 +419,7 @@ def handle_exception(again=True, ret_err=False):
         return error
     else:
         import sys
+
         sys.stderr.write(str(error))
 
     if again:
@@ -375,6 +480,7 @@ class MemoryCorruption(Exception):
     MemoryCorruption
     """
     pass
+
 
 memory_lock = threading.Lock()
 
@@ -815,8 +921,7 @@ class Timers(object):
             if last_name in self.last_event:
                 self.last_event.remove(last_name)
 
-            result = {"name": last_name,
-                      "time": time.time() - self.timers[last_name]}
+            result = {"name": last_name, "time": time.time() - self.timers[last_name]}
             self.done_timers.append(result)
             del self.timers[last_name]
         self.last_event.append(name)
@@ -847,7 +952,7 @@ class Timers(object):
 
         if self.print_totals:
             if fv > 0.85:
-                console(result["name"], str("* " + str(result["time"])+" *"), totals)
+                console(result["name"], str("* " + str(result["time"]) + " *"), totals)
             else:
                 console(result["name"], str(result["time"]), totals)
         else:
@@ -857,7 +962,6 @@ class Timers(object):
                 console(result["name"], str(result["time"]))
 
         return total
-
 
     #noinspection PyAttributeOutsideInit
     def report_measurements(self):

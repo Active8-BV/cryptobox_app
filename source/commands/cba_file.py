@@ -3,15 +3,8 @@
 file operations
 """
 import os
-from cba_utils import strcmp, \
-    pickle_object, \
-    unpickle_object, \
-    update_item_progress, \
-    output_json
-from cba_crypto import make_sha1_hash, \
-    make_sha1_hash_file, \
-    decrypt_file_smp, \
-    encrypt_file_smp
+from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress, output_json
+from cba_crypto import make_sha1_hash, make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp
 
 
 def ensure_directory(path):
@@ -68,13 +61,7 @@ def read_file_to_fdict(path, read_data=False):
     @return: @rtype:
     """
     ft = read_file(path, read_data)
-    file_dict = {"st_ctime": int(ft[0]),
-                 "st_atime": int(ft[1]),
-                 "st_mtime": int(ft[2]),
-                 "st_mode": int(ft[3]),
-                 "st_uid": int(ft[4]),
-                 "st_gid": int(ft[5]),
-                 "st_size": int(ft[6])}
+    file_dict = {"st_ctime": int(ft[0]), "st_atime": int(ft[1]), "st_mtime": int(ft[2]), "st_mode": int(ft[3]), "st_uid": int(ft[4]), "st_gid": int(ft[5]), "st_size": int(ft[6])}
 
     if read_data:
         file_dict["data"] = ft[7]
@@ -163,11 +150,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath)
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
-    filedata = {"filehash": filehash,
-                "fpath": fpath,
-                "blobpath": blobpath,
-                "blobdir": blobdir,
-                "blob_exists": os.path.exists(blobpath)}
+    filedata = {"filehash": filehash, "fpath": fpath, "blobpath": blobpath, "blobdir": blobdir, "blob_exists": os.path.exists(blobpath)}
 
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex

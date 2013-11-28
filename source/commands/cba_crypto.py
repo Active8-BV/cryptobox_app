@@ -7,13 +7,10 @@ import cPickle
 import zlib
 from cStringIO import StringIO
 from Crypto import Random
-from Crypto.Hash import SHA, \
-    SHA512
-from Crypto.Cipher import AES, \
-    XOR
+from Crypto.Hash import SHA, SHA512
+from Crypto.Cipher import AES, XOR
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import smp_all_cpu_apply, \
-    update_item_progress
+from cba_utils import smp_all_cpu_apply, update_item_progress
 
 
 def make_sha1_hash(data):
@@ -39,19 +36,23 @@ def make_checksum(data):
         return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
 
 
-def make_sha1_hash_file(prefix, data, fpi=None):
+def make_sha1_hash_file(prefix, strio=None, fpi=None, fpath=None):
     """ make hash
     @type prefix: str
-    @type data: str, None
+    @type fpath: str, None
+    @type strio: str, None
     @type fpi: file, None, FileIO
     """
     sha = SHA.new()
     sha.update(prefix)
     if not fpi:
-        fp = StringIO(data)
+        fp = StringIO(strio)
     else:
         fp = fpi
+    if fpath:
+        fp = open(fpath)
 
+    fp.seek(0)
     one_mb = (1 * (2 ** 20))
     chunksize = one_mb / 2
     chunk = fp.read(chunksize)
@@ -96,106 +97,157 @@ class EncryptionHashMismatch(Exception):
     """
     pass
 
-def encrypt_file_for_smp(secret, chunk):
+
+def encrypt_file_for_smp(secret, chunk, bucket_name, name, cnt):
     """
     @param secret: pkdf2 secre
     @type secret: str
-    @param chunk: file object
-    @type chunk: unicode, str
-    @return: salt, hash, init, chunk sizes and encrypted data temp file
-    @rtype: tuple
+    @type chunk: str
+    @type cnt: int
     """
     Random.atfork()
-    fin = StringIO(chunk)
     initialization_vector = Random.new().read(AES.block_size)
 
-    #liv = len(initialization_vector)
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    from Crypto.Cipher import XOR
     cipher = XOR.new(secret)
-    chunk = fin.read()
-    enc_data = cipher.encrypt(chunk)
     data_hash = make_checksum(chunk)
-    return {"initialization_vector": initialization_vector,
+    enc_data = cipher.encrypt(chunk)
+    data = {"initialization_vector": initialization_vector,
             "enc_data": enc_data,
             "data_hash": data_hash}
 
+    pdata = cPickle.dumps(data)
+    write_to_gcloud(bucket_name, name + "_" + str(cnt), pdata)
+    return True
 
-def progress_file_cryption(p):
+
+def make_chunklist(fobj):
     """
-    @type p: int
+    @type fobj: file
     """
-    update_item_progress(p)
+    chunksize = (20 * (2 ** 20))
+
+    #noinspection PyBroadException
+    try:
+        import multiprocessing
+        numcores = multiprocessing.cpu_count()
+        fobj.seek(0, os.SEEK_END)
+        fsize = fobj.tell()
+
+        if (numcores * chunksize) > fsize:
+            chunksize = fsize / numcores
+    except:
+        pass
+
+    fobj.seek(0)
+    chunklist = []
+    chunk = fobj.read(chunksize)
+
+    while chunk:
+        tf = tempfile.TemporaryFile()
+        tf.write(chunk)
+        chunklist.append(tf)
+        chunk = fobj.read(chunksize)
+
+    return chunklist
 
 
-def encrypt_file_smp(secret, fname, progress_callback):
+def encrypt_file_smp(secret, fname, bucket_name=None, name=None, progress_callback=None):
     """
     @type secret: str, unicode
-    @type fname: str, StringIO
+    @type fname: str, unicode
     @type progress_callback: function
     """
-    if isinstance(fname, str):
+    store_in_cloud = True
+
+    if not bucket_name or not name:
+
+        # use the cloud as a temp buffer
+        bucket_name = "tmp"
+        name = str(uuid.uuid4().hex)
+        store_in_cloud = False
+
+    if isinstance(fname, str) or isinstance(fname, unicode):
         fobj = open(fname)
     else:
         fobj = fname
 
-    two_mb = (2 * (2 ** 20))
-    chunklist = []
-    chunk = fobj.read(two_mb)
-
-    while chunk:
-        chunklist.append(chunk)
-        chunk = fobj.read(two_mb)
-
-    chunklist = [(secret, chunk) for chunk in chunklist]
+    chunklist = make_chunklist(fobj)
+    chunklist = [(secret, chunk_fp, bucket_name, name, cnt) for cnt, chunk_fp in enumerate(chunklist)]
     encrypted_file_chunks = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
-    return encrypted_file_chunks
+
+    if store_in_cloud:
+        return len(encrypted_file_chunks)
+    else:
+        encrypted_file_chunks_data = []
+
+        for i in range(0, len(encrypted_file_chunks)):
+            encrypted_file_chunks_data.append(read_from_gcloud(bucket_name, name + "_" + str(i)).read())
+            delete_from_gcloud(bucket_name, name + "_" + str(i))
+        return encrypted_file_chunks_data
 
 
-def decrypt_file_for_smp(secret, encrypted_data, data_hash, initialization_vector):
+def decrypt_chunk(secret, chunk):
+    """
+    @type secret: str
+    @type chunk: dict, str
+    """
+    if isinstance(chunk, str):
+        chunk = cPickle.loads(chunk)
+
+    initialization_vector = chunk["initialization_vector"]
+    encrypted_data = chunk["enc_data"]
+    data_hash = chunk["data_hash"]
+    if 16 != len(initialization_vector):
+        raise Exception("initialization_vector len is not 16")
+
+    #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+    from Crypto.Cipher import XOR
+    cipher = XOR.new(secret)
+    tf = tempfile.NamedTemporaryFile(delete=False)
+    dec_data = cipher.decrypt(encrypted_data)
+    tf.write(dec_data)
+    calculated_hash = make_checksum(dec_data)
+    if data_hash != calculated_hash:
+        raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
+
+    return tf.name
+
+
+def decrypt_file_for_smp(secret, bucket_name, name):
     """
     @param secret: generated secret pkdf2
     @type secret: str
-    @param data_hash: hash of first chunk
-    @type data_hash: str
-    @param initialization_vector: init vector cipher
-    @type initialization_vector: str
-    @param encrypted_data: the encrypted data
-    @type encrypted_data: file, StringIO
+    @type bucket_name: str
+    @type name: str
     @return: orignal data temporary file
     @rtype: file
     """
     if not secret:
         raise Exception("no secret in decrypt file")
 
-    if 16 != len(initialization_vector):
-        raise Exception("initialization_vector len is not 16")
-
-    #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
-    cipher = XOR.new(secret)
-    dec_data = cipher.decrypt(encrypted_data)
-    calculated_hash = make_checksum(dec_data)
-    if data_hash != calculated_hash:
-        raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
-
-    return dec_data
+    chunk = cPickle.loads(read_from_cloud_smp(bucket_name, name))
+    tf_name = decrypt_chunk(secret, chunk)
+    return {"file_path": tf_name}
 
 
-def decrypt_file_smp(secret, enc_file_chunks, progress_callback):
+def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
     """
     @type secret: str, unicode
     @type enc_file_chunks: list
     @type progress_callback: function
     """
-    dec_file = StringIO()
-    chunks_param_sorted = [(secret, chunk["enc_data"], chunk["data_hash"], chunk["initialization_vector"]) for chunk in enc_file_chunks]
-    dec_file_chunks = smp_all_cpu_apply(decrypt_file_for_smp, chunks_param_sorted, progress_callback)
+    chunks_param_sorted = [(secret, chunk) for chunk in enc_file_chunks]
+    dec_file_chunks = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
+    dec_file = tempfile.TemporaryFile()
 
     for chunk_dec_file in dec_file_chunks:
-        dec_file.write(chunk_dec_file)
+        chunk_path = chunk_dec_file.read()
+        dec_file.write(open(chunk_path).read())
+        os.remove(chunk_path)
     dec_file.seek(0)
-    progress_file_cryption(0)
     return dec_file
-
 
 def encrypt_object(secret, obj):
     """
