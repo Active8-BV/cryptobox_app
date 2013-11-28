@@ -447,7 +447,6 @@ def cryptobox_command(options):
             output_json({"global_progress": 0})
     finally:
         pass
-
     return True
 
 
@@ -480,4 +479,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:483", "\nbye main"
+        print "cba_main.py:482", "\nbye main"

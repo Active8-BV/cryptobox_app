@@ -7,10 +7,11 @@ import tempfile
 import base64
 import cPickle
 import zlib
+import uuid
 from cStringIO import StringIO
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512
-from Crypto.Cipher import AES, XOR
+from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import smp_all_cpu_apply, update_item_progress
 
@@ -98,6 +99,7 @@ class EncryptionHashMismatch(Exception):
     EncryptionHashMismatch
     """
     pass
+
 
 def encrypt_file_for_smp(secret, chunk, bucket_name, name, cnt):
     """
