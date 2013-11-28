@@ -463,6 +463,7 @@ class NoParentFound(Exception):
     """
     pass
 
+
 def path_to_server_guid(memory, options, serverindex, parent_path):
     """
     @type memory: Memory
@@ -512,6 +513,7 @@ class NoPathFound(Exception):
     NoPathFound
     """
     pass
+
 
 def short_id_to_server_path(memory, serverindex, short_id):
     """
@@ -750,7 +752,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:753", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:755", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -939,7 +941,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:942", "updating upload progress failed", str(exc)
+                print "cba_sync.py:944", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -1047,6 +1049,7 @@ class NoSyncDirFound(Exception):
     NoSyncDirFound
     """
     pass
+
 
 def add_path_history(fpath, memory):
     """

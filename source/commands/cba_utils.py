@@ -476,6 +476,7 @@ class MemoryCorruption(Exception):
     """
     pass
 
+
 memory_lock = threading.Lock()
 
 
@@ -603,7 +604,6 @@ class Memory(object):
                         self.has(k)
                     except MemoryExpired:
                         pass
-
                 return True
         finally:
             if not keep_lock:
