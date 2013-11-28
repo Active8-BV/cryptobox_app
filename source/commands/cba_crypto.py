@@ -2,6 +2,8 @@
 """
 crypto routines for the commandline tool
 """
+import os
+import tempfile
 import base64
 import cPickle
 import zlib
@@ -49,9 +51,9 @@ def make_sha1_hash_file(prefix, strio=None, fpi=None, fpath=None):
         fp = StringIO(strio)
     else:
         fp = fpi
+
     if fpath:
         fp = open(fpath)
-
     fp.seek(0)
     one_mb = (1 * (2 ** 20))
     chunksize = one_mb / 2
@@ -96,7 +98,6 @@ class EncryptionHashMismatch(Exception):
     EncryptionHashMismatch
     """
     pass
-
 
 def encrypt_file_for_smp(secret, chunk, bucket_name, name, cnt):
     """
@@ -215,23 +216,6 @@ def decrypt_chunk(secret, chunk):
     return tf.name
 
 
-def decrypt_file_for_smp(secret, bucket_name, name):
-    """
-    @param secret: generated secret pkdf2
-    @type secret: str
-    @type bucket_name: str
-    @type name: str
-    @return: orignal data temporary file
-    @rtype: file
-    """
-    if not secret:
-        raise Exception("no secret in decrypt file")
-
-    chunk = cPickle.loads(read_from_cloud_smp(bucket_name, name))
-    tf_name = decrypt_chunk(secret, chunk)
-    return {"file_path": tf_name}
-
-
 def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
     """
     @type secret: str, unicode
@@ -248,6 +232,7 @@ def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
         os.remove(chunk_path)
     dec_file.seek(0)
     return dec_file
+
 
 def encrypt_object(secret, obj):
     """
