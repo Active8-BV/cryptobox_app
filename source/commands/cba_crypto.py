@@ -133,7 +133,7 @@ def make_chunklist(fobj, offsets=None):
     if not offsets:
         chunksize = (20 * (2 ** 20))
     else:
-        chunksize = offsets[offsetcnt]
+        chunksize = offsets[offsetcnt][0]
         offsetcnt += 1
 
     #noinspection PyBroadException
@@ -154,6 +154,11 @@ def make_chunklist(fobj, offsets=None):
     chunk = fobj.read(chunksize)
 
     while chunk:
+        if offsets:
+            from cba_crypto import make_sha1_hash
+
+            testh = make_sha1_hash(chunk)
+            test = cPickle.loads(chunk)
         tf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
         tf.write(chunk)
         chunklist.append(tf)
@@ -161,7 +166,7 @@ def make_chunklist(fobj, offsets=None):
         if offsets:
             if offsetcnt >= len(offsets):
                 break
-            chunksize = offsets[offsetcnt]
+            chunksize = offsets[offsetcnt][0]
             offsetcnt += 1
         chunk = fobj.read(chunksize)
 
@@ -189,10 +194,7 @@ def decrypt_chunk(secret, chunk):
     @type chunk: dict, str
     """
     if isinstance(chunk, str):
-        try:
-            chunk = cPickle.loads(chunk)
-        except:
-            pass
+        chunk = cPickle.loads(chunk)
 
     initialization_vector = chunk["initialization_vector"]
     encrypted_data = chunk["enc_data"]

@@ -119,7 +119,7 @@ class CryptoboxAppTest(unittest.TestCase):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
 
         self.do_wait_for_tasks = True
-        self.testfile_sizes = ["200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
+        self.testfile_sizes = ["2MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
         for tfn in self.testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
