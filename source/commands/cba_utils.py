@@ -230,6 +230,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
                 if hasattr(i, "seek"):
                     i.seek(0)
                     data = i.read()
+                    i.close()
                     base_params_list.append(data)
                 else:
                     base_params_list.append(i)
@@ -262,7 +263,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
                     stf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
                 if "file_path" in res:
                     data = open(res["file_path"]).read()
-                    offsets.append(len(data))
+                    from cba_crypto import make_sha1_hash
+                    offsets.append((len(data), make_sha1_hash(data)))
                     stf.write(data)
                     os.remove(res["file_path"])
                 else:
