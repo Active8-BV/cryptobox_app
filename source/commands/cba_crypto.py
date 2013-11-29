@@ -19,7 +19,9 @@ from cba_utils import update_item_progress, log_json
 
 def get_named_temporary_file():
     ntf = tempfile.NamedTemporaryFile(delete=False)
-    logf = open(os.path.join(os.getcwd(), "tempfile_" + str(uuid.uuid4().hex)))
+    fname = "tempfile_" + str(uuid.uuid4().hex) + ".cba"
+    fpath = os.path.join(os.getcwd(), fname)
+    logf = open(fpath, "w")
     logf.write(cPickle.dumps({"timestamp": time.time(), "file_path": ntf.name}))
     logf.close()
     return ntf
@@ -27,7 +29,7 @@ def get_named_temporary_file():
 
 def cleanup_tempfiles():
     for fp in os.listdir(os.getcwd()):
-        if str(fp).startswith("tempfile_"):
+        if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
             data = cPickle.load(open(fp))
 
             if os.path.exists(data["file_path"]):
@@ -54,7 +56,6 @@ def make_checksum(data):
     @type data: str, unicode
     @rtype: str, unicode
     """
-
     try:
         crc = base64.encodestring(str(zlib.adler32(data)))
         return crc.strip().rstrip("=")
@@ -178,26 +179,21 @@ def make_chunklist(fobj, offsets=None):
             pass
 
     else:
-        chunksize = offsets[offsetcnt][0]
-        chunk_hash = offsets[offsetcnt][1]
+        chunksize = offsets[offsetcnt]
         offsetcnt += 1
     fobj.seek(0)
     chunklist = []
     chunk = fobj.read(chunksize)
 
     while chunk:
-        if offsets:
-            if chunk_hash != make_sha1_hash_file(data=chunk):
-                raise ChunkListException("make_chunklist, hash does not match")
-
-        tf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
+        tf = tempfile.TemporaryFile()
         tf.write(chunk)
         chunklist.append(tf)
         if offsets:
             if offsetcnt >= len(offsets):
                 break
 
-            chunksize = offsets[offsetcnt][0]
+            chunksize = offsets[offsetcnt]
             offsetcnt += 1
 
         chunk = fobj.read(chunksize)
@@ -254,7 +250,7 @@ def decrypt_chunk(secret, chunk):
 def decrypt_file_smp(secret, enc_file, offsets, progress_callback=None):
     """
     @type secret: str, unicode
-    @type enc_file: tempfile.SpooledTemporarFile, tempfile.TemporarFile
+    @type enc_file: tempfile.TemporarFile
     @type offsets: list
     @type progress_callback: function
     """
@@ -339,7 +335,9 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
             num_procs = cpu_count()
         except Exception, e:
             log_json(str(e))
-            num_procs = 16
+            num_procs = 8
+
+    num_procs *= 2
 
     if dummy:
         from multiprocessing.dummy import Pool
@@ -389,11 +387,11 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
 
             if isinstance(res, dict):
                 if not stf:
-                    stf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
+                    stf = tempfile.TemporaryFile()
 
                 if "file_path" in res:
                     data = open(res["file_path"]).read()
-                    offsets.append((len(data), make_sha1_hash_file(data=data)))
+                    offsets.append(len(data))
                     stf.write(data)
                     os.remove(res["file_path"])
                 else:

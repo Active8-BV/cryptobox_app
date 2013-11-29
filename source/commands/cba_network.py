@@ -292,7 +292,6 @@ def authorize_user(memory, options, force=False):
     @type options: optparse.Values, instance
     @type force: bool
     """
-
     try:
         if memory.has("authorized"):
             if force:
