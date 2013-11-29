@@ -150,7 +150,7 @@ def encrypt_file_for_smp(secret, fpath, chunksize):
         data_hash = make_checksum(chunk)
         enc_data = cipher.encrypt(chunk)
         ntf = get_named_temporary_file(auto_delete=False)
-        ntf.write(str(len(initialization_vector))+"\n")
+        ntf.write(str(len(initialization_vector)) + "\n")
         ntf.write(initialization_vector)
         ntf.write(str(len(data_hash)) + "\n")
         ntf.write(data_hash)
@@ -175,6 +175,7 @@ def make_chunklist(fpath):
     #noinspection PyBroadException
     try:
         import multiprocessing
+
         numcores = multiprocessing.cpu_count()
 
         if (numcores * chunksize) > fsize:
@@ -196,7 +197,7 @@ def make_chunklist(fpath):
     if chunk_remainder != 0:
         last = chunklist_abs.pop()
         second_last = chunklist_abs.pop()
-        chunklist_abs.append((second_last[0], second_last[1]+last[1]))
+        chunklist_abs.append((second_last[0], second_last[1] + last[1]))
 
     return chunklist_abs
 
@@ -211,11 +212,11 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
         chunklist = make_chunklist(fname)
         chunklist = [(secret, fname, chunk_size) for chunk_size in chunklist]
         enc_files = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
-        enc_file = tempfile.SpooledTemporaryFile(max_size=2097152000)
 
         if single_file:
+            enc_file = tempfile.SpooledTemporaryFile(max_size=838860800)
             for efpath in enc_files:
-                enc_file.write(str(os.stat(efpath).st_size)+"\n")
+                enc_file.write(str(os.stat(efpath).st_size) + "\n")
                 enc_file.write(open(efpath).read())
                 os.remove(efpath)
             enc_file.seek(0)
@@ -246,6 +247,7 @@ def decrypt_chunk(secret, fpath):
 
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     from Crypto.Cipher import XOR
+
     cipher = XOR.new(secret)
     ntf = get_named_temporary_file(False)
     dec_data = cipher.decrypt(enc_data)
@@ -279,16 +281,17 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
 
                 if not chunk_line:
                     chunk_size = None
-                    lf = enc_file.read()
                 else:
                     chunk_size = int(chunk_line)
-
+            enc_file.close()
         if not enc_files:
             raise Exception("nothing to decrypt")
 
         chunks_param_sorted = [(secret, file_path) for file_path in enc_files]
         dec_files = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
-        dec_file = tempfile.SpooledTemporaryFile(max_size=2097152000)
+        del chunks_param_sorted
+
+        dec_file = tempfile.SpooledTemporaryFile(max_size=838860800)
 
         for dfp in dec_files:
             dec_file.write(open(dfp).read())
@@ -366,18 +369,22 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
                     last_update[0] = now
 
         return result_func
+
     try:
         from multiprocessing import cpu_count
+
         num_procs = cpu_count()
     except Exception, e:
         log_json(str(e))
         num_procs = 8
-
+    num_procs *= 2
     if dummy:
         from multiprocessing.dummy import Pool
+
         pool = Pool(processes=num_procs)
     else:
         from multiprocessing import Pool
+
         pool = Pool(processes=num_procs)
 
     calculation_result = []
