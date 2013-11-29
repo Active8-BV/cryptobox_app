@@ -1,6 +1,9 @@
 source/commands/testdata/test.dump
 source/commands/testdata/test
 source/commands/testdata/100MB.zip
+source/commands/testdata/2MB.zip
+source/commands/testdata/23MB.zip
+source/commands/testdata/3000MB.zip
 
 source/commands/error.html
 source/commands/testdata/200MB.zip

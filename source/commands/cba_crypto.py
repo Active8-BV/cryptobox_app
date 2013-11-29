@@ -12,18 +12,19 @@ import uuid
 from cStringIO import StringIO
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, XOR
 from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import update_item_progress, log_json
 
 
-def get_named_temporary_file():
-    ntf = tempfile.NamedTemporaryFile(delete=False)
-    fname = "tempfile_" + str(uuid.uuid4().hex) + ".cba"
-    fpath = os.path.join(os.getcwd(), fname)
-    logf = open(fpath, "w")
-    logf.write(cPickle.dumps({"timestamp": time.time(), "file_path": ntf.name}))
-    logf.close()
+def get_named_temporary_file(auto_delete):
+    ntf = tempfile.NamedTemporaryFile(delete=auto_delete)
+    if not auto_delete:
+        fname = "tempfile_" + str(uuid.uuid4().hex) + ".cba"
+        fpath = os.path.join(os.getcwd(), fname)
+        logf = open(fpath, "w")
+        logf.write(cPickle.dumps({"timestamp": time.time(), "file_path": ntf.name}))
+        logf.close()
     return ntf
 
 
@@ -128,28 +129,34 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def encrypt_file_for_smp(secret, chunk):
+def encrypt_file_for_smp(secret, fpath, chunksize):
     """
     @param secret: pkdf2 secre
     @type secret: str
-    @type chunk: str
+    @type fpath: str
+    @type chunksize: tuple
     """
-    Random.atfork()
-    initialization_vector = Random.new().read(AES.block_size)
+    try:
+        Random.atfork()
+        initialization_vector = Random.new().read(AES.block_size)
+        #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
+        f = open(fpath)
+        f.seek(chunksize[0])
+        chunk = f.read(chunksize[1])
 
-    #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
-    from Crypto.Cipher import XOR
-    cipher = XOR.new(secret)
-    data_hash = make_checksum(chunk)
-    enc_data = cipher.encrypt(chunk)
-    data = {"initialization_vector": initialization_vector,
-            "enc_data": enc_data,
-            "data_hash": data_hash}
-    pdata = cPickle.dumps(data)
-    ntf = get_named_temporary_file()
-    ntf.write(pdata)
-    return {"file_path": ntf.name}
+        cipher = XOR.new(secret)
+        data_hash = make_checksum(chunk)
+        enc_data = cipher.encrypt(chunk)
+        data = {"initialization_vector": initialization_vector,
+                "enc_data": enc_data,
+                "data_hash": data_hash}
 
+        pdata = cPickle.dumps(data)
+        ntf = get_named_temporary_file(False)
+        ntf.write(pdata)
+        return {"file_path": ntf.name}
+    except Exception, e:
+        raise e
 
 class ChunkListException(Exception):
     pass
@@ -160,8 +167,8 @@ def make_chunklist(fobj, offsets=None):
     @type fobj: file
     @type offsets: list
     """
-    offsetcnt = 0
-    chunk_hash = ""
+    fobj.seek(0, os.SEEK_END)
+    fsize = fobj.tell()
 
     if not offsets:
         chunksize = (20 * (2 ** 20))
@@ -170,35 +177,35 @@ def make_chunklist(fobj, offsets=None):
         try:
             import multiprocessing
             numcores = multiprocessing.cpu_count()
-            fobj.seek(0, os.SEEK_END)
-            fsize = fobj.tell()
-
+            numcores *= 2
             if (numcores * chunksize) > fsize:
                 chunksize = fsize / numcores
         except:
             pass
 
+        fobj.seek(0)
+        num_chunks = fsize / chunksize
+        chunk_remainder = fsize % chunksize
+        chunklist = [chunksize for x in range(0, num_chunks)]
+        chunklist.append(chunk_remainder)
     else:
-        chunksize = offsets[offsetcnt]
-        offsetcnt += 1
-    fobj.seek(0)
-    chunklist = []
-    chunk = fobj.read(chunksize)
+        chunk_remainder = 0
+        chunklist = offsets
 
-    while chunk:
-        tf = tempfile.TemporaryFile()
-        tf.write(chunk)
-        chunklist.append(tf)
-        if offsets:
-            if offsetcnt >= len(offsets):
-                break
+    chunklist_abs = []
+    val = 0
 
-            chunksize = offsets[offsetcnt]
-            offsetcnt += 1
+    for i in chunklist:
+        chunklist_abs.append((val, i))
+        val += i
 
-        chunk = fobj.read(chunksize)
+    if chunk_remainder != 0:
+        last = chunklist_abs.pop()
+        second_last = chunklist_abs.pop()
 
-    return chunklist
+        chunklist_abs.append((second_last[0], second_last[1]+last[1]))
+
+    return chunklist_abs
 
 
 def encrypt_file_smp(secret, fname, progress_callback=None):
@@ -214,17 +221,23 @@ def encrypt_file_smp(secret, fname, progress_callback=None):
 
     try:
         chunklist = make_chunklist(fobj)
-        chunklist = [(secret, chunk_fp) for chunk_fp in chunklist]
+        chunklist = [(secret, fobj.name, chunk_size) for chunk_size in chunklist]
+        fobj.close()
         return smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
     finally:
         cleanup_tempfiles()
 
 
-def decrypt_chunk(secret, chunk):
+def decrypt_chunk(secret, fpath, chunksize):
     """
     @type secret: str
-    @type chunk: dict, str
+    @type fpath: str
+    @type chunksize: tuple
     """
+    f = open(fpath)
+    f.seek(chunksize[0])
+    chunk = f.read(chunksize[1])
+
     if isinstance(chunk, str):
         chunk = cPickle.loads(chunk)
 
@@ -237,7 +250,7 @@ def decrypt_chunk(secret, chunk):
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     from Crypto.Cipher import XOR
     cipher = XOR.new(secret)
-    ntf = get_named_temporary_file()
+    ntf = get_named_temporary_file(False)
     dec_data = cipher.decrypt(encrypted_data)
     ntf.write(dec_data)
     calculated_hash = make_checksum(dec_data)
@@ -256,7 +269,7 @@ def decrypt_file_smp(secret, enc_file, offsets, progress_callback=None):
     """
     try:
         chunklist = make_chunklist(enc_file, offsets)
-        chunks_param_sorted = [(secret, chunk) for chunk in chunklist]
+        chunks_param_sorted = [(secret, enc_file.name, chunk) for chunk in chunklist]
         dec_file = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
         return dec_file[0]
     finally:
@@ -269,6 +282,7 @@ def encrypt_object(secret, obj):
     @type obj: str or unicode
     @return: @rtype:
     """
+
     pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
     encrypted_dict = encrypt_file_smp(secret, StringIO(pickle_data), update_item_progress)
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
@@ -376,7 +390,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
     pool.close()
     pool.join()
     progress_callback(100)
-    stf = None
+    ntf = None
     offsets = []
 
     for result in calculation_result:
@@ -386,13 +400,13 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
             res = result.get()
 
             if isinstance(res, dict):
-                if not stf:
-                    stf = tempfile.TemporaryFile()
+                if not ntf:
+                    ntf = get_named_temporary_file(auto_delete=True)
 
                 if "file_path" in res:
                     data = open(res["file_path"]).read()
                     offsets.append(len(data))
-                    stf.write(data)
+                    ntf.write(data)
                     os.remove(res["file_path"])
                 else:
                     raise Exception("smp_all_cpu_apply, received dict, don't know what to do now.")
@@ -401,8 +415,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
                 calculation_result_values.append(str(res))
 
     pool.terminate()
-    if stf:
-        stf.seek(0)
-        return stf, offsets
+    if ntf:
+        ntf.seek(0)
+        return ntf, offsets
     else:
         return calculation_result_values, None
