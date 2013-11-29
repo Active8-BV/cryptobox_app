@@ -930,7 +930,6 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
             @type total:
             prog_callback
             """
-
             try:
                 if param:
                     if time.time() - param.last_cb_time > 0.5:
@@ -941,7 +940,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:944", "updating upload progress failed", str(exc)
+                print "cba_sync.py:943", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))

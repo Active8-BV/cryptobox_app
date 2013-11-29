@@ -93,7 +93,7 @@ class CryptoboxAppTest(unittest.TestCase):
         setUp
         """
         os.system("rm -Rf testdata/test")
-        self.start_servers = True
+        self.start_servers = False
         self.db_name = "test"
         server = "http://127.0.01:8000/"
         self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata",
@@ -230,17 +230,10 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/1MB.zip"
+        fname = "testdata/20MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file, offsets = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_file, offsets, print_progress)
-        dec_file.seek(0)
-        dec_data = dec_file.read()
-        org_data = (open(fname).read())
-        self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
-        fname = "testdata/100MB.zip"
-        enc_file_struct, offsets = encrypt_file_smp(secret, fname, print_progress)
-        dec_file = decrypt_file_smp(secret, enc_file_struct, offsets, print_progress)
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())
