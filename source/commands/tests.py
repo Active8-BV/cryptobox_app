@@ -74,6 +74,21 @@ class CryptoboxAppTest(unittest.TestCase):
     CryptoboTestCase
     """
 
+    @staticmethod
+    def make_testfile(name, sizemb):
+        fname = "1MB.zip"
+        fpath = os.path.join(os.getcwd(), "testdata")
+        fpath = os.path.join(fpath, fname)
+        fp_in = open(fpath)
+        fpatho = os.path.join(os.getcwd(), "testdata")
+        fpatho = os.path.join(fpatho, name)
+        fp_out = open(fpatho, "w")
+
+        for i in range(0, sizemb):
+            fp_in.seek(0)
+            fp_out.write(fp_in.read())
+        print "made", name
+
     def setUp(self):
         """
         setUp
@@ -104,11 +119,11 @@ class CryptoboxAppTest(unittest.TestCase):
             self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
 
         self.do_wait_for_tasks = True
-        testfile_sizes = ["1MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
+        self.testfile_sizes = ["200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
-        for tfn in testfile_sizes:
+        for tfn in self.testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
-                os.system("cd testdata; nohup wget http://download.thinkbroadband.com/" + tfn)
+                self.make_testfile(tfn, int(tfn.replace("MB.zip", "")))
 
         return
 
@@ -127,6 +142,9 @@ class CryptoboxAppTest(unittest.TestCase):
             os.remove('stderr.txt')
         delete_progress_file("progress")
         delete_progress_file("item_progress")
+        for tfn in self.testfile_sizes:
+            if os.path.exists(os.path.join("testdata", tfn)):
+                os.remove(os.path.join("testdata", tfn))
 
     def unzip_testfiles_clean(self):
         """
@@ -207,22 +225,25 @@ class CryptoboxAppTest(unittest.TestCase):
         res_items2 = smp_all_cpu_apply(add, items)
         self.assertEquals(res_items, res_items2)
 
+
+
     def test_encrypt_file_smp(self):
         """
         test_encrypt_file
         """
-
+        self.do_wait_for_tasks = False
         fname = "testdata/1MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
-        enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
-        dec_file = decrypt_file_smp(secret, enc_file_struct, print_progress)
+        enc_file, offsets = encrypt_file_smp(secret, fname, print_progress)
+        dec_file = decrypt_file_smp(secret, enc_file, offsets, print_progress)
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())
         self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
+
         fname = "testdata/100MB.zip"
-        enc_file_struct = encrypt_file_smp(secret, fname, print_progress)
-        dec_file = decrypt_file_smp(secret, enc_file_struct, print_progress)
+        enc_file_struct, offsets = encrypt_file_smp(secret, fname, print_progress)
+        dec_file = decrypt_file_smp(secret, enc_file_struct, offsets, print_progress)
         dec_file.seek(0)
         dec_data = dec_file.read()
         org_data = (open(fname).read())
