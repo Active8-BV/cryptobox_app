@@ -258,7 +258,6 @@ def decrypt_file_smp(secret, enc_file, offsets, progress_callback=None):
     @type offsets: list
     @type progress_callback: function
     """
-
     try:
         chunklist = make_chunklist(enc_file, offsets)
         chunks_param_sorted = [(secret, chunk) for chunk in chunklist]
