@@ -19,12 +19,14 @@ from cba_utils import update_item_progress, log_json
 
 def get_named_temporary_file(auto_delete):
     ntf = tempfile.NamedTemporaryFile(delete=auto_delete)
+
     if not auto_delete:
         fname = "tempfile_" + str(uuid.uuid4().hex) + ".cba"
         fpath = os.path.join(os.getcwd(), fname)
         logf = open(fpath, "w")
-        logf.write(cPickle.dumps({"timestamp": time.time(), "file_path": ntf.name}))
+        logf.write(cPickle.dumps({"file_path": ntf.name}))
         logf.close()
+
     return ntf
 
 
@@ -34,7 +36,7 @@ def cleanup_tempfiles():
             data = cPickle.load(open(fp))
 
             if os.path.exists(data["file_path"]):
-                if time.time() - data["timestamp"] > 60:
+                if time.time() - os.stat(data["file_path"]).st_mtime > 30:
                     log_json("removing " + data["file_path"])
                     os.remove(data["file_path"])
                     os.remove(fp)
@@ -139,11 +141,11 @@ def encrypt_file_for_smp(secret, fpath, chunksize):
     try:
         Random.atfork()
         initialization_vector = Random.new().read(AES.block_size)
+
         #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
         f = open(fpath)
         f.seek(chunksize[0])
         chunk = f.read(chunksize[1])
-
         cipher = XOR.new(secret)
         data_hash = make_checksum(chunk)
         enc_data = cipher.encrypt(chunk)
@@ -157,6 +159,7 @@ def encrypt_file_for_smp(secret, fpath, chunksize):
         return {"file_path": ntf.name}
     except Exception, e:
         raise e
+
 
 class ChunkListException(Exception):
     pass
@@ -178,6 +181,7 @@ def make_chunklist(fobj, offsets=None):
             import multiprocessing
             numcores = multiprocessing.cpu_count()
             numcores *= 2
+
             if (numcores * chunksize) > fsize:
                 chunksize = fsize / numcores
         except:
@@ -202,7 +206,6 @@ def make_chunklist(fobj, offsets=None):
     if chunk_remainder != 0:
         last = chunklist_abs.pop()
         second_last = chunklist_abs.pop()
-
         chunklist_abs.append((second_last[0], second_last[1]+last[1]))
 
     return chunklist_abs
@@ -282,7 +285,6 @@ def encrypt_object(secret, obj):
     @type obj: str or unicode
     @return: @rtype:
     """
-
     pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
     encrypted_dict = encrypt_file_smp(secret, StringIO(pickle_data), update_item_progress)
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
