@@ -152,10 +152,10 @@ def encrypt_file_for_smp(secret, fpath, chunksize):
         ntf = get_named_temporary_file(auto_delete=False)
         ntf.write(str(len(initialization_vector))+"\n")
         ntf.write(initialization_vector)
-        ntf.write(str(len(enc_data)) + "\n")
-        ntf.write(enc_data)
         ntf.write(str(len(data_hash)) + "\n")
         ntf.write(data_hash)
+        ntf.write(str(len(enc_data)) + "\n")
+        ntf.write(enc_data)
         return ntf.name
     except Exception, e:
         raise e
@@ -199,7 +199,9 @@ def make_chunklist(fpath):
         chunklist_abs.append((second_last[0], second_last[1]+last[1]))
 
     return chunklist_abs
-def encrypt_file_smp(secret, fname, progress_callback=None, return_single_file=False):
+
+
+def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
     """
     @type secret: str, unicode
     @type fname: str, unicode
@@ -210,11 +212,13 @@ def encrypt_file_smp(secret, fname, progress_callback=None, return_single_file=F
         chunklist = [(secret, fname, chunk_size) for chunk_size in chunklist]
         enc_files = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
         enc_file = tempfile.SpooledTemporaryFile(max_size=2097152000)
-        if return_single_file:
+
+        if single_file:
             for efpath in enc_files:
                 enc_file.write(str(os.stat(efpath).st_size)+"\n")
                 enc_file.write(open(efpath).read())
-
+                os.remove(efpath)
+            enc_file.seek(0)
             return enc_file
         else:
             return enc_files
@@ -230,10 +234,13 @@ def decrypt_chunk(secret, fpath):
     chunk_file = open(fpath)
     initialization_vector_len = int(chunk_file.readline())
     initialization_vector = chunk_file.read(initialization_vector_len)
-    enc_data_len = int(chunk_file.readline())
-    enc_data = chunk_file.read(enc_data_len)
+
     data_hash_len = int(chunk_file.readline())
     data_hash = chunk_file.read(data_hash_len)
+
+    enc_data_len = int(chunk_file.readline())
+    enc_data = chunk_file.read(enc_data_len)
+
     if 16 != len(initialization_vector):
         raise Exception("initialization_vector len is not 16")
 
@@ -264,10 +271,17 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
             chunk_size = int(enc_file.readline())
 
             while chunk_size:
-                nef = get_named_temporary_file(auto_delete=True)
+                nef = get_named_temporary_file(auto_delete=False)
                 nef.write(enc_file.read(chunk_size))
+                nef.close()
                 enc_files.append(nef.name)
-                chunk_size = int(enc_file.readline())
+                chunk_line = enc_file.readline()
+
+                if not chunk_line:
+                    chunk_size = None
+                    lf = enc_file.read()
+                else:
+                    chunk_size = int(chunk_line)
 
         if not enc_files:
             raise Exception("nothing to decrypt")
@@ -280,6 +294,10 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
             dec_file.write(open(dfp).read())
             os.remove(dfp)
         dec_file.seek(0)
+
+        for efp in enc_files:
+            if os.path.exists(efp):
+                os.remove(efp)
         return dec_file
     finally:
         cleanup_tempfiles()
@@ -384,11 +402,16 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
             base_params_list.append(item)
 
         params = tuple(base_params_list)
-
         #result = apply(method, params)
+
         result = pool.apply_async(method, params, callback=progress_callback_wrapper)
         calculation_result.append(result)
     pool.close()
     pool.join()
     progress_callback(100)
-    return [x.get() for x in calculation_result]
+
+    try:
+        return [x.get() for x in calculation_result]
+    except:
+        print "cba_crypto.py:415", "DEBUG MODE"
+        return [x for x in calculation_result]
