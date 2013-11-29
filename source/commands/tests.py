@@ -116,7 +116,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #    self.reset_cb_db_clean()
         #    self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         self.do_wait_for_tasks = True
-        self.testfile_sizes = ["2MB.zip", "23MB.zip", "200MB.zip", "3000MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
+        self.testfile_sizes = ["2MB.zip", "23MB.zip", "300MB.zip","800MB.zip", "200MB.zip", "3000MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
         for tfn in self.testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
@@ -241,7 +241,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.remove_temp_files = False
         self.do_wait_for_tasks = False
-        fname = "testdata/200MB.zip"
+        fname = "testdata/300MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file = encrypt_file_smp(secret, fname, print_progress, single_file=True)
         dec_file = decrypt_file_smp(secret, enc_file=enc_file, progress_callback=print_progress)
