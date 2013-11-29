@@ -227,10 +227,10 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
 
         if isinstance(item, tuple):
             for i in item:
-                xx = type(i)
-                if isinstance(i, file) or isinstance(i, tempfile.SpooledTemporaryFile):
+                if hasattr(i, "seek"):
                     i.seek(0)
-                    base_params_list.append(i.read())
+                    data = i.read()
+                    base_params_list.append(data)
                 else:
                     base_params_list.append(i)
 
@@ -241,11 +241,15 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
             base_params_list.append(item)
 
         params = tuple(base_params_list)
+        #result = apply(method, params)
         result = pool.apply_async(method, params, callback=progress_callback_wrapper)
         calculation_result.append(result)
     pool.close()
     pool.join()
+    progress_callback(100)
 
+    stf = None
+    offsets = []
     for result in calculation_result:
         if not result.successful():
             result.get()
@@ -254,19 +258,24 @@ def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dumm
             res = result.get()
 
             if isinstance(res, dict):
-                tf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
+                if not stf:
+                    stf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
                 if "file_path" in res:
-                    tf.write(open(res["file_path"]).read())
+                    data = open(res["file_path"]).read()
+                    offsets.append(len(data))
+                    stf.write(data)
                     os.remove(res["file_path"])
                 else:
-                    tf.write(str(res))
-                tf.seek(0)
-                calculation_result_values.append(tf)
+                    raise Exception("smp_all_cpu_apply, received dict, don't know what to do now.")
             else:
                 calculation_result_values.append(str(res))
 
     pool.terminate()
-    return calculation_result_values
+    if stf:
+        stf.seek(0)
+        return stf, offsets
+    else:
+        return calculation_result_values, None
 
 
 def exist(data):

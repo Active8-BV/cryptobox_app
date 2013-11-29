@@ -120,16 +120,21 @@ def encrypt_file_for_smp(secret, chunk):
 
     pdata = cPickle.dumps(data)
     ntf = tempfile.NamedTemporaryFile(delete=False)
-    ntf.delete = True
     ntf.write(pdata)
-    return ntf.name
+    return {"file_path": ntf.name}
 
 
-def make_chunklist(fobj):
+def make_chunklist(fobj, offsets=None):
     """
     @type fobj: file
+    @type offsets: list
     """
-    chunksize = (20 * (2 ** 20))
+    offsetcnt = 0
+    if not offsets:
+        chunksize = (20 * (2 ** 20))
+    else:
+        chunksize = offsets[offsetcnt]
+        offsetcnt += 1
 
     #noinspection PyBroadException
     try:
@@ -152,6 +157,12 @@ def make_chunklist(fobj):
         tf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
         tf.write(chunk)
         chunklist.append(tf)
+
+        if offsets:
+            if offsetcnt >= len(offsets):
+                break
+            chunksize = offsets[offsetcnt]
+            offsetcnt += 1
         chunk = fobj.read(chunksize)
 
     return chunklist
@@ -170,16 +181,7 @@ def encrypt_file_smp(secret, fname, progress_callback=None):
 
     chunklist = make_chunklist(fobj)
     chunklist = [(secret, chunk_fp) for chunk_fp in chunklist]
-    encrypted_file_chunks = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
-
-    encrypted_file_chunks_data = []
-
-    for ntf_name in encrypted_file_chunks:
-        ntf = open(ntf_name)
-        encrypted_file_chunks_data.append(cPickle.loads(ntf.read()))
-        os.remove(ntf_name)
-    return encrypted_file_chunks_data
-
+    return smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
 
 def decrypt_chunk(secret, chunk):
     """
@@ -187,7 +189,10 @@ def decrypt_chunk(secret, chunk):
     @type chunk: dict, str
     """
     if isinstance(chunk, str):
-        chunk = cPickle.loads(chunk)
+        try:
+            chunk = cPickle.loads(chunk)
+        except:
+            pass
 
     initialization_vector = chunk["initialization_vector"]
     encrypted_data = chunk["enc_data"]
@@ -199,31 +204,27 @@ def decrypt_chunk(secret, chunk):
     from Crypto.Cipher import XOR
 
     cipher = XOR.new(secret)
-    tf = tempfile.NamedTemporaryFile(delete=False)
+    ntf = tempfile.NamedTemporaryFile(delete=False)
     dec_data = cipher.decrypt(encrypted_data)
-    tf.write(dec_data)
+    ntf.write(dec_data)
     calculated_hash = make_checksum(dec_data)
     if data_hash != calculated_hash:
         raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
 
-    return tf.name
+    return {"file_path": ntf.name}
 
 
-def decrypt_file_smp(secret, enc_file_chunks, progress_callback=None):
+def decrypt_file_smp(secret, enc_file, offsets, progress_callback=None):
     """
     @type secret: str, unicode
-    @type enc_file_chunks: list
+    @type enc_file: tempfile.SpooledTemporarFile, tempfile.TemporarFile
+    @type offsets: list
     @type progress_callback: function
     """
-    chunks_param_sorted = [(secret, chunk) for chunk in enc_file_chunks]
-    dec_file_chunks = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
-    dec_file = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
-
-    for chunk_dec_file in dec_file_chunks:
-        dec_file.write(open(chunk_dec_file).read())
-        os.remove(chunk_dec_file)
-    dec_file.seek(0)
-    return dec_file
+    chunklist = make_chunklist(enc_file, offsets)
+    chunks_param_sorted = [(secret, chunk) for chunk in chunklist]
+    dec_file = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
+    return dec_file[0]
 
 
 def encrypt_object(secret, obj):
