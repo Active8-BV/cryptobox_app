@@ -93,7 +93,6 @@ class CryptoboxAppTest(unittest.TestCase):
         setUp
         """
         os.system("rm -Rf testdata/test")
-        self.start_servers = False
         self.db_name = "test"
         server = "http://127.0.01:8000/"
         self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata",
@@ -109,22 +108,21 @@ class CryptoboxAppTest(unittest.TestCase):
                           "numdownloadthreads": 12}
 
         self.cboptions = Dict2Obj(self.options_d)
-        self.reset_cb_db_clean()
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
-        if self.start_servers:
-            self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
 
+        #    self.reset_cb_db_clean()
+        #    self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         self.do_wait_for_tasks = True
-        self.testfile_sizes = ["2MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
+        self.testfile_sizes = ["2MB.zip", "23MB.zip", "200MB.zip", "3000MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
         for tfn in self.testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
                 self.make_testfile(tfn, int(tfn.replace("MB.zip", "")))
 
-        return
+        self.remove_temp_files = True
 
     #noinspection PyPep8Naming
     def tearDown(self):
@@ -141,10 +139,10 @@ class CryptoboxAppTest(unittest.TestCase):
             os.remove('stderr.txt')
         delete_progress_file("progress")
         delete_progress_file("item_progress")
-
-        for tfn in self.testfile_sizes:
-            if os.path.exists(os.path.join("testdata", tfn)):
-                os.remove(os.path.join("testdata", tfn))
+        if self.remove_temp_files:
+            for tfn in self.testfile_sizes:
+                if os.path.exists(os.path.join("testdata", tfn)):
+                    os.remove(os.path.join("testdata", tfn))
 
     def unzip_testfiles_clean(self):
         """
@@ -229,6 +227,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_encrypt_file
         """
+        self.remove_temp_files = False
         self.do_wait_for_tasks = False
         fname = "testdata/20MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
