@@ -229,7 +229,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.remove_temp_files = False
         self.do_wait_for_tasks = False
-        fname = "testdata/200MB.zip"
+        fname = "testdata/3000MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_files = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_files=enc_files, progress_callback=print_progress)
@@ -243,7 +243,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         fname = "testdata/200MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
-        enc_file = encrypt_file_smp(secret, fname, print_progress, return_single_file=True)
+        enc_file = encrypt_file_smp(secret, fname, print_progress, single_file=True)
         dec_file = decrypt_file_smp(secret, enc_file=enc_file, progress_callback=print_progress)
         self.assertEqual(make_sha1_hash_file(fpi=dec_file), make_sha1_hash_file(fpi=open(fname)))
 
