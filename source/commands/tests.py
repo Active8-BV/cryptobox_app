@@ -12,7 +12,8 @@ from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
-from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object
+from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
+
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -72,6 +73,7 @@ class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
     """
+
     @staticmethod
     def make_testfile(name, sizemb):
         fname = "1MB.zip"
@@ -95,17 +97,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/test")
         self.db_name = "test"
         server = "http://127.0.01:8000/"
-        self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata",
-                          "dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/test",
-                          "encrypt": True,
-                          "remove": False,
-                          "username": "rabshakeh",
-                          "password": "kjhfsd98",
-                          "cryptobox": self.db_name,
-                          "clear": False,
-                          "sync": False,
-                          "server": server,
-                          "numdownloadthreads": 12}
+        self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata", "dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/test", "encrypt": True, "remove": False, "username": "rabshakeh", "password": "kjhfsd98", "cryptobox": self.db_name, "clear": False, "sync": False, "server": server, "numdownloadthreads": 12}
 
         self.cboptions = Dict2Obj(self.options_d)
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
@@ -252,8 +244,10 @@ class CryptoboxAppTest(unittest.TestCase):
         test_object_encryption
         """
         self.do_wait_for_tasks = False
-        mydict = {"hello":"world"}
-        encrypt_object("kjhfsd98", mydict)
+        mydict = {"hello": "world"}
+        encrypted_obj = encrypt_object("kjhfsd98", mydict)
+        mydict2, secret = decrypt_object("kjhfsd98", encrypted_obj)
+        self.assertEqual(mydict, mydict2)
 
     def test_index_no_box_given(self):
         """
@@ -319,7 +313,7 @@ class CryptoboxAppTest(unittest.TestCase):
         if encrypt:
             self.reset_cb_dir()
             self.unzip_testfiles_synced()
-            os.system("cp testdata/20MB.zip testdata/test")
+            #os.system("cp testdata/20MB.zip testdata/test")
             self.do_wait_for_tasks = False
             self.cboptions.remove = True
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)

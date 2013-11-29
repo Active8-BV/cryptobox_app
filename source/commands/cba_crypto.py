@@ -317,11 +317,11 @@ def encrypt_object(secret, obj):
     @return: @rtype:
     """
     temp_file = get_named_temporary_file(auto_delete=True)
-    pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
+    pickle_data = cPickle.dumps(obj)
     temp_file.write(pickle_data)
     temp_file.seek(0)
-    encrypted_dict = encrypt_file_smp(secret, temp_file.name, single_file=True)
-    return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
+    encrypted_file = encrypt_file_smp(secret, temp_file.name, single_file=True)
+    return base64.b64encode(encrypted_file.read())
 
 
 def decrypt_object(secret, obj_string, key=None, salt=None):
@@ -332,18 +332,18 @@ def decrypt_object(secret, obj_string, key=None, salt=None):
     @type salt: str
     @return: @rtype: object, str
     """
-    data = cPickle.loads(base64.b64decode(obj_string))
-
     if key:
         if not salt:
             raise Exception("no salt")
 
         secret = password_derivation(key, salt)
 
-    tempfile = get_named_temporary_file(auto_delete=True)
-    tempfile.write(data)
-    tempfile.seek(0)
-    return cPickle.load(decrypt_file_smp(secret, tempfile)), secret
+    tf = get_named_temporary_file(auto_delete=True)
+    tf.write(base64.decodestring(obj_string))
+    tf.seek(0)
+    data = decrypt_file_smp(secret, enc_file=tf)
+    obj = cPickle.loads(data.read())
+    return obj, secret
 
 
 def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
@@ -424,7 +424,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
         calculation_result.append(result)
     pool.close()
     pool.join()
-    progress_callback(100)
+    if progress_callback:
+        progress_callback(100)
 
     try:
         return [x.get() for x in calculation_result]

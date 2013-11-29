@@ -61,13 +61,7 @@ def read_file_to_fdict(path, read_data=False):
     @return: @rtype:
     """
     ft = read_file(path, read_data)
-    file_dict = {"st_ctime": int(ft[0]),
-                 "st_atime": int(ft[1]),
-                 "st_mtime": int(ft[2]),
-                 "st_mode": int(ft[3]),
-                 "st_uid": int(ft[4]),
-                 "st_gid": int(ft[5]),
-                 "st_size": int(ft[6])}
+    file_dict = {"st_ctime": int(ft[0]), "st_atime": int(ft[1]), "st_mtime": int(ft[2]), "st_mode": int(ft[3]), "st_uid": int(ft[4]), "st_gid": int(ft[5]), "st_size": int(ft[6])}
 
     if read_data:
         file_dict["data"] = ft[7]
@@ -93,8 +87,16 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
-    enc_file_struct = encrypt_file_smp(secret, fpath, progress_callback=update_item_progress)
-    pickle_object(blobpath, enc_file_struct)
+    enc_file_paths = encrypt_file_smp(secret, fpath, progress_callback=update_item_progress)
+    enc_file_paths = [x for x in enumerate(enc_file_paths)]
+
+    with open(blobpath, "w") as configfp:
+        for chunk_path in enc_file_paths:
+            path = blobpath + "_" + str(chunk_path[0])
+            os.rename(chunk_path[1], path)
+            configfp.write(path+"\n")
+
+
     return True
 
 
@@ -156,11 +158,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath)
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
-    filedata = {"filehash": filehash,
-                "fpath": fpath,
-                "blobpath": blobpath,
-                "blobdir": blobdir,
-                "blob_exists": os.path.exists(blobpath)}
+    filedata = {"filehash": filehash, "fpath": fpath, "blobpath": blobpath, "blobdir": blobdir, "blob_exists": os.path.exists(blobpath)}
 
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
