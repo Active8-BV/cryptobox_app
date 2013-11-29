@@ -3,6 +3,7 @@
 crypto routines for the commandline tool
 """
 import os
+import math
 import time
 import tempfile
 import base64
@@ -66,7 +67,7 @@ def make_checksum(data):
         return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
 
 
-def make_sha1_hash_file(prefix=None, data=None, fpi=None, fpath=None):
+def make_sha1_hash_file(prefix=None, fpath=None, data=None, fpi=None):
     """ make hash
     @type prefix: str
     @type fpath: str, None
@@ -78,8 +79,11 @@ def make_sha1_hash_file(prefix=None, data=None, fpi=None, fpath=None):
     if prefix:
         sha.update(prefix)
 
-    if not fpi:
+    if data:
         fp = StringIO(data)
+
+    if fpath:
+        fp = open(fpath)
     else:
         fp = fpi
 
@@ -175,12 +179,14 @@ def make_chunklist(fpath):
     #noinspection PyBroadException
     try:
         import multiprocessing
-
         numcores = multiprocessing.cpu_count()
 
         if (numcores * chunksize) > fsize:
-            chunksize = fsize / numcores
+            chunksize = int(math.ceil(float(fsize) / numcores))
     except:
+        pass
+
+    if chunksize == 0:
         pass
 
     num_chunks = fsize / chunksize
@@ -214,7 +220,8 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
         enc_files = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
 
         if single_file:
-            enc_file = tempfile.SpooledTemporaryFile(max_size=838860800)
+            enc_file = tempfile.SpooledTemporaryFile(max_size=524288000)
+
             for efpath in enc_files:
                 enc_file.write(str(os.stat(efpath).st_size) + "\n")
                 enc_file.write(open(efpath).read())
@@ -235,19 +242,15 @@ def decrypt_chunk(secret, fpath):
     chunk_file = open(fpath)
     initialization_vector_len = int(chunk_file.readline())
     initialization_vector = chunk_file.read(initialization_vector_len)
-
     data_hash_len = int(chunk_file.readline())
     data_hash = chunk_file.read(data_hash_len)
-
     enc_data_len = int(chunk_file.readline())
     enc_data = chunk_file.read(enc_data_len)
-
     if 16 != len(initialization_vector):
         raise Exception("initialization_vector len is not 16")
 
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
     from Crypto.Cipher import XOR
-
     cipher = XOR.new(secret)
     ntf = get_named_temporary_file(False)
     dec_data = cipher.decrypt(enc_data)
@@ -284,14 +287,14 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
                 else:
                     chunk_size = int(chunk_line)
             enc_file.close()
+
         if not enc_files:
             raise Exception("nothing to decrypt")
 
         chunks_param_sorted = [(secret, file_path) for file_path in enc_files]
         dec_files = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
         del chunks_param_sorted
-
-        dec_file = tempfile.SpooledTemporaryFile(max_size=838860800)
+        dec_file = tempfile.SpooledTemporaryFile(max_size=524288000)
 
         for dfp in dec_files:
             dec_file.write(open(dfp).read())
@@ -301,6 +304,7 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
         for efp in enc_files:
             if os.path.exists(efp):
                 os.remove(efp)
+
         return dec_file
     finally:
         cleanup_tempfiles()
@@ -309,15 +313,18 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
 def encrypt_object(secret, obj):
     """
     @type secret: str or unicode
-    @type obj: str or unicode
+    @type obj: str or unicode or object
     @return: @rtype:
     """
+    temp_file = get_named_temporary_file(auto_delete=True)
     pickle_data = cPickle.dumps(obj, cPickle.HIGHEST_PROTOCOL)
-    encrypted_dict = encrypt_file_smp(secret, StringIO(pickle_data), update_item_progress)
+    temp_file.write(pickle_data)
+    temp_file.seek(0)
+    encrypted_dict = encrypt_file_smp(secret, temp_file.name, single_file=True)
     return base64.b64encode(cPickle.dumps(encrypted_dict)).strip()
 
 
-def decrypt_object(secret, obj_string, key=None, salt=None, progress_callback=update_item_progress):
+def decrypt_object(secret, obj_string, key=None, salt=None):
     """
     @type secret: str or unicode
     @type obj_string: str
@@ -332,7 +339,11 @@ def decrypt_object(secret, obj_string, key=None, salt=None, progress_callback=up
             raise Exception("no salt")
 
         secret = password_derivation(key, salt)
-    return cPickle.load(decrypt_file_smp(secret, data, progress_callback)), secret
+
+    tempfile = get_named_temporary_file(auto_delete=True)
+    tempfile.write(data)
+    tempfile.seek(0)
+    return cPickle.load(decrypt_file_smp(secret, tempfile)), secret
 
 
 def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
@@ -369,22 +380,20 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
                     last_update[0] = now
 
         return result_func
-
     try:
         from multiprocessing import cpu_count
-
         num_procs = cpu_count()
     except Exception, e:
         log_json(str(e))
         num_procs = 8
+
     num_procs *= 2
+
     if dummy:
         from multiprocessing.dummy import Pool
-
         pool = Pool(processes=num_procs)
     else:
         from multiprocessing import Pool
-
         pool = Pool(processes=num_procs)
 
     calculation_result = []
@@ -409,8 +418,8 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
             base_params_list.append(item)
 
         params = tuple(base_params_list)
-        #result = apply(method, params)
 
+        #result = apply(method, params)
         result = pool.apply_async(method, params, callback=progress_callback_wrapper)
         calculation_result.append(result)
     pool.close()
@@ -420,5 +429,5 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
     try:
         return [x.get() for x in calculation_result]
     except:
-        print "cba_crypto.py:415", "DEBUG MODE"
+        print "cba_crypto.py:432", "DEBUG MODE"
         return [x for x in calculation_result]
