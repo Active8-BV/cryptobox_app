@@ -73,7 +73,6 @@ class CryptoboxAppTest(unittest.TestCase):
     """
     CryptoboTestCase
     """
-
     @staticmethod
     def make_testfile(name, sizemb):
         fname = "1MB.zip"
@@ -87,7 +86,7 @@ class CryptoboxAppTest(unittest.TestCase):
         for i in range(0, sizemb):
             fp_in.seek(0)
             fp_out.write(fp_in.read())
-        print "made", name
+        print "tests.py:89", "made", name
 
     def setUp(self):
         """
@@ -142,6 +141,7 @@ class CryptoboxAppTest(unittest.TestCase):
             os.remove('stderr.txt')
         delete_progress_file("progress")
         delete_progress_file("item_progress")
+
         for tfn in self.testfile_sizes:
             if os.path.exists(os.path.join("testdata", tfn)):
                 os.remove(os.path.join("testdata", tfn))
@@ -225,8 +225,6 @@ class CryptoboxAppTest(unittest.TestCase):
         res_items2 = smp_all_cpu_apply(add, items)
         self.assertEquals(res_items, res_items2)
 
-
-
     def test_encrypt_file_smp(self):
         """
         test_encrypt_file
@@ -240,7 +238,6 @@ class CryptoboxAppTest(unittest.TestCase):
         dec_data = dec_file.read()
         org_data = (open(fname).read())
         self.assertEqual(make_checksum(dec_data), make_checksum(org_data))
-
         fname = "testdata/100MB.zip"
         enc_file_struct, offsets = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_file_struct, offsets, print_progress)

@@ -5,7 +5,6 @@ some utility functions
 import os
 import sys
 import math
-import tempfile
 import time
 import threading
 import multiprocessing
@@ -167,119 +166,6 @@ def smp_all_cpu_apply_0(method, items, progress_callback=None):
     return calculation_result_values
 
 
-def smp_all_cpu_apply(method, items, progress_callback=None, numprocs=None, dummy=False):
-    """
-    @type method: function
-    @type items: list
-    @type progress_callback: function
-    """
-    last_update = [time.time()]
-    results_cnt = [0]
-
-    def progress_callback_wrapper(result_func):
-        """
-        progress_callback
-        @type result_func: object
-        """
-        if progress_callback:
-            now = time.time()
-            results_cnt[0] += 1
-
-            try:
-                perc = float(results_cnt[0]) / (float(len(items)) / 100)
-            except ZeroDivisionError:
-                perc = 0
-
-            if results_cnt[0] == 1 and perc == 100:
-                pass
-
-            else:
-                if now - last_update[0] > 0.1:
-                    if perc > 100:
-                        perc = 100
-                    progress_callback(perc)
-                    last_update[0] = now
-
-        return result_func
-
-    if numprocs:
-        num_procs = numprocs
-    else:
-        try:
-            from multiprocessing import cpu_count
-            num_procs = cpu_count()
-        except Exception, e:
-            log_json(str(e))
-            num_procs = 16
-
-    if dummy:
-        from multiprocessing.dummy import Pool
-        pool = Pool(processes=num_procs)
-    else:
-        from multiprocessing import Pool
-        pool = Pool(processes=num_procs)
-
-    calculation_result = []
-    calculation_result_values = []
-
-    for item in items:
-        base_params_list = []
-
-        if isinstance(item, tuple):
-            for i in item:
-                if hasattr(i, "seek"):
-                    i.seek(0)
-                    data = i.read()
-                    i.close()
-                    base_params_list.append(data)
-                else:
-                    base_params_list.append(i)
-
-        elif isinstance(item, file):
-            item.seek(0)
-            base_params_list.append(item.read())
-        else:
-            base_params_list.append(item)
-
-        params = tuple(base_params_list)
-        #result = apply(method, params)
-        result = pool.apply_async(method, params, callback=progress_callback_wrapper)
-        calculation_result.append(result)
-    pool.close()
-    pool.join()
-    progress_callback(100)
-
-    stf = None
-    offsets = []
-    for result in calculation_result:
-        if not result.successful():
-            result.get()
-        else:
-
-            res = result.get()
-
-            if isinstance(res, dict):
-                if not stf:
-                    stf = tempfile.SpooledTemporaryFile(max_size=100 * (2 ** 20))
-                if "file_path" in res:
-                    data = open(res["file_path"]).read()
-                    from cba_crypto import make_sha1_hash
-                    offsets.append((len(data), make_sha1_hash(data)))
-                    stf.write(data)
-                    os.remove(res["file_path"])
-                else:
-                    raise Exception("smp_all_cpu_apply, received dict, don't know what to do now.")
-            else:
-                calculation_result_values.append(str(res))
-
-    pool.terminate()
-    if stf:
-        stf.seek(0)
-        return stf, offsets
-    else:
-        return calculation_result_values, None
-
-
 def exist(data):
     """
     @param data:
@@ -368,7 +254,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:357", arg
+    print "cba_utils.py:257", arg
     sys.exit(1)
 
 
@@ -735,8 +621,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:724", "json parse errror"
-                        print "cba_utils.py:725", jdata
+                        print "cba_utils.py:624", "json parse errror"
+                        print "cba_utils.py:625", jdata
 
             except Exception:
                 handle_exception(False)
