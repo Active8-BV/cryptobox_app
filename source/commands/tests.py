@@ -10,10 +10,9 @@ from cba_main import cryptobox_command
 from cba_utils import *
 from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
 from cba_blobs import get_blob_dir, get_data_dir
-from cba_network import authorize_user
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
-from cba_crypto import make_checksum, encrypt_file_smp, decrypt_file_smp
+from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -45,7 +44,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:48", p
+    print "tests.py:47", p
 
 
 def count_files_dir(fpath):
@@ -66,7 +65,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:69", "progress", p
+    print "tests.py:68", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -86,12 +85,13 @@ class CryptoboxAppTest(unittest.TestCase):
         for i in range(0, sizemb):
             fp_in.seek(0)
             fp_out.write(fp_in.read())
-        print "tests.py:89", "made", name
+        print "tests.py:88", "made", name
 
     def setUp(self):
         """
         setUp
         """
+        cleanup_tempfiles()
         os.system("rm -Rf testdata/test")
         self.db_name = "test"
         server = "http://127.0.01:8000/"
@@ -116,15 +116,21 @@ class CryptoboxAppTest(unittest.TestCase):
         #    self.reset_cb_db_clean()
         #    self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         self.do_wait_for_tasks = True
-        self.testfile_sizes = ["2MB.zip", "23MB.zip", "300MB.zip","800MB.zip", "200MB.zip", "3000MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
+        self.testfile_sizes = ["2MB.zip", "23MB.zip", "300MB.zip", "800MB.zip", "200MB.zip", "30MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
         for tfn in self.testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
                 self.make_testfile(tfn, int(tfn.replace("MB.zip", "")))
 
-        self.remove_temp_files = True
+        self.remove_temp_files = False
 
     #noinspection PyPep8Naming
+    def clear_tempfiles(self):
+        if self.remove_temp_files:
+            for tfn in self.testfile_sizes:
+                if os.path.exists(os.path.join("testdata", tfn)):
+                    os.remove(os.path.join("testdata", tfn))
+
     def tearDown(self):
         """
         tearDown
@@ -139,10 +145,6 @@ class CryptoboxAppTest(unittest.TestCase):
             os.remove('stderr.txt')
         delete_progress_file("progress")
         delete_progress_file("item_progress")
-        if self.remove_temp_files:
-            for tfn in self.testfile_sizes:
-                if os.path.exists(os.path.join("testdata", tfn)):
-                    os.remove(os.path.join("testdata", tfn))
 
     def unzip_testfiles_clean(self):
         """
@@ -227,9 +229,8 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_encrypt_file
         """
-        self.remove_temp_files = False
         self.do_wait_for_tasks = False
-        fname = "testdata/3000MB.zip"
+        fname = "testdata/300MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_files = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_files=enc_files, progress_callback=print_progress)
@@ -239,13 +240,20 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_encrypt_file
         """
-        self.remove_temp_files = False
         self.do_wait_for_tasks = False
         fname = "testdata/300MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file = encrypt_file_smp(secret, fname, print_progress, single_file=True)
         dec_file = decrypt_file_smp(secret, enc_file=enc_file, progress_callback=print_progress)
         self.assertEqual(make_sha1_hash_file(fpi=dec_file), make_sha1_hash_file(fpi=open(fname)))
+
+    def test_object_encryption(self):
+        """
+        test_object_encryption
+        """
+        self.do_wait_for_tasks = False
+        mydict = {"hello":"world"}
+        encrypt_object("kjhfsd98", mydict)
 
     def test_index_no_box_given(self):
         """
@@ -651,7 +659,7 @@ class CryptoboxAppTest(unittest.TestCase):
         fpath = "testdata/1MB.zip"
         localindex = {"filestats": {}}
         fd, localindex = make_cryptogit_hash(fpath, self.cboptions.dir, localindex)
-        self.assertEqual(fd["filehash"], "b71caa3ad69b57109b5435f7a97df70c676b815b")
+        self.assertEqual(fd["filehash"], "b6080f1c968cfb6ba33e8f9717ccc0427e2e3334")
 
     def test_rename_local(self):
         """
