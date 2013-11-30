@@ -431,5 +431,5 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
     try:
         return [x.get() for x in calculation_result]
     except Exception, e:
-        print "cba_crypto.py:432", "DEBUG MODE", e
+        print "cba_crypto.py:434", "DEBUG MODE", e
         return [x for x in calculation_result]
