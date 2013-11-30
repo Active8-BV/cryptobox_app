@@ -108,7 +108,7 @@ class CryptoboxAppTest(unittest.TestCase):
         #    self.reset_cb_db_clean()
         #    self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         self.do_wait_for_tasks = True
-        self.testfile_sizes = ["2MB.zip", "23MB.zip", "300MB.zip", "800MB.zip", "200MB.zip", "30MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
+        self.testfile_sizes = ["2MB.zip", "200MB.zip", "100MB.zip", "20MB.zip", "5MB.zip", "50MB.zip"]
 
         for tfn in self.testfile_sizes:
             if not os.path.exists(os.path.join("testdata", tfn)):
@@ -137,6 +137,8 @@ class CryptoboxAppTest(unittest.TestCase):
             os.remove('stderr.txt')
         delete_progress_file("progress")
         delete_progress_file("item_progress")
+        if self.remove_temp_files:
+            self.clear_tempfiles()
 
     def unzip_testfiles_clean(self):
         """
