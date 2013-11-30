@@ -8,7 +8,7 @@ import random
 from subprocess import Popen, PIPE
 from cba_main import cryptobox_command
 from cba_utils import *
-from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
+from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree, get_encrypted_configs
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
@@ -159,6 +159,16 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm testdata/test.zip")
         self.cbmemory.load(get_data_dir(self.cboptions))
 
+    def unzip_testfiles_configonly(self):
+        """
+        """
+        ensure_directory(self.cboptions.dir)
+        ensure_directory(get_data_dir(self.cboptions))
+        os.system("cd testdata; cp testmap_config.zip test.zip")
+        os.system("cd testdata; unzip -o test.zip > /dev/null")
+        os.system("rm testdata/test.zip")
+        self.cbmemory.load(get_data_dir(self.cboptions))
+
     def reset_cb_db(self):
         """
         reset_cb_db_clean
@@ -301,10 +311,33 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
+    def test_hide_config(self):
+        """
+        """
+
+        self.do_wait_for_tasks = False
+        self.unzip_testfiles_configonly()
+        encrypted_configs = get_encrypted_configs(self.cboptions, name_stop=self.cboptions.cryptobox)
+        print encrypted_configs
+        return
+        salt = "123"
+        secret = "a" * 32
+        for i in os.listdir("testdata"):
+            p = os.path.join(os.path.join(os.getcwd(), "testdata"), i)
+            if os.path.isdir(p):
+                if i.startswith("."):
+                    print p
+
+        return
+        hide_config(self.cboptions, salt, secret)
+        restore_hidden_config(self.cboptions)
+
     def test_encrypt_hide_decrypt(self):
         """
         encrypt_hide_decrypt
         """
+        self.do_wait_for_tasks = False
+
         encrypt = 1
         decrypt = 1
         num_files = -1

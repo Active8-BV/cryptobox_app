@@ -96,7 +96,6 @@ def read_and_encrypt_file(fpath, blobpath, secret):
             os.rename(chunk_path[1], path)
             configfp.write(path+"\n")
 
-
     return True
 
 
