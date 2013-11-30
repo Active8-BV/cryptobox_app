@@ -106,6 +106,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
+
         self.cboptions = Dict2Obj(self.options_d)
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -340,14 +341,7 @@ class CryptoboxAppTest(unittest.TestCase):
         salt = "123"
         secret = "a" * 32
         hidden_name = "fsdfsd"
-        config_file_path = os.path.join(self.cboptions.dir, hidden_name + ".cryptoboxfolder")
-        encrypted_name = encrypt_object(secret, self.cboptions.cryptobox)
-        pickle_object(config_file_path, {"encrypted_name": encrypted_name, "salt": salt})
-        cryptoboxname = unpickle_object(config_file_path)
-        cryptoboxname = decrypt_object(secret, cryptoboxname["encrypted_name"])
-        print cryptoboxname
         hide_config(self.cboptions, salt, secret)
-
         restore_hidden_config(self.cboptions)
 
     def test_encrypt_hide_decrypt(self):
