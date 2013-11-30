@@ -339,7 +339,8 @@ def decrypt_object(secret, obj_string, key=None, salt=None):
         secret = password_derivation(key, salt)
 
     tf = get_named_temporary_file(auto_delete=True)
-    tf.write(base64.decodestring(obj_string))
+    obj_string = base64.decodestring(obj_string)
+    tf.write(obj_string)
     tf.seek(0)
     data = decrypt_file_smp(secret, enc_file=tf)
     obj = cPickle.loads(data.read())
@@ -429,6 +430,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
 
     try:
         return [x.get() for x in calculation_result]
-    except:
-        print "cba_crypto.py:432", "DEBUG MODE"
+    except Exception, e:
+        print "cba_crypto.py:432", "DEBUG MODE", e
         return [x for x in calculation_result]
