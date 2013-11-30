@@ -317,6 +317,13 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         """
 
+
+        for i in os.listdir("testdata"):
+            p = os.path.join(os.path.join(os.getcwd(), "testdata"), i)
+            if os.path.isdir(p):
+                if i.startswith("."):
+                    import shutil
+                    shutil.rmtree(p)
         self.do_wait_for_tasks = False
         self.unzip_testfiles_configonly()
         encrypted_configs = get_encrypted_configs(self.cboptions, name_stop=self.cboptions.cryptobox)
@@ -324,11 +331,7 @@ class CryptoboxAppTest(unittest.TestCase):
         return
         salt = "123"
         secret = "a" * 32
-        for i in os.listdir("testdata"):
-            p = os.path.join(os.path.join(os.getcwd(), "testdata"), i)
-            if os.path.isdir(p):
-                if i.startswith("."):
-                    print p
+
 
         return
         hide_config(self.cboptions, salt, secret)
