@@ -47,7 +47,7 @@ def pc(p):
     print "tests.py:47", p
 
 
-def count_files_dir(fpath):
+def get_files_dir(fpath):
     """
     count_files_dir
     @type fpath: str, unicode
@@ -56,16 +56,26 @@ def count_files_dir(fpath):
 
     for path, dirs, files in os.walk(fpath):
         for f in files:
-            s.add(f)
+            if os.path.isdir(f):
+                s.union(get_files_dir(f))
+            s.add(os.path.join(path, f))
 
-    return len(s)
+    return tuple(s)
+
+
+def cout_files_dir(fpath):
+    """
+    count_files_dir
+    @type fpath: str, unicode
+    """
+    return len(get_files_dir(fpath))
 
 
 def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:68", "progress", p
+    print "tests.py:78", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -85,7 +95,7 @@ class CryptoboxAppTest(unittest.TestCase):
         for i in range(0, sizemb):
             fp_in.seek(0)
             fp_out.write(fp_in.read())
-        print "tests.py:88", "made", name
+        print "tests.py:98", "made", name
 
     def setUp(self):
         """
@@ -106,7 +116,6 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
-
         self.cboptions = Dict2Obj(self.options_d)
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -336,13 +345,17 @@ class CryptoboxAppTest(unittest.TestCase):
 
         self.do_wait_for_tasks = False
         self.unzip_testfiles_configonly()
+        p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
+        org_files = get_files_dir(p)
 
         #encrypted_configs = get_encrypted_configs(self.cboptions, name_stop=self.cboptions.cryptobox)
         salt = "123"
-        secret = "a" * 32
+        secret = base64.decodestring('Ea9fxt0JExxPqkbbIAFggRz0DIsFumuXX/xnuARPOTw=\n')
         hidden_name = "fsdfsd"
         hide_config(self.cboptions, salt, secret)
-        restore_hidden_config(self.cboptions)
+        restore_hidden_config(self.cboptions, secret)
+        org_files2 = get_files_dir(p)
+        self.assertEqual(org_files, org_files2)
 
     def test_encrypt_hide_decrypt(self):
         """

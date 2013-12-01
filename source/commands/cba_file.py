@@ -3,7 +3,7 @@
 file operations
 """
 import os
-from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress, output_json
+from cba_utils import strcmp, unpickle_object, update_item_progress, output_json
 from cba_crypto import make_sha1_hash, make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp
 
 
@@ -96,25 +96,32 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     enc_file_paths = encrypt_file_smp(secret, fpath, progress_callback=update_item_progress)
     enc_file_paths = [x for x in enumerate(enc_file_paths)]
     with open(blobpath, "w") as configfp:
-
         for chunk_path in enc_file_paths:
             path = blobpath + "_" + str(chunk_path[0])
             os.rename(chunk_path[1], path)
-            configfp.write(path+"\n")
+            configfp.write(path + "\n")
 
     return True
 
 
-def decrypt_file_and_write(fpath, unenc_path, secret):
+def decrypt_file_and_write(enc_path, unenc_path, secret):
     """
-    @type fpath: str or unicode
+    @type enc_path: str or unicode
     @type unenc_path: str or unicode
     @type secret: str or unicode
     @return: @rtype:
     """
-    enc_file_struct = unpickle_object(fpath)
-    dec_file = decrypt_file_smp(secret, enc_file_struct, progress_callback=update_item_progress)
+    enc_file_chunks = []
+    with open(enc_path) as enc_fp:
+        enc_file_chunk_path = enc_fp.readline()
+
+        while enc_file_chunk_path:
+            enc_file_chunks.append(enc_file_chunk_path.strip())
+            enc_file_chunk_path = enc_fp.readline()
+
+    dec_file = decrypt_file_smp(secret, enc_files=enc_file_chunks, progress_callback=update_item_progress)
     open(unenc_path, "wb").write(dec_file.read())
+    os.remove(enc_path)
     return True
 
 

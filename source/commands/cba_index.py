@@ -87,12 +87,12 @@ def restore_config(config_file_path, cryptoboxname, options, secret):
 
         if os.path.exists(mempath + ".enc"):
             decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
-            os.remove(mempath + ".enc")
 
 
-def get_encrypted_configs(options, name_stop=None):
+def get_encrypted_configs(options, secret, name_stop=None):
     """
     @type options: optparse.Values, instance
+    @type secret: str, unicode
     @param name_stop: stop looking if this name is matched
     @type name_stop:bool
     """
@@ -103,18 +103,18 @@ def get_encrypted_configs(options, name_stop=None):
         config_file_path = os.path.join(options.basedir, config[0])
         config_file_path = os.path.join(config_file_path, config[1])
         cryptoboxname = unpickle_object(config_file_path)
-        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
+        cryptoboxname, secret = decrypt_object(secret, obj_string=cryptoboxname["encrypted_name"])
         encrypted_configs.append({"cryptoboxname": cryptoboxname, "secret": secret, "config_file_path": config_file_path})
         if name_stop == cryptoboxname:
             return encrypted_configs
     return encrypted_configs
 
 
-def restore_hidden_config(options):
+def restore_hidden_config(options, secret):
     """
     @type options: optparse.Values, instance
     """
-    encrypted_configs = get_encrypted_configs(options, name_stop=options.cryptobox)
+    encrypted_configs = get_encrypted_configs(options, secret, name_stop=options.cryptobox)
 
     for encrypted_config in encrypted_configs:
         if strcmp(encrypted_config["cryptoboxname"], options.cryptobox):

@@ -15,7 +15,7 @@ from Crypto import Random
 from Crypto.Hash import SHA, SHA512
 from Crypto.Cipher import AES, XOR
 from Crypto.Protocol.KDF import PBKDF2
-from cba_utils import update_item_progress, log_json
+from cba_utils import log_json
 
 
 def get_named_temporary_file(auto_delete):
@@ -224,7 +224,8 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
 
             for efpath in enc_files:
                 enc_file.write(str(os.stat(efpath).st_size) + "\n")
-                enc_file.write(open(efpath).read())
+                fdata = open(efpath).read()
+                enc_file.write(fdata)
                 os.remove(efpath)
             enc_file.seek(0)
             return enc_file
@@ -239,7 +240,7 @@ def decrypt_chunk(secret, fpath):
     @type secret: str
     @type fpath: str
     """
-    chunk_file = open(fpath)
+    chunk_file = open(fpath.strip())
     initialization_vector_len = int(chunk_file.readline())
     initialization_vector = chunk_file.read(initialization_vector_len)
     data_hash_len = int(chunk_file.readline())
@@ -324,26 +325,25 @@ def encrypt_object(secret, obj):
     return base64.b64encode(encrypted_file.read())
 
 
-def decrypt_object(secret, obj_string, key=None, salt=None):
+def decrypt_object(secret, obj_string):
     """
     @type secret: str or unicode
     @type obj_string: str
-    @type key: str or unicode
-    @type salt: str
     @return: @rtype: object, str
     """
-    if key:
-        if not salt:
-            raise Exception("no salt")
+    if len(secret) == 0:
+        secret = None
 
-        secret = password_derivation(key, salt)
+    if not secret:
+        raise Exception("decrypt_object, no secret")
 
     tf = get_named_temporary_file(auto_delete=True)
     obj_string = base64.decodestring(obj_string)
     tf.write(obj_string)
     tf.seek(0)
     data = decrypt_file_smp(secret, enc_file=tf)
-    obj = cPickle.loads(data.read())
+    pdata = data.read()
+    obj = cPickle.loads(pdata)
     return obj, secret
 
 
