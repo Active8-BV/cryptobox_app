@@ -15,10 +15,27 @@ import subprocess
 import base64
 import urllib
 import jsonpickle
+
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
+
+
+def get_files_dir(fpath):
+    """
+    count_files_dir
+    @type fpath: str, unicode
+    """
+    s = set()
+
+    for path, dirs, files in os.walk(fpath):
+        for f in files:
+            if os.path.isdir(f):
+                s.union(get_files_dir(f))
+            s.add(os.path.join(path, f))
+
+    return tuple(s)
 
 
 def open_folder(path):
@@ -284,7 +301,6 @@ def error_prefix():
     """
     return ">"
 
-
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
     """
@@ -295,6 +311,7 @@ def handle_exception(again=True, ret_err=False):
     """
     import sys
     import traceback
+
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -315,6 +332,7 @@ def handle_exception(again=True, ret_err=False):
         return error
     else:
         import sys
+
         sys.stderr.write(str(error))
 
     if again:
@@ -815,8 +833,7 @@ class Timers(object):
             if last_name in self.last_event:
                 self.last_event.remove(last_name)
 
-            result = {"name": last_name,
-                      "time": time.time() - self.timers[last_name]}
+            result = {"name": last_name, "time": time.time() - self.timers[last_name]}
             self.done_timers.append(result)
             del self.timers[last_name]
         self.last_event.append(name)
