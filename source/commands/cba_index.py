@@ -290,7 +290,7 @@ def index_and_encrypt(memory, options):
                 found = False
 
                 for fhash in hash_set_on_disk:
-                    if strcmp(fhash, (blob_dir + blob_file)):
+                    if fhash in (blob_dir + blob_file):
                         found = True
 
                 if not found:

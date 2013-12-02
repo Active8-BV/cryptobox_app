@@ -321,9 +321,9 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
-    def test_hide_config(self):
+    def delete_hidden_configs(self):
         """
-        test_hide_config
+        delete_hidden_configs
         """
         for i in os.listdir("testdata"):
             p = os.path.join(os.path.join(os.getcwd(), "testdata"), i)
@@ -333,6 +333,11 @@ class CryptoboxAppTest(unittest.TestCase):
                     import shutil
                     shutil.rmtree(p)
 
+    def test_hide_config(self):
+        """
+        test_hide_config
+        """
+        self.delete_hidden_configs()
         self.do_wait_for_tasks = False
         self.unzip_testfiles_configonly()
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
@@ -348,24 +353,21 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         encrypt_hide_decrypt
         """
+        self.delete_hidden_configs()
         self.do_wait_for_tasks = False
         encrypt = 1
-        decrypt = 1
+        decrypt = 0
         num_files = -1
         secret = None
         self.reset_cb_dir()
         self.unzip_testfiles_synced()
+
+        #os.system("cp testdata/20MB.zip testdata/test")
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
-        t = time.time()
-        f = get_files_dir("/Users/rabshakeh/")
-        print "tests.py:361", len(f)
-        print "tests.py:362", time.time() - t
-        return
+        org_files = get_files_dir(p)
 
         #decrypt_and_build_filetree, hide_config
         if encrypt:
-
-            #os.system("cp testdata/20MB.zip testdata/test")
             self.do_wait_for_tasks = False
             self.cboptions.remove = True
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
@@ -388,7 +390,9 @@ class CryptoboxAppTest(unittest.TestCase):
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), num_files)
 
         org_files2 = get_files_dir(p)
-        self.assertEqual(org_files, org_files2)
+
+        if decrypt:
+            self.assertEqual(org_files, org_files2)
 
     def test_index_clear(self):
         self.do_wait_for_tasks = False
