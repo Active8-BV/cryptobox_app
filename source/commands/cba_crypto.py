@@ -21,6 +21,9 @@ from cba_utils import log_json
 
 
 def get_named_temporary_file(auto_delete):
+    """
+    get_named_temporary_file
+    """
     ntf = tempfile.NamedTemporaryFile(delete=auto_delete)
 
     if not auto_delete:
@@ -34,6 +37,9 @@ def get_named_temporary_file(auto_delete):
 
 
 def cleanup_tempfiles():
+    """
+    cleanup_tempfiles
+    """
     for fp in glob.glob("tempfile_*.cba"):
         if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
             data = cPickle.load(open(fp))
@@ -222,7 +228,6 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
     @type fname: str, unicode
     @type progress_callback: function
     """
-
     cleanup_tempfiles()
     initialization_vector = Random.new().read(AES.block_size)
     chunklist = make_chunklist(fname)
@@ -243,11 +248,10 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
         return enc_files
 
 
-
 def listener_file_writer(fn, q):
     """listens for messages on the q, writes to file. """
-
     f = open(fn, 'wb')
+
     while 1:
         m = q.get()
 
@@ -327,7 +331,6 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
         dec_file.seek(0)
         return dec_file
     finally:
-
         if delete_enc_files:
             for efp in enc_files:
                 if os.path.exists(efp):
@@ -433,6 +436,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
         queue = manager.Queue()
     else:
         queue = None
+
     watcher = None
 
     if listener:
@@ -472,15 +476,14 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
     [result.wait() for result in calculation_result]
     if queue:
         queue.put("kill")
+
     if watcher:
         watcher.get()
     pool.close()
     pool.join()
 
-
-
     try:
         return [x.get() for x in calculation_result]
     except Exception, e:
-        print "cba_crypto.py:484", "DEBUG MODE", e
+        print "cba_crypto.py:488", "DEBUG MODE", e
         return [x for x in calculation_result]
