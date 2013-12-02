@@ -274,11 +274,6 @@ def cryptobox_command(options):
         #noinspection PyUnusedLocal
         single_instance = singleton.SingleInstance()
 
-        if not options.check and not options.treeseq and not options.logout:
-            if not options.encrypt and not options.decrypt:
-                print "cba_main.py:279", "No encrypt directive given (-e)"
-                return False
-
         if options.decrypt:
             if options.remove:
                 print "cba_main.py:284", "option remove (-r) cannot be used together with decrypt (dataloss)"
@@ -412,10 +407,6 @@ def cryptobox_command(options):
 
                     output_json(outputdict)
                 elif options.sync:
-                    if not options.encrypt:
-                        print "cba_main.py:416", "A sync step should always be followed by an encrypt step (-e or --encrypt)"
-                        return False
-
                     if quick_lock_check(options):
                         print "cba_main.py:420", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False

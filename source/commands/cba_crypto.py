@@ -174,7 +174,10 @@ def make_chunklist(fpath):
     """
     @type fpath: str
     """
-    fsize = os.stat(fpath).st_size
+    if not os.path.exists(fpath):
+        raise Exception("make_chunklist: file does not exist")
+    fstats = os.stat(fpath)
+    fsize = fstats.st_size
     chunksize = (20 * (2 ** 20))
 
     #noinspection PyBroadException
@@ -188,7 +191,7 @@ def make_chunklist(fpath):
         pass
 
     if chunksize == 0:
-        pass
+        chunksize = 1
 
     num_chunks = fsize / chunksize
     chunk_remainder = fsize % chunksize
