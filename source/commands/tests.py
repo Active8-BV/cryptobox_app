@@ -242,8 +242,10 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/2MB.zip"
+        #self.make_testfile("1000MB.zip", 1000)
+
         fname = "testdata/200MB.zip"
+
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_files = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_files=enc_files, progress_callback=print_progress, delete_enc_files=True)

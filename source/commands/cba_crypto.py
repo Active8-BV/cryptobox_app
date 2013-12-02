@@ -39,7 +39,7 @@ def cleanup_tempfiles():
             data = cPickle.load(open(fp))
 
             if os.path.exists(data["file_path"]):
-                if time.time() - os.stat(data["file_path"]).st_mtime > 30:
+                if time.time() - os.stat(data["file_path"]).st_mtime > 60:
                     log_json("removing " + data["file_path"])
                     os.remove(data["file_path"])
                     os.remove(fp)
@@ -222,30 +222,31 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
     @type fname: str, unicode
     @type progress_callback: function
     """
-    try:
-        initialization_vector = Random.new().read(AES.block_size)
-        chunklist = make_chunklist(fname)
-        chunklist = [(secret, fname, chunk_size, initialization_vector) for chunk_size in chunklist]
-        enc_files = smp_all_cpu_apply(encrypt_chunk, chunklist, progress_callback)
 
-        if single_file:
-            enc_file = tempfile.SpooledTemporaryFile(max_size=524288000)
+    cleanup_tempfiles()
+    initialization_vector = Random.new().read(AES.block_size)
+    chunklist = make_chunklist(fname)
+    chunklist = [(secret, fname, chunk_size, initialization_vector) for chunk_size in chunklist]
+    enc_files = smp_all_cpu_apply(encrypt_chunk, chunklist, progress_callback)
 
-            for efpath in enc_files:
-                enc_file.write(str(os.stat(efpath).st_size) + "\n")
-                fdata = open(efpath).read()
-                enc_file.write(fdata)
-                os.remove(efpath)
-            enc_file.seek(0)
-            return enc_file
-        else:
-            return enc_files
-    finally:
-        cleanup_tempfiles()
+    if single_file:
+        enc_file = tempfile.SpooledTemporaryFile(max_size=524288000)
+
+        for efpath in enc_files:
+            enc_file.write(str(os.stat(efpath).st_size) + "\n")
+            fdata = open(efpath).read()
+            enc_file.write(fdata)
+            os.remove(efpath)
+        enc_file.seek(0)
+        return enc_file
+    else:
+        return enc_files
+
 
 
 def listener_file_writer(fn, q):
     """listens for messages on the q, writes to file. """
+
     f = open(fn, 'wb')
     while 1:
         m = q.get()
@@ -254,6 +255,7 @@ def listener_file_writer(fn, q):
             break
         f.seek(m[0])
         f.write(m[1])
+        f.flush()
     f.close()
 
 
@@ -282,7 +284,8 @@ def decrypt_chunk(secret, fpath, queue):
     if data_hash != calculated_hash:
         raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
 
-    #print chunk_pos
+    if queue.qsize() > 20:
+        time.sleep(0.5)
     queue.put((chunk_pos, dec_data))
     return True
 
@@ -302,6 +305,7 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
             chunk_size = int(enc_file.readline())
 
             while chunk_size:
+                delete_enc_files = True
                 nef = get_named_temporary_file(auto_delete=False)
                 nef.write(enc_file.read(chunk_size))
                 nef.close()
@@ -429,6 +433,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
         queue = manager.Queue()
     else:
         queue = None
+    watcher = None
 
     if listener:
         if listener_param:
@@ -467,10 +472,12 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
     [result.wait() for result in calculation_result]
     if queue:
         queue.put("kill")
+    if watcher:
+        watcher.get()
     pool.close()
     pool.join()
-    if progress_callback:
-        progress_callback(100)
+
+
 
     try:
         return [x.get() for x in calculation_result]
