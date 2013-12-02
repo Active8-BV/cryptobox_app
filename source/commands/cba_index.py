@@ -87,12 +87,19 @@ def restore_config(config_file_path, cryptoboxname, options, secret):
 
         if os.path.exists(mempath + ".enc"):
             decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
+<<<<<<< HEAD
+=======
+            os.remove(mempath + ".enc")
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 def get_encrypted_configs(options, name_stop=None):
     """
     @type options: optparse.Values, instance
+<<<<<<< HEAD
     @type secret: str, unicode
+=======
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     @param name_stop: stop looking if this name is matched
     @type name_stop:bool
     """
@@ -103,8 +110,12 @@ def get_encrypted_configs(options, name_stop=None):
         config_file_path = os.path.join(options.basedir, config[0])
         config_file_path = os.path.join(config_file_path, config[1])
         cryptoboxname = unpickle_object(config_file_path)
+<<<<<<< HEAD
         secret = password_derivation(options.password, cryptoboxname["salt"])
         cryptoboxname, secret = decrypt_object(secret, obj_string=cryptoboxname["encrypted_name"])
+=======
+        cryptoboxname, secret = decrypt_object("", key=options.password, obj_string=cryptoboxname["encrypted_name"], salt=cryptoboxname["salt"])
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         encrypted_configs.append({"cryptoboxname": cryptoboxname, "secret": secret, "config_file_path": config_file_path})
         if name_stop == cryptoboxname:
             return encrypted_configs
@@ -120,8 +131,11 @@ def restore_hidden_config(options):
     for encrypted_config in encrypted_configs:
         if strcmp(encrypted_config["cryptoboxname"], options.cryptobox):
             restore_config(encrypted_config["config_file_path"], encrypted_config["cryptoboxname"], options, encrypted_config["secret"])
+<<<<<<< HEAD
             return encrypted_config["secret"]
     return None
+=======
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 def hide_config(options, salt, secret):
@@ -293,7 +307,11 @@ def index_and_encrypt(memory, options):
                 found = False
 
                 for fhash in hash_set_on_disk:
+<<<<<<< HEAD
                     if fhash in (blob_dir + blob_file):
+=======
+                    if strcmp(fhash, (blob_dir + blob_file)):
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
                         found = True
 
                 if not found:
@@ -318,23 +336,36 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
+<<<<<<< HEAD
         print "cba_index.py:321", "check_and_clean_dir needs clear and encrypt option"
+=======
+        print "cba_index.py:318", "check_and_clean_dir needs clear and encrypt option"
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         return
 
     if options.clear == "1":
         if options.encrypt:
+<<<<<<< HEAD
             print "cba_index.py:326", "clear options cannot be used together with encrypt, possible data loss"
+=======
+            print "cba_index.py:323", "clear options cannot be used together with encrypt, possible data loss"
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
             return
 
         datadir = get_data_dir(options)
         shutil.rmtree(datadir, True)
 
 
+<<<<<<< HEAD
 def decrypt_and_build_filetree(memory, options, secret):
+=======
+def decrypt_and_build_filetree(memory, options):
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     """
     decrypt_and_build_filetree
     @type memory: Memory
     @type options: optparse.Values, instance
+<<<<<<< HEAD
     @type secret: str
     """
     if not secret:
@@ -344,6 +375,14 @@ def decrypt_and_build_filetree(memory, options, secret):
 
     if not os.path.exists(datadir):
         print "cba_index.py:346", "nothing to decrypt", datadir, "does not exists"
+=======
+    """
+    password = options.password
+    datadir = get_data_dir(options)
+
+    if not os.path.exists(datadir):
+        print "cba_index.py:340", "nothing to decrypt", datadir, "does not exists"
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         return memory
 
     output_json({"msg": "preparing decrypt"})
@@ -365,6 +404,10 @@ def decrypt_and_build_filetree(memory, options, secret):
 
     processed_files = 0
     numfiles = len(hashes)
+<<<<<<< HEAD
+=======
+    secret = password_derivation(password, base64.decodestring(memory.get("salt_b64")))
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
     for cfile in hashes:
         processed_files += 1

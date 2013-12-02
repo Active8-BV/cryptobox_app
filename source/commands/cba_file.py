@@ -3,7 +3,11 @@
 file operations
 """
 import os
+<<<<<<< HEAD
 from cba_utils import strcmp, get_files_dir, update_item_progress, output_json
+=======
+from cba_utils import strcmp, pickle_object, unpickle_object, update_item_progress, output_json
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 from cba_crypto import make_sha1_hash, make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp
 
 
@@ -96,21 +100,36 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     enc_file_paths = encrypt_file_smp(secret, fpath, progress_callback=update_item_progress)
     enc_file_paths = [x for x in enumerate(enc_file_paths)]
     with open(blobpath, "w") as configfp:
+<<<<<<< HEAD
         for chunk_path in enc_file_paths:
             path = blobpath + "_" + str(chunk_path[0])
             os.rename(chunk_path[1], path)
             configfp.write(path + "\n")
+=======
+
+        for chunk_path in enc_file_paths:
+            path = blobpath + "_" + str(chunk_path[0])
+            os.rename(chunk_path[1], path)
+            configfp.write(path+"\n")
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
     return True
 
 
+<<<<<<< HEAD
 def decrypt_file_and_write(enc_path, unenc_path, secret):
     """
     @type enc_path: str or unicode
+=======
+def decrypt_file_and_write(fpath, unenc_path, secret):
+    """
+    @type fpath: str or unicode
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     @type unenc_path: str or unicode
     @type secret: str or unicode
     @return: @rtype:
     """
+<<<<<<< HEAD
     enc_file_chunks = []
     with open(enc_path) as enc_fp:
         enc_file_chunk_path = enc_fp.readline()
@@ -122,6 +141,11 @@ def decrypt_file_and_write(enc_path, unenc_path, secret):
     dec_file = decrypt_file_smp(secret, enc_files=enc_file_chunks, progress_callback=update_item_progress)
     open(unenc_path, "wb").write(dec_file.read())
     os.remove(enc_path)
+=======
+    enc_file_struct = unpickle_object(fpath)
+    dec_file = decrypt_file_smp(secret, enc_file_struct, progress_callback=update_item_progress)
+    open(unenc_path, "wb").write(dec_file.read())
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     return True
 
 
@@ -136,6 +160,7 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     @param secret: str or unicode
     @type secret:
     """
+<<<<<<< HEAD
     cpath = os.path.join(fdir, fhash[2:])
     enc_file_parts = open(cpath).read().split("\n")
     enc_file_parts = [x for x in enc_file_parts if x]
@@ -156,6 +181,10 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
             if len(files_left) == 0:
                 os.rmdir(fdir)
 
+=======
+    blob_enc = unpickle_object(os.path.join(fdir, fhash[2:]))
+    data = decrypt_file_smp(secret, blob_enc, update_item_progress).read()
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     file_blob = {"data": data}
     paths = []
 
@@ -193,7 +222,10 @@ def make_cryptogit_hash(fpath, datadir, localindex):
                 "blobpath": blobpath,
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
 

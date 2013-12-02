@@ -3,7 +3,10 @@
 crypto routines for the commandline tool
 """
 import os
+<<<<<<< HEAD
 import glob
+=======
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 import math
 import time
 import tempfile
@@ -16,7 +19,11 @@ from Crypto import Random
 from Crypto.Hash import SHA, SHA512
 from Crypto.Cipher import AES, XOR
 from Crypto.Protocol.KDF import PBKDF2
+<<<<<<< HEAD
 from cba_utils import log_json
+=======
+from cba_utils import update_item_progress, log_json
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 def get_named_temporary_file(auto_delete):
@@ -33,7 +40,11 @@ def get_named_temporary_file(auto_delete):
 
 
 def cleanup_tempfiles():
+<<<<<<< HEAD
     for fp in glob.glob("tempfile_*.cba"):
+=======
+    for fp in os.listdir(os.getcwd()):
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
             data = cPickle.load(open(fp))
 
@@ -225,8 +236,12 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
 
             for efpath in enc_files:
                 enc_file.write(str(os.stat(efpath).st_size) + "\n")
+<<<<<<< HEAD
                 fdata = open(efpath).read()
                 enc_file.write(fdata)
+=======
+                enc_file.write(open(efpath).read())
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
                 os.remove(efpath)
             enc_file.seek(0)
             return enc_file
@@ -241,7 +256,11 @@ def decrypt_chunk(secret, fpath):
     @type secret: str
     @type fpath: str
     """
+<<<<<<< HEAD
     chunk_file = open(fpath.strip())
+=======
+    chunk_file = open(fpath)
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     initialization_vector_len = int(chunk_file.readline())
     initialization_vector = chunk_file.read(initialization_vector_len)
     data_hash_len = int(chunk_file.readline())
@@ -326,6 +345,7 @@ def encrypt_object(secret, obj):
     return base64.b64encode(encrypted_file.read())
 
 
+<<<<<<< HEAD
 def decrypt_object(secret, obj_string):
     """
     @type secret: str or unicode
@@ -337,14 +357,33 @@ def decrypt_object(secret, obj_string):
 
     if not secret:
         raise Exception("decrypt_object, no secret")
+=======
+def decrypt_object(secret, obj_string, key=None, salt=None):
+    """
+    @type secret: str or unicode
+    @type obj_string: str
+    @type key: str or unicode
+    @type salt: str
+    @return: @rtype: object, str
+    """
+    if key:
+        if not salt:
+            raise Exception("no salt")
+
+        secret = password_derivation(key, salt)
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
     tf = get_named_temporary_file(auto_delete=True)
     obj_string = base64.decodestring(obj_string)
     tf.write(obj_string)
     tf.seek(0)
     data = decrypt_file_smp(secret, enc_file=tf)
+<<<<<<< HEAD
     pdata = data.read()
     obj = cPickle.loads(pdata)
+=======
+    obj = cPickle.loads(data.read())
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     return obj, secret
 
 
@@ -432,5 +471,9 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
     try:
         return [x.get() for x in calculation_result]
     except Exception, e:
+<<<<<<< HEAD
         print "cba_crypto.py:435", "DEBUG MODE", e
+=======
+        print "cba_crypto.py:434", "DEBUG MODE", e
+>>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         return [x for x in calculation_result]
