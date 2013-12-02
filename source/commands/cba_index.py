@@ -123,6 +123,7 @@ def restore_hidden_config(options):
             return encrypted_config["secret"]
     return None
 
+
 def hide_config(options, salt, secret):
     """
     @type options: optparse.Values, instance
@@ -317,12 +318,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        print "cba_index.py:318", "check_and_clean_dir needs clear and encrypt option"
+        print "cba_index.py:321", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            print "cba_index.py:323", "clear options cannot be used together with encrypt, possible data loss"
+            print "cba_index.py:326", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -338,10 +339,11 @@ def decrypt_and_build_filetree(memory, options, secret):
     """
     if not secret:
         raise Exception("decrypt_and_build_filetree: no secret given")
+
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        print "cba_index.py:340", "nothing to decrypt", datadir, "does not exists"
+        print "cba_index.py:346", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     output_json({"msg": "preparing decrypt"})

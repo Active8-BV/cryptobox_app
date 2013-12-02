@@ -353,13 +353,11 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         encrypt_hide_decrypt
         """
-
         self.do_wait_for_tasks = False
         encrypt = 1
         decrypt = 1
         self.reset_cb_dir()
         self.unzip_testfiles_synced()
-
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         org_files = get_files_dir(p)
 
@@ -370,7 +368,6 @@ class CryptoboxAppTest(unittest.TestCase):
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
             datadir = get_data_dir(self.cboptions)
             self.cbmemory.save(datadir)
-
             hide_config(self.cboptions, salt, secret)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
 
@@ -390,7 +387,6 @@ class CryptoboxAppTest(unittest.TestCase):
             decrypt_and_build_filetree(memory, options, secret)
 
         org_files2 = get_files_dir(p)
-
         self.assertEqual(org_files, org_files2)
 
     def test_index_clear(self):

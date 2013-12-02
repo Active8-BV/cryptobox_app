@@ -137,19 +137,22 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     @type secret:
     """
     cpath = os.path.join(fdir, fhash[2:])
-
     enc_file_parts = open(cpath).read().split("\n")
     enc_file_parts = [x for x in enc_file_parts if x]
     data = decrypt_file_smp(secret, enc_files=enc_file_parts, progress_callback=update_item_progress).read()
     os.remove(cpath)
     files_left = get_files_dir(fdir)
+
     if len(files_left) == 0:
         os.rmdir(fdir)
+
     if len(files_left) == 1:
         dstorp = os.path.join(fdir, ".DS_Store")
+
         if os.path.exists(dstorp):
             os.remove(dstorp)
             files_left = get_files_dir(fdir)
+
             if len(files_left) == 0:
                 os.rmdir(fdir)
 
