@@ -89,7 +89,7 @@ def restore_config(config_file_path, cryptoboxname, options, secret):
             decrypt_file_and_write(mempath + ".enc", mempath, secret=secret)
 
 
-def get_encrypted_configs(options, secret, name_stop=None):
+def get_encrypted_configs(options, name_stop=None):
     """
     @type options: optparse.Values, instance
     @type secret: str, unicode
@@ -103,6 +103,7 @@ def get_encrypted_configs(options, secret, name_stop=None):
         config_file_path = os.path.join(options.basedir, config[0])
         config_file_path = os.path.join(config_file_path, config[1])
         cryptoboxname = unpickle_object(config_file_path)
+        secret = password_derivation(options.password, cryptoboxname["salt"])
         cryptoboxname, secret = decrypt_object(secret, obj_string=cryptoboxname["encrypted_name"])
         encrypted_configs.append({"cryptoboxname": cryptoboxname, "secret": secret, "config_file_path": config_file_path})
         if name_stop == cryptoboxname:
@@ -110,16 +111,17 @@ def get_encrypted_configs(options, secret, name_stop=None):
     return encrypted_configs
 
 
-def restore_hidden_config(options, secret):
+def restore_hidden_config(options):
     """
     @type options: optparse.Values, instance
     """
-    encrypted_configs = get_encrypted_configs(options, secret, name_stop=options.cryptobox)
+    encrypted_configs = get_encrypted_configs(options, name_stop=options.cryptobox)
 
     for encrypted_config in encrypted_configs:
         if strcmp(encrypted_config["cryptoboxname"], options.cryptobox):
             restore_config(encrypted_config["config_file_path"], encrypted_config["cryptoboxname"], options, encrypted_config["secret"])
-
+            return encrypted_config["secret"]
+    return None
 
 def hide_config(options, salt, secret):
     """
@@ -327,13 +329,15 @@ def reset_cryptobox_local(options):
         shutil.rmtree(datadir, True)
 
 
-def decrypt_and_build_filetree(memory, options):
+def decrypt_and_build_filetree(memory, options, secret):
     """
     decrypt_and_build_filetree
     @type memory: Memory
     @type options: optparse.Values, instance
+    @type secret: str
     """
-    password = options.password
+    if not secret:
+        raise Exception("decrypt_and_build_filetree: no secret given")
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
@@ -359,7 +363,6 @@ def decrypt_and_build_filetree(memory, options):
 
     processed_files = 0
     numfiles = len(hashes)
-    secret = password_derivation(password, base64.decodestring(memory.get("salt_b64")))
 
     for cfile in hashes:
         processed_files += 1

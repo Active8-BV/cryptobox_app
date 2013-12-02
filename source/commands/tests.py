@@ -17,7 +17,7 @@ from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
-from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
+from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object, password_derivation
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -345,7 +345,7 @@ class CryptoboxAppTest(unittest.TestCase):
         salt = "123"
         secret = base64.decodestring('Ea9fxt0JExxPqkbbIAFggRz0DIsFumuXX/xnuARPOTw=\n')
         hide_config(self.cboptions, salt, secret)
-        restore_hidden_config(self.cboptions, secret)
+        restore_hidden_config(self.cboptions)
         org_files2 = get_files_dir(p)
         self.assertEqual(org_files, org_files2)
 
@@ -353,46 +353,45 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         encrypt_hide_decrypt
         """
-        self.delete_hidden_configs()
+
         self.do_wait_for_tasks = False
         encrypt = 1
-        decrypt = 0
-        num_files = -1
-        secret = None
+        decrypt = 1
         self.reset_cb_dir()
         self.unzip_testfiles_synced()
 
-        #os.system("cp testdata/20MB.zip testdata/test")
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         org_files = get_files_dir(p)
 
-        #decrypt_and_build_filetree, hide_config
         if encrypt:
+            self.delete_hidden_configs()
             self.do_wait_for_tasks = False
             self.cboptions.remove = True
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
             datadir = get_data_dir(self.cboptions)
             self.cbmemory.save(datadir)
-            num_files = count_files_dir(get_blob_dir(self.cboptions))
+
             hide_config(self.cboptions, salt, secret)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
 
         if decrypt:
+            os.system("rm -Rf testdata/test")
+            if not encrypt:
+                os.system("cd testdata; unzip -o hidden_config.zip > /dev/null")
+
             options = self.cboptions
             options.encrypt = False
             options.decrypt = True
             options.remove = False
-            restore_hidden_config(options, secret)
+            secret = restore_hidden_config(options)
             datadir = get_data_dir(self.cboptions)
             memory = Memory()
             memory.load(datadir)
-            decrypt_and_build_filetree(memory, options)
-            self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), num_files)
+            decrypt_and_build_filetree(memory, options, secret)
 
         org_files2 = get_files_dir(p)
 
-        if decrypt:
-            self.assertEqual(org_files, org_files2)
+        self.assertEqual(org_files, org_files2)
 
     def test_index_clear(self):
         self.do_wait_for_tasks = False
