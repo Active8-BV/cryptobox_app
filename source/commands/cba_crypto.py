@@ -303,10 +303,6 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
             os.remove(dfp)
         dec_file.seek(0)
 
-        for efp in enc_files:
-            if os.path.exists(efp):
-                os.remove(efp)
-
         return dec_file
     finally:
         cleanup_tempfiles()

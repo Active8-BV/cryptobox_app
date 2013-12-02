@@ -11,45 +11,13 @@ import urllib
 import shutil
 import urllib2
 import poster
-from cba_index import quick_lock_check, \
-    TreeLoadError, \
-    index_files_visit, \
-    make_local_index, \
-    get_localindex, \
-    store_localindex
-from cba_blobs import write_blobs_to_filepaths, \
-    have_blob, \
-    get_blob_dir
-from cba_network import download_server, \
-    on_server, \
-    NotAuthorized, \
-    authorize_user, \
-    authorized
-from cba_utils import handle_exception, \
-    strcmp, \
-    exit_app_warning, \
-    update_progress, \
-    update_item_progress, \
-    Memory, \
-    output_json, \
-    unpickle_object, \
-    Timers, \
-    log_json
-from cba_file import ensure_directory, \
-    add_server_path_history, \
-    in_server_path_history, \
-    add_local_path_history, \
-    in_local_path_history, \
-    del_server_path_history, \
-    del_local_path_history, \
-    path_to_relative_path_unix_style, \
-    make_cryptogit_hash, \
-    read_file_to_fdict
-from cba_crypto import make_sha1_hash, \
-    decrypt_file_smp, \
-    password_derivation
-from cba_file import write_file, \
-    read_file
+from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex, store_localindex
+from cba_blobs import write_blobs_to_filepaths, have_blob, get_blob_dir
+from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Timers, log_json, get_files_dir, make_absolute_path
+from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, make_cryptogit_hash, read_file_to_fdict, decrypt_file_and_write
+from cba_crypto import make_sha1_hash, password_derivation
+from cba_file import write_file, read_file, decrypt_file
 
 
 def download_blob(memory, options, node):
@@ -108,9 +76,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
             source_path = os.path.join(get_blob_dir(options), fhash[:2])
             source_path = os.path.join(source_path, fhash[2:])
             memory = add_path_history(file_path, memory)
-            blob_enc = unpickle_object(source_path)
             secret = password_derivation(options.password, base64.decodestring(memory.get("salt_b64")))
-            data = decrypt_file_smp(secret, blob_enc, update_item_progress).read()
+            data = decrypt_file(source_path, secret).read()
 
         if source_path:
             if not data:
@@ -373,7 +340,7 @@ def wait_for_tasks(memory, options):
                     if num_tasks > 3:
                         time.sleep(1)
                         if num_tasks > 6:
-                            print "cba_sync.py:376", "waiting for tasks", num_tasks
+                            print "cba_sync.py:345", "waiting for tasks", num_tasks
 
                 else:
                     update_progress(100, 100, "waiting for tasks to finish on server")
@@ -433,7 +400,6 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     """
     payload = {"path1": path1,
                "path2": path2}
-
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -673,11 +639,10 @@ def diff_new_files_on_server(memory, options, server_path_nodes, dirs_scheduled_
             seen_local_path_before, memory = in_local_path_history(memory, server_path_to_local)
 
             if seen_local_path_before:
-                file_del_server.append(server_path_to_local)
+                file_del_server.append(fnode["doc"]["m_path"])
             else:
                 file_downloads.append(fnode)
 
-    dirs_scheduled_for_removal = [os.path.join(options.dir, d.lstrip(os.path.sep)) for d in dirs_scheduled_for_removal]
     file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dirs_scheduled_for_removal]
     return memory, file_del_server, file_downloads
 
@@ -752,7 +717,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:755", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:723", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -813,6 +778,7 @@ def check_renames_server(memory, options, localindex, serverindex, file_uploads,
 
     for fdr in file_del_server_remove:
         file_del_server.remove(fdr)
+    file_del_server = [x.replace(options.dir, "") for x in file_del_server]
     return renames_server, file_uploads, file_del_server, localindex
 
 
@@ -898,6 +864,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
     timers.event("check_renames_server")
     renames_server, file_uploads, file_del_server, localindex = check_renames_server(memory, options, localindex, serverindex, file_uploads, file_del_server, dir_del_server)
+    file_del_server = [f for f in file_del_server if os.path.dirname(f) not in dir_del_server]
     timers.event("store_localindex")
     memory = store_localindex(memory, localindex)
     return memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, renames_server
@@ -940,7 +907,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:943", "updating upload progress failed", str(exc)
+                print "cba_sync.py:911", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -952,7 +919,6 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
-
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)

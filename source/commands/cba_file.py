@@ -104,10 +104,9 @@ def read_and_encrypt_file(fpath, blobpath, secret):
     return True
 
 
-def decrypt_file_and_write(enc_path, unenc_path, secret):
+def decrypt_file(enc_path, secret, get_chunk_paths=False):
     """
     @type enc_path: str or unicode
-    @type unenc_path: str or unicode
     @type secret: str or unicode
     @return: @rtype:
     """
@@ -120,8 +119,26 @@ def decrypt_file_and_write(enc_path, unenc_path, secret):
             enc_file_chunk_path = enc_fp.readline()
 
     dec_file = decrypt_file_smp(secret, enc_files=enc_file_chunks, progress_callback=update_item_progress)
+    if get_chunk_paths:
+        return dec_file, enc_file_chunks
+    else:
+        return dec_file
+
+
+def decrypt_file_and_write(enc_path, unenc_path, secret):
+    """
+    @type enc_path: str or unicode
+    @type unenc_path: str or unicode
+    @type secret: str or unicode
+    @return: @rtype:
+    """
+    dec_file = decrypt_file(enc_path, secret)
     open(unenc_path, "wb").write(dec_file.read())
     os.remove(enc_path)
+    for efp in enc_files:
+        if os.path.exists(efp):
+            os.remove(efp)
+
     return True
 
 
@@ -193,7 +210,6 @@ def make_cryptogit_hash(fpath, datadir, localindex):
                 "blobpath": blobpath,
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
-
     localindex["filestats"][fpath] = file_dict
     return filedata, localindex
 

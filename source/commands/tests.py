@@ -253,7 +253,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/300MB.zip"
+        fname = "testdata/200MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_file = encrypt_file_smp(secret, fname, print_progress, single_file=True)
         dec_file = decrypt_file_smp(secret, enc_file=enc_file, progress_callback=print_progress)
@@ -305,21 +305,21 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 7)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 53)
 
         # add a new file
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 60)
 
         # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 60)
 
     def delete_hidden_configs(self):
         """
@@ -353,13 +353,11 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         encrypt_hide_decrypt
         """
-
         self.do_wait_for_tasks = False
         encrypt = 1
         decrypt = 1
         self.reset_cb_dir()
         self.unzip_testfiles_synced()
-
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         org_files = get_files_dir(p)
 
@@ -371,7 +369,6 @@ class CryptoboxAppTest(unittest.TestCase):
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
             datadir = get_data_dir(self.cboptions)
             self.cbmemory.save(datadir)
-
             hide_config(self.cboptions, salt, secret)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
 
@@ -391,7 +388,6 @@ class CryptoboxAppTest(unittest.TestCase):
             decrypt_and_build_filetree(memory, options, secret)
 
         org_files2 = get_files_dir(p)
-
         self.assertEqual(org_files, org_files2)
 
     def test_index_clear(self):
