@@ -276,28 +276,28 @@ def cryptobox_command(options):
 
         if options.decrypt:
             if options.remove:
-                print "cba_main.py:284", "option remove (-r) cannot be used together with decrypt (dataloss)"
+                print "cba_main.py:279", "option remove (-r) cannot be used together with decrypt (dataloss)"
                 return False
 
             if options.sync:
-                print "cba_main.py:288", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:283", "option sync (-s) cannot be used together with decrypt (hashmismatch)"
                 return False
 
             if options.check:
-                print "cba_main.py:292", "option check (-o) cannot be used together with decrypt (hashmismatch)"
+                print "cba_main.py:287", "option check (-o) cannot be used together with decrypt (hashmismatch)"
                 return False
 
         if not options.password:
-            print "cba_main.py:296", "No password given (-p or --password)"
+            print "cba_main.py:291", "No password given (-p or --password)"
             return False
 
         if options.username or options.cryptobox:
             if not options.username:
-                print "cba_main.py:301", "No username given (-u or --username)"
+                print "cba_main.py:296", "No username given (-u or --username)"
                 return False
 
             if not options.cryptobox:
-                print "cba_main.py:305", "No cryptobox given (-b or --cryptobox)"
+                print "cba_main.py:300", "No cryptobox given (-b or --cryptobox)"
                 return False
 
         if isinstance(options, dict):
@@ -314,11 +314,11 @@ def cryptobox_command(options):
         options.numdownloadthreads = 8
 
         if not options.dir:
-            print "cba_main.py:322", "Need DIR -f or --dir to continue"
+            print "cba_main.py:317", "Need DIR -f or --dir to continue"
             return False
 
         if not options.cryptobox:
-            print "cba_main.py:326", "No cryptobox given -b or --cryptobox"
+            print "cba_main.py:321", "No cryptobox given -b or --cryptobox"
             return False
 
         options.basedir = options.dir
@@ -346,22 +346,22 @@ def cryptobox_command(options):
 
         ensure_directory(datadir)
         if not datadir:
-            print "cba_main.py:354", "datadir is None"
+            print "cba_main.py:349", "datadir is None"
 
         memory = Memory()
         memory.load(datadir)
         memory.replace("cryptobox_folder", options.dir)
         if not os.path.exists(options.basedir):
-            print "cba_main.py:360", "DIR [", options.dir, "] does not exist"
+            print "cba_main.py:355", "DIR [", options.dir, "] does not exist"
             return False
 
         if options.sync:
             if not options.username:
-                print "cba_main.py:365", "No username given (-u or --username)"
+                print "cba_main.py:360", "No username given (-u or --username)"
                 return False
 
             if not options.password:
-                print "cba_main.py:369", "No password given (-p or --password)"
+                print "cba_main.py:364", "No password given (-p or --password)"
                 return False
 
         if options.logout:
@@ -408,7 +408,7 @@ def cryptobox_command(options):
                     output_json(outputdict)
                 elif options.sync:
                     if quick_lock_check(options):
-                        print "cba_main.py:420", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        print "cba_main.py:411", "cryptobox is locked, nothing can be added now first decrypt (-d)"
                         return False
                     ensure_directory(options.dir)
                     timers.event("check sync_server")
@@ -470,4 +470,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:482", "\nbye main"
+        print "cba_main.py:473", "\nbye main"

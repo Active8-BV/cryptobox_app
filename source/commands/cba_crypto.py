@@ -11,6 +11,7 @@ import base64
 import cPickle
 import zlib
 import uuid
+import multiprocessing
 from cStringIO import StringIO
 from Crypto import Random
 from Crypto.Hash import SHA, SHA512
@@ -65,6 +66,7 @@ def make_checksum(data):
         crc = base64.encodestring(str(zlib.adler32(data)))
         return crc.strip().rstrip("=")
     except OverflowError:
+        log_json("overflow make_checksum")
         return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
 
 
@@ -136,7 +138,7 @@ class EncryptionHashMismatch(Exception):
     pass
 
 
-def encrypt_file_for_smp(secret, fpath, chunksize):
+def encrypt_chunk(secret, fpath, chunksize, initialization_vector):
     """
     @param secret: pkdf2 secre
     @type secret: str
@@ -144,17 +146,18 @@ def encrypt_file_for_smp(secret, fpath, chunksize):
     @type chunksize: tuple
     """
     try:
-        Random.atfork()
-        initialization_vector = Random.new().read(AES.block_size)
-
-        #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
         f = open(fpath)
         f.seek(chunksize[0])
         chunk = f.read(chunksize[1])
+
+        #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
         cipher = XOR.new(secret)
         data_hash = make_checksum(chunk)
         enc_data = cipher.encrypt(chunk)
         ntf = get_named_temporary_file(auto_delete=False)
+        chunk_seek = str(chunksize[0])
+        ntf.write(str(len(chunk_seek)) + "\n")
+        ntf.write(chunk_seek)
         ntf.write(str(len(initialization_vector)) + "\n")
         ntf.write(initialization_vector)
         ntf.write(str(len(data_hash)) + "\n")
@@ -176,6 +179,7 @@ def make_chunklist(fpath):
     """
     if not os.path.exists(fpath):
         raise Exception("make_chunklist: file does not exist")
+
     fstats = os.stat(fpath)
     fsize = fstats.st_size
     chunksize = (20 * (2 ** 20))
@@ -219,9 +223,10 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
     @type progress_callback: function
     """
     try:
+        initialization_vector = Random.new().read(AES.block_size)
         chunklist = make_chunklist(fname)
-        chunklist = [(secret, fname, chunk_size) for chunk_size in chunklist]
-        enc_files = smp_all_cpu_apply(encrypt_file_for_smp, chunklist, progress_callback)
+        chunklist = [(secret, fname, chunk_size, initialization_vector) for chunk_size in chunklist]
+        enc_files = smp_all_cpu_apply(encrypt_chunk, chunklist, progress_callback)
 
         if single_file:
             enc_file = tempfile.SpooledTemporaryFile(max_size=524288000)
@@ -239,12 +244,28 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
         cleanup_tempfiles()
 
 
-def decrypt_chunk(secret, fpath):
+def listener_file_writer(fn, q):
+    """listens for messages on the q, writes to file. """
+    f = open(fn, 'wb')
+    while 1:
+        m = q.get()
+
+        if m == 'kill':
+            break
+        f.seek(m[0])
+        f.write(m[1])
+    f.close()
+
+
+def decrypt_chunk(secret, fpath, queue):
     """
     @type secret: str
     @type fpath: str
+    @type queue: multiprocessing.Queue
     """
     chunk_file = open(fpath.strip())
+    chunk_pos_len = int(chunk_file.readline())
+    chunk_pos = int(chunk_file.read(chunk_pos_len))
     initialization_vector_len = int(chunk_file.readline())
     initialization_vector = chunk_file.read(initialization_vector_len)
     data_hash_len = int(chunk_file.readline())
@@ -255,24 +276,24 @@ def decrypt_chunk(secret, fpath):
         raise Exception("initialization_vector len is not 16")
 
     #cipher = AES.new(secret, AES.MODE_CFB, IV=initialization_vector)
-    from Crypto.Cipher import XOR
     cipher = XOR.new(secret)
-    ntf = get_named_temporary_file(False)
     dec_data = cipher.decrypt(enc_data)
-    ntf.write(dec_data)
     calculated_hash = make_checksum(dec_data)
     if data_hash != calculated_hash:
         raise EncryptionHashMismatch("decrypt_file -> the decryption went wrong, hash didn't match")
 
-    return ntf.name
+    #print chunk_pos
+    queue.put((chunk_pos, dec_data))
+    return True
 
 
-def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None):
+def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None, delete_enc_files=False):
     """
     @type secret: str, unicode
     @type enc_file: file, None
     @type enc_files: list
     @type progress_callback: function
+    @type delete_enc_files: bool
     """
     try:
         if enc_file:
@@ -296,18 +317,18 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None
         if not enc_files:
             raise Exception("nothing to decrypt")
 
+        dec_file = get_named_temporary_file(auto_delete=True)
         chunks_param_sorted = [(secret, file_path) for file_path in enc_files]
-        dec_files = smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback)
-        del chunks_param_sorted
-        dec_file = tempfile.SpooledTemporaryFile(max_size=524288000)
-
-        for dfp in dec_files:
-            dec_file.write(open(dfp).read())
-            os.remove(dfp)
+        smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback, listener=listener_file_writer, listener_param=[dec_file.name])
         dec_file.seek(0)
-
         return dec_file
     finally:
+
+        if delete_enc_files:
+            for efp in enc_files:
+                if os.path.exists(efp):
+                    os.remove(efp)
+
         cleanup_tempfiles()
 
 
@@ -347,11 +368,14 @@ def decrypt_object(secret, obj_string):
     return obj, secret
 
 
-def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
+def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listener=None, listener_param=[]):
     """
     @type method: function
     @type items: list
     @type progress_callback: function
+    @type queue: multiprocessing.Queue
+    @type listener: function
+    @type listener_param: list
     """
     last_update = [time.time()]
     results_cnt = [0]
@@ -388,16 +412,31 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
         log_json(str(e))
         num_procs = 8
 
-    num_procs *= 2
+    if listener:
+        num_procs += 1
+
+    manager = multiprocessing.Manager()
 
     if dummy:
         from multiprocessing.dummy import Pool
         pool = Pool(processes=num_procs)
     else:
-        from multiprocessing import Pool
-        pool = Pool(processes=num_procs)
+        pool = multiprocessing.Pool(processes=num_procs)
 
     calculation_result = []
+
+    if listener:
+        queue = manager.Queue()
+    else:
+        queue = None
+
+    if listener:
+        if listener_param:
+            listener_param.append(queue)
+        else:
+            listener_param = (queue,)
+
+        watcher = pool.apply_async(listener, tuple(listener_param))
 
     for item in items:
         base_params_list = []
@@ -418,11 +457,16 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
         else:
             base_params_list.append(item)
 
-        params = tuple(base_params_list)
+        if queue:
+            base_params_list.append(queue)
 
-        #result = apply(method, params)
+        params = tuple(base_params_list)
         result = pool.apply_async(method, params, callback=progress_callback_wrapper)
         calculation_result.append(result)
+
+    [result.wait() for result in calculation_result]
+    if queue:
+        queue.put("kill")
     pool.close()
     pool.join()
     if progress_callback:
@@ -431,5 +475,5 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
     try:
         return [x.get() for x in calculation_result]
     except Exception, e:
-        print "cba_crypto.py:435", "DEBUG MODE", e
+        print "cba_crypto.py:484", "DEBUG MODE", e
         return [x for x in calculation_result]
