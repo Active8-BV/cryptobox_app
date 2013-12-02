@@ -19,7 +19,6 @@ last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
-<<<<<<< HEAD
 if os.name == 'nt':
     import win32api, win32con
 
@@ -54,8 +53,6 @@ def get_files_dir(fpath, ignore_hidden=False):
                 s.add(os.path.join(path, f))
 
     return tuple(s)
-=======
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 def open_folder(path):
@@ -291,11 +288,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-<<<<<<< HEAD
     print "cba_utils.py:291", arg
-=======
-    print "cba_utils.py:257", arg
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
     sys.exit(1)
 
 
@@ -662,13 +655,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-<<<<<<< HEAD
                         print "cba_utils.py:658", "json parse errror"
                         print "cba_utils.py:659", jdata
-=======
-                        print "cba_utils.py:624", "json parse errror"
-                        print "cba_utils.py:625", jdata
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
             except Exception:
                 handle_exception(False)

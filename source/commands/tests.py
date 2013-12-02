@@ -5,7 +5,6 @@ unit test for app commands
 __author__ = 'rabshakeh'
 import unittest
 import random
-<<<<<<< HEAD
 import os
 import time
 import cPickle
@@ -14,20 +13,11 @@ import sys
 from subprocess import Popen, PIPE
 from cba_main import cryptobox_command
 from cba_utils import get_files_dir, Memory, Dict2Obj
-=======
-from subprocess import Popen, PIPE
-from cba_main import cryptobox_command
-from cba_utils import *
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
-<<<<<<< HEAD
 from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object, password_derivation
-=======
-from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -59,11 +49,7 @@ def pc(p):
     """
     @type p: int
     """
-<<<<<<< HEAD
     print "tests.py:52", p
-=======
-    print "tests.py:47", p
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 def count_files_dir(fpath):
@@ -71,28 +57,14 @@ def count_files_dir(fpath):
     count_files_dir
     @type fpath: str, unicode
     """
-<<<<<<< HEAD
     return len(get_files_dir(fpath))
-=======
-    s = set()
-
-    for path, dirs, files in os.walk(fpath):
-        for f in files:
-            s.add(f)
-
-    return len(s)
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 def print_progress(p):
     """
     :param p: percentage
     """
-<<<<<<< HEAD
     print "tests.py:67", "progress", p
-=======
-    print "tests.py:68", "progress", p
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -112,11 +84,7 @@ class CryptoboxAppTest(unittest.TestCase):
         for i in range(0, sizemb):
             fp_in.seek(0)
             fp_out.write(fp_in.read())
-<<<<<<< HEAD
         print "tests.py:87", "made", name
-=======
-        print "tests.py:88", "made", name
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
     def setUp(self):
         """
@@ -137,10 +105,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
-<<<<<<< HEAD
 
-=======
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         self.cboptions = Dict2Obj(self.options_d)
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -277,11 +242,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-<<<<<<< HEAD
         fname = "testdata/200MB.zip"
-=======
-        fname = "testdata/300MB.zip"
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_files = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_files=enc_files, progress_callback=print_progress)
@@ -360,15 +321,9 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 8)
 
-<<<<<<< HEAD
     def delete_hidden_configs(self):
         """
         delete_hidden_configs
-=======
-    def test_hide_config(self):
-        """
-        test_hide_config
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
         """
         for i in os.listdir("testdata"):
             p = os.path.join(os.path.join(os.getcwd(), "testdata"), i)
@@ -378,7 +333,6 @@ class CryptoboxAppTest(unittest.TestCase):
                     import shutil
                     shutil.rmtree(p)
 
-<<<<<<< HEAD
     def test_hide_config(self):
         """
         test_hide_config
@@ -394,75 +348,42 @@ class CryptoboxAppTest(unittest.TestCase):
         restore_hidden_config(self.cboptions)
         org_files2 = get_files_dir(p)
         self.assertEqual(org_files, org_files2)
-=======
-        self.do_wait_for_tasks = False
-        self.unzip_testfiles_configonly()
-
-        #encrypted_configs = get_encrypted_configs(self.cboptions, name_stop=self.cboptions.cryptobox)
-        salt = "123"
-        secret = "a" * 32
-        hidden_name = "fsdfsd"
-        config_file_path = os.path.join(self.cboptions.dir, hidden_name + ".cryptoboxfolder")
-        encrypted_name = encrypt_object(secret, self.cboptions.cryptobox)
-        pickle_object(config_file_path, {"encrypted_name": encrypted_name, "salt": salt})
-        cryptoboxname = unpickle_object(config_file_path)
-        cryptoboxname = decrypt_object(secret, cryptoboxname["encrypted_name"])
-        print cryptoboxname
-        hide_config(self.cboptions, salt, secret)
-
-        restore_hidden_config(self.cboptions)
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
     def test_encrypt_hide_decrypt(self):
         """
         encrypt_hide_decrypt
         """
+
         self.do_wait_for_tasks = False
         encrypt = 1
         decrypt = 1
-<<<<<<< HEAD
         self.reset_cb_dir()
         self.unzip_testfiles_synced()
+
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         org_files = get_files_dir(p)
 
-        if encrypt:
-            self.delete_hidden_configs()
-=======
-        num_files = -1
-
         #decrypt_and_build_filetree, hide_config
         if encrypt:
-            self.reset_cb_dir()
-            self.unzip_testfiles_synced()
-
-            #os.system("cp testdata/20MB.zip testdata/test")
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
+            self.delete_hidden_configs()
             self.do_wait_for_tasks = False
             self.cboptions.remove = True
             salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
             datadir = get_data_dir(self.cboptions)
             self.cbmemory.save(datadir)
-<<<<<<< HEAD
-=======
-            num_files = count_files_dir(get_blob_dir(self.cboptions))
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
+
             hide_config(self.cboptions, salt, secret)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
 
         if decrypt:
-<<<<<<< HEAD
             os.system("rm -Rf testdata/test")
             if not encrypt:
                 os.system("cd testdata; unzip -o hidden_config.zip > /dev/null")
 
-=======
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
             options = self.cboptions
             options.encrypt = False
             options.decrypt = True
             options.remove = False
-<<<<<<< HEAD
             secret = restore_hidden_config(options)
             datadir = get_data_dir(self.cboptions)
             memory = Memory()
@@ -470,15 +391,8 @@ class CryptoboxAppTest(unittest.TestCase):
             decrypt_and_build_filetree(memory, options, secret)
 
         org_files2 = get_files_dir(p)
+
         self.assertEqual(org_files, org_files2)
-=======
-            restore_hidden_config(options)
-            datadir = get_data_dir(self.cboptions)
-            memory = Memory()
-            memory.load(datadir)
-            decrypt_and_build_filetree(memory, options)
-            self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), num_files)
->>>>>>> 3fc9ba623303b1b6ebaf53c5b96c4e84eecdf6c4
 
     def test_index_clear(self):
         self.do_wait_for_tasks = False
