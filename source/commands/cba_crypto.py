@@ -3,6 +3,7 @@
 crypto routines for the commandline tool
 """
 import os
+import glob
 import math
 import time
 import tempfile
@@ -32,7 +33,7 @@ def get_named_temporary_file(auto_delete):
 
 
 def cleanup_tempfiles():
-    for fp in os.listdir(os.getcwd()):
+    for fp in glob.glob("tempfile_*.cba"):
         if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
             data = cPickle.load(open(fp))
 
@@ -431,5 +432,5 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False):
     try:
         return [x.get() for x in calculation_result]
     except Exception, e:
-        print "cba_crypto.py:434", "DEBUG MODE", e
+        print "cba_crypto.py:435", "DEBUG MODE", e
         return [x for x in calculation_result]

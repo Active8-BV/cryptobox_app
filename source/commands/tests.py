@@ -49,8 +49,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:47", p
-
+    print "tests.py:52", p
 
 
 def count_files_dir(fpath):
@@ -65,7 +64,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:78", "progress", p
+    print "tests.py:67", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -85,7 +84,7 @@ class CryptoboxAppTest(unittest.TestCase):
         for i in range(0, sizemb):
             fp_in.seek(0)
             fp_out.write(fp_in.read())
-        print "tests.py:98", "made", name
+        print "tests.py:87", "made", name
 
     def setUp(self):
         """
@@ -106,6 +105,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
+
         self.cboptions = Dict2Obj(self.options_d)
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -242,7 +242,7 @@ class CryptoboxAppTest(unittest.TestCase):
         test_encrypt_file
         """
         self.do_wait_for_tasks = False
-        fname = "testdata/300MB.zip"
+        fname = "testdata/200MB.zip"
         secret = '\xeb>M\x04\xc22\x96!\xce\xed\xbb.\xe1u\xc7\xe4\x07h<.\x87\xc9H\x89\x8aj\xb4\xb2b5}\x95'
         enc_files = encrypt_file_smp(secret, fname, print_progress)
         dec_file = decrypt_file_smp(secret, enc_files=enc_files, progress_callback=print_progress)
@@ -337,7 +337,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_configonly()
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         org_files = get_files_dir(p)
-
         salt = "123"
         secret = base64.decodestring('Ea9fxt0JExxPqkbbIAFggRz0DIsFumuXX/xnuARPOTw=\n')
         hide_config(self.cboptions, salt, secret)
@@ -358,11 +357,9 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_synced()
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         t = time.time()
-
-        f  = get_files_dir("/Users/rabshakeh/")
-        print len(f)
-        print time.time() - t
-
+        f = get_files_dir("/Users/rabshakeh/")
+        print "tests.py:361", len(f)
+        print "tests.py:362", time.time() - t
         return
 
         #decrypt_and_build_filetree, hide_config
@@ -389,6 +386,7 @@ class CryptoboxAppTest(unittest.TestCase):
             memory.load(datadir)
             decrypt_and_build_filetree(memory, options)
             self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), num_files)
+
         org_files2 = get_files_dir(p)
         self.assertEqual(org_files, org_files2)
 

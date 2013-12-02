@@ -15,7 +15,6 @@ import subprocess
 import base64
 import urllib
 import jsonpickle
-
 last_update_string_len = 0
 g_lock = multiprocessing.Lock()
 DEBUG = True
@@ -271,7 +270,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:257", arg
+    print "cba_utils.py:273", arg
     sys.exit(1)
 
 
@@ -301,6 +300,7 @@ def error_prefix():
     """
     return ">"
 
+
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
     """
@@ -311,7 +311,6 @@ def handle_exception(again=True, ret_err=False):
     """
     import sys
     import traceback
-
     if again and ret_err:
         raise Exception("handle_exception, raise_again and ret_err can't both be true")
 
@@ -332,7 +331,6 @@ def handle_exception(again=True, ret_err=False):
         return error
     else:
         import sys
-
         sys.stderr.write(str(error))
 
     if again:
@@ -639,8 +637,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:624", "json parse errror"
-                        print "cba_utils.py:625", jdata
+                        print "cba_utils.py:640", "json parse errror"
+                        print "cba_utils.py:641", jdata
 
             except Exception:
                 handle_exception(False)
@@ -833,7 +831,8 @@ class Timers(object):
             if last_name in self.last_event:
                 self.last_event.remove(last_name)
 
-            result = {"name": last_name, "time": time.time() - self.timers[last_name]}
+            result = {"name": last_name,
+                      "time": time.time() - self.timers[last_name]}
             self.done_timers.append(result)
             del self.timers[last_name]
         self.last_event.append(name)
