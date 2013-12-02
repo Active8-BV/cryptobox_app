@@ -1092,7 +1092,6 @@ def sync_server(memory, options):
         memory = get_unique_content(memory, options, unique_content, file_downloads)
 
     if len(file_uploads) > 0:
-        log_json("uploads staan in de server admin voordat ze klaar zijn met uploaden")
         memory, files_uploaded = upload_files(memory, options, serverindex, file_uploads)
         files_uploaded = possible_new_dirs_extend(files_uploaded, memory)
 

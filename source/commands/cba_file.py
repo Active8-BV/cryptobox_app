@@ -18,7 +18,7 @@ def ensure_directory(path):
 def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
     """
     @type path: str
-    @type data: str or unicode
+    @type data: str or unicode or file
     @type a_time: int
     @type m_time: int
     @type st_mode: __builtin__.NoneType
@@ -27,7 +27,9 @@ def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
     """
     if not os.path.exists(os.path.dirname(path)):
         os.makedirs(os.path.dirname(path))
-
+    if hasattr(data, "seek"):
+        data.seek(0)
+        data = data.read()
     fout = open(path, "wb")
     fout.write(data)
     fout.close()
@@ -132,7 +134,7 @@ def decrypt_file_and_write(enc_path, unenc_path, secret):
     @type secret: str or unicode
     @return: @rtype:
     """
-    dec_file = decrypt_file(enc_path, secret)
+    dec_file, enc_files = decrypt_file(enc_path, secret, get_chunk_paths=True)
     open(unenc_path, "wb").write(dec_file.read())
     os.remove(enc_path)
     for efp in enc_files:
@@ -156,8 +158,10 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     cpath = os.path.join(fdir, fhash[2:])
     enc_file_parts = open(cpath).read().split("\n")
     enc_file_parts = [x for x in enc_file_parts if x]
-    data = decrypt_file_smp(secret, enc_files=enc_file_parts, progress_callback=update_item_progress).read()
+    data = decrypt_file_smp(secret, enc_files=enc_file_parts, progress_callback=update_item_progress)
     os.remove(cpath)
+    for fp in enc_file_parts:
+        os.remove(fp)
     files_left = get_files_dir(fdir)
 
     if len(files_left) == 0:
