@@ -69,8 +69,7 @@ def make_checksum(data):
     @rtype: str, unicode
     """
     try:
-        crc = base64.encodestring(str(zlib.adler32(data)))
-        return crc.strip().rstrip("=")
+        return str(zlib.adler32(data))
     except OverflowError:
         log_json("overflow make_checksum")
         return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
@@ -90,25 +89,24 @@ def make_sha1_hash_file(prefix=None, fpath=None, data=None, fpi=None):
 
     if data:
         fp = StringIO(data)
-
-    if fpath:
+    elif fpath:
         fp = open(fpath)
     else:
         fp = fpi
+        fp.seek(0)
 
-    if fpath:
-        fp = open(fpath)
-    fp.seek(0)
     one_mb = (1 * (2 ** 20))
     chunksize = one_mb / 2
     chunk = fp.read(chunksize)
     crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
     sha.update(crc)
-
+    cnt = 1
     while chunk:
         crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
         sha.update(crc)
-        chunk = fp.read(chunksize)
+        fp.seek(cnt * chunksize)
+        cnt += 1
+        chunk = fp.read(10)
 
     return sha.hexdigest()
 
@@ -412,6 +410,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
                     last_update[0] = now
 
         return result_func
+
     try:
         from multiprocessing import cpu_count
         num_procs = cpu_count()
