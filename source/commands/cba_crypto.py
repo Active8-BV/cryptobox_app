@@ -101,6 +101,7 @@ def make_sha1_hash_file(prefix=None, fpath=None, data=None, fpi=None):
     crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
     sha.update(crc)
     cnt = 1
+
     while chunk:
         crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
         sha.update(crc)
@@ -410,7 +411,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
                     last_update[0] = now
 
         return result_func
-
     try:
         from multiprocessing import cpu_count
         num_procs = cpu_count()
@@ -484,5 +484,5 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
     try:
         return [x.get() for x in calculation_result]
     except Exception, e:
-        print "cba_crypto.py:488", "DEBUG MODE", e
+        print "cba_crypto.py:487", "DEBUG MODE", e
         return [x for x in calculation_result]
