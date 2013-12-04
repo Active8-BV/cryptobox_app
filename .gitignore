@@ -26,21 +26,12 @@ nohup.out
 build
 build/*.log
 build/Cryptobox.dmg
-source/commands/testdata/testmap/
 __MACOSX/
-server/.idea/workspace.xml
 app/img/cblogo
-server/.idea/workspace.xml
-server/.idea/
-
-/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/app/img/cblogo/
-cblogo/
-*.idea
 .DS_Store
 *.pyo
 *.pyc
 *.lock
-create_*.sh
 Cryptobox/cba_commands
 
 #git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch create_*.sh' --prune-empty --tag-name-filter cat -- --all
