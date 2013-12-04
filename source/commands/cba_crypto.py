@@ -50,7 +50,7 @@ def cleanup_tempfiles():
                         os.remove(data["file_path"])
                         os.remove(os.path.join(os.getcwd(), fp))
                 else:
-                    os.remove(fp)
+                    os.remove(os.path.join(os.getcwd(), fp))
 
 
 def make_sha1_hash(data):

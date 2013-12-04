@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6aba16f7-793a-4e94-b0a0-ae3e0ce65a4f" name="Default" comment="" />
+    <list default="true" id="6aba16f7-793a-4e94-b0a0-ae3e0ce65a4f" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/cba_crypto.py" afterPath="$PROJECT_DIR$/source/commands/cba_crypto.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+    </list>
     <ignored path="cryptobox_app.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -12,9 +18,9 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/cryptobox_app$tests___.coverage" NAME="tests | test_rename_server Coverage Results" MODIFIED="1386167720412" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/commands" />
     <SUITE FILE_PATH="coverage/cryptobox_app$tests___test_index_clear.coverage" NAME="tests | test_index_clear Coverage Results" MODIFIED="1386167406184" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/commands" />
-    <SUITE FILE_PATH="coverage/cryptobox_app$tests.coverage" NAME="tests Coverage Results" MODIFIED="1386167732822" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/commands" />
+    <SUITE FILE_PATH="coverage/cryptobox_app$tests___.coverage" NAME="tests | test_rename_server Coverage Results" MODIFIED="1386167720412" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/commands" />
+    <SUITE FILE_PATH="coverage/cryptobox_app$tests.coverage" NAME="tests Coverage Results" MODIFIED="1386170608902" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/source/commands" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -31,16 +37,16 @@
       <file leaf-file-name="tests.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/commands/tests.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="756" column="0" selection-start="32146" selection-end="32146" vertical-scroll-proportion="-4.6666665" vertical-offset="17150" max-vertical-offset="18055">
+            <state line="756" column="0" selection-start="32146" selection-end="32146" vertical-scroll-proportion="0.0" vertical-offset="17150" max-vertical-offset="18055">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="cba_sync.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="cba_sync.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_sync.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="23" selection-start="3556" selection-end="3556" vertical-scroll-proportion="0.29685682" vertical-offset="1562" max-vertical-offset="26128">
+            <state line="73" column="43" selection-start="3176" selection-end="3176" vertical-scroll-proportion="0.0" vertical-offset="1562" max-vertical-offset="26128">
               <folding />
             </state>
           </provider>
@@ -49,16 +55,16 @@
       <file leaf-file-name="cba_file.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_file.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="124" column="26" selection-start="3322" selection-end="3322" vertical-scroll-proportion="0.0" vertical-offset="2271" max-vertical-offset="8556">
+            <state line="124" column="26" selection-start="3322" selection-end="3322" vertical-scroll-proportion="0.0" vertical-offset="2852" max-vertical-offset="8556">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="cba_crypto.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="cba_crypto.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_crypto.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="296" column="4" selection-start="7550" selection-end="7550" vertical-scroll-proportion="0.0" vertical-offset="7216" max-vertical-offset="11477">
+            <state line="55" column="21" selection-start="1458" selection-end="1458" vertical-scroll-proportion="0.05160808" vertical-offset="1196" max-vertical-offset="11477">
               <folding />
             </state>
           </provider>
@@ -67,7 +73,7 @@
       <file leaf-file-name="cba_blobs.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_blobs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="592" max-vertical-offset="2921">
+            <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="851" max-vertical-offset="2921">
               <folding />
             </state>
           </provider>
@@ -76,7 +82,7 @@
       <file leaf-file-name="cba_index.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_index.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="261" column="0" selection-start="8271" selection-end="8271" vertical-scroll-proportion="0.0" vertical-offset="5744" max-vertical-offset="8786">
+            <state line="261" column="0" selection-start="8271" selection-end="8271" vertical-scroll-proportion="0.0" vertical-offset="6003" max-vertical-offset="8786">
               <folding />
             </state>
           </provider>
@@ -101,13 +107,13 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/source/commands/cba_sync.py" />
+        <option value="$PROJECT_DIR$/source/commands/cba_crypto.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="22" />
     <option name="width" value="2560" />
-    <option name="height" value="1414" />
+    <option name="height" value="1440" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -116,7 +122,7 @@
     <OptionsSetting value="true" id="Update" />
     <OptionsSetting value="true" id="Status" />
     <OptionsSetting value="true" id="Edit" />
-    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="2" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectReloadState">
@@ -135,7 +141,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -188,24 +193,26 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="recentsLimit" value="5" />
     <property name="options.lastSelected" value="preferences.keymap" />
+    <property name="recentsLimit" value="5" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../crypto_api" />
     <property name="restartRequiresConfirmation" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../www_cryptobox_nl/server" />
-    <property name="options.searchVisible" value="true" />
+    <property name="FullScreen" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings />
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.tests">
+  <component name="RunManager" selected="Python tests.tests | test_index_clear">
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -290,9 +297,6 @@
       <option name="PARAMETERS" value="" />
       <method />
     </configuration>
-    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
-      <method />
-    </configuration>
     <configuration default="true" type="tests" factoryName="Unittests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -314,6 +318,9 @@
       <option name="PUREUNITTEST" value="true" />
       <option name="PARAMS" value="" />
       <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Doctests">
@@ -444,6 +451,23 @@
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration" maxAnnotateRevisions="500" myUseAcceleration="nothing" myAutoUpdateAfterCommit="false" cleanupOnStartRun="false" SSL_PROTOCOLS="sslv3">
+    <option name="USER" value="" />
+    <option name="PASSWORD" value="" />
+    <option name="mySSHConnectionTimeout" value="30000" />
+    <option name="mySSHReadTimeout" value="30000" />
+    <option name="LAST_MERGED_REVISION" />
+    <option name="MERGE_DRY_RUN" value="false" />
+    <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
+    <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
+    <option name="IGNORE_SPACES_IN_MERGE" value="false" />
+    <option name="CHECK_NESTED_FOR_QUICK_MERGE" value="false" />
+    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
+    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
+    <option name="FORCE_UPDATE" value="false" />
+    <option name="IGNORE_EXTERNALS" value="false" />
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="6aba16f7-793a-4e94-b0a0-ae3e0ce65a4f" name="Default" comment="" />
@@ -453,27 +477,27 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="22" width="2560" height="1414" extended-state="6" />
+    <frame x="0" y="0" width="2560" height="1440" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.13671875" sideWeight="0.6706408" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39940387" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32935917" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14280032" sideWeight="0.5934066" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4065934" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31798562" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -502,9 +526,51 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pycharm/utrunner.py">
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_crypto.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="27" column="50" selection-start="785" selection-end="785" vertical-scroll-proportion="0.7982005" vertical-offset="0" max-vertical-offset="3611">
+        <state line="90" column="27" selection-start="2203" selection-end="2203" vertical-scroll-proportion="0.0" vertical-offset="1196" max-vertical-offset="11477">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_blobs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="851" max-vertical-offset="2921">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_index.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="261" column="0" selection-start="8271" selection-end="8271" vertical-scroll-proportion="0.0" vertical-offset="6003" max-vertical-offset="8786">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/tests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="756" column="0" selection-start="32146" selection-end="32146" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="18055">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_sync.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="79" column="56" selection-start="3589" selection-end="3589" vertical-scroll-proportion="0.0" vertical-offset="1562" max-vertical-offset="26128">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_file.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="124" column="26" selection-start="3322" selection-end="3322" vertical-scroll-proportion="0.0" vertical-offset="2852" max-vertical-offset="8556">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_crypto.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="296" column="4" selection-start="7550" selection-end="7550" vertical-scroll-proportion="0.0" vertical-offset="7216" max-vertical-offset="11477">
           <folding />
         </state>
       </provider>
@@ -523,9 +589,21 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pycharm/utrunner.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="27" column="50" selection-start="785" selection-end="785" vertical-scroll-proportion="0.7982005" vertical-offset="0" max-vertical-offset="3611" />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/tests.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="756" column="0" selection-start="32146" selection-end="32146" vertical-scroll-proportion="-4.6666665" vertical-offset="17150" max-vertical-offset="18055">
+        <state line="756" column="0" selection-start="32146" selection-end="32146" vertical-scroll-proportion="0.0" vertical-offset="17150" max-vertical-offset="18055">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_sync.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="73" column="43" selection-start="3176" selection-end="3176" vertical-scroll-proportion="0.0" vertical-offset="1562" max-vertical-offset="26128">
           <folding />
         </state>
       </provider>
@@ -537,16 +615,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/commands/cba_crypto.py">
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_blobs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="296" column="4" selection-start="7550" selection-end="7550" vertical-scroll-proportion="0.0" vertical-offset="7216" max-vertical-offset="11477">
+        <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="592" max-vertical-offset="2921">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/commands/cba_sync.py">
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_index.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="79" column="23" selection-start="3556" selection-end="3556" vertical-scroll-proportion="0.29685682" vertical-offset="1562" max-vertical-offset="26128">
+        <state line="261" column="0" selection-start="8271" selection-end="8271" vertical-scroll-proportion="0.0" vertical-offset="5744" max-vertical-offset="8786">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_crypto.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="55" column="21" selection-start="1458" selection-end="1458" vertical-scroll-proportion="0.05160808" vertical-offset="1196" max-vertical-offset="11477">
           <folding />
         </state>
       </provider>
