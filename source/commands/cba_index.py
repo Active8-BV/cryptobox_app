@@ -92,7 +92,6 @@ def restore_config(config_file_path, cryptoboxname, options, secret):
 def get_encrypted_configs(options, name_stop=None):
     """
     @type options: optparse.Values, instance
-    @type secret: str, unicode
     @param name_stop: stop looking if this name is matched
     @type name_stop:bool
     """

@@ -122,7 +122,7 @@ def decrypt_file(enc_path, secret, get_chunk_paths=False):
             enc_file_chunks.append(enc_file_chunk_path.strip())
             enc_file_chunk_path = enc_fp.readline()
 
-    dec_file = decrypt_file_smp(secret, enc_files=enc_file_chunks, progress_callback=update_item_progress)
+    dec_file = decrypt_file_smp(secret, enc_files=tuple(enc_file_chunks), progress_callback=update_item_progress)
 
     if get_chunk_paths:
         return dec_file, enc_file_chunks
@@ -161,7 +161,7 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     """
     cpath = os.path.join(fdir, fhash[2:])
     enc_file_parts = open(cpath).read().split("\n")
-    enc_file_parts = [x for x in enc_file_parts if x]
+    enc_file_parts = tuple([x for x in enc_file_parts if x])
     data = decrypt_file_smp(secret, enc_files=enc_file_parts, progress_callback=update_item_progress)
     os.remove(cpath)
 

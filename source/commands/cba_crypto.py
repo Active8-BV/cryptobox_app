@@ -204,7 +204,7 @@ def make_chunklist(fpath):
 
     num_chunks = fsize / chunksize
     chunk_remainder = fsize % chunksize
-    chunklist = [chunksize for x in range(0, num_chunks)]
+    chunklist = [chunksize] * num_chunks
     chunklist.append(chunk_remainder)
     chunklist_abs = []
     val = 0
@@ -326,7 +326,7 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=tuple(), progress_callback
 
         dec_file = get_named_temporary_file(auto_delete=True)
         chunks_param_sorted = [(secret, file_path) for file_path in enc_files]
-        smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback, listener=listener_file_writer, listener_param=[dec_file.name])
+        smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback, listener=listener_file_writer, listener_param=tuple([dec_file.name]))
         dec_file.seek(0)
         return dec_file
     finally:
