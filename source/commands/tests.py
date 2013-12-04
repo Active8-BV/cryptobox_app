@@ -325,7 +325,8 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 60)
 
-    def delete_hidden_configs(self):
+    @staticmethod
+    def delete_hidden_configs():
         """
         delete_hidden_configs
         """

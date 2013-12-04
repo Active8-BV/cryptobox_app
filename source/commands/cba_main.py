@@ -10,6 +10,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import webbrowser
 import os
+import base64
 import urlparse
 import urllib2
 import json
@@ -26,7 +27,7 @@ from cba_index import restore_hidden_config, ensure_directory, hide_config, inde
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
-from cba_crypto import make_sha1_hash_file
+from cba_crypto import make_sha1_hash_file,password_derivation
 from tendo import singleton
 
 
@@ -154,9 +155,9 @@ def make_hash_path(path):
             for p in [os.path.join(dp, f) for dp, dn, fn in os.walk(path) for f in fn]:
                 buf.write(open(p).read())
 
-            return make_sha1_hash_file("", fpi="", strio=buf)
+            return make_sha1_hash_file(fpi=buf)
         else:
-            return make_sha1_hash_file("", path)
+            return make_sha1_hash_file(fpath=path)
 
 
 def cryptobox_command(options):
@@ -425,7 +426,14 @@ def cryptobox_command(options):
 
         if options.decrypt:
             if not options.clear == "1":
-                memory = decrypt_and_build_filetree(memory, options)
+                if not secret:
+                    if memory.has("salt_b64"):
+                        salt = base64.decodestring(memory.get("salt_b64"))
+
+                    if not salt:
+                        raise Exception("decrypt, no salt")
+                    secret = password_derivation(options.password, salt)
+                memory = decrypt_and_build_filetree(memory, options, secret)
                 output_json({"msg": ""})
                 output_json({"item_progress": 0})
                 output_json({"global_progress": 0})

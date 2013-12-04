@@ -293,11 +293,11 @@ def decrypt_chunk(secret, fpath, queue):
     return True
 
 
-def decrypt_file_smp(secret, enc_file=None, enc_files=[], progress_callback=None, delete_enc_files=False):
+def decrypt_file_smp(secret, enc_file=None, enc_files=tuple(), progress_callback=None, delete_enc_files=False):
     """
     @type secret: str, unicode
     @type enc_file: file, None
-    @type enc_files: list
+    @type enc_files: tuple
     @type progress_callback: function
     @type delete_enc_files: bool
     """
@@ -373,15 +373,14 @@ def decrypt_object(secret, obj_string):
     obj = cPickle.loads(pdata)
     return obj, secret
 
-
-def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listener=None, listener_param=[]):
+def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, listener=None, listener_param=tuple(), num_procs_param=None):
     """
     @type method: function
     @type items: list
     @type progress_callback: function
-    @type queue: multiprocessing.Queue
+    @type dummy_pool: bool
     @type listener: function
-    @type listener_param: list
+    @type listener_param: tuple
     """
     last_update = [time.time()]
     results_cnt = [0]
@@ -411,19 +410,24 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
                     last_update[0] = now
 
         return result_func
-    try:
-        from multiprocessing import cpu_count
-        num_procs = cpu_count()
-    except Exception, e:
-        log_json(str(e))
-        num_procs = 8
+
+    num_procs = 8
+    if num_procs_param:
+        num_procs = num_procs_param
+    else:
+        try:
+            from multiprocessing import cpu_count
+
+            num_procs = cpu_count()
+        except Exception, e:
+            log_json(str(e))
 
     if listener:
         num_procs += 1
 
     manager = multiprocessing.Manager()
 
-    if dummy:
+    if dummy_pool:
         from multiprocessing.dummy import Pool
         pool = Pool(processes=num_procs)
     else:
@@ -440,6 +444,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
 
     if listener:
         if listener_param:
+            listener_param = list(listener_param)
             listener_param.append(queue)
         else:
             listener_param = (queue,)
@@ -486,3 +491,4 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy=False, listen
     except Exception, e:
         print "cba_crypto.py:487", "DEBUG MODE", e
         return [x for x in calculation_result]
+
