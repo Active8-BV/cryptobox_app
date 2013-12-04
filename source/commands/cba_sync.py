@@ -77,7 +77,8 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
             source_path = os.path.join(source_path, fhash[2:])
             memory = add_path_history(file_path, memory)
             secret = password_derivation(options.password, base64.decodestring(memory.get("salt_b64")))
-            data = decrypt_file(source_path, secret).read()
+            dec_file = decrypt_file(source_path, secret)
+            data = dec_file.read()
 
         if source_path:
             if not data:
