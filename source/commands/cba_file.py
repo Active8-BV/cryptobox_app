@@ -212,7 +212,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @return: @rtype:
     """
     file_dict = read_file_to_fdict(fpath)
-    filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath)
+    filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath=fpath)
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
     filedata = {"filehash": filehash,

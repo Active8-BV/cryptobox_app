@@ -706,7 +706,7 @@ class CryptoboxAppTest(unittest.TestCase):
         fpath = "testdata/1MB.zip"
         localindex = {"filestats": {}}
         fd, localindex = make_cryptogit_hash(fpath, self.cboptions.dir, localindex)
-        self.assertEqual(fd["filehash"], "b6080f1c968cfb6ba33e8f9717ccc0427e2e3334")
+        self.assertEqual(fd["filehash"], "280146ceb47de1930bfa178261b616d7fb4d765e")
 
     def test_rename_local(self):
         """

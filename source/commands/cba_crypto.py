@@ -42,15 +42,15 @@ def cleanup_tempfiles():
     """
     for fp in glob.glob("tempfile_*.cba"):
         if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
-            data = cPickle.load(open(fp))
+            if os.path.exists(os.path.join(os.getcwd(), fp)):
+                data = cPickle.load(open(fp))
 
-            if os.path.exists(data["file_path"]):
-                if time.time() - os.stat(data["file_path"]).st_mtime > 60:
-                    log_json("removing " + data["file_path"])
-                    os.remove(data["file_path"])
+                if os.path.exists(data["file_path"]):
+                    if time.time() - os.stat(data["file_path"]).st_mtime > 60:
+                        os.remove(data["file_path"])
+                        os.remove(os.path.join(os.getcwd(), fp))
+                else:
                     os.remove(fp)
-            else:
-                os.remove(fp)
 
 
 def make_sha1_hash(data):
@@ -192,6 +192,7 @@ def make_chunklist(fpath):
     #noinspection PyBroadException
     try:
         import multiprocessing
+
         numcores = multiprocessing.cpu_count()
 
         if (numcores * chunksize) > fsize:
@@ -373,6 +374,7 @@ def decrypt_object(secret, obj_string):
     obj = cPickle.loads(pdata)
     return obj, secret
 
+
 def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, listener=None, listener_param=tuple(), num_procs_param=None):
     """
     @type method: function
@@ -429,6 +431,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, l
 
     if dummy_pool:
         from multiprocessing.dummy import Pool
+
         pool = Pool(processes=num_procs)
     else:
         pool = multiprocessing.Pool(processes=num_procs)
@@ -486,9 +489,5 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, l
     pool.close()
     pool.join()
 
-    try:
-        return [x.get() for x in calculation_result]
-    except Exception, e:
-        print "cba_crypto.py:487", "DEBUG MODE", e
-        return [x for x in calculation_result]
+    return [x.get() for x in calculation_result]
 
