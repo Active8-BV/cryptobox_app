@@ -191,7 +191,7 @@
     <property name="recentsLimit" value="5" />
     <property name="options.lastSelected" value="preferences.updates" />
     <property name="restartRequiresConfirmation" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../uren_active8_nl" />
     <property name="FullScreen" value="true" />
     <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
