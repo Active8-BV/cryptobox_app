@@ -53,16 +53,6 @@ def cleanup_tempfiles():
                     os.remove(os.path.join(os.getcwd(), fp))
 
 
-def make_sha1_hash(data):
-    """ make hash
-    @param data:
-    @type data:
-    """
-    sha = SHA.new()
-    sha.update(data)
-    return sha.hexdigest()
-
-
 def make_checksum(data):
     """
     @type data: str, unicode
@@ -192,7 +182,6 @@ def make_chunklist(fpath):
     #noinspection PyBroadException
     try:
         import multiprocessing
-
         numcores = multiprocessing.cpu_count()
 
         if (numcores * chunksize) > fsize:
@@ -216,8 +205,10 @@ def make_chunklist(fpath):
 
     if chunk_remainder != 0:
         last = chunklist_abs.pop()
-        second_last = chunklist_abs.pop()
-        chunklist_abs.append((second_last[0], second_last[1] + last[1]))
+        chunklist_abs.append((last[0], last[1] + chunk_remainder))
+
+    if chunklist_abs[len(chunklist_abs) - 1][1] == 0:
+        chunklist_abs.pop()
 
     return chunklist_abs
 
@@ -419,7 +410,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, l
     else:
         try:
             from multiprocessing import cpu_count
-
             num_procs = cpu_count()
         except Exception, e:
             log_json(str(e))
@@ -431,7 +421,6 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, l
 
     if dummy_pool:
         from multiprocessing.dummy import Pool
-
         pool = Pool(processes=num_procs)
     else:
         pool = multiprocessing.Pool(processes=num_procs)

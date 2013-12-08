@@ -408,8 +408,12 @@ def cryptobox_command(options):
 
                     output_json(outputdict)
                 elif options.sync:
+                    if options.encrypt:
+                        message_json("sync and encrypt called together")
+                        return False
+
                     if quick_lock_check(options):
-                        print "cba_main.py:411", "cryptobox is locked, nothing can be added now first decrypt (-d)"
+                        message_json("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
                     ensure_directory(options.dir)
                     timers.event("check sync_server")

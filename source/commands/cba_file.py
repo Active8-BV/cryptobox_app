@@ -4,7 +4,7 @@ file operations
 """
 import os
 from cba_utils import strcmp, get_files_dir, update_item_progress, output_json
-from cba_crypto import make_sha1_hash, make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp
+from cba_crypto import make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp
 
 
 def ensure_directory(path):
@@ -236,7 +236,7 @@ def get_mtime_and_content_hash(fpath):
         return None, None
 
     file_dict = read_file_to_fdict(fpath, read_data=True)
-    filehash = make_sha1_hash("blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
+    filehash = make_sha1_hash_file(data="blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
     return file_dict["st_mtime"], filehash
 
 
@@ -258,7 +258,7 @@ def have_serverhash(memory, node_path):
     @type node_path: str, unicode
     """
     node_path_relative = path_to_relative_path_unix_style(memory, node_path)
-    return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash(node_path_relative))), memory
+    return memory.set_have_value("serverpath_history", (node_path_relative, make_sha1_hash_file(data=node_path_relative))), memory
 
 
 def in_server_path_history(memory, relative_path_name):
@@ -279,7 +279,7 @@ def add_server_path_history(memory, relative_path_name):
     @type relative_path_name: str, unicode
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
-    memory.set_add_value("serverpath_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    memory.set_add_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_file(data=relative_path_unix_style)))
     return memory
 
 
@@ -291,8 +291,8 @@ def del_serverhash(memory, relative_path_name):
     """
     relative_path_unix_style = path_to_relative_path_unix_style(memory, relative_path_name)
 
-    if memory.set_have_value("serverpath_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style))):
-        memory.set_delete_value("serverpath_history", (relative_path_unix_style, make_sha1_hash(relative_path_unix_style)))
+    if memory.set_have_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_file(data=relative_path_unix_style))):
+        memory.set_delete_value("serverpath_history", (relative_path_unix_style, make_sha1_hash_file(data=relative_path_unix_style)))
     return memory
 
 
