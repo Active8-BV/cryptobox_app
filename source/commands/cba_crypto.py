@@ -403,6 +403,7 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, l
         return result_func
 
     num_procs = 8
+
     if num_procs_param:
         num_procs = num_procs_param
     else:
@@ -475,6 +476,4 @@ def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, l
         watcher.get()
     pool.close()
     pool.join()
-
     return [x.get() for x in calculation_result]
-

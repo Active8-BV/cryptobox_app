@@ -9,9 +9,7 @@ import base64
 import urllib
 import json
 import requests
-from cba_utils import Memory, \
-    update_item_progress, \
-    log_json
+from cba_utils import Memory, update_item_progress, log_json, message_json
 
 
 def get_b64mstyle():
@@ -269,7 +267,6 @@ def authorize(memory, options):
     payload = {"username": options.username,
                "password": options.password,
                "trust_computer": True}
-
     result, memory = on_server(memory, options, "authorize", payload=payload, session=session)
     payload["trust_computer"] = True
     payload["trused_location_name"] = "Cryptobox"
@@ -303,6 +300,12 @@ def authorize_user(memory, options, force=False):
         session, results, memory = authorize(memory, options)
         memory.replace("session", session)
         memory.replace("authorized", True)
+        memory.replace("connection", True)
+        return memory
+    except requests.ConnectionError:
+        message_json("No connection possible")
+        memory.replace("authorized", False)
+        memory.replace("connection", False)
         return memory
     except Exception, ex:
         log_json("not authorized: " + str(ex))
