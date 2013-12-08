@@ -212,7 +212,7 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @return: @rtype:
     """
     file_dict = read_file_to_fdict(fpath)
-    filehash = make_sha1_hash_file("blob " + str(file_dict["st_size"]) + "\0", fpath=fpath)
+    filehash = make_sha1_hash_file(prefix="blob " + str(file_dict["st_size"]) + "\0", fpath=fpath)
     blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
     blobpath = os.path.join(blobdir, filehash[2:])
     filedata = {"filehash": filehash,
@@ -235,8 +235,8 @@ def get_mtime_and_content_hash(fpath):
     if os.path.isdir(fpath):
         return None, None
 
-    file_dict = read_file_to_fdict(fpath, read_data=True)
-    filehash = make_sha1_hash_file(data="blob " + str(file_dict["st_size"]) + "\0" + str(file_dict["data"]))
+    file_dict = read_file_to_fdict(fpath, read_data=False)
+    filehash = make_sha1_hash_file(prefix="blob " + str(file_dict["st_size"]) + "\0", fpath=fpath)
     return file_dict["st_mtime"], filehash
 
 

@@ -170,7 +170,10 @@ def index_files_visit(arg, dir_name, names):
     @type names: list
     """
     filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
-    dirname_hash = make_sha1_hash_file(data=dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/"))
+    dirname_hash_input = dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/")
+    if len(dirname_hash_input) == 0:
+        dirname_hash_input = "/"
+    dirname_hash = make_sha1_hash_file(data=dirname_hash_input)
     nameshash = make_sha1_hash_file(data="".join(names))
     filenames = [{'name': x} for x in filenames]
     folder = {"dirname": dir_name,

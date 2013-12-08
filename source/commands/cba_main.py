@@ -10,6 +10,7 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 import webbrowser
 import os
+import tempfile
 import base64
 import urlparse
 import urllib2
@@ -150,7 +151,7 @@ def make_hash_path(path):
         message_json("input file does not exist")
     else:
         if os.path.isdir(path):
-            buf = StringIO()
+            buf = tempfile.SpooledTemporaryFile(max_size=524288000)
 
             for p in [os.path.join(dp, f) for dp, dn, fn in os.walk(path) for f in fn]:
                 buf.write(open(p).read())

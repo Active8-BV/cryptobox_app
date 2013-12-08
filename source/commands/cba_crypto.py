@@ -77,7 +77,7 @@ def make_sha1_hash_file(prefix=None, fpath=None, data=None, fpi=None):
     if prefix:
         sha.update(prefix)
 
-    if data:
+    if data is not None:
         fp = StringIO(data)
     elif fpath:
         fp = open(fpath)
@@ -88,8 +88,6 @@ def make_sha1_hash_file(prefix=None, fpath=None, data=None, fpi=None):
     one_mb = (1 * (2 ** 20))
     chunksize = one_mb / 2
     chunk = fp.read(chunksize)
-    crc = base64.encodestring(str(zlib.adler32(chunk))).strip().rstrip("=")
-    sha.update(crc)
     cnt = 1
 
     while chunk:
