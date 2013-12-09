@@ -105,6 +105,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "sync": False,
                           "server": server,
                           "numdownloadthreads": 12}
+
         self.cboptions = Dict2Obj(self.options_d)
         mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
         mc.flush_all()
@@ -492,8 +493,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_clean()
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
-        os.system("ls > testdata/test/all_types/test.txt")
-        self.assertFalse(self.files_synced())
 
     def get_sync_changes(self):
         localindex = make_local_index(self.cboptions)
@@ -774,11 +773,12 @@ class CryptoboxAppTest(unittest.TestCase):
 
         #noinspection PyUnusedLocal
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
-
-        #self.assertEqual(len(file_uploads), 1)
-        #self.assertEqual(len(rename_server), 1)
+        self.assertEqual(len(dir_del_server), 0)
+        self.assertEqual(len(file_uploads), 0)
+        self.assertEqual(len(rename_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        self.assertTrue(self.files_synced())
+
+        #self.assertTrue(self.files_synced())
 
 
 if __name__ == '__main__':

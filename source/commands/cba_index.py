@@ -266,7 +266,6 @@ def index_and_encrypt(memory, options):
         if len(new_blobs) > 0:
             encrypt_new_blobs(secret, new_blobs)
     cleanup_tempfiles()
-
     memory = store_localindex(memory, localindex)
 
     if options.remove:
@@ -356,6 +355,7 @@ def decrypt_and_build_filetree(memory, options, secret):
     localindex = get_localindex(memory)
     hashes = set()
     restored_hashes = []
+
     if localindex:
         for dirhash in localindex["dirnames"]:
             if "dirname" in localindex["dirnames"][dirhash]:

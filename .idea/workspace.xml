@@ -5,9 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6aba16f7-793a-4e94-b0a0-ae3e0ce65a4f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/cba_index.py" afterPath="$PROJECT_DIR$/source/commands/cba_index.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/cba_main.py" afterPath="$PROJECT_DIR$/source/commands/cba_main.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/cba_sync.py" afterPath="$PROJECT_DIR$/source/commands/cba_sync.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/testdata/testmap_config.zip" afterPath="$PROJECT_DIR$/source/commands/testdata/testmap_config.zip" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/testdata/testmap_synced.zip" afterPath="$PROJECT_DIR$/source/commands/testdata/testmap_synced.zip" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/cba_file.py" afterPath="$PROJECT_DIR$/source/commands/cba_file.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/commands/tests.py" afterPath="$PROJECT_DIR$/source/commands/tests.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="cryptobox_app.iws" />
@@ -47,7 +48,7 @@
       <file leaf-file-name="cba_file.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_file.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="281" column="74" selection-start="8321" selection-end="8321" vertical-scroll-proportion="0.0" vertical-offset="6463" max-vertical-offset="8556">
+            <state line="282" column="74" selection-start="8371" selection-end="8371" vertical-scroll-proportion="0.0" vertical-offset="6486" max-vertical-offset="8579">
               <folding />
             </state>
           </provider>
@@ -74,7 +75,7 @@
       <file leaf-file-name="cba_main.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/source/commands/cba_main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="388" column="33" selection-start="14887" selection-end="14887" vertical-scroll-proportion="0.16993958" vertical-offset="8699" max-vertical-offset="11178">
+            <state line="387" column="40" selection-start="14853" selection-end="14853" vertical-scroll-proportion="0.15805946" vertical-offset="8699" max-vertical-offset="11178">
               <folding />
             </state>
           </provider>
@@ -130,8 +131,9 @@
     <scope name="commands" pattern="file:source/commands/cba_blobs.py||file:source/commands/cba_crypto.py||file:source/commands/cba_file.py||file:source/commands/cba_index.py||file:source/commands/cba_main.py||file:source/commands/cba_network.py||file:source/commands/cba_sync.py||file:source/commands/cba_utils.py||file:source/commands/command.sh||file:source/commands/tests.py" />
   </component>
   <component name="ProjectFrameBounds">
+    <option name="y" value="22" />
     <option name="width" value="2560" />
-    <option name="height" value="1440" />
+    <option name="height" value="1414" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -217,13 +219,13 @@
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="options.lastSelected" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="recentsLimit" value="5" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="options.lastSelected" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="restartRequiresConfirmation" value="true" />
-    <property name="FullScreen" value="true" />
-    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="FullScreen" value="false" />
     <property name="options.searchVisible" value="true" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -315,9 +317,6 @@
       <option name="PARAMETERS" value="" />
       <method />
     </configuration>
-    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
-      <method />
-    </configuration>
     <configuration default="true" type="tests" factoryName="Unittests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -339,6 +338,9 @@
       <option name="PUREUNITTEST" value="true" />
       <option name="PARAMS" value="" />
       <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug" singleton="true">
       <method />
     </configuration>
     <configuration default="true" type="tests" factoryName="Doctests">
@@ -539,15 +541,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="2560" height="1440" extended-state="0" />
-    <editor active="false" />
+    <frame x="0" y="22" width="2560" height="1414" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32923076" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15274464" sideWeight="0.59384614" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.13922037" sideWeight="0.6707692" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.14041369" sideWeight="0.6707692" order="1" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.40615386" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -584,10 +586,10 @@
       <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15361077" sideWeight="0.59384614" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1383109" sideWeight="0.59384614" order="1" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.5661538" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Time Tracking" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Time Tracking" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.5661538" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -654,9 +656,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_blobs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="592" max-vertical-offset="2921">
-          <folding />
-        </state>
+        <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="592" max-vertical-offset="2921" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_index.py">
@@ -675,14 +675,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_blobs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="592" max-vertical-offset="2921">
-          <folding />
-        </state>
+        <state line="37" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0" vertical-offset="592" max-vertical-offset="2921" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/cryptobox.coffee">
       <provider selected="true" editor-type-id="text-editor">
         <state line="146" column="31" selection-start="4177" selection-end="4177" vertical-scroll-proportion="0.5511182" vertical-offset="3013" max-vertical-offset="22034" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_sync.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="610" column="27" selection-start="20513" selection-end="20513" vertical-scroll-proportion="0.0" vertical-offset="13826" max-vertical-offset="26128">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_utils.py">
@@ -692,30 +697,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/posixpath.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="238" column="0" selection-start="7663" selection-end="7663" vertical-scroll-proportion="0.0" vertical-offset="5291" max-vertical-offset="10051">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_file.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="281" column="74" selection-start="8321" selection-end="8321" vertical-scroll-proportion="0.0" vertical-offset="6259" max-vertical-offset="8556">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/commands/cba_index.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="177" column="19" selection-start="5430" selection-end="5430" vertical-scroll-proportion="0.0" vertical-offset="3867" max-vertical-offset="8924">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/commands/cba_sync.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="610" column="27" selection-start="20513" selection-end="20513" vertical-scroll-proportion="0.0" vertical-offset="13826" max-vertical-offset="26128">
+        <state line="282" column="74" selection-start="8371" selection-end="8371" vertical-scroll-proportion="0.0" vertical-offset="6486" max-vertical-offset="8579">
           <folding />
         </state>
       </provider>
@@ -727,6 +711,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/source/commands/cba_index.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="177" column="19" selection-start="5430" selection-end="5430" vertical-scroll-proportion="0.0" vertical-offset="3867" max-vertical-offset="8924">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_network.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="303" column="21" selection-start="7450" selection-end="7450" vertical-scroll-proportion="0.0" vertical-offset="6969" max-vertical-offset="7820">
@@ -734,9 +725,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/posixpath.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="238" column="0" selection-start="7663" selection-end="7663" vertical-scroll-proportion="0.0" vertical-offset="5291" max-vertical-offset="10051">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/source/commands/cba_main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="388" column="33" selection-start="14887" selection-end="14887" vertical-scroll-proportion="0.16993958" vertical-offset="8699" max-vertical-offset="11155">
+        <state line="387" column="40" selection-start="14853" selection-end="14853" vertical-scroll-proportion="0.15805946" vertical-offset="8699" max-vertical-offset="11178">
           <folding />
         </state>
       </provider>

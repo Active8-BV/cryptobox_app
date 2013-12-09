@@ -240,7 +240,9 @@ def make_directories_local(memory, options, localindex, folders):
         ensure_directory(f["name"])
         memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
+        arg = {"DIR": options.dir,
+               "folders": {"dirnames": {}},
+               "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -276,6 +278,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
         if len(local_folders_removed) == 0:
+
             # first run
             dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
     else:
@@ -303,7 +306,8 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name, "relname": dirname_rel}
+            folder = {"name": dir_name,
+                      "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
@@ -349,6 +353,7 @@ def wait_for_tasks(memory, options, result_message_param=None):
 
                 else:
                     return memory
+
         if not result_message_param:
             time.sleep(1)
         else:
@@ -405,7 +410,8 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     @type path1: str
     @type path2: str
     """
-    payload = {"path1": path1, "path2": path2}
+    payload = {"path1": path1,
+               "path2": path2}
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -674,7 +680,10 @@ def diff_files_locally(memory, options, localindex, serverindex):
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
-            upload_file_object = {"local_path": local_path, "parent_short_id": None, "rel_path": local_path.replace(options.dir, "")}
+            upload_file_object = {"local_path": local_path,
+                                  "parent_short_id": None,
+                                  "rel_path": local_path.replace(options.dir,
+                                  "")}
 
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
@@ -720,7 +729,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:721", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:732", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -742,7 +751,6 @@ def add_relname(cryptobox_folder, x):
         x["relname"] = x["dirname"].replace(cryptobox_folder, "")
 
     return x
-
 
 
 def check_renames_server(memory, options, localindex, serverindex, file_uploads, file_del_server, dir_del_server):
@@ -798,7 +806,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
     """
     timers = Timers()
     print_state = False
-
     memory = wait_for_tasks(memory, options, "waiting for server to finish tasks")
 
     if print_state:
@@ -854,6 +861,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_download_dirs = list(set([x["dirname_of_path"] for x in file_downloads]))
     for dds_path in dir_del_server_tmp:
         if len(file_downloads) > 0:
+
             #for dfl in file_download_dirs:
             if dds_path not in file_download_dirs:
                 dir_del_server.append(dds_path)
@@ -911,14 +919,18 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:911", "updating upload progress failed", str(exc)
+                print "cba_sync.py:922", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path, "ufile_name": os.path.basename(file_object.name)}
+        params = {'file': file_object,
+                  "uuid": uuid.uuid4().hex,
+                  "parent": parent,
+                  "path": rel_path,
+                  "ufile_name": os.path.basename(file_object.name)}
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
