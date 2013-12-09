@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex, store_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_blob_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Timers
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Timers, log_json
 from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, make_cryptogit_hash, read_file_to_fdict
 from cba_crypto import password_derivation, make_sha1_hash_file
 from cba_file import write_file, read_file, decrypt_file
@@ -240,9 +240,7 @@ def make_directories_local(memory, options, localindex, folders):
         ensure_directory(f["name"])
         memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir,
-               "folders": {"dirnames": {}},
-               "numfiles": 0}
+        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -270,12 +268,14 @@ def dirs_on_server(memory, options, unique_dirs_server):
 
         # absolute paths
         local_path_history_disk = [os.path.join(options.dir, x[0].lstrip(os.sep)) for x in local_path_history]
+        local_dirs_history_disk = [os.path.dirname(x) for x in local_path_history_disk]
+        local_path_history_disk.extend(local_dirs_history_disk)
+        local_path_history_disk = tuple(set(local_path_history_disk))
 
         # filter out folders previously seen
         local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
         if len(local_folders_removed) == 0:
-
             # first run
             dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
     else:
@@ -303,14 +303,13 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name,
-                      "relname": dirname_rel}
+            folder = {"name": dir_name, "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return dirs_del_server, dirs_make_local, memory
 
 
-def wait_for_tasks(memory, options):
+def wait_for_tasks(memory, options, result_message_param=None):
     """
     wait_for_tasks
     @type memory: Memory
@@ -334,32 +333,39 @@ def wait_for_tasks(memory, options):
                     if initial_num_tasks == -1:
                         initial_num_tasks = num_tasks
 
-                    update_progress(initial_num_tasks - num_tasks, initial_num_tasks, "waiting for tasks to finish on server")
+                    if not result_message_param:
+                        result_message = "waiting for tasks to finish on server"
+                    else:
+                        result_message = result_message_param
+                    update_progress(initial_num_tasks - num_tasks, initial_num_tasks, result_message)
                     if num_tasks == 0:
                         return memory
 
-                    if num_tasks > 3:
-                        time.sleep(1)
-                        if num_tasks > 6:
-                            print "cba_sync.py:344", "waiting for tasks", num_tasks
+                    if not result_message:
+                        if num_tasks > 3:
+                            time.sleep(1)
+                            if num_tasks > 6:
+                                log_json("waiting for tasks " + str(num_tasks))
 
                 else:
-                    update_progress(100, 100, "waiting for tasks to finish on server")
                     return memory
+        if not result_message_param:
+            time.sleep(1)
+        else:
+            time.sleep(0.5)
 
-        time.sleep(1)
 
-
-def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete):
+def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete, progress_message):
     """
     @type memory: Memory
     @type options: optparse.Values, instance
     @type short_node_ids_to_delete: list
+    @type progress_message: str
     """
     if len(short_node_ids_to_delete) > 0:
         payload = {"tree_item_list": short_node_ids_to_delete}
         result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
-        memory = wait_for_tasks(memory, options)
+        memory = wait_for_tasks(memory, options, progress_message)
     return memory
 
 
@@ -388,7 +394,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
     for dir_name_rel in shortest_paths:
         short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
 
-    memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete)
+    memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete, "deleting folders on server")
     return memory
 
 
@@ -399,8 +405,7 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     @type path1: str
     @type path2: str
     """
-    payload = {"path1": path1,
-               "path2": path2}
+    payload = {"path1": path1, "path2": path2}
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -669,10 +674,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
-            upload_file_object = {"local_path": local_path,
-                                  "parent_short_id": None,
-                                  "rel_path": local_path.replace(options.dir,
-                                  "")}
+            upload_file_object = {"local_path": local_path, "parent_short_id": None, "rel_path": local_path.replace(options.dir, "")}
 
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
@@ -742,6 +744,7 @@ def add_relname(cryptobox_folder, x):
     return x
 
 
+
 def check_renames_server(memory, options, localindex, serverindex, file_uploads, file_del_server, dir_del_server):
     """
     check_renames
@@ -777,7 +780,8 @@ def check_renames_server(memory, options, localindex, serverindex, file_uploads,
         file_uploads.remove(fur)
 
     for fdr in file_del_server_remove:
-        file_del_server.remove(fdr)
+        if fdr in file_del_server:
+            file_del_server.remove(fdr)
 
     file_del_server = [x.replace(options.dir, "") for x in file_del_server]
     return renames_server, file_uploads, file_del_server, localindex
@@ -795,7 +799,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     timers = Timers()
     print_state = False
 
-    #print_state = True
+    memory = wait_for_tasks(memory, options, "waiting for server to finish tasks")
 
     if print_state:
         print_pickle_variable_for_debugging(memory, "memory")
@@ -850,7 +854,6 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_download_dirs = list(set([x["dirname_of_path"] for x in file_downloads]))
     for dds_path in dir_del_server_tmp:
         if len(file_downloads) > 0:
-
             #for dfl in file_download_dirs:
             if dds_path not in file_download_dirs:
                 dir_del_server.append(dds_path)
@@ -915,11 +918,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object,
-                  "uuid": uuid.uuid4().hex,
-                  "parent": parent,
-                  "path": rel_path,
-                  "ufile_name": os.path.basename(file_object.name)}
+        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path, "ufile_name": os.path.basename(file_object.name)}
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -1087,7 +1086,7 @@ def sync_server(memory, options):
 
     # delete items
     if len(del_server_items) > 0:
-        memory = instruct_server_to_delete_items(memory, options, del_server_items)
+        memory = instruct_server_to_delete_items(memory, options, del_server_items, "deleting files on server")
 
     if len(file_downloads) > 0:
         memory = get_unique_content(memory, options, unique_content, file_downloads)

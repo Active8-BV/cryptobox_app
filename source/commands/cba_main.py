@@ -397,7 +397,7 @@ def cryptobox_command(options):
                     timers.event("check get_sync_changes")
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
-                    outputdict = {"file_del_server": file_del_server, "file_downloads": file_downloads, "file_uploads": file_uploads, "dir_del_server": dir_del_server, "dir_make_local": dir_make_local, "dir_make_server": dir_make_server, "dir_del_local": dir_del_local, "file_del_local": file_del_local, "all_synced": all_synced}
+                    outputdict = {"file_del_server": file_del_server, "file_downloads": file_downloads, "file_uploads": file_uploads, "dir_del_server": dir_del_server, "dir_make_local": dir_make_local, "dir_make_server": dir_make_server, "dir_del_local": dir_del_local, "file_del_local": file_del_local, "all_synced": all_synced, "rename_server": rename_server}
                     output_json(outputdict)
                 elif options.sync:
                     if options.encrypt:
@@ -474,6 +474,7 @@ if strcmp(__name__, '__main__'):
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
+
         main()
     except KeyboardInterrupt:
         print "cba_main.py:490", "\nbye main"

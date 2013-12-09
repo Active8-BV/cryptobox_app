@@ -355,7 +355,7 @@ def decrypt_and_build_filetree(memory, options, secret):
     blobdir = os.path.join(datadir, "blobs")
     localindex = get_localindex(memory)
     hashes = set()
-
+    restored_hashes = []
     if localindex:
         for dirhash in localindex["dirnames"]:
             if "dirname" in localindex["dirnames"][dirhash]:
@@ -367,6 +367,8 @@ def decrypt_and_build_filetree(memory, options, secret):
 
                 if not os.path.exists(fpath):
                     hashes.add((cfile["hash"], cfile["name"]))
+                else:
+                    restored_hashes.append(cfile["hash"])
 
     processed_files = 0
     numfiles = len(hashes)
