@@ -770,19 +770,20 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-        os.system("cp -r testdata/test/all_types testdata/test/smalltest")
-        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        #os.system("cp -r testdata/test/all_types testdata/test/smalltest")
+        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
         os.system("mv testdata/test/smalltest testdata/test/smalltest2")
+        os.system("mv testdata/test/all_types/bmptest.png testdata/test/all_types/bmptest2.png")
 
         #noinspection PyUnusedLocal
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 0)
         self.assertEqual(len(file_uploads), 0)
-        self.assertEqual(len(rename_server), 1)
+        self.assertEqual(len(rename_server), 2)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
-        #self.assertTrue(self.files_synced())
+        self.assertTrue(self.files_synced())
 
 
 if __name__ == '__main__':
