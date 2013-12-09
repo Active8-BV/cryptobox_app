@@ -117,6 +117,15 @@ def make_checksum(data):
         log_json("overflow make_checksum")
         return base64.encodestring(str(SHA.new(data).hexdigest())).strip().rstrip("=")
 
+def make_checksum_tuple(t):
+    """
+    @type t: tuple
+    """
+    sha = SHA.new()
+    for i in t:
+        c = make_checksum(i)
+        sha.update(c)
+    return sha.hexdigest()
 
 def make_sha1_hash_file(prefix=None, fpath=None, data=None, fpi=None):
     """ make hash

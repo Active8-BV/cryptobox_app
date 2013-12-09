@@ -491,6 +491,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
+
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
@@ -769,6 +770,9 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
+        os.system("cp -r testdata/test/all_types testdata/test/smalltest")
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+
         os.system("mv testdata/test/smalltest testdata/test/smalltest2")
 
         #noinspection PyUnusedLocal

@@ -204,6 +204,12 @@ def decrypt_write_file(localindex, fdir, fhash, secret):
     return paths
 
 
+def make_cryptogit_filehash(fpath):
+    file_dict = read_file_to_fdict(fpath)
+    file_dict["filehash"] = make_sha1_hash_file(prefix="blob " + str(file_dict["st_size"]) + "\0", fpath=fpath)
+    return file_dict
+
+
 def make_cryptogit_hash(fpath, datadir, localindex):
     """
     @type fpath: str or unicode
@@ -211,18 +217,17 @@ def make_cryptogit_hash(fpath, datadir, localindex):
     @type localindex: dict
     @return: @rtype:
     """
-    file_dict = read_file_to_fdict(fpath)
-    filehash = make_sha1_hash_file(prefix="blob " + str(file_dict["st_size"]) + "\0", fpath=fpath)
-    blobdir = os.path.join(os.path.join(datadir, "blobs"), filehash[:2])
-    blobpath = os.path.join(blobdir, filehash[2:])
-    filedata = {"filehash": filehash,
+    file_dict = make_cryptogit_filehash(fpath)
+    blobdir = os.path.join(os.path.join(datadir, "blobs"), file_dict["filehash"][:2])
+    blobpath = os.path.join(blobdir, file_dict["filehash"][2:])
+    filedata = {"filehash": file_dict["filehash"],
                 "fpath": fpath,
                 "blobpath": blobpath,
                 "blobdir": blobdir,
                 "blob_exists": os.path.exists(blobpath)}
 
     localindex["filestats"][fpath] = file_dict
-    print "cba_file.py:225", filedata["fpath"], filedata["filehash"]
+
     return filedata, localindex
 
 

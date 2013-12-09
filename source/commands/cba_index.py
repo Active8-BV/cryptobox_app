@@ -169,7 +169,10 @@ def index_files_visit(arg, dir_name, names):
     @type dir_name: str or unicode
     @type names: list
     """
+    if os.path.basename(dir_name).startswith("."):
+        return
     filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
+    filenames = [x for x in filenames if not x.startswith(".")]
     dirname_hash_input = dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/")
 
     if len(dirname_hash_input) == 0:
