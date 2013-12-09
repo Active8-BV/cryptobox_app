@@ -550,7 +550,7 @@ def path_to_server_shortid(memory, options, serverindex, path):
         raise NoParentFound(path)
 
     elif len(result) == 1:
-        return result[0], memory
+        return result[0]
     else:
         raise MultipleGuidsForPath(path)
 
@@ -801,7 +801,8 @@ def check_renames_server(memory, options, localindex, serverindex, file_uploads,
                 file_del_server_remove.append(fd)
 
     for fur in file_uploads_remove:
-        file_uploads.remove(fur)
+        if fur in file_uploads:
+            file_uploads.remove(fur)
 
     for fdr in file_del_server_remove:
         if fdr in file_del_server:
@@ -894,8 +895,8 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_renames = local_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, serverindex)
     for old_dir, new_dir in dir_renames:
         file_uploads = [x for x in file_uploads if not x["rel_path"].startswith(new_dir)]
-        dir_del_server_tmp = [x for x in dir_del_server_tmp if x not in old_dir]
-        dir_make_server = [x for x in dir_make_server if x["relname"] not in new_dir]
+        dir_del_server_tmp = [x for x in dir_del_server_tmp if old_dir not in x]
+        dir_make_server = [x for x in dir_make_server if new_dir not in x["relname"]]
 
     # filter out file uploads from dirs to delete
     timers.event("find dirs to delete")
@@ -1161,7 +1162,7 @@ def sync_server(memory, options):
     del_server_items = []
 
     for del_file in file_del_server:
-        del_short_guid, memory = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
+        del_short_guid = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
         del_server_items.append(del_short_guid)
 
     # delete items

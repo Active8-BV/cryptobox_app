@@ -364,7 +364,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_dir()
         self.unzip_testfiles_synced()
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
-        org_files = get_files_dir(p)
+        org_files = get_files_dir(p, ignore_hidden=True)
 
         #decrypt_and_build_filetree, hide_config
         if encrypt:
@@ -392,7 +392,7 @@ class CryptoboxAppTest(unittest.TestCase):
             memory.load(datadir)
             decrypt_and_build_filetree(memory, options, secret)
 
-        org_files2 = get_files_dir(p)
+        org_files2 = get_files_dir(p, ignore_hidden=True)
         self.assertEqual(org_files, org_files2)
 
     def test_index_clear(self):
@@ -554,7 +554,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_synced()
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         map1 = '/smalltest'
-        map1_short_id, self.cbmemory = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/smalltest')
+        map1_short_id = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/smalltest')
         map1_2, self.cbmemory = short_id_to_server_path(self.cbmemory, serverindex, map1_short_id)
         self.assertEqual(map1, map1_2)
 
@@ -712,7 +712,7 @@ class CryptoboxAppTest(unittest.TestCase):
         fpath = "testdata/1MB.zip"
         localindex = {"filestats": {}}
         fd, localindex = make_cryptogit_hash(fpath, self.cboptions.dir, localindex)
-        self.assertEqual(fd["filehash"], "280146ceb47de1930bfa178261b616d7fb4d765e")
+        self.assertEqual(fd["filehash"], '0c1d7e2e3283b3ee3f319533ea6aa6372982922f')
 
     def test_rename_local(self):
         """
@@ -770,17 +770,18 @@ class CryptoboxAppTest(unittest.TestCase):
         self.do_wait_for_tasks = False
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
-        #os.system("cp -r testdata/test/all_types testdata/test/smalltest")
-        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        os.system("cp -r testdata/test/all_types testdata/test/smalltest")
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
         os.system("mv testdata/test/smalltest testdata/test/smalltest2")
         os.system("mv testdata/test/all_types/bmptest.png testdata/test/all_types/bmptest2.png")
 
         #noinspection PyUnusedLocal
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, file_rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 0)
         self.assertEqual(len(file_uploads), 0)
-        self.assertEqual(len(rename_server), 2)
+        self.assertEqual(len(folder_rename_server), 1)
+        self.assertEqual(len(file_rename_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
         self.assertTrue(self.files_synced())

@@ -32,7 +32,7 @@ def file_is_hidden(p):
         return p.startswith('.')
 
 
-def get_files_dir(fpath, ignore_hidden=False):
+def get_files_dir(fpath, ignore_hidden=True):
     """
     count_files_dir
     @type fpath: str, unicode
