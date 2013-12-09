@@ -28,7 +28,7 @@ from cba_index import restore_hidden_config, ensure_directory, hide_config, inde
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
-from cba_crypto import make_sha1_hash_file, password_derivation, cleanup_tempfiles
+from cba_crypto import make_sha1_hash_file, password_derivation
 from tendo import singleton
 
 
@@ -443,7 +443,7 @@ def cryptobox_command(options):
             output_json({"item_progress": 0})
             output_json({"global_progress": 0})
     finally:
-        cleanup_tempfiles()
+        pass
     return True
 
 

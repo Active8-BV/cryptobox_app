@@ -7,7 +7,7 @@ import shutil
 import base64
 from Crypto import Random
 from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json
-from cba_crypto import password_derivation, encrypt_object, decrypt_object, make_sha1_hash_file
+from cba_crypto import password_derivation, encrypt_object, decrypt_object, make_sha1_hash_file, cleanup_tempfiles
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
 
@@ -265,6 +265,7 @@ def index_and_encrypt(memory, options):
     if len(new_blobs) > 0:
         if len(new_blobs) > 0:
             encrypt_new_blobs(secret, new_blobs)
+    cleanup_tempfiles()
 
     memory = store_localindex(memory, localindex)
 
