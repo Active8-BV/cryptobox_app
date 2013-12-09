@@ -20,15 +20,15 @@ import multiprocessing.forking
 import multiprocessing
 import random
 import shutil
-import Tkinter, tkFileDialog
-from cStringIO import StringIO
+import Tkinter
+import tkFileDialog
 from optparse import OptionParser
 from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle, log_json, Timers
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
-from cba_crypto import make_sha1_hash_file, password_derivation
+from cba_crypto import make_sha1_hash_file, password_derivation, cleanup_tempfiles
 from tendo import singleton
 
 
@@ -37,12 +37,9 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
-
         class _Popen(multiprocessing.forking.Popen):
-
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -55,7 +52,6 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
-
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -72,6 +68,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -400,15 +397,7 @@ def cryptobox_command(options):
                     timers.event("check get_sync_changes")
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
-                    outputdict = {"file_del_server": file_del_server,
-                                  "file_downloads": file_downloads,
-                                  "file_uploads": file_uploads,
-                                  "dir_del_server": dir_del_server,
-                                  "dir_make_local": dir_make_local,
-                                  "dir_make_server": dir_make_server,
-                                  "dir_del_local": dir_del_local,
-                                  "file_del_local": file_del_local,
-                                  "all_synced": all_synced}
+                    outputdict = {"file_del_server": file_del_server, "file_downloads": file_downloads, "file_uploads": file_uploads, "dir_del_server": dir_del_server, "dir_make_local": dir_make_local, "dir_make_server": dir_make_server, "dir_del_local": dir_del_local, "file_del_local": file_del_local, "all_synced": all_synced}
                     output_json(outputdict)
                 elif options.sync:
                     if options.encrypt:
@@ -454,7 +443,7 @@ def cryptobox_command(options):
             output_json({"item_progress": 0})
             output_json({"global_progress": 0})
     finally:
-        pass
+        cleanup_tempfiles()
     return True
 
 
@@ -479,9 +468,9 @@ def main():
 
         raise
 
+
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()

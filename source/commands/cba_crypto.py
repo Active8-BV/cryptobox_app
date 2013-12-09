@@ -20,6 +20,53 @@ from Crypto.Protocol.KDF import PBKDF2
 from cba_utils import log_json
 
 
+def stack_trace(line_num_only=0, ret_list=False):
+    """
+    @param line_num_only:
+    @type line_num_only:
+    @type ret_list: bool
+    @return: @rtype:
+    """
+    import traceback
+    import tempfile
+    stack = tempfile.TemporaryFile()
+    traceback.print_stack(file=stack)
+    stack.seek(0)
+    stack = stack.read()
+
+    if ret_list and (line_num_only > 0):
+        raise Exception("ret_list or line_num_only both true")
+
+    stackl = []
+    stack = stack.split("\n")
+    stack.reverse()
+    cnt = 0
+
+    for i in stack:
+        stackl.append(i)
+        if line_num_only > 0:
+            if "line" in i and "File" in i:
+                if cnt > line_num_only - 1:
+                    for j in i.split("line"):
+                        for k in j.split(","):
+                            #noinspection PyBroadException
+                            try:
+                                ln = int(k)
+                                fs = i.replace('"', "").split(",")[0].split(os.sep)
+                                return str("/".join(fs[len(fs) - 2:])) + ":" + str(ln)
+                            except:
+                                pass
+
+                cnt += 1
+
+    if line_num_only > 0:
+        return str("?")
+
+    if ret_list:
+        return stackl
+    return "\n".join(stackl)
+
+
 def get_named_temporary_file(auto_delete):
     """
     get_named_temporary_file
@@ -30,7 +77,9 @@ def get_named_temporary_file(auto_delete):
         fname = "tempfile_" + str(uuid.uuid4().hex) + ".cba"
         fpath = os.path.join(os.getcwd(), fname)
         logf = open(fpath, "w")
-        logf.write(cPickle.dumps({"file_path": ntf.name}))
+        logf.write(ntf.name)
+        logf.write("\n\n")
+        logf.write(stack_trace())
         logf.close()
 
     return ntf
@@ -43,14 +92,18 @@ def cleanup_tempfiles():
     for fp in glob.glob("tempfile_*.cba"):
         if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
             if os.path.exists(os.path.join(os.getcwd(), fp)):
-                data = cPickle.load(open(fp))
+                #noinspection PyBroadException
+                try:
+                    data = open(fp).readline().strip()
 
-                if os.path.exists(data["file_path"]):
-                    if time.time() - os.stat(data["file_path"]).st_mtime > 60:
-                        os.remove(data["file_path"])
+                    if os.path.exists(data):
+                        if time.time() - os.stat(data).st_mtime > 300:
+                            os.remove(data)
+                            os.remove(os.path.join(os.getcwd(), fp))
+                    else:
                         os.remove(os.path.join(os.getcwd(), fp))
-                else:
-                    os.remove(os.path.join(os.getcwd(), fp))
+                except:
+                    pass
 
 
 def make_checksum(data):
