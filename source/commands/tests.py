@@ -428,7 +428,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(self.directories_synced())
 
         # delete on server
-        dir_del_server = ['/map1']
+        dir_del_server = tuple(['/map1'])
         self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, dir_del_server)
 
         # sync dirs again
@@ -457,9 +457,9 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         files_synced
         """
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, file_rename_server, folder_rename_server = self.get_sync_changes()
 
-        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, rename_server]:
+        for l in [file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, file_rename_server, folder_rename_server]:
             if len(l) != 0:
                 return False
         return True
@@ -475,7 +475,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mkdir testdata/test/map3")
         os.system("rm -Rf testdata/test/all_types/document.pdf")
         os.system("rm -Rf testdata/test/smalltest")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_del_server), 1)
         self.assertEqual(len(file_downloads), 0)
         self.assertEqual(len(file_uploads), 1)
@@ -498,11 +498,11 @@ class CryptoboxAppTest(unittest.TestCase):
     def get_sync_changes(self):
         localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        self.cbmemory, self.cboptions, fdels, fds, fups, dirdels, dirmakelo, dirmakes, ddelloc, fdelloc, spn, uc, rens = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
-        return ddelloc, dirdels, dirmakelo, dirmakes, fdelloc, fdels, fds, fups, rens
+        self.cbmemory, self.cboptions, fdels, fds, fups, dirdels, dirmakelo, dirmakes, ddelloc, fdelloc, spn, uc, rens, renfolderserver = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
+        return ddelloc, dirdels, dirmakelo, dirmakes, fdelloc, fdels, fds, fups, rens, renfolderserver
 
     def all_changes_asserted_zero(self):
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_del_server), 0)
         self.assertEqual(len(file_del_local), 0)
         self.assertEqual(len(file_downloads), 0)
@@ -543,7 +543,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("echo 'hello' > testdata/test/hello.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("echo 'hello world' > testdata/test/hello.txt")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
 
     def test_find_short_ids(self):
@@ -574,18 +574,18 @@ class CryptoboxAppTest(unittest.TestCase):
         self.all_changes_asserted_zero()
         os.mkdir("testdata/test/foo")
         self.assertEqual(os.path.exists("testdata/test/foo"), True)
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.mkdir("testdata/test/foo2")
         os.system("ls > testdata/test/foo2/test.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rm -Rf testdata/test/foo2/test.txt")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_del_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("ls > testdata/test/foo2/test.txt")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
 
     def test_mutation_history_file(self):
@@ -599,11 +599,11 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("ls > testdata/test/foo/test.txt")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rm -Rf testdata/test/foo/test.txt")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_del_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("ls > testdata/test/foo/test.txt")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
 
     def test_sync_delete_local_folder(self):
@@ -628,7 +628,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(dir_del_server), 4)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.unzip_testfiles_clean()
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 3)
 
     def test_sync_delete_server_folder(self):
@@ -641,7 +641,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.makedirs("testdata/test/foo")
         os.makedirs("testdata/test/bar")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
-        dir_del_server = ['/foo']
+        dir_del_server = tuple(['/foo'])
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, dir_del_server)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
@@ -669,7 +669,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mkdir testdata/test/legedir")
 
         #noinspection PyUnusedLocal
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_make_server), 1)
         self.assertEqual(len(file_uploads), 5)
 
@@ -683,11 +683,11 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mkdir -p testdata/test/foo/bar/hello")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rmdir testdata/test/foo/bar/hello")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rm -Rf testdata/test/foo/bar")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
@@ -701,7 +701,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_clean()
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         os.system("rm -Rf testdata/test/smalltest")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 1)
         self.assertEqual(len(file_del_server), 0)
 
@@ -727,7 +727,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertTrue(self.files_synced())
         os.system("mv testdata/test/smalltest/test.cpp testdata/test/smalltest/test2.cpp")
         os.system("ls > testdata/test/smalltest/test3.txt")
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)
         self.assertEqual(len(rename_server), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
@@ -777,7 +777,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("mv testdata/test/all_types/bmptest.png testdata/test/all_types/bmptest2.png")
 
         #noinspection PyUnusedLocal
-        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server = self.get_sync_changes()
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(dir_del_server), 0)
         self.assertEqual(len(file_uploads), 0)
         self.assertEqual(len(rename_server), 2)

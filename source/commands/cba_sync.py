@@ -181,7 +181,7 @@ def instruct_server_to_make_folders(memory, options, dirs_make_server):
     """
     @type memory: Memory
     @type options: optparse.Values, instance
-    @type dirs_make_server: list
+    @type dirs_make_server: tuple
     @rtype: Memory
     """
     foldernames = [dir_name["dirname"].replace(options.dir, "") for dir_name in dirs_make_server]
@@ -209,7 +209,7 @@ def server_path_to_shortid(memory, options, path):
 def remove_local_folders(memory, dirs_del_local):
     """
     @type memory: Memory
-    @type dirs_del_local: list
+    @type dirs_del_local: tuple
     """
     for node in dirs_del_local:
         if os.path.exists(node["dirname"]):
@@ -221,7 +221,7 @@ def remove_local_folders(memory, dirs_del_local):
 def remove_local_paths(memory, file_del_local):
     """
     @type memory: Memory
-    @type file_del_local: list
+    @type file_del_local: tuple
     """
     for fpath in file_del_local:
         if os.path.exists(fpath):
@@ -235,7 +235,7 @@ def make_directories_local(memory, options, localindex, folders):
     @type memory: Memory
     @type options: optparse.Values, instance
     @type localindex: dict
-    @type folders: list
+    @type folders: tuple
     """
     for f in folders:
         ensure_directory(f["name"])
@@ -419,6 +419,7 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     memory = wait_for_tasks(memory, options)
     return memory
 
+
 def instruct_server_to_changename(memory, options, path1, path2):
     """
     @type memory: Memory
@@ -426,7 +427,10 @@ def instruct_server_to_changename(memory, options, path1, path2):
     @type path1: str
     @type path2: str
     """
-    payload = {"path1": path1, "path2": path2}
+    serverindex = memory.get("serverindex")
+    node_short_id = path_to_server_shortid(memory, options, serverindex, path1)
+    nodename = os.path.basename(path2)
+    payload = {"node_short_id": node_short_id, "nodename": nodename}
     result, memory = on_server(memory, options, "docs/changename", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -1046,7 +1050,7 @@ def upload_files(memory, options, serverindex, file_uploads):
     @type memory: Memory
     @type options: optparse.Values, instance
     @type serverindex: dict
-    @type file_uploads: list
+    @type file_uploads: tuple
     """
     path_guid_cache = {}
     cnt = 0
@@ -1137,7 +1141,7 @@ def sync_server(memory, options):
         memory = instruct_server_to_rename_path(memory, options, rp[0], rp[1])
 
     for rfp in rename_server_folders:
-        memory = instruct_server_to_rename_path(memory, options, rfp[0], rfp[1])
+        memory = instruct_server_to_changename(memory, options, rfp[0], rfp[1])
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)

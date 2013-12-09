@@ -20,6 +20,7 @@ g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
 if os.name == 'nt':
+    # noinspection PyUnresolvedReferences
     import win32api, win32con
 
 

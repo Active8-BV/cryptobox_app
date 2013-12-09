@@ -100,12 +100,12 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
     """
     @type memory: Memory
     @type options: optparse.Values
-    @type file_nodes: list
+    @type file_nodes: tuple
     @type data: str or unicode
     @type downloaded_fhash: unicode
     """
     files_same_hash = []
-    file_nodes_copy = file_nodes
+    file_nodes_copy = list(file_nodes)
 
     for sfile in file_nodes:
         fhash = sfile["content_hash_latest_timestamp"][0]
