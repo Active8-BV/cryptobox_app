@@ -15,7 +15,7 @@ from cba_main import cryptobox_command
 from cba_utils import get_files_dir, Memory, Dict2Obj
 from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
 from cba_blobs import get_blob_dir, get_data_dir
-from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
+from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound, authorize_user
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
 from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
@@ -199,19 +199,19 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("cp testdata/test_clean.dump testdata/test.dump")
         self.reset_cb_db()
         os.system("rm testdata/test.dump")
+        os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/couchdb_test_crypto_docs")
+
+
 
     def reset_cb_db_synced(self):
         """
         reset_cb_db_synced
         """
         os.system("cp testdata/test_synced.dump testdata/test.dump")
-        os.system("cd testdata; unzip -o crypto_docs.zip > /dev/null;")
-
-        #os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
-        os.system("mkdir -p /Users/rabshakeh/workspace/cloudfiles/crypto_docs")
-        os.system("cp /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs/* /Users/rabshakeh/workspace/cloudfiles/crypto_docs;")
-        os.system("rm -Rf /Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/crypto_docs")
         self.reset_cb_db()
+        os.system("cp testdata/couchdb_test_crypto_docs.zip /Users/rabshakeh/workspace/cloudfiles/")
+        os.system("cd /Users/rabshakeh/workspace/cloudfiles; unzip -o couchdb_test_crypto_docs.zip > /dev/null; rm couchdb_test_crypto_docs.zip")
+
 
     def reset_cb_dir(self):
         """
@@ -444,10 +444,11 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_sync_clean_tree
         """
+        self.do_wait_for_tasks = False
         self.reset_cb_dir()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-        time.sleep(3)
+
         # build directories locally and on server
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
@@ -759,6 +760,7 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
+        self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         instruct_server_to_rename_path(self.cbmemory, self.cboptions, "/smalltest/test.cpp", "/smalltest/test2.cpp")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
@@ -785,6 +787,24 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
 
         self.assertTrue(self.files_synced())
+
+    def test_rename_on_server(self):
+        """
+        test_rename_on_server
+        """
+        self.do_wait_for_tasks = True
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+        self.reset_cb_db_synced()
+        self.unzip_testfiles_synced()
+
+        self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
+        instruct_server_to_rename_path(self.cbmemory, self.cboptions, "/all_types", "/smalltest/all_types2")
+        dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, file_rename_server, folder_rename_server = self.get_sync_changes()
+        self.assertEqual(len(dir_del_local), 1)
+        #localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+
+        #self.assertTrue(self.files_synced())
 
 
 if __name__ == '__main__':

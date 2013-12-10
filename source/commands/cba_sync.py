@@ -815,6 +815,8 @@ def local_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, s
     dir_del_server_shortestpaths = return_shortest_paths(dir_del_server_tmp)
     dirpaths_make_server_shortestpaths = return_shortest_paths(dirpaths_make_server)
     dir_renames = []
+    if len(dir_del_server_shortestpaths) == 0:
+        return tuple(dir_renames)
     if len(dir_del_server_shortestpaths) == len(dirpaths_make_server_shortestpaths):
         # perhaps a rename
 
@@ -1143,7 +1145,7 @@ def sync_server(memory, options):
 
     for rfp in rename_server_folders:
         memory = instruct_server_to_rename_path(memory, options, rfp[0], rfp[1])
-        #memory = instruct_server_to_changename(memory, options, rfp[0], rfp[1])
+
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
@@ -1209,10 +1211,10 @@ def sync_server(memory, options):
         serverpaths = [x[0] for x in serverpath_history]
         for fpath in dir_del_local:
             for lfpath in serverpaths:
-                if fpath in lfpath:
-                    memory = del_path_history(fpath, memory)
+                if fpath["relname"] in lfpath:
+                    memory = del_path_history(lfpath, memory)
 
-            memory = del_path_history(fpath, memory)
+            memory = del_path_history(fpath["relname"], memory)
 
     memory = wait_for_tasks(memory, options)
     output_json({"item_progress": 0})
