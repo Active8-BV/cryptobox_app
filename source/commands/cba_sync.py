@@ -734,8 +734,8 @@ def diff_files_locally(memory, options, localindex, serverindex):
                                 filedata, localindex = make_cryptogit_hash(local_path, options.dir, localindex)
                                 if filedata["filehash"] != corresponding_server_nodes[0]["content_hash_latest_timestamp"][0]:
                                     file_uploads.append(upload_file_object)
-                        except Exception, e:
-                            pass
+                        except:
+                            raise
     file_del_local = []
     server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
     for local_path in local_pathnames_set:
