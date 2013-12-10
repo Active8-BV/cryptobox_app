@@ -810,43 +810,98 @@ def check_renames_server(memory, options, localindex, serverindex, file_uploads,
     return tuple(renames_server), tuple(file_uploads), tuple(file_del_server), localindex
 
 
-def local_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, serverindex):
+def checksum_all_files_in_dir(dirpath_make_server, localindex):
+    """
+    @type dirpath_make_server: tuple
+    @type localindex: dict
+    """
+    all_files_in_local_dir = set()
+    all_hashes_files_in_local_dir = []
+    all_files_in_local_dir_keys = [x for x in localindex["dirnames"] if dirpath_make_server in localindex["dirnames"][x]["dirname"]]
+    for x in all_files_in_local_dir_keys:
+        dirname = localindex["dirnames"][x]["dirname"]
+        for f in localindex["dirnames"][x]["filenames"]:
+            all_files_in_local_dir.add(os.path.join(dirname, f["name"]))
+    for h in frozenset([make_cryptogit_filehash(x)["filehash"] for x in all_files_in_local_dir]):
+        all_hashes_files_in_local_dir.append(h)
+    all_hashes_files_in_local_dir.sort()
+    hashes_local = make_checksum_tuple(tuple(all_hashes_files_in_local_dir))
+    return hashes_local
+
+
+def checksum_all_files_on_server(dir_del_server_shortestpath, serverindex):
+    """
+    @type dir_del_server_shortestpath: tuple
+    @type serverindex: dict
+    """
+
+    dirnames_content_hash = [(x["dirname_of_path"], x["content_hash"], x["doc"]["m_path"]) for x in serverindex["doclist"] if x["content_hash"]]
+    all_hashes_on_server = []
+    for dirname_content_hash in dirnames_content_hash:
+        if dir_del_server_shortestpath in dirname_content_hash[0]:
+            all_hashes_on_server.append(dirname_content_hash[1])
+    all_hashes_on_server.sort()
+    hashes_server = make_checksum_tuple(tuple(all_hashes_on_server))
+    return hashes_server
+
+
+def onlocal_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, serverindex):
+    """
+    @type dir_del_server_tmp: tuple
+    @type dir_make_server: tuple
+    @type localindex: dict
+    @type options: optparse.Values, instance
+    @type serverindex: dict
+    """
     dirpaths_make_server = tuple([x["dirname"].replace(options.dir, "") for x in dir_make_server])
     dir_del_server_shortestpaths = return_shortest_paths(dir_del_server_tmp)
     dirpaths_make_server_shortestpaths = return_shortest_paths(dirpaths_make_server)
     dir_renames = []
     if len(dir_del_server_shortestpaths) == 0:
         return tuple(dir_renames)
-    if len(dir_del_server_shortestpaths) == len(dirpaths_make_server_shortestpaths):
         # perhaps a rename
-
-        all_files_in_local_dir = set()
-
-        all_hashes_files_in_local_dir = []
-        dirnames_content_hash = [(x["dirname_of_path"], x["content_hash"], x["doc"]["m_path"]) for x in serverindex["doclist"] if x["content_hash"]]
-
+    if len(dir_del_server_shortestpaths) == len(dirpaths_make_server_shortestpaths):
         for dirpath_make_server in dirpaths_make_server_shortestpaths:
-            all_files_in_local_dir_keys = [x for x in localindex["dirnames"] if dirpath_make_server in localindex["dirnames"][x]["dirname"]]
-            for x in all_files_in_local_dir_keys:
-                dirname = localindex["dirnames"][x]["dirname"]
-                for f in localindex["dirnames"][x]["filenames"]:
-                    all_files_in_local_dir.add(os.path.join(dirname, f["name"]))
-
-            for h in frozenset([make_cryptogit_filehash(x)["filehash"] for x in all_files_in_local_dir]):
-                all_hashes_files_in_local_dir.append(h)
-            all_hashes_files_in_local_dir.sort()
-            hashes_local = make_checksum_tuple(tuple(all_hashes_files_in_local_dir))
+            hashes_local = checksum_all_files_in_dir(dirpath_make_server, localindex)
 
             for dir_del_server_shortestpath in dir_del_server_shortestpaths:
-                all_hashes_on_server = []
-                for dirname_content_hash in dirnames_content_hash:
-                    if dir_del_server_shortestpath in dirname_content_hash[0]:
-                        all_hashes_on_server.append(dirname_content_hash[1])
-                all_hashes_on_server.sort()
-                hashes_server = make_checksum_tuple(tuple(all_hashes_on_server))
+                hashes_server = checksum_all_files_on_server(dir_del_server_shortestpath, serverindex)
                 if hashes_local == hashes_server:
                     dir_renames.append((dir_del_server_shortestpath, dirpath_make_server))
 
+    dir_renames.sort()
+    return tuple(dir_renames)
+
+
+def onserver_dir_rename(dir_del_local, dir_make_local, localindex, options, serverindex):
+    """
+    @type dir_del_local: tuple
+    @type dir_make_local: tuple
+    @type localindex: dict
+    @type options: optparse.Values, instance
+    @type serverindex: dict
+    """
+
+    dirpaths_make_local = tuple([x["relname"] for x in dir_make_local])
+    dir_del_local_tmp = tuple([x["relname"] for x in dir_del_local])
+    dir_del_local_shortestpaths = return_shortest_paths(dir_del_local_tmp)
+    dirpaths_make_local_shortestpaths = return_shortest_paths(dirpaths_make_local)
+    del dir_del_local_tmp
+    del dir_del_local
+    del dirpaths_make_local
+    del dir_make_local
+
+    dir_renames = []
+    if len(dir_del_local_shortestpaths) == 0:
+        return tuple(dir_renames)
+        # perhaps a rename
+    if len(dir_del_local_shortestpaths) == len(dirpaths_make_local_shortestpaths):
+        for dirpath_make_local in dirpaths_make_local_shortestpaths:
+            hashes_local = checksum_all_files_in_dir(dirpath_make_local, localindex)
+            for dir_del_local_shortestpath in dir_del_local_shortestpaths:
+                hashes_server = checksum_all_files_on_server(dir_del_local_shortestpath, serverindex)
+                if hashes_local == hashes_server:
+                    dir_renames.append((dir_del_local_shortestpath, dirpath_make_local))
     dir_renames.sort()
     return tuple(dir_renames)
 
@@ -892,11 +947,14 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
     # check for dir renames
-    dir_renames = local_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, serverindex)
-    for old_dir, new_dir in dir_renames:
+    server_dir_renames = onlocal_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, serverindex)
+    for old_dir, new_dir in server_dir_renames:
         file_uploads = [x for x in file_uploads if not x["rel_path"].startswith(new_dir)]
         dir_del_server_tmp = [x for x in dir_del_server_tmp if old_dir not in x]
         dir_make_server = [x for x in dir_make_server if new_dir not in x["relname"]]
+
+    local_dir_renames = onserver_dir_rename(dir_del_local, dir_make_local, localindex, options, serverindex)
+
 
     # filter out file uploads from dirs to delete
     timers.event("find dirs to delete")
@@ -948,7 +1006,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     del timers
     renames_server = list(renames_files)
     rename_files_server = frozenset(renames_server)
-    rename_folders_server = frozenset(dir_renames)
+    rename_folders_server = frozenset(server_dir_renames)
 
     return memory, options, file_del_server, file_downloads, file_uploads, tuple(dir_del_server), dir_make_local, tuple(dir_make_server), dir_del_local, tuple(file_del_local), server_path_nodes, unique_content, tuple(rename_files_server), tuple(rename_folders_server)
 
@@ -1145,7 +1203,6 @@ def sync_server(memory, options):
 
     for rfp in rename_server_folders:
         memory = instruct_server_to_rename_path(memory, options, rfp[0], rfp[1])
-
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
