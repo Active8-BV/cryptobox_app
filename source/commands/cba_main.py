@@ -395,7 +395,7 @@ def cryptobox_command(options):
                     timers.event("check make_local_index")
                     localindex = make_local_index(options)
                     timers.event("check get_sync_changes")
-                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server, rename_dirs = get_sync_changes(memory, options, localindex, serverindex)
+                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server, rename_dirs, rename_local_dirs = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, rename_server, rename_dirs])
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
@@ -407,7 +407,9 @@ def cryptobox_command(options):
                                   "file_del_local": file_del_local,
                                   "all_synced": all_synced,
                                   "rename_file_server": rename_server,
-                                  "rename_folder_server": rename_dirs}
+                                  "rename_folder_server": rename_dirs,
+                                  "rename_local_dirs": rename_local_dirs}
+
                     output_json(outputdict)
                 elif options.sync:
                     if options.encrypt:
@@ -486,4 +488,4 @@ if strcmp(__name__, '__main__'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:491", "\nbye main"
+        print "cba_main.py:493", "\nbye main"

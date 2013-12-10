@@ -135,6 +135,7 @@ def hide_config(options, salt, secret):
         datadir = get_data_dir(options)
         mempath = os.path.join(datadir, "memory.pickle")
         jsonpath = os.path.join(datadir, "memory.pickle.json")
+
         if os.path.exists(jsonpath):
             os.remove(jsonpath)
 
@@ -174,6 +175,7 @@ def index_files_visit(arg, dir_name, names):
     """
     if os.path.basename(dir_name).startswith("."):
         return
+
     filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
     filenames = [x for x in filenames if not x.startswith(".")]
     dirname_hash_input = dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/")
@@ -328,12 +330,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        print "cba_index.py:325", "check_and_clean_dir needs clear and encrypt option"
+        print "cba_index.py:333", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            print "cba_index.py:330", "clear options cannot be used together with encrypt, possible data loss"
+            print "cba_index.py:338", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -353,7 +355,7 @@ def decrypt_and_build_filetree(memory, options, secret):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        print "cba_index.py:350", "nothing to decrypt", datadir, "does not exists"
+        print "cba_index.py:358", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     output_json({"msg": "preparing decrypt"})

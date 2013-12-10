@@ -11,7 +11,6 @@ import urllib
 import shutil
 import urllib2
 import poster
-
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex, store_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_blob_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
@@ -70,6 +69,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                     break
 
         data = None
+
         if source_path:
             if not os.path.exists(source_path):
                 fhash = lp["content_hash_latest_timestamp"][0]
@@ -240,7 +240,9 @@ def make_directories_local(memory, options, localindex, folders):
         ensure_directory(f["name"])
         memory = add_local_path_history(memory, f["name"])
         memory = add_server_path_history(memory, f["relname"])
-        arg = {"DIR": options.dir, "folders": {"dirnames": {}}, "numfiles": 0}
+        arg = {"DIR": options.dir,
+               "folders": {"dirnames": {}},
+               "numfiles": 0}
         index_files_visit(arg, f["name"], [])
 
         for k in arg["folders"]["dirnames"]:
@@ -276,6 +278,7 @@ def dirs_on_server(memory, options, unique_dirs_server):
         local_folders_removed = [x for x in local_folders_removed if x in local_path_history_disk]
 
         if len(local_folders_removed) == 0:
+
             # first run
             dirs_make_local = [{"name": os.path.join(options.dir, x.lstrip(os.sep)), "relname": x} for x in unique_dirs_server if (os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))) not in local_path_history_disk and not os.path.exists(os.path.join(options.dir, x.lstrip(os.sep))))]
     else:
@@ -303,7 +306,8 @@ def dirs_on_server(memory, options, unique_dirs_server):
         if had_on_server or have_on_server:
             dirs_del_server.append(dirname_rel)
         else:
-            folder = {"name": dir_name, "relname": dirname_rel}
+            folder = {"name": dir_name,
+                      "relname": dirname_rel}
             dirs_make_local.append(folder)
 
     return tuple(dirs_del_server), tuple(dirs_make_local), memory
@@ -368,13 +372,12 @@ def instruct_server_to_delete_items(memory, options, short_node_ids_to_delete, p
         result, memory = on_server(memory, options, "docs/delete", payload=payload, session=memory.get("session"))
         memory = wait_for_tasks(memory, options, progress_message)
     return memory
-
-
 def return_shortest_paths(list_dirs):
     """
     @type list_dirs: tuple
     """
     shortest_paths = set()
+
     for drl1 in list_dirs:
         shortest = ""
 
@@ -384,6 +387,7 @@ def return_shortest_paths(list_dirs):
                     shortest = drl2
 
         shortest_paths.add(shortest)
+
     return tuple(shortest_paths)
 
 
@@ -413,7 +417,8 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     @type path1: str
     @type path2: str
     """
-    payload = {"path1": path1, "path2": path2}
+    payload = {"path1": path1,
+               "path2": path2}
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -429,7 +434,8 @@ def instruct_server_to_changename(memory, options, path1, path2):
     serverindex = memory.get("serverindex")
     node_short_id = path_to_server_shortid(options, serverindex, path1)
     nodename = os.path.basename(path2)
-    payload = {"node_short_id": node_short_id, "nodename": nodename}
+    payload = {"node_short_id": node_short_id,
+               "nodename": nodename}
     result, memory = on_server(memory, options, "docs/changename", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -697,7 +703,10 @@ def diff_files_locally(memory, options, localindex, serverindex):
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
-            upload_file_object = {"local_path": local_path, "parent_short_id": None, "rel_path": local_path.replace(options.dir, "")}
+            upload_file_object = {"local_path": local_path,
+                                  "parent_short_id": None,
+                                  "rel_path": local_path.replace(options.dir,
+                                  "")}
 
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
@@ -743,7 +752,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:732", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:755", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -775,6 +784,7 @@ def check_renames_server(memory, options, localindex, serverindex, file_uploads,
     file_uploads_remove = []
     file_del_server_remove = []
     file_del_server = list(file_del_server_param)
+
     if memory.has("localindex"):
         memory_dirnames = memory.get("localindex")["dirnames"]
         cryptobox_folder = memory.get("cryptobox_folder")
@@ -820,8 +830,10 @@ def checksum_all_files_in_dir(dirpath_make_server, localindex):
     all_files_in_local_dir_keys = [x for x in localindex["dirnames"] if dirpath_make_server in localindex["dirnames"][x]["dirname"]]
     for x in all_files_in_local_dir_keys:
         dirname = localindex["dirnames"][x]["dirname"]
+
         for f in localindex["dirnames"][x]["filenames"]:
             all_files_in_local_dir.add(os.path.join(dirname, f["name"]))
+
     for h in frozenset([make_cryptogit_filehash(x)["filehash"] for x in all_files_in_local_dir]):
         all_hashes_files_in_local_dir.append(h)
     all_hashes_files_in_local_dir.sort()
@@ -834,9 +846,9 @@ def checksum_all_files_on_server(dir_del_server_shortestpath, serverindex):
     @type dir_del_server_shortestpath: tuple
     @type serverindex: dict
     """
-
     dirnames_content_hash = [(x["dirname_of_path"], x["content_hash"], x["doc"]["m_path"]) for x in serverindex["doclist"] if x["content_hash"]]
     all_hashes_on_server = []
+
     for dirname_content_hash in dirnames_content_hash:
         if dir_del_server_shortestpath in dirname_content_hash[0]:
             all_hashes_on_server.append(dirname_content_hash[1])
@@ -857,15 +869,19 @@ def onlocal_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options,
     dir_del_server_shortestpaths = return_shortest_paths(dir_del_server_tmp)
     dirpaths_make_server_shortestpaths = return_shortest_paths(dirpaths_make_server)
     dir_renames = []
+
     if len(dir_del_server_shortestpaths) == 0:
         return tuple(dir_renames)
+
         # perhaps a rename
+
     if len(dir_del_server_shortestpaths) == len(dirpaths_make_server_shortestpaths):
         for dirpath_make_server in dirpaths_make_server_shortestpaths:
             hashes_local = checksum_all_files_in_dir(dirpath_make_server, localindex)
 
             for dir_del_server_shortestpath in dir_del_server_shortestpaths:
                 hashes_server = checksum_all_files_on_server(dir_del_server_shortestpath, serverindex)
+
                 if hashes_local == hashes_server:
                     dir_renames.append((dir_del_server_shortestpath, dirpath_make_server))
 
@@ -873,15 +889,13 @@ def onlocal_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options,
     return tuple(dir_renames)
 
 
-def onserver_dir_rename(dir_del_local, dir_make_local, localindex, options, serverindex):
+def onserver_dir_rename(dir_del_local, dir_make_local, localindex, serverindex):
     """
     @type dir_del_local: tuple
     @type dir_make_local: tuple
     @type localindex: dict
-    @type options: optparse.Values, instance
     @type serverindex: dict
     """
-
     dirpaths_make_local = tuple([x["relname"] for x in dir_make_local])
     dir_del_local_tmp = tuple([x["relname"] for x in dir_del_local])
     dir_del_local_shortestpaths = return_shortest_paths(dir_del_local_tmp)
@@ -890,20 +904,25 @@ def onserver_dir_rename(dir_del_local, dir_make_local, localindex, options, serv
     del dir_del_local
     del dirpaths_make_local
     del dir_make_local
-
     dir_renames = []
+
     if len(dir_del_local_shortestpaths) == 0:
         return tuple(dir_renames)
+
         # perhaps a rename
+
     if len(dir_del_local_shortestpaths) == len(dirpaths_make_local_shortestpaths):
         for dirpath_make_local in dirpaths_make_local_shortestpaths:
-            hashes_local = checksum_all_files_in_dir(dirpath_make_local, localindex)
+            hashes_server = checksum_all_files_on_server(dirpath_make_local, serverindex)
+
             for dir_del_local_shortestpath in dir_del_local_shortestpaths:
-                hashes_server = checksum_all_files_on_server(dir_del_local_shortestpath, serverindex)
+                hashes_local = checksum_all_files_in_dir(dir_del_local_shortestpath, localindex)
+
                 if hashes_local == hashes_server:
                     dir_renames.append((dir_del_local_shortestpath, dirpath_make_local))
+
     dir_renames.sort()
-    return tuple(dir_renames)
+    return frozenset(dir_renames)
 
 
 def get_sync_changes(memory, options, localindex, serverindex):
@@ -916,14 +935,12 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content): tuple
     """
     timers = Timers()
-
     memory = wait_for_tasks(memory, options, "waiting for server to finish tasks")
 
     if False:
         print_pickle_variable_for_debugging(memory, "memory")
         print_pickle_variable_for_debugging(localindex, "localindex")
         print_pickle_variable_for_debugging(serverindex, "serverindex")
-
     timers.event("parse_serverindex")
     dirname_hashes_server, server_path_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
@@ -948,13 +965,18 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     # check for dir renames
     server_dir_renames = onlocal_dir_rename(dir_del_server_tmp, dir_make_server, localindex, options, serverindex)
+
     for old_dir, new_dir in server_dir_renames:
         file_uploads = [x for x in file_uploads if not x["rel_path"].startswith(new_dir)]
         dir_del_server_tmp = [x for x in dir_del_server_tmp if old_dir not in x]
         dir_make_server = [x for x in dir_make_server if new_dir not in x["relname"]]
 
-    local_dir_renames = onserver_dir_rename(dir_del_local, dir_make_local, localindex, options, serverindex)
+    local_dir_renames = onserver_dir_rename(dir_del_local, dir_make_local, localindex, serverindex)
 
+    for old_dir, new_dir in local_dir_renames:
+        file_downloads = [x for x in file_downloads if not x["dirname_of_path"].startswith(new_dir)]
+        dir_make_local = [x for x in dir_make_local if new_dir not in x["relname"]]
+        dir_del_local = [x for x in dir_del_local if old_dir not in x["relname"]]
 
     # filter out file uploads from dirs to delete
     timers.event("find dirs to delete")
@@ -985,6 +1007,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     file_download_dirs = list(set([x["dirname_of_path"] for x in file_downloads]))
     for dds_path in dir_del_server_tmp:
         if len(file_downloads) > 0:
+
             #for dfl in file_download_dirs:
             if dds_path not in file_download_dirs:
                 dir_del_server.append(dds_path)
@@ -1007,8 +1030,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     renames_server = list(renames_files)
     rename_files_server = frozenset(renames_server)
     rename_folders_server = frozenset(server_dir_renames)
-
-    return memory, options, file_del_server, file_downloads, file_uploads, tuple(dir_del_server), dir_make_local, tuple(dir_make_server), dir_del_local, tuple(file_del_local), server_path_nodes, unique_content, tuple(rename_files_server), tuple(rename_folders_server)
+    return memory, options, file_del_server, file_downloads, file_uploads, tuple(dir_del_server), dir_make_local, tuple(dir_make_server), dir_del_local, tuple(file_del_local), server_path_nodes, unique_content, tuple(rename_files_server), tuple(rename_folders_server), tuple(local_dir_renames)
 
 
 def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
@@ -1048,14 +1070,18 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:922", "updating upload progress failed", str(exc)
+                print "cba_sync.py:1073", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
         service = server + cryptobox + "/" + "docs/upload" + "/" + str(time.time())
         file_object = open(file_path, "rb")
         rel_path = save_encode_b64(rel_file_path)
-        params = {'file': file_object, "uuid": uuid.uuid4().hex, "parent": parent, "path": rel_path, "ufile_name": os.path.basename(file_object.name)}
+        params = {'file': file_object,
+                  "uuid": uuid.uuid4().hex,
+                  "parent": parent,
+                  "path": rel_path,
+                  "ufile_name": os.path.basename(file_object.name)}
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -1095,6 +1121,7 @@ def possible_new_dirs_extend(file_path_list_param, memory):
     @type memory: Memory
     """
     file_path_list = list(file_path_list_param)
+
     for file_path in file_path_list:
         if file_path:
             file_path_list.extend(possible_new_dirs(file_path, memory))
@@ -1133,7 +1160,6 @@ def upload_files(memory, options, serverindex, file_uploads):
             uf["parent_short_id"] = uf["parent_path"] = ""
 
     files_uploaded = []
-
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
 
     for uf in file_uploads:
@@ -1180,7 +1206,6 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
-
     if memory.has("session"):
         memory = authorized(memory, options)
 
@@ -1196,13 +1221,19 @@ def sync_server(memory, options):
     # update seen server history files
     localindex = make_local_index(options)
     memory.replace("localindex", localindex)
-    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server_files, rename_server_folders = get_sync_changes(memory, options, localindex, serverindex)
+    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server_files, rename_server_folders, rename_local_folders = get_sync_changes(memory, options, localindex, serverindex)
 
     for rp in rename_server_files:
         memory = instruct_server_to_rename_path(memory, options, rp[0], rp[1])
 
     for rfp in rename_server_folders:
         memory = instruct_server_to_rename_path(memory, options, rfp[0], rfp[1])
+
+    for orlfp, nrlfp in rename_local_folders:
+        olfp = os.path.join(options.dir, orlfp.lstrip(os.sep))
+        nlfp = os.path.join(options.dir, nrlfp.lstrip(os.sep))
+        if os.path.exists(olfp):
+            os.rename(olfp, nlfp)
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)

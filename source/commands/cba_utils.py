@@ -20,7 +20,7 @@ g_lock = multiprocessing.Lock()
 DEBUG = True
 from multiprocessing import Pool
 if os.name == 'nt':
-    # noinspection PyUnresolvedReferences
+    #noinspection PyUnresolvedReferences
     import win32api, win32con
 
 
@@ -270,6 +270,7 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
+
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -300,7 +301,7 @@ def exit_app_warning(*arg):
     @param arg: list objects
     @type arg:
     """
-    print "cba_utils.py:300", arg
+    print "cba_utils.py:304", arg
     sys.exit(1)
 
 
@@ -329,6 +330,7 @@ def error_prefix():
     error_prefix
     """
     return ">"
+
 
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):
@@ -666,8 +668,8 @@ def check_command_folder(command_folder):
                         cmd["name"] = cmd["name"].replace(".cmd", "")
                         commands.append(cmd)
                     except ValueError:
-                        print "cba_utils.py:667", "json parse errror"
-                        print "cba_utils.py:668", jdata
+                        print "cba_utils.py:671", "json parse errror"
+                        print "cba_utils.py:672", jdata
 
             except Exception:
                 handle_exception(False)
