@@ -296,7 +296,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record = 
+        record =
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -454,10 +454,11 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
     if scope.items_out_of_sync > 0
         scope.progress_message = scope.items_out_of_sync + " items out of sync"
+        scope.sync_requested = true
 
 
 update_sync_state = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -535,7 +536,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -702,7 +703,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
     $scope.disable_encrypt_button = true
     $scope.disable_decrypt_button = true
     $scope.disable_check_button = false
-    $scope.disable_sync_button = true
+    $scope.disable_sync_button = false
     $scope.file_watch_started = false
     $scope.request_update_sync_state = false
     $scope.state_syncing = false
@@ -821,7 +822,6 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         sync_cb = (result, output) ->
             if result
                 $scope.state_syncing = false
-                $scope.disable_sync_button = false
                 $scope.disable_encrypt_button = false
                 $scope.request_update_sync_state = true
         run_cba_main("sync_cb", option, sync_cb, check_feedback_progress_callback, false)

@@ -562,7 +562,8 @@ set_sync_check_on_scope = function(scope, sync_results) {
   }
   scope.items_out_of_sync = items_out_of_sync;
   if (scope.items_out_of_sync > 0) {
-    return scope.progress_message = scope.items_out_of_sync + " items out of sync";
+    scope.progress_message = scope.items_out_of_sync + " items out of sync";
+    return $scope.sync_requested = true;
   }
 };
 
@@ -579,7 +580,7 @@ update_sync_state = function(scope) {
   result_sync_state = function(result, sync_result_list) {
     var process_sync_result;
     if (scope.disable_check_button) {
-      print("cryptobox.cf:470", "check done");
+      print("cryptobox.cf:471", "check done");
       scope.disable_check_button = false;
       scope.disable_sync_button = false;
     }
@@ -588,7 +589,7 @@ update_sync_state = function(scope) {
         var ex;
         if (sync_results.instruction != null) {
           if (sync_results.instruction === "lock_buttons_password_wrong") {
-            print("cryptobox.cf:478", sync_results.instruction);
+            print("cryptobox.cf:479", sync_results.instruction);
             return scope.lock_buttons_password_wrong = true;
           }
         } else {
@@ -611,8 +612,8 @@ update_sync_state = function(scope) {
             }
           } catch (_error) {
             ex = _error;
-            print("cryptobox.cf:497", ex);
-            return print("cryptobox.cf:498", sync_results);
+            print("cryptobox.cf:498", ex);
+            return print("cryptobox.cf:499", sync_results);
           }
         }
       };
@@ -764,7 +765,7 @@ g_progress_callback = function(scope, output) {
     }
   } catch (_error) {
     err = _error;
-    return print("cryptobox.cf:637", "g_progress_callback", err);
+    return print("cryptobox.cf:638", "g_progress_callback", err);
   }
 };
 
@@ -800,7 +801,7 @@ delete_blobs = function(scope) {
   option = get_option(scope);
   option.acommand = "delete_blobs";
   cb_delete_blobs = function(result, output) {
-    return print("cryptobox.cf:666", "blobs deleted", result, output);
+    return print("cryptobox.cf:667", "blobs deleted", result, output);
   };
   return run_cba_main("delete_blobs", option, cb_delete_blobs);
 };
@@ -844,7 +845,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   $scope.disable_encrypt_button = true;
   $scope.disable_decrypt_button = true;
   $scope.disable_check_button = false;
-  $scope.disable_sync_button = true;
+  $scope.disable_sync_button = false;
   $scope.file_watch_started = false;
   $scope.request_update_sync_state = false;
   $scope.state_syncing = false;
@@ -930,7 +931,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
       }
       return store_user_var("cb_password", $scope.cb_password, $q);
     }, function(err) {
-      return print("cryptobox.cf:786", "error setting password", err);
+      return print("cryptobox.cf:787", "error setting password", err);
     });
     $scope.form_changed = false;
     return $scope.request_update_sync_state = true;
@@ -958,7 +959,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   };
   do_sync = function() {
     var option, sync_cb;
-    print("cryptobox.cf:812", "start sync");
+    print("cryptobox.cf:813", "start sync");
     $scope.disable_sync_button = true;
     option = get_option($scope);
     option.clear = false;
@@ -969,7 +970,6 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     sync_cb = function(result, output) {
       if (result) {
         $scope.state_syncing = false;
-        $scope.disable_sync_button = false;
         $scope.disable_encrypt_button = false;
         return $scope.request_update_sync_state = true;
       }
