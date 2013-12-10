@@ -447,7 +447,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_dir()
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-
+        time.sleep(3)
         # build directories locally and on server
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.directories_synced())
@@ -554,7 +554,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.unzip_testfiles_synced()
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         map1 = '/smalltest'
-        map1_short_id = path_to_server_shortid(self.cbmemory, self.cboptions, serverindex, '/smalltest')
+        map1_short_id = path_to_server_shortid(self.cboptions, serverindex, '/smalltest')
         map1_2, self.cbmemory = short_id_to_server_path(self.cbmemory, serverindex, map1_short_id)
         self.assertEqual(map1, map1_2)
 
@@ -714,18 +714,18 @@ class CryptoboxAppTest(unittest.TestCase):
         fd, localindex = make_cryptogit_hash(fpath, self.cboptions.dir, localindex)
         self.assertEqual(fd["filehash"], '0c1d7e2e3283b3ee3f319533ea6aa6372982922f')
 
-    def test_rename_local(self):
+    def test_rename_file_local(self):
         """
         test_rename_local
         """
         self.do_wait_for_tasks = False
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-        os.system("rm -Rf testdata/test/all_types")
+        os.system("rm testdata/test/all_types/*")
         os.system("rm -Rf testdata/test/smalltest/test.java")
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
-        os.system("mv testdata/test/smalltest/test.cpp testdata/test/smalltest/test2.cpp")
+        os.system("mv testdata/test/smalltest/test.cpp testdata/test/all_types/test2.cpp")
         os.system("ls > testdata/test/smalltest/test3.txt")
         dir_del_local, dir_del_server, dir_make_local, dir_make_server, file_del_local, file_del_server, file_downloads, file_uploads, rename_server, folder_rename_server = self.get_sync_changes()
         self.assertEqual(len(file_uploads), 1)

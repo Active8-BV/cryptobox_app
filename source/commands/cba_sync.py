@@ -37,7 +37,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     """
     @type memory: Memory
     @type options: istance
-    @type all_unique_nodes: tuple
+    @type all_unique_nodes: dict
     @type local_paths: tuple
     """
     if len(local_paths) == 0:
@@ -428,7 +428,7 @@ def instruct_server_to_changename(memory, options, path1, path2):
     @type path2: str
     """
     serverindex = memory.get("serverindex")
-    node_short_id = path_to_server_shortid(memory, options, serverindex, path1)
+    node_short_id = path_to_server_shortid(options, serverindex, path1)
     nodename = os.path.basename(path2)
     payload = {"node_short_id": node_short_id, "nodename": nodename}
     result, memory = on_server(memory, options, "docs/changename", payload=payload, session=memory.get("session"))
@@ -532,9 +532,8 @@ def short_id_to_server_path(memory, serverindex, short_id):
         raise MultiplePathsForSID(short_id)
 
 
-def path_to_server_shortid(memory, options, serverindex, path):
+def path_to_server_shortid(options, serverindex, path):
     """
-    @type memory: Memory
     @param options:
     @type options:
     @param path:
@@ -646,7 +645,7 @@ def parse_serverindex(serverindex):
             dirname_hashes_server[dirname_hash] = node
         checked_dirnames.append(dirname_of_path)
 
-    return dirname_hashes_server, tuple(fnodes), tuple(unique_content), tuple(unique_dirs)
+    return dirname_hashes_server, tuple(fnodes), unique_content, tuple(unique_dirs)
 
 
 def diff_new_files_on_server(memory, options, server_path_nodes, dirs_scheduled_for_removal):
@@ -950,7 +949,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     rename_files_server = frozenset(renames_server)
     rename_folders_server = frozenset(dir_renames)
 
-    return memory, options, file_del_server, file_downloads, file_uploads, tuple(dir_del_server), dir_make_local, tuple(dir_make_server), dir_del_local, tuple(file_del_local), server_path_nodes, unique_content, rename_files_server, rename_folders_server
+    return memory, options, file_del_server, file_downloads, file_uploads, tuple(dir_del_server), dir_make_local, tuple(dir_make_server), dir_del_local, tuple(file_del_local), server_path_nodes, unique_content, tuple(rename_files_server), tuple(rename_folders_server)
 
 
 def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
@@ -1033,7 +1032,7 @@ def possible_new_dirs(file_path, memory):
 
 def possible_new_dirs_extend(file_path_list_param, memory):
     """
-    @type file_path_list: tuple
+    @type file_path_list_param: tuple
     @type memory: Memory
     """
     file_path_list = list(file_path_list_param)
@@ -1085,7 +1084,7 @@ def upload_files(memory, options, serverindex, file_uploads):
             files_uploaded.append(file_path)
             output_json({"item_progress": 0})
 
-    return memory, files_uploaded
+    return memory, tuple(files_uploaded)
 
 
 class NoSyncDirFound(Exception):
@@ -1122,6 +1121,7 @@ def sync_server(memory, options):
     @return: @rtype: @raise:
 
     """
+
     if memory.has("session"):
         memory = authorized(memory, options)
 
@@ -1163,7 +1163,7 @@ def sync_server(memory, options):
     del_server_items = []
 
     for del_file in file_del_server:
-        del_short_guid = path_to_server_shortid(memory, options, serverindex, del_file.replace(options.dir, ""))
+        del_short_guid = path_to_server_shortid(options, serverindex, del_file.replace(options.dir, ""))
         del_server_items.append(del_short_guid)
 
     # delete items

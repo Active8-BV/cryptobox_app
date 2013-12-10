@@ -37,12 +37,9 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
-
         class _Popen(multiprocessing.forking.Popen):
-
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
-
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -55,7 +52,6 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
-
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -72,6 +68,7 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
+
 
 monkeypatch_popen()
 
@@ -398,7 +395,7 @@ def cryptobox_command(options):
                     timers.event("check make_local_index")
                     localindex = make_local_index(options)
                     timers.event("check get_sync_changes")
-                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server = get_sync_changes(memory, options, localindex, serverindex)
+                    memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server, rename_dirs = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
@@ -409,7 +406,8 @@ def cryptobox_command(options):
                                   "dir_del_local": dir_del_local,
                                   "file_del_local": file_del_local,
                                   "all_synced": all_synced,
-                                  "rename_server": rename_server}
+                                  "rename_file_server": rename_server,
+                                  "rename_folder_server": rename_dirs}
                     output_json(outputdict)
                 elif options.sync:
                     if options.encrypt:
@@ -480,9 +478,9 @@ def main():
 
         raise
 
+
 if strcmp(__name__, '__main__'):
     try:
-
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()

@@ -140,7 +140,7 @@ option_to_array = (name, option) ->
     cmd_str += " --version " + option.version if option.version?
     cmd_str += " --server " + option.server if option.server?
     cmd_str += " --compiled " + option.compiled if option.compiled?
-    print "cryptobox.cf:143", "python cba_main.py", cmd_str.trim()
+    #print "cryptobox.cf:143", "python cba_main.py", cmd_str.trim()
     param_array = []
 
     push_param_array = (i) ->
@@ -297,7 +297,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record = 
+        record =
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -446,7 +446,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -524,7 +524,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password

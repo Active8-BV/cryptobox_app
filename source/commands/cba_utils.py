@@ -127,7 +127,10 @@ def output_json(dict_obj):
     """
     @type dict_obj: dict
     """
-    output(json.dumps(dict_obj))
+    try:
+        output(json.dumps(dict_obj))
+    except Exception, e:
+        log_json("output_json failed: "+str(e))
 
 
 def message_json(msg):
@@ -267,7 +270,6 @@ class Dict2Obj(dict):
                 self[key] = Dict2Obj(item)
 
     def __getattr__(self, key):
-
         # Enhanced to handle key not found.
         if key in self:
             return self[key]
@@ -327,7 +329,6 @@ def error_prefix():
     error_prefix
     """
     return ">"
-
 
 #noinspection PyUnresolvedReferences
 def handle_exception(again=True, ret_err=False):

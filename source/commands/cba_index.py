@@ -134,6 +134,9 @@ def hide_config(options, salt, secret):
     if salt and secret:
         datadir = get_data_dir(options)
         mempath = os.path.join(datadir, "memory.pickle")
+        jsonpath = os.path.join(datadir, "memory.pickle.json")
+        if os.path.exists(jsonpath):
+            os.remove(jsonpath)
 
         if os.path.exists(mempath):
             read_and_encrypt_file(mempath, mempath + ".enc", secret)
