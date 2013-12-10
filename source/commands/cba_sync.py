@@ -1142,7 +1142,8 @@ def sync_server(memory, options):
         memory = instruct_server_to_rename_path(memory, options, rp[0], rp[1])
 
     for rfp in rename_server_folders:
-        memory = instruct_server_to_changename(memory, options, rfp[0], rfp[1])
+        memory = instruct_server_to_rename_path(memory, options, rfp[0], rfp[1])
+        #memory = instruct_server_to_changename(memory, options, rfp[0], rfp[1])
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
