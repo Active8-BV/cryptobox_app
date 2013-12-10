@@ -1028,14 +1028,15 @@ def possible_new_dirs(file_path, memory):
             tmp_dir += "/" + up
             possible_new_dir_list.append(tmp_dir)
 
-    return list(set(possible_new_dir_list))
+    return tuple(set(possible_new_dir_list))
 
 
-def possible_new_dirs_extend(file_path_list, memory):
+def possible_new_dirs_extend(file_path_list_param, memory):
     """
-    @type file_path_list: lsit
+    @type file_path_list: tuple
     @type memory: Memory
     """
+    file_path_list = list(file_path_list_param)
     for file_path in file_path_list:
         if file_path:
             file_path_list.extend(possible_new_dirs(file_path, memory))

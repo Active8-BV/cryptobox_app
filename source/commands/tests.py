@@ -309,21 +309,21 @@ class CryptoboxAppTest(unittest.TestCase):
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 53)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 38)
 
         # add a new file
         open(os.path.join(self.cboptions.dir, "hello world.txt"), "w").write("hello world 123 Dit is random data")
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 60)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 46)
 
         # same content, blob count should not rise
         open(os.path.join(self.cboptions.dir, "hello world2.txt"), "w").write("hello world 123 Dit is random data")
         salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
         self.assertIsNotNone(salt)
         self.assertIsNotNone(secret)
-        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 60)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 46)
 
     @staticmethod
     def delete_hidden_configs():
@@ -624,7 +624,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertFalse(os.path.exists("testdata/test/all_types"))
         localindex = make_local_index(self.cboptions)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        cbmemory, cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_paths = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
+        cbmemory, cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_paths, dir_renames = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(dir_del_server), 4)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.unzip_testfiles_clean()
@@ -645,7 +645,7 @@ class CryptoboxAppTest(unittest.TestCase):
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
         self.cbmemory = instruct_server_to_delete_folders(self.cbmemory, self.cboptions, serverindex, dir_del_server)
         serverindex, self.cbmemory = get_server_index(self.cbmemory, self.cboptions)
-        cbmemory, cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_paths = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
+        cbmemory, cboptions, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_paths, dir_renames = get_sync_changes(self.cbmemory, self.cboptions, localindex, serverindex)
         self.assertEqual(len(dir_del_local), 1)
 
     def test_sync_method_clean_tree_remove_local_folder(self):
