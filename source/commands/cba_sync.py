@@ -55,7 +55,6 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
         update_item_progress(100)
         output_json({"item_progress": 0})
         memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
-        output_json({"file_downloads": file_nodes_left})
         downloaded_files_cnt += 1
     update_progress(downloaded_files_cnt, len(unique_nodes), "downloading done")
 
@@ -71,15 +70,15 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                     break
 
         data = None
-
-        if not os.path.exists(source_path):
-            fhash = lp["content_hash_latest_timestamp"][0]
-            source_path = os.path.join(get_blob_dir(options), fhash[:2])
-            source_path = os.path.join(source_path, fhash[2:])
-            memory = add_path_history(file_path, memory)
-            secret = password_derivation(options.password, base64.decodestring(memory.get("salt_b64")))
-            dec_file = decrypt_file(source_path, secret)
-            data = dec_file.read()
+        if source_path:
+            if not os.path.exists(source_path):
+                fhash = lp["content_hash_latest_timestamp"][0]
+                source_path = os.path.join(get_blob_dir(options), fhash[:2])
+                source_path = os.path.join(source_path, fhash[2:])
+                memory = add_path_history(file_path, memory)
+                secret = password_derivation(options.password, base64.decodestring(memory.get("salt_b64")))
+                dec_file = decrypt_file(source_path, secret)
+                data = dec_file.read()
 
         if source_path:
             if not data:

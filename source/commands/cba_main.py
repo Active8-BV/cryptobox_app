@@ -396,7 +396,7 @@ def cryptobox_command(options):
                     localindex = make_local_index(options)
                     timers.event("check get_sync_changes")
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server, rename_dirs = get_sync_changes(memory, options, localindex, serverindex)
-                    all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local])
+                    all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, rename_server, rename_dirs])
                     outputdict = {"file_del_server": file_del_server,
                                   "file_downloads": file_downloads,
                                   "file_uploads": file_uploads,
