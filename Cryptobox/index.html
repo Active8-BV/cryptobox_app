@@ -25,12 +25,11 @@
 <body>
 
 <div>
-    <div style="background-color: #272464">
-        &nbsp;<a ng-click="close_window()"><i class="fa fa-power-off" style="color: white; cursor: pointer;"></i></a>
-        &nbsp;<a ng-click="hide_window()"><i class="fa fa-search-minus" style="color: white; cursor: pointer;"></i></a>
-
+    <!--
+    <div class="menubarapp">
+        &nbsp;<a ng-click="hide_window()"><img src="images/close-icon.png" width="18" style="cursor: pointer;"></img></a>
     </div>
-
+    --->
     <br/>
 
     <div class="container">
@@ -89,7 +88,7 @@
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                     <i class="fa fa-download"></i>&nbsp;<a style="cursor: pointer;" ng-click="download_new_release()">{{show_new_release_download_dialog_message}}</a>
                 </div>
-
+                <!--
                 <form class="form-horizontal" role="form">
                     <div class="btn-group btn-group">
                         <button type="button" ng-disabled="get_lock_buttons()||disable_sync_button" class="btn btn-default" ng-click="sync_btn()"><i class="fa fa-refresh" ng-hide="state_syncing" style="margin-right: 4px"></i><i class="fa fa-refresh fa-spin" ng-show="state_syncing" style="margin-right: 4px"></i>Sync</button>
@@ -101,6 +100,7 @@
                         <button type="button" class="btn btn-default" ng-click="debug_btn()"><i class="fa fa-dashboard" style="margin-right: 4px"></i>Debug</button>
                     </div>
                 </form>
+                -->
             </div>
         </div>
         <div class="row">
@@ -109,7 +109,7 @@
             </div>
         </div>
 
-        <div class="well" ng-show="show_settings">
+        <div class="well" ng-show="show_settings" style="background-color: white;">
             <button type="button" class="close" ng-click="toggle_settings()" aria-hidden="true" style="margin-top: -12px; margin-right: -8px;">&times;</button>
             <br/>
 
@@ -170,13 +170,13 @@
         </div>
 
         <div class="row">
-            <div class="col-sm-12" ng-show="show_debug">
+            <div class="col-sm-12" ng-show="show_debug" style="background-color: white;">
 
                 <button type="button" class="close" ng-click="toggle_debug()" aria-hidden="true" style="margin: 8px;">&times;</button>
                 <button type="button" class="close" ng-click="clear_msg_buffer()" aria-hidden="true" style="margin: 8px;"><i class="fa fa-trash-o"></i></button>
                 <button type="button" class="close" ng-click="debug_btn()"><i class="fa fa-search" style="margin: 8px"></i></button>
 
-                <pre style="font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
+                <pre style="background-color: white; font-size: 12px; min-height: 38px;">{{ cmd_output }}</pre>
             </div>
         </div>
 

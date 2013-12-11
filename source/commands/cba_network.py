@@ -254,7 +254,10 @@ class PasswordException(Exception):
     """
     PasswordException
     """
-    pass
+
+    def __init__(self, *args, **kwargs): # real signature unknown
+
+        super(PasswordException, self).__init__(args, kwargs)
 
 
 def authorize(memory, options):
@@ -309,7 +312,6 @@ def authorize_user(memory, options, force=False):
         memory.replace("connection", False)
         return memory
     except Exception, ex:
-        log_json("not authorized: " + str(ex))
         memory.replace("authorized", False)
         return memory
 
