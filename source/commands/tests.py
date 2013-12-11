@@ -790,8 +790,6 @@ class CryptoboxAppTest(unittest.TestCase):
         test_rename_on_server
         """
         self.do_wait_for_tasks = True
-        self.reset_cb_db_clean()
-        self.unzip_testfiles_clean()
         self.reset_cb_db_synced()
         self.unzip_testfiles_synced()
         self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
@@ -800,6 +798,52 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertEqual(len(rename_local_folders), 1)
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
+
+    def test_super_large_file(self):
+        """
+
+        """
+        self.reset_cb_db_clean()
+        self.unzip_testfiles_clean()
+
+        self.make_testfile("3000MB.zip", 1)
+        os.system("rm testdata/test/all_types/*")
+        os.system("rm -Rf testdata/test/smalltest")
+        os.system("cp testdata/3000MB.zip testdata/test/all_types/")
+
+        localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
+        self.assertTrue(self.files_synced())
+        datadir = get_data_dir(self.cboptions)
+        self.cbmemory.save(datadir)
+        p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
+        org_files = get_files_dir(p, ignore_hidden=True)
+        org_files = [x for x in org_files if "memory.pickle.json" not in x]
+        org_files = [make_sha1_hash_file(fpath=x) for x in org_files]
+
+        self.delete_hidden_configs()
+        self.do_wait_for_tasks = False
+        self.cboptions.remove = True
+        salt, secret, self.cbmemory, localindex = index_and_encrypt(self.cbmemory, self.cboptions)
+        datadir = get_data_dir(self.cboptions)
+        self.cbmemory.save(datadir)
+        hide_config(self.cboptions, salt, secret)
+        self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
+
+        options = self.cboptions
+        options.encrypt = False
+        options.decrypt = True
+        options.remove = False
+        secret = restore_hidden_config(options)
+        datadir = get_data_dir(self.cboptions)
+        memory = Memory()
+        memory.load(datadir)
+        decrypt_and_build_filetree(memory, options, secret)
+
+        org_files2 = get_files_dir(p, ignore_hidden=True)
+        org_files2 = [make_sha1_hash_file(fpath=x) for x in org_files2]
+        self.assertEqual(set(org_files), set(org_files2))
+
+        #os.system("rm -Rf testdata/test")
 
 
 if __name__ == '__main__':
