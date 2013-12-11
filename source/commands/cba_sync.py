@@ -68,8 +68,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                     source_path = os.path.join(options.dir, all_unique_nodes[lph]["doc"]["m_path"].lstrip(os.path.sep))
                     break
 
-        data = None
-
+        datapath = data = None
         if source_path:
             if not os.path.exists(source_path):
                 fhash = lp["content_hash_latest_timestamp"][0]
@@ -78,13 +77,12 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                 memory = add_path_history(file_path, memory)
                 secret = password_derivation(options.password, base64.decodestring(memory.get("salt_b64")))
                 dec_file = decrypt_file(source_path, secret)
-                data = dec_file.read()
+                datapath = dec_file.name
 
-        if source_path:
-            if not data:
-                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data, datapath = read_file(source_path, True)
+            if not datapath:
+                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, datapath = read_file(source_path, True)
             else:
-                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data_tmp, datapath = read_file(source_path)
+                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, datapath_dummy = read_file(source_path)
 
             st_mtime = int(lp["content_hash_latest_timestamp"][1])
             write_file(file_path, data, datapath, st_mtime, st_mtime, st_mode, st_uid, st_gid)
@@ -419,6 +417,7 @@ def instruct_server_to_rename_path(memory, options, path1, path2):
     """
     payload = {"path1": path1,
                "path2": path2}
+
     result, memory = on_server(memory, options, "docs/renamepath", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -436,6 +435,7 @@ def instruct_server_to_changename(memory, options, path1, path2):
     nodename = os.path.basename(path2)
     payload = {"node_short_id": node_short_id,
                "nodename": nodename}
+
     result, memory = on_server(memory, options, "docs/changename", payload=payload, session=memory.get("session"))
     memory = wait_for_tasks(memory, options)
     return memory
@@ -706,7 +706,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
             upload_file_object = {"local_path": local_path,
                                   "parent_short_id": None,
                                   "rel_path": local_path.replace(options.dir,
-                                  "")}
+                                                                 "")}
 
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 
@@ -728,14 +728,17 @@ def diff_files_locally(memory, options, localindex, serverindex):
                 # is it changed?
                 if len(corresponding_server_nodes) != 0:
                     filestats = read_file_to_fdict(local_path)
+
                     if filestats and corresponding_server_nodes[0]:
                         try:
                             if filestats["st_ctime"] > corresponding_server_nodes[0]["content_hash_latest_timestamp"][1]:
                                 filedata, localindex = make_cryptogit_hash(local_path, options.dir, localindex)
                                 if filedata["filehash"] != corresponding_server_nodes[0]["content_hash_latest_timestamp"][0]:
                                     file_uploads.append(upload_file_object)
+
                         except:
                             raise
+
     file_del_local = []
     server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
     for local_path in local_pathnames_set:
@@ -754,7 +757,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:755", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:760", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):
@@ -1072,7 +1075,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                             update_item_progress(percentage)
 
             except Exception, exc:
-                print "cba_sync.py:1073", "updating upload progress failed", str(exc)
+                print "cba_sync.py:1078", "updating upload progress failed", str(exc)
 
         opener = poster.streaminghttp.register_openers()
         opener.add_handler(urllib2.HTTPCookieProcessor(session.cookies))
@@ -1084,6 +1087,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
                   "parent": parent,
                   "path": rel_path,
                   "ufile_name": os.path.basename(file_object.name)}
+
         poster.encode.MultipartParam.last_cb_time = time.time()
         datagen, headers = poster.encode.multipart_encode(params, cb=prog_callback)
         request = urllib2.Request(service, datagen, headers)
@@ -1234,6 +1238,7 @@ def sync_server(memory, options):
     for orlfp, nrlfp in rename_local_folders:
         olfp = os.path.join(options.dir, orlfp.lstrip(os.sep))
         nlfp = os.path.join(options.dir, nrlfp.lstrip(os.sep))
+
         if os.path.exists(olfp):
             os.rename(olfp, nlfp)
 

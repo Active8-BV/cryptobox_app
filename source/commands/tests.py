@@ -339,7 +339,6 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_hide_config
         """
-
         self.delete_hidden_configs()
         self.do_wait_for_tasks = False
         self.unzip_testfiles_configonly()

@@ -33,6 +33,7 @@ def write_file(path, data, content_path, a_time, m_time, st_mode, st_uid, st_gid
             data.seek(0)
             fout = open(path, "wb")
             chunk = data.read(20**2*5)
+
             while chunk:
                 fout.write(chunk)
                 chunk = data.read(20 ** 2 * 5)
@@ -43,9 +44,11 @@ def write_file(path, data, content_path, a_time, m_time, st_mode, st_uid, st_gid
     elif content_path:
         if not os.path.exists(content_path):
             raise Exception("content_path does not exist")
+
         os.rename(content_path, path)
     else:
         raise Exception("no data no content_path")
+
     os.utime(path, (a_time, m_time))
     if st_mode:
         os.chmod(path, st_mode)
@@ -60,11 +63,11 @@ def read_file(path, read_data=False):
     @type read_data: bool
     @return: @rtype:
     """
-
     if read_data:
         tempfile_data = get_named_temporary_file(auto_delete=False)
         dataf = open(path, "rb")
         chunk = dataf.read(2**20*5)
+
         while chunk:
             tempfile_data.write(chunk)
             chunk = dataf.read(2 ** 20 * 5)

@@ -3,7 +3,6 @@
 routines to connect to cryptobox
 """
 import os
-
 import time
 import threading
 import base64
@@ -207,11 +206,12 @@ def download_server(memory, options, url, output_name_item_percentage=None):
 
     if result.status_code == 500:
         raise ServerError(result.reason)
+
     tf_download = get_named_temporary_file(auto_delete=False)
+
     if "Content-Length" in result.headers:
         size = int(result.headers['Content-Length'].strip())
         downloaded_bytes = 0
-
         prev_percenage = -1
         last_update = time.time()
 
@@ -258,7 +258,6 @@ class PasswordException(Exception):
     """
 
     def __init__(self, *args, **kwargs): # real signature unknown
-
         super(PasswordException, self).__init__(args, kwargs)
 
 
@@ -295,7 +294,9 @@ def authorize_user(memory, options, force=False):
     @type options: optparse.Values, instance
     @type force: bool
     """
-    # noinspection PyBroadException
+
+    #noinspection PyBroadException
+
     try:
         if memory.has("authorized"):
             if force:

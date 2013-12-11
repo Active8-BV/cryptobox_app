@@ -320,6 +320,7 @@ def index_and_encrypt(memory, options):
 
             if len(blob_entries) == 0:
                 shutil.rmtree(blob_dir, True)
+
     cleanup_tempfiles()
     return salt, secret, memory, localindex
 
@@ -330,12 +331,12 @@ def reset_cryptobox_local(options):
     @type options: optparse.Values, instance
     """
     if not hasattr(options, "clear") or not hasattr(options, "encrypt"):
-        print "cba_index.py:333", "check_and_clean_dir needs clear and encrypt option"
+        print "cba_index.py:334", "check_and_clean_dir needs clear and encrypt option"
         return
 
     if options.clear == "1":
         if options.encrypt:
-            print "cba_index.py:338", "clear options cannot be used together with encrypt, possible data loss"
+            print "cba_index.py:339", "clear options cannot be used together with encrypt, possible data loss"
             return
 
         datadir = get_data_dir(options)
@@ -355,7 +356,7 @@ def decrypt_and_build_filetree(memory, options, secret):
     datadir = get_data_dir(options)
 
     if not os.path.exists(datadir):
-        print "cba_index.py:358", "nothing to decrypt", datadir, "does not exists"
+        print "cba_index.py:359", "nothing to decrypt", datadir, "does not exists"
         return memory
 
     output_json({"msg": "preparing decrypt"})

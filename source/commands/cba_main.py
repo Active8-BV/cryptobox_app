@@ -37,9 +37,12 @@ def monkeypatch_popen():
     hack for pyinstaller on windows
     """
     if sys.platform.startswith('win'):
+
         class _Popen(multiprocessing.forking.Popen):
+
             def __init__(self, *args, **kw):
                 if hasattr(sys, 'frozen'):
+
                     # We have to set original _MEIPASS2 value from sys._MEIPASS
                     # to get --onefile mode working.
                     # Last character is stripped in C-loader. We have to add
@@ -52,6 +55,7 @@ def monkeypatch_popen():
                     super(_Popen, self).__init__(*args, **kw)
                 finally:
                     if hasattr(sys, 'frozen'):
+
                         # On some platforms (e.g. AIX) 'os.unsetenv()' is not
                         # available. In those cases we cannot delete the variable
                         # but only set it to the empty string. The bootloader
@@ -68,7 +72,6 @@ def monkeypatch_popen():
             Process
             """
             _Popen = _Popen
-
 
 monkeypatch_popen()
 
@@ -209,7 +212,6 @@ def cryptobox_command(options):
                 output_json({"msg": ""})
                 output_json({"item_progress": 0})
                 output_json({"global_progress": 0})
-
                 root = Tkinter.Tk()
                 root.withdraw()
                 file_path = tkFileDialog.asksaveasfilename(parent=None, message="Cryptobox", initialfile='Cryptobox.dmg')
@@ -219,6 +221,7 @@ def cryptobox_command(options):
                         if os.path.exists(tempfile_cb):
                             os.rename(tempfile_cb, file_path)
                             cleanup_tempfiles()
+
                 return
             elif options.acommand == "delete_blobs":
                 if not options.dir:
@@ -480,12 +483,12 @@ def main():
 
         raise
 
-
 if strcmp(__name__, '__main__'):
     try:
+
         # On Windows calling this function is necessary.
         if sys.platform.startswith('win'):
             multiprocessing.freeze_support()
         main()
     except KeyboardInterrupt:
-        print "cba_main.py:493", "\nbye main"
+        print "cba_main.py:494", "\nbye main"
