@@ -377,7 +377,7 @@ def cryptobox_command(options):
         elif options.password and options.username and options.cryptobox and (options.sync or options.check):
             memory = authorize_user(memory, options, force=True)
 
-            if not memory.get("connection"):
+            if not memory.get("connection"): 
                 return
 
             if not memory.get("authorized"):
