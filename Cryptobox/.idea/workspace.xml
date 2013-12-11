@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b3e5de0c-6dde-4740-a16d-9e8873ef2855" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/about.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../source/cryptobox.coffee" afterPath="$PROJECT_DIR$/../source/cryptobox.coffee" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cryptobox.js" afterPath="$PROJECT_DIR$/cryptobox.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/css/cryptobox_app.css" afterPath="$PROJECT_DIR$/css/cryptobox_app.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/package.json" afterPath="$PROJECT_DIR$/package.json" />
-    </list>
+    <list default="true" id="b3e5de0c-6dde-4740-a16d-9e8873ef2855" name="Default" comment="" />
     <ignored path="Cryptobox.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
