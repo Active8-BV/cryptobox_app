@@ -4,7 +4,7 @@ file operations
 """
 import os
 from cba_utils import strcmp, get_files_dir, update_item_progress, output_json
-from cba_crypto import make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp
+from cba_crypto import make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp, get_named_temporary_file
 
 
 def ensure_directory(path):
@@ -15,10 +15,10 @@ def ensure_directory(path):
         os.makedirs(path)
 
 
-def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
+def write_file(path, data, content_path, a_time, m_time, st_mode, st_uid, st_gid):
     """
     @type path: str
-    @type data: str or unicode or file
+    @type data: str or unicode, None
     @type a_time: int
     @type m_time: int
     @type st_mode: __builtin__.NoneType
@@ -28,13 +28,24 @@ def write_file(path, data, a_time, m_time, st_mode, st_uid, st_gid):
     if not os.path.exists(os.path.dirname(path)):
         os.makedirs(os.path.dirname(path))
 
-    if hasattr(data, "seek"):
-        data.seek(0)
-        data = data.read()
-
-    fout = open(path, "wb")
-    fout.write(data)
-    fout.close()
+    if data:
+        if hasattr(data, "seek"):
+            data.seek(0)
+            fout = open(path, "wb")
+            chunk = data.read(20**2*5)
+            while chunk:
+                fout.write(chunk)
+                chunk = data.read(20 ** 2 * 5)
+        else:
+            fout = open(path, "wb")
+            fout.write(data)
+            fout.close()
+    elif content_path:
+        if not os.path.exists(content_path):
+            raise Exception("content_path does not exist")
+        os.rename(content_path, path)
+    else:
+        raise Exception("no data no content_path")
     os.utime(path, (a_time, m_time))
     if st_mode:
         os.chmod(path, st_mode)
@@ -49,8 +60,16 @@ def read_file(path, read_data=False):
     @type read_data: bool
     @return: @rtype:
     """
+
     if read_data:
-        data = open(path, "rb").read()
+        tempfile_data = get_named_temporary_file(auto_delete=False)
+        dataf = open(path, "rb")
+        chunk = dataf.read(2**20*5)
+        while chunk:
+            tempfile_data.write(chunk)
+            chunk = dataf.read(2 ** 20 * 5)
+        tempfile_data.seek(0)
+        data = tempfile_data.name
     else:
         data = None
 
@@ -74,7 +93,7 @@ def read_file_to_fdict(path, read_data=False):
                  "st_size": int(ft[6])}
 
     if read_data:
-        file_dict["data"] = ft[7]
+        file_dict["content_path"] = ft[7]
 
     return file_dict
 
@@ -87,7 +106,10 @@ def write_fdict_to_file(fdict, path):
     @type path:
     """
     output_json({"msg": "write: " + path})
-    write_file(path, fdict["data"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
+    if "content_path" in fdict:
+        write_file(path, None, fdict["content_path"], fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
+    else:
+        write_file(path, fdict["data"], None, fdict["st_atime"], fdict["st_mtime"], fdict["st_mode"], fdict["st_uid"], fdict["st_gid"])
 
 
 def read_and_encrypt_file(fpath, blobpath, secret):

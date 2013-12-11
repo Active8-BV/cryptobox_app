@@ -28,7 +28,7 @@ from cba_index import restore_hidden_config, ensure_directory, hide_config, inde
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
 from cba_blobs import get_data_dir
-from cba_crypto import make_sha1_hash_file, password_derivation
+from cba_crypto import make_sha1_hash_file, password_derivation, cleanup_tempfiles
 from tendo import singleton
 
 
@@ -205,20 +205,20 @@ def cryptobox_command(options):
 
                 output_json({"msg": "Downloading Cryptobox.dmg"})
                 download_url = urlparse.urljoin(options.server, "/st/data/Cryptobox.dmg")
-                result = download_server(None, options, download_url, output_name_item_percentage="global_progress")
+                tempfile_cb = download_server(None, options, download_url, output_name_item_percentage="global_progress")
                 output_json({"msg": ""})
                 output_json({"item_progress": 0})
                 output_json({"global_progress": 0})
 
-                #be - defaultextension, -filetypes, -initialdir, -initialfile, -message, -parent, -title, -typevariable, or -command >> >
                 root = Tkinter.Tk()
                 root.withdraw()
                 file_path = tkFileDialog.asksaveasfilename(parent=None, message="Cryptobox", initialfile='Cryptobox.dmg')
 
                 if file_path:
                     if os.path.exists(os.path.dirname(file_path)):
-                        open(file_path, "wb").write(result)
-
+                        if os.path.exists(tempfile_cb):
+                            os.rename(tempfile_cb, file_path)
+                            cleanup_tempfiles()
                 return
             elif options.acommand == "delete_blobs":
                 if not options.dir:
@@ -377,7 +377,7 @@ def cryptobox_command(options):
         elif options.password and options.username and options.cryptobox and (options.sync or options.check):
             memory = authorize_user(memory, options, force=True)
 
-            if not memory.get("connection"): 
+            if not memory.get("connection"):
                 return
 
             if not memory.get("authorized"):

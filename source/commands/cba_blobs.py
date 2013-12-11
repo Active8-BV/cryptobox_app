@@ -77,12 +77,13 @@ class NoTimeStamp(Exception):
     pass
 
 
-def write_blob_to_filepath(memory, node, options, data):
+def write_blob_to_filepath(memory, node, options, data, content_path):
     """
     @type memory: Memory
     @type node: dict
     @type options: optparse.Values, instance
     @type data: str or unicode
+    @type content_path: str or unicode
     """
     if not node["content_hash_latest_timestamp"][1]:
         raise NoTimeStamp(str(node))
@@ -92,17 +93,18 @@ def write_blob_to_filepath(memory, node, options, data):
     new_path = os.path.join(options.dir, os.path.join(dirname_of_path.lstrip(os.path.sep), node["doc"]["m_name"]))
     memory = add_local_path_history(memory, new_path)
     output_json({"msg": new_path})
-    write_file(path=new_path, data=data, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
+    write_file(path=new_path, data=data, content_path=content_path, a_time=st_mtime, m_time=st_mtime, st_mode=None, st_uid=None, st_gid=None)
     return memory
 
 
-def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash):
+def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash, content_path):
     """
     @type memory: Memory
     @type options: optparse.Values
     @type file_nodes: tuple
-    @type data: str or unicode
+    @type data: str or unicode or None
     @type downloaded_fhash: unicode
+    @type content_path: str or unicode
     """
     files_same_hash = []
     file_nodes_copy = list(file_nodes)
@@ -115,7 +117,7 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
 
     for fnode in files_same_hash:
         memory = add_server_path_history(memory, fnode["doc"]["m_path"])
-        write_blob_to_filepath(memory, fnode, options, data)
+        write_blob_to_filepath(memory, fnode, options, data, content_path)
         file_nodes_copy.remove(fnode)
 
     return memory, file_nodes_copy

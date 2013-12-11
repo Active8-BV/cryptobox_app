@@ -50,10 +50,10 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
 
     for node in unique_nodes:
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))
-        content, content_hash = download_blob(memory, options, node)
+        content_path, content_hash = download_blob(memory, options, node)
         update_item_progress(100)
         output_json({"item_progress": 0})
-        memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, content, content_hash)
+        memory, file_nodes_left = write_blobs_to_filepaths(memory, options, local_paths, None, content_hash, content_path)
         downloaded_files_cnt += 1
     update_progress(downloaded_files_cnt, len(unique_nodes), "downloading done")
 
@@ -82,12 +82,12 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
 
         if source_path:
             if not data:
-                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data = read_file(source_path, True)
+                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data, datapath = read_file(source_path, True)
             else:
-                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data_tmp = read_file(source_path)
+                st_ctime, st_atime, st_mtime, st_mode, st_uid, st_gid, st_size, data_tmp, datapath = read_file(source_path)
 
             st_mtime = int(lp["content_hash_latest_timestamp"][1])
-            write_file(file_path, data, st_mtime, st_mtime, st_mode, st_uid, st_gid)
+            write_file(file_path, data, datapath, st_mtime, st_mtime, st_mode, st_uid, st_gid)
 
     local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
 

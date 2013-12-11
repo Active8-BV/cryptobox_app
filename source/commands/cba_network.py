@@ -3,13 +3,15 @@
 routines to connect to cryptobox
 """
 import os
+
 import time
 import threading
 import base64
 import urllib
 import json
 import requests
-from cba_utils import Memory, update_item_progress, log_json, message_json
+from cba_utils import Memory, update_item_progress, message_json
+from cba_crypto import get_named_temporary_file
 
 
 def get_b64mstyle():
@@ -205,17 +207,17 @@ def download_server(memory, options, url, output_name_item_percentage=None):
 
     if result.status_code == 500:
         raise ServerError(result.reason)
-
+    tf_download = get_named_temporary_file(auto_delete=False)
     if "Content-Length" in result.headers:
         size = int(result.headers['Content-Length'].strip())
         downloaded_bytes = 0
-        fileb = []
+
         prev_percenage = -1
         last_update = time.time()
 
         for buf in result.iter_content(1024):
             if buf:
-                fileb.append(buf)
+                tf_download.write(buf)
                 downloaded_bytes += len(buf)
                 divider = float(size) / 100
 
@@ -232,11 +234,11 @@ def download_server(memory, options, url, output_name_item_percentage=None):
 
                         prev_percenage = percentage
 
-        content = b"".join(fileb)
+        return tf_download
     else:
-        content = result.content
+        tf_download.write(result.content)
 
-    return content
+    return tf_download.name
 
 
 def server_time(memory, options):
@@ -293,6 +295,7 @@ def authorize_user(memory, options, force=False):
     @type options: optparse.Values, instance
     @type force: bool
     """
+    # noinspection PyBroadException
     try:
         if memory.has("authorized"):
             if force:
@@ -311,7 +314,7 @@ def authorize_user(memory, options, force=False):
         memory.replace("authorized", False)
         memory.replace("connection", False)
         return memory
-    except Exception, ex:
+    except:
         memory.replace("authorized", False)
         return memory
 

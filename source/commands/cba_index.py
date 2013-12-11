@@ -320,7 +320,7 @@ def index_and_encrypt(memory, options):
 
             if len(blob_entries) == 0:
                 shutil.rmtree(blob_dir, True)
-
+    cleanup_tempfiles()
     return salt, secret, memory, localindex
 
 
@@ -389,4 +389,5 @@ def decrypt_and_build_filetree(memory, options, secret):
         paths = decrypt_blob_to_filepaths(blobdir, localindex, cfile[0], secret)
 
     memory = store_localindex(memory, localindex)
+    cleanup_tempfiles()
     return memory
