@@ -202,13 +202,8 @@ parse_json = (method, data, givelist, debug) ->
     if not givelist
         if _.size(output) == 1
             return output[0]
-
-        if _.size(output) > 1
-
-            #require('nw.gui').Window.get().showDevTools()
-            print "cryptobox.cf:209", method, "parse_json multiple elements but givelist is not requested"
-            console?.log? datacopy
-
+        else
+            return output[_.size(output)-1]
     return output
 
 
@@ -255,6 +250,7 @@ run_cba_main = (name, options, cb_done, cb_intermediate, give_list) ->
 
                     if pdata
                         cb_intermediate(pdata)
+                        data = ""
                         intermediate_cnt += 1
 
                 loop_cnt += 1
@@ -268,7 +264,7 @@ run_cba_main = (name, options, cb_done, cb_intermediate, give_list) ->
         g_cba_main = null
 
         if already_running(output)
-            print "cryptobox.cf:271", "already running"
+            print "cryptobox.cf:267", "already running"
             if cb_done?
                 cb_done(false, output)
         else
@@ -296,7 +292,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record =
+        record = 
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -349,7 +345,7 @@ set_user_var_scope = (name, scope_name, scope, $q) ->
             p.resolve()
 
         (err) ->
-            warning "cryptobox.cf:352", err
+            warning "cryptobox.cf:348", err
             p.reject(err)
     )
     p.promise
@@ -458,7 +454,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option =
+    option = 
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -468,7 +464,7 @@ update_sync_state = (scope) ->
 
     result_sync_state = (result, sync_result_list) ->
         if scope.disable_check_button
-            print "cryptobox.cf:470", "check done"
+            print "cryptobox.cf:467", "check done"
             scope.disable_check_button = false
             scope.disable_sync_button = false
 
@@ -476,7 +472,7 @@ update_sync_state = (scope) ->
             process_sync_result = (sync_results) ->
                 if sync_results.instruction?
                     if sync_results.instruction == "lock_buttons_password_wrong"
-                        print "cryptobox.cf:478", sync_results.instruction
+                        print "cryptobox.cf:475", sync_results.instruction
                         scope.lock_buttons_password_wrong = true
                 else
                     scope.request_update_sync_state = false
@@ -490,13 +486,15 @@ update_sync_state = (scope) ->
                                 cryptobox_locked_status_change(false, scope)
                                 set_sync_check_on_scope(scope, sync_results);
                                 if sync_results.all_synced
-                                    scope.disable_sync_button = true
+                                    scope.disable_sync_button = false
+                                    print "cryptobox.cf:490", "synced"
+                                    setTimeout (=>set_motivation(scope)), 100
                                 else
                                     scope.disable_sync_button = false
 
                     catch ex
-                        print "cryptobox.cf:497", ex
-                        print "cryptobox.cf:498", sync_results
+                        print "cryptobox.cf:496", ex
+                        print "cryptobox.cf:497", sync_results
 
             _.each(sync_result_list, process_sync_result)
 
@@ -536,7 +534,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = (scope) ->
-    option =
+    option = 
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -635,7 +633,7 @@ g_progress_callback = (scope, output) ->
         if !scope.$$phase
             scope.$apply()
     catch err
-        print "cryptobox.cf:637", "g_progress_callback", err
+        print "cryptobox.cf:636", "g_progress_callback", err
 
 
 reset_bars_timer = null
@@ -664,7 +662,7 @@ delete_blobs = (scope) ->
     option.acommand = "delete_blobs"
 
     cb_delete_blobs = (result, output) ->
-        print "cryptobox.cf:666", "blobs deleted", result, output
+        print "cryptobox.cf:665", "blobs deleted", result, output
     run_cba_main("delete_blobs", option, cb_delete_blobs)
 
 
@@ -747,7 +745,6 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.debug_btn = ->
         require('nw.gui').Window.get().showDevTools()
-        document.location = "debug.html"
 
     $scope.get_progress_item_show = ->
         return $scope.progress_bar_item != 0
@@ -784,7 +781,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
                 store_user_var("cb_password", $scope.cb_password, $q)
 
             (err) ->
-                print "cryptobox.cf:786", "error setting password", err
+                print "cryptobox.cf:784", "error setting password", err
         )
         $scope.form_changed = false
         $scope.request_update_sync_state = true
@@ -795,7 +792,6 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.check_btn = ->
         $scope.disable_check_button = true
-        $scope.disable_sync_button = true
         $scope.request_update_sync_state = true
 
     $scope.sync_btn = ->
@@ -810,8 +806,6 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             set_sync_check_on_scope($scope, output)
 
     do_sync = ->
-        print "cryptobox.cf:812", "start sync"
-        $scope.disable_sync_button = true
         option = get_option($scope)
         option.clear = false
         option.sync = true
@@ -820,7 +814,11 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.disable_sync_button = true
 
         sync_cb = (result, output) ->
+            po = (o) ->
+                console?.log? o
+            _.each(output, po)
             if result
+                $scope.disable_sync_button = false
                 $scope.state_syncing = false
                 $scope.disable_encrypt_button = false
                 $scope.request_update_sync_state = true
@@ -835,7 +833,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
         sync_cb = (result, output) ->
             if result
-                print "cryptobox.cf:838", "encrypted"
+                print "cryptobox.cf:836", "encrypted"
                 $scope.request_update_sync_state = true
         run_cba_main("encrypt", option, sync_cb, progress_callback)
 
@@ -845,12 +843,12 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.disable_sync_button = true
         $scope.disable_decrypt_button = true
 
-        sync_cb = (result, output) ->
+        decrypt_cb = (result, output) ->
             if result
-                print "cryptobox.cf:850", "decrypted"
-                $scope.disable_sync_button = true
+                print "cryptobox.cf:848", "decrypted"
+                $scope.disable_sync_button = false
                 $scope.request_update_sync_state = true
-        run_cba_main("decrypt", option, sync_cb, progress_callback)
+        run_cba_main("decrypt", option, decrypt_cb, progress_callback)
 
     $scope.open_folder = ->
         option = get_option($scope)
@@ -875,7 +873,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
 
     $scope.toggle_debug = ->
         $scope.show_debug = !$scope.show_debug
-        print "cryptobox.cf:878", $scope.show_debug
+        print "cryptobox.cf:876", $scope.show_debug
 
     $scope.clear_msg_buffer = ->
         g_output = []
@@ -888,7 +886,7 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
             check_for_new_release($scope)
 
         (err) ->
-            print "cryptobox.cf:891", err
+            print "cryptobox.cf:889", err
             throw "set data user config error"
     )
     once_motivation = _.once(set_motivation)
@@ -935,7 +933,9 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         if $scope.request_update_sync_state
             if $scope.progress_bar == 0
                 if not $scope.lock_buttons_password_wrong
-                    update_sync_state($scope)
+                    pass
+
+                    #update_sync_state($scope)
 
     setInterval(two_second_interval, 2000)
 
@@ -945,7 +945,9 @@ cryptobox_ctrl = ($scope, memory, utils, $q) ->
         $scope.request_update_sync_state = true
 
         if $scope.lock_buttons_password_wrong
-            update_sync_state($scope)
+            pass
+
+            #update_sync_state($scope)
 
         tree_sequence_cb = (result, output) ->
             if result
