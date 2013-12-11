@@ -31,7 +31,8 @@ cb_server_url = "http://127.0.0.1:8000/";
 g_winmain = gui.Window.get();
 
 g_tray = new gui.Tray({
-  icon: "images/cryptoboxstatus-idle-lep.tiff"
+  icon: "images/cryptoboxstatus-idle-lep.tiff",
+  tooltip: "bitches"
 });
 
 g_tray.on('click', function() {
@@ -281,7 +282,7 @@ parse_json = function(method, data, givelist, debug) {
   } catch (_error) {
     ex = _error;
     if (debug != null) {
-      print("cryptobox.cf:198", method, "could not parse json", ex);
+      print("cryptobox.cf:202", method, "could not parse json", ex);
       if (typeof console !== "undefined" && console !== null) {
         if (typeof console.log === "function") {
           console.log(datacopy);
@@ -313,7 +314,8 @@ run_cba_main = function(name, options, cb_done, cb_intermediate, give_list) {
   data = "";
   intermediate_cnt = 0;
   if (give_list == null) {
-    give_list = false;
+    print("cryptobox.cf:227", name, "forcing give list");
+    give_list = true;
   }
   stdout_data = function(data) {
     var call_intermediate, has_data, loop_cnt, nls, ssp;
@@ -357,13 +359,13 @@ run_cba_main = function(name, options, cb_done, cb_intermediate, give_list) {
   execution_done = function(event) {
     g_cba_main = null;
     if (already_running(output)) {
-      print("cryptobox.cf:267", "already running");
+      print("cryptobox.cf:272", "already running");
       if (cb_done != null) {
         return cb_done(false, output);
       }
     } else {
-      output = parse_json(name, output, give_list, true);
       if (cb_done != null) {
+        output = parse_json(name, output, give_list, true);
         if (event > 0) {
           return cb_done(false, output);
         } else {
@@ -453,7 +455,7 @@ set_user_var_scope = function(name, scope_name, scope, $q) {
     }
     return p.resolve();
   }, function(err) {
-    warning("cryptobox.cf:348", err);
+    warning("cryptobox.cf:353", err);
     return p.reject(err);
   });
   return p.promise;
@@ -563,7 +565,7 @@ set_sync_check_on_scope = function(scope, sync_results) {
 };
 
 update_sync_state = function(scope) {
-  var give_list, option, result_sync_state;
+  var option, result_sync_state;
   option = {
     dir: scope.cb_folder_text,
     username: scope.cb_username,
@@ -575,17 +577,16 @@ update_sync_state = function(scope) {
   result_sync_state = function(result, sync_result_list) {
     var process_sync_result;
     if (scope.disable_check_button) {
-      print("cryptobox.cf:467", "check done");
+      print("cryptobox.cf:472", "check done");
       scope.disable_check_button = false;
       scope.disable_sync_button = false;
     }
     if (result) {
       process_sync_result = function(sync_results) {
-        var ex,
-          _this = this;
+        var ex;
         if (sync_results.instruction != null) {
           if (sync_results.instruction === "lock_buttons_password_wrong") {
-            print("cryptobox.cf:475", sync_results.instruction);
+            print("cryptobox.cf:480", sync_results.instruction);
             return scope.lock_buttons_password_wrong = true;
           }
         } else {
@@ -600,11 +601,7 @@ update_sync_state = function(scope) {
                 cryptobox_locked_status_change(false, scope);
                 set_sync_check_on_scope(scope, sync_results);
                 if (sync_results.all_synced) {
-                  scope.disable_sync_button = false;
-                  print("cryptobox.cf:490", "synced");
-                  return setTimeout((function() {
-                    return set_motivation(scope);
-                  }), 100);
+                  return scope.disable_sync_button = false;
                 } else {
                   return scope.disable_sync_button = false;
                 }
@@ -612,8 +609,8 @@ update_sync_state = function(scope) {
             }
           } catch (_error) {
             ex = _error;
-            print("cryptobox.cf:496", ex);
-            return print("cryptobox.cf:497", sync_results);
+            print("cryptobox.cf:499", ex);
+            return print("cryptobox.cf:500", sync_results);
           }
         }
       };
@@ -621,8 +618,7 @@ update_sync_state = function(scope) {
     }
     return result;
   };
-  give_list = true;
-  return run_cba_main("update_sync_state", option, result_sync_state, null, give_list);
+  return run_cba_main("update_sync_state", option, result_sync_state, null, true);
 };
 
 cryptobox_locked_status_change = function(locked, scope) {
@@ -738,6 +734,7 @@ set_menus_and_g_tray_icon = function(scope) {
 set_motivation = function($scope) {
   var motivation_cb;
   motivation_cb = function(result, output) {
+    print("cryptobox.cf:617", output);
     if (result) {
       $scope.motivation = output != null ? output.motivation.replace("\n", "<br/>") : void 0;
       return $scope.progress_message = $scope.motivation + "<br/><br/>";
@@ -765,7 +762,7 @@ g_progress_callback = function(scope, output) {
     }
   } catch (_error) {
     err = _error;
-    return print("cryptobox.cf:636", "g_progress_callback", err);
+    return print("cryptobox.cf:639", "g_progress_callback", err);
   }
 };
 
@@ -801,9 +798,9 @@ delete_blobs = function(scope) {
   option = get_option(scope);
   option.acommand = "delete_blobs";
   cb_delete_blobs = function(result, output) {
-    return print("cryptobox.cf:665", "blobs deleted", result, output);
+    return print("cryptobox.cf:668", "blobs deleted", result, output);
   };
-  return run_cba_main("delete_blobs", option, cb_delete_blobs);
+  return run_cba_main("delete_blobs", option, cb_delete_blobs, null, false);
 };
 
 check_for_new_release = function(scope) {
@@ -811,13 +808,19 @@ check_for_new_release = function(scope) {
   option = get_option(scope);
   option.acommand = "check_new_release";
   cb_check_new_release = function(result, output) {
+    var check_output;
     if (result) {
-      if (output.new_release) {
-        return scope.show_new_release_download_dialog = true;
-      }
+      check_output = function(o) {
+        if ((o != null ? o.new_release : void 0) != null) {
+          if (o.new_release) {
+            return scope.show_new_release_download_dialog = true;
+          }
+        }
+      };
+      return _.each(output, check_output);
     }
   };
-  return run_cba_main("check_new_release", option, cb_check_new_release);
+  return run_cba_main("check_new_release", option, cb_check_new_release, null, true);
 };
 
 angular.module("cryptoboxApp", ["cryptoboxApp.base", "angularFileUpload"]);
@@ -862,7 +865,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     var option;
     option = get_option($scope);
     option.acommand = "download_new_release";
-    return run_cba_main("download_new_release", option, null, progress_callback);
+    return run_cba_main("download_new_release", option, null, progress_callback, false);
   };
   $scope.close_window_menu = function() {
     return g_winmain.close();
@@ -915,7 +918,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     option = get_option($scope);
     option.encrypt = true;
     option.clear = true;
-    return run_cba_main("reset_cache", option, null, progress_callback);
+    return run_cba_main("reset_cache", option, null, progress_callback, false);
   };
   $scope.form_save = function() {
     store_user_var("cb_folder", $scope.cb_folder_text, $q);
@@ -930,7 +933,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
       }
       return store_user_var("cb_password", $scope.cb_password, $q);
     }, function(err) {
-      return print("cryptobox.cf:784", "error setting password", err);
+      return print("cryptobox.cf:790", "error setting password", err);
     });
     $scope.form_changed = false;
     return $scope.request_update_sync_state = true;
@@ -987,11 +990,11 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_sync_button = true;
     sync_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:836", "encrypted");
+        print("cryptobox.cf:842", "encrypted");
         return $scope.request_update_sync_state = true;
       }
     };
-    return run_cba_main("encrypt", option, sync_cb, progress_callback);
+    return run_cba_main("encrypt", option, sync_cb, progress_callback, false);
   };
   $scope.decrypt_btn = function() {
     var decrypt_cb, option;
@@ -1001,24 +1004,24 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.disable_decrypt_button = true;
     decrypt_cb = function(result, output) {
       if (result) {
-        print("cryptobox.cf:848", "decrypted");
+        print("cryptobox.cf:854", "decrypted");
         $scope.disable_sync_button = false;
         return $scope.request_update_sync_state = true;
       }
     };
-    return run_cba_main("decrypt", option, decrypt_cb, progress_callback);
+    return run_cba_main("decrypt", option, decrypt_cb, progress_callback, false);
   };
   $scope.open_folder = function() {
     var option;
     option = get_option($scope);
     option.acommand = "open_folder";
-    return run_cba_main("open_folder", option);
+    return run_cba_main("open_folder", option, null, null, false);
   };
   $scope.open_website = function() {
     var option;
     option = get_option($scope);
     option.acommand = "open_website";
-    return run_cba_main("open_website", option);
+    return run_cba_main("open_website", option, null, null, false);
   };
   g_window_width = 300;
   $scope.set_window_size_settings = function() {
@@ -1032,7 +1035,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
   };
   $scope.toggle_debug = function() {
     $scope.show_debug = !$scope.show_debug;
-    return print("cryptobox.cf:876", $scope.show_debug);
+    return print("cryptobox.cf:882", $scope.show_debug);
   };
   $scope.clear_msg_buffer = function() {
     g_output = [];
@@ -1043,14 +1046,13 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
     $scope.set_window_size_settings();
     return check_for_new_release($scope);
   }, function(err) {
-    print("cryptobox.cf:889", err);
+    print("cryptobox.cf:895", err);
     throw "set data user config error";
   });
   once_motivation = _.once(set_motivation);
-  once_motivation($scope);
   set_menus_and_g_tray_icon($scope);
   digester = function() {
-    var clear_info, make_stream, output_msg;
+    var clear_info, error, make_stream, output_msg;
     $scope.progress_message = utils.capfirst($scope.progress_message);
     output_msg = "";
     if (utils.exist_truth($scope.lock_buttons_password_wrong)) {
@@ -1070,6 +1072,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
         $scope.subject_message_mail = String(g_error_message).split("> ---------------------------")[2].split(">")[3].trim();
         $scope.error_message_mail = String(g_error_message).replace(/\n/g, "%0A");
       } catch (_error) {
+        error = _error;
         $scope.error_message_mail = null;
       }
     }
@@ -1119,7 +1122,7 @@ cryptobox_ctrl = function($scope, memory, utils, $q) {
       }
     };
     if ($scope.progress_bar === 0) {
-      return run_cba_main("treeseq", option, tree_sequence_cb);
+      return run_cba_main("treeseq", option, tree_sequence_cb, null, false);
     }
   };
   return setInterval(ten_second_interval, 10000);
