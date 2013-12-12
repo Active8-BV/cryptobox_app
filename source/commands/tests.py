@@ -83,7 +83,8 @@ class CryptoboxAppTest(unittest.TestCase):
 
         for i in range(0, sizemb):
             fp_in.seek(0)
-            fp_out.write(fp_in.read())
+            #fp_out.write(fp_in.read())
+            fp_out.write("hello")
         print "tests.py:87", "made", name
 
     def setUp(self):
@@ -806,10 +807,10 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
 
-        self.make_testfile("3000MB.zip", 1)
+        self.make_testfile("3000MB.txt", 1)
         os.system("rm testdata/test/all_types/*")
         os.system("rm -Rf testdata/test/smalltest")
-        os.system("cp testdata/3000MB.zip testdata/test/all_types/")
+        os.system("cp testdata/3000MB.txt testdata/test/all_types/")
 
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
