@@ -83,8 +83,8 @@ class CryptoboxAppTest(unittest.TestCase):
 
         for i in range(0, sizemb):
             fp_in.seek(0)
-            #fp_out.write(fp_in.read())
-            fp_out.write("hello")
+            fp_out.write(fp_in.read())
+            #fp_out.write("hello")
         print "tests.py:87", "made", name
 
     def setUp(self):
@@ -807,7 +807,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
 
-        self.make_testfile("3000MB.txt", 1)
+        self.make_testfile("3000MB.txt", 3000)
         os.system("rm testdata/test/all_types/*")
         os.system("rm -Rf testdata/test/smalltest")
         os.system("cp testdata/3000MB.txt testdata/test/all_types/")
@@ -819,7 +819,7 @@ class CryptoboxAppTest(unittest.TestCase):
         p = os.path.join(os.path.join(os.getcwd(), "testdata"), "test")
         org_files = get_files_dir(p, ignore_hidden=True)
         org_files = [x for x in org_files if "memory.pickle.json" not in x]
-        org_files = [make_sha1_hash_file(fpath=x) for x in org_files]
+        org_files1 = [make_sha1_hash_file(fpath=x) for x in org_files]
 
         self.delete_hidden_configs()
         self.do_wait_for_tasks = False
@@ -841,10 +841,10 @@ class CryptoboxAppTest(unittest.TestCase):
         decrypt_and_build_filetree(memory, options, secret)
 
         org_files2 = get_files_dir(p, ignore_hidden=True)
-        org_files2 = [make_sha1_hash_file(fpath=x) for x in org_files2]
-        self.assertEqual(set(org_files), set(org_files2))
+        org_files3 = [make_sha1_hash_file(fpath=x) for x in org_files2]
+        self.assertEqual(set(org_files1), set(org_files3))
 
-        #os.system("rm -Rf testdata/test")
+        os.system("rm -Rf testdata/test")
 
 
 if __name__ == '__main__':

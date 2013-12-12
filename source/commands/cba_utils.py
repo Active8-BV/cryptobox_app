@@ -45,7 +45,7 @@ def get_files_dir(fpath, ignore_hidden=True):
             ignore = False
 
             if ignore_hidden:
-                if file_is_hidden(f):
+                if file_is_hidden(f) or file_is_hidden(os.path.basename(path)):
                     ignore = True
 
             if not ignore:
