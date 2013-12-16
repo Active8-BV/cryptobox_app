@@ -6,7 +6,7 @@ import os
 import shutil
 import base64
 from Crypto import Random
-from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json
+from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json, message_json
 from cba_crypto import password_derivation, encrypt_object, decrypt_object, make_sha1_hash_file, cleanup_tempfiles
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
@@ -179,6 +179,10 @@ def index_files_visit(arg, dir_name, names):
     filenames = [os.path.basename(x) for x in filter(lambda fpath: not os.path.os.path.isdir(fpath), [os.path.join(dir_name, x.lstrip(os.path.sep)) for x in names])]
     filenames = [x for x in filenames if not x.startswith(".")]
     dirname_hash_input = dir_name.replace(arg["DIR"], "").replace(os.path.sep, "/")
+    symlinks = [x for x in filenames if os.path.islink(os.path.join(dir_name, x))]
+    for sl in symlinks:
+        arg["messages"].append("symbolic link "+os.path.join(dir_name, sl)+" ignored")
+        filenames.remove(sl)
 
     if len(dirname_hash_input) == 0:
         dirname_hash_input = "/"
@@ -204,6 +208,7 @@ def make_local_index(options):
     args = {"DIR": options.dir,
             "folders": {"dirnames": {},
             "filestats": {}},
+            "messages": [],
             "numfiles": 0}
     os.path.walk(options.dir, index_files_visit, args)
 
@@ -212,6 +217,7 @@ def make_local_index(options):
             del args["folders"]["dirnames"][dir_name]
 
     localindex = args["folders"]
+    localindex["messages"] = tuple(set(args["messages"]))
     return localindex
 
 

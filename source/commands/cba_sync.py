@@ -703,10 +703,10 @@ def diff_files_locally(memory, options, localindex, serverindex):
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             seen_local_path_before, memory = in_local_path_history(memory, local_path)
+            rel_local_path = local_path.replace(options.dir, "")
             upload_file_object = {"local_path": local_path,
                                   "parent_short_id": None,
-                                  "rel_path": local_path.replace(options.dir,
-                                                                 "")}
+                                  "rel_path": rel_local_path }
 
             corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
 

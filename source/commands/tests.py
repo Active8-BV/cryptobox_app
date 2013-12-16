@@ -800,6 +800,20 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
+
+    def test_symlink(self):
+        """
+
+        """
+        self.do_wait_for_tasks = True
+        self.reset_cb_db_synced()
+        self.unzip_testfiles_synced()
+        os.system("ln -s testdata/test/all_types testdata/test/smalltest/")
+        os.system("ln -s testdata/test/smalltest/test.java testdata/test/all_types/")
+        index = make_local_index(self.cboptions)
+        self.assertEqual(len(index["messages"]), 2)
+        self.assertEqual("symbolic link" in index["messages"][0], True)
+
     def test_super_large_file(self):
         """
 
