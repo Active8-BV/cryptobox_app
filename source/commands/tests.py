@@ -95,7 +95,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         cleanup_tempfiles()
         os.system("rm -Rf testdata/test")
-        self.db_name = "test"
+        self.db_name = "rabshakeh"
         server = "http://127.0.01:8000/"
         self.options_d = {"basedir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata",
                           "dir": "/Users/rabshakeh/workspace/cryptobox/cryptobox_app/source/commands/testdata/test",
@@ -188,7 +188,7 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         server = "http://127.0.0.1:5984/"
         os.system("rm -Rf testdata/test")
-        os.system("cp testdata/test.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        os.system("cp testdata/rabshakeh.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
         dbase = CouchDBServer(self.db_name, [server], memcached_server_list=["127.0.0.1:11211"])
@@ -199,16 +199,16 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         reset_cb_db_clean
         """
-        os.system("cp testdata/test_clean.dump testdata/test.dump")
+        os.system("cp testdata/rabshakeh_clean.dump testdata/rabshakeh.dump")
         self.reset_cb_db()
-        os.system("rm testdata/test.dump")
+        os.system("rm testdata/rabshakeh.dump")
         os.system("rm -Rf /Users/rabshakeh/workspace/cloudfiles/couchdb_test_crypto_docs")
 
     def reset_cb_db_synced(self):
         """
         reset_cb_db_synced
         """
-        os.system("cp testdata/test_synced.dump testdata/test.dump")
+        os.system("cp testdata/rabshakeh_synced.dump testdata/rabshakeh.dump")
         self.reset_cb_db()
         os.system("cp testdata/couchdb_test_crypto_docs.zip /Users/rabshakeh/workspace/cloudfiles/")
         os.system("cd /Users/rabshakeh/workspace/cloudfiles; unzip -o couchdb_test_crypto_docs.zip > /dev/null; rm couchdb_test_crypto_docs.zip")
@@ -859,13 +859,16 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         test_client_mandate
         """
+        self.reset_cb_db_clean()
         mandate_key = "test_from_app"
         with self.assertRaisesRegexp(NotAuthorized, "new_mandate"):
             new_mandate(self.cbmemory, self.cboptions, mandate_key)
 
         self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
-        mandate = new_mandate(self.cbmemory, self.cboptions, mandate_key)
-        print "tests.py:868", mandate
+        mandate1 = new_mandate(self.cbmemory, self.cboptions, mandate_key)
+        mandate2 = new_mandate(self.cbmemory, self.cboptions, mandate_key)
+        self.assertEqual(mandate1, mandate2)
+
 
 
 if __name__ == '__main__':

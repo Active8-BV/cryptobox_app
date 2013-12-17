@@ -159,8 +159,7 @@ def on_server(memory, options, method, payload, session, files=None):
     global on_server_lock
 
     try:
-
-        #on_server_lock.acquire()
+        on_server_lock.acquire()
         server = options.server
         cryptobox = options.cryptobox
         cookies = {}
@@ -183,9 +182,7 @@ def on_server(memory, options, method, payload, session, files=None):
         except ServerForbidden:
             return (None, None), memory
     finally:
-        pass
-
-        #on_server_lock.release()
+        on_server_lock.release()
 
 
 def download_server(memory, options, url, output_name_item_percentage=None):
@@ -355,4 +352,7 @@ def new_mandate(memory, options, mandate_key_param):
         raise NotAuthorized("new_mandate")
 
     result = on_server(memory, options, "newmandate", {"mandate_key_param": mandate_key_param}, session=memory.get("session"))
-    return result
+    if len(result)>1:
+        if result[0] is not None:
+            return result[0]
+    raise NotAuthorized("mandate_denied")
