@@ -354,6 +354,24 @@ def new_mandate(memory, options, mandate_key_param):
     result = on_server(memory, options, "newmandate", {"mandate_key_param": mandate_key_param}, session=memory.get("session"))
     if len(result) > 1:
         if result[0] is not None:
-            if not isinstance(result[0], tuple):
+            if result[0] != "mandate_with_this_name_exists":
                 return result[0]
+    raise NotAuthorized("mandate_denied")
+
+
+def get_mandate(memory, options, mandate_key_param):
+    """
+    @type options: optparse.Values, instance
+    @type memory: Memory
+    @type mandate_key_param: str
+    """
+    if not memory.has_get("authorized"):
+        message_json("request_mandate not authorized")
+
+        raise NotAuthorized("new_mandate")
+
+    result = on_server(memory, options, "getmandate", {"mandate_key_param": mandate_key_param}, session=memory.get("session"))
+    if len(result) > 1:
+        if result[0] is not None:
+            return result[0]
     raise NotAuthorized("mandate_denied")

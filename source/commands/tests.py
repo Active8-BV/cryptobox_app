@@ -18,7 +18,7 @@ from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
 from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
-from cba_network import authorize_user, new_mandate, NotAuthorized
+from cba_network import authorize_user, new_mandate, NotAuthorized, get_mandate
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -872,6 +872,9 @@ class CryptoboxAppTest(unittest.TestCase):
             new_mandate(self.cbmemory, self.cboptions, mandate_key)
         self.assertIsNotNone(mandate1)
 
+        # try to login with a mandate
+        mandate_name, mandate_private_key = get_mandate(self.cbmemory, self.cboptions, mandate1)
+        pass
 
 
 if __name__ == '__main__':
