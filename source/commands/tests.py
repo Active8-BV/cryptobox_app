@@ -189,7 +189,7 @@ class CryptoboxAppTest(unittest.TestCase):
         server = "http://127.0.0.1:5984/"
         os.system("rm -Rf testdata/test")
         os.system("cp testdata/rabshakeh.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
-        self.pipe = Popen("nohup python server/manage.py load -c test", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
+        self.pipe = Popen("nohup python server/manage.py load -c rabshakeh", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
         dbase = CouchDBServer(self.db_name, [server], memcached_server_list=["127.0.0.1:11211"])
         sync_all_views(dbase, ["couchdb_api", "crypto_api"])
@@ -854,6 +854,7 @@ class CryptoboxAppTest(unittest.TestCase):
         org_files3 = [make_sha1_hash_file(fpath=x) for x in org_files2]
         self.assertEqual(set(org_files1), set(org_files3))
         os.system("rm -Rf testdata/test")
+        os.system("rm testdata/3000MB.txt")
 
     def test_client_mandate(self):
         """
@@ -861,13 +862,15 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.reset_cb_db_clean()
         mandate_key = "test_from_app"
+
         with self.assertRaisesRegexp(NotAuthorized, "new_mandate"):
             new_mandate(self.cbmemory, self.cboptions, mandate_key)
 
         self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
         mandate1 = new_mandate(self.cbmemory, self.cboptions, mandate_key)
-        mandate2 = new_mandate(self.cbmemory, self.cboptions, mandate_key)
-        self.assertEqual(mandate1, mandate2)
+        with self.assertRaisesRegexp(NotAuthorized, "mandate_denied"):
+            new_mandate(self.cbmemory, self.cboptions, mandate_key)
+        self.assertIsNotNone(mandate1)
 
 
 

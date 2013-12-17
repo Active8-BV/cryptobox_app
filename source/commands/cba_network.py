@@ -172,11 +172,11 @@ def on_server(memory, options, method, payload, session, files=None):
         verifyarg = False
 
         if not payload:
-            result = session.post(service, cookies=cookies, files=files, verify=verifyarg, timeout=10)
+            result = session.post(service, cookies=cookies, files=files, verify=verifyarg, timeout=60)
         elif files:
             result = session.post(service, data=payload, cookies=cookies, files=files, verify=verifyarg)
         else:
-            result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg, timeout=10)
+            result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg, timeout=60)
         try:
             return parse_http_result(result), memory
         except ServerForbidden:
@@ -352,7 +352,8 @@ def new_mandate(memory, options, mandate_key_param):
         raise NotAuthorized("new_mandate")
 
     result = on_server(memory, options, "newmandate", {"mandate_key_param": mandate_key_param}, session=memory.get("session"))
-    if len(result)>1:
+    if len(result) > 1:
         if result[0] is not None:
-            return result[0]
+            if not isinstance(result[0], tuple):
+                return result[0]
     raise NotAuthorized("mandate_denied")
