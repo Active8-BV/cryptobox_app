@@ -172,11 +172,11 @@ def on_server(memory, options, method, payload, session, files=None):
         verifyarg = False
 
         if not payload:
-            result = session.post(service, cookies=cookies, files=files, verify=verifyarg)
+            result = session.post(service, cookies=cookies, files=files, verify=verifyarg, timeout=10)
         elif files:
             result = session.post(service, data=payload, cookies=cookies, files=files, verify=verifyarg)
         else:
-            result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg)
+            result = session.post(service, data=json.dumps(payload), cookies=cookies, verify=verifyarg, timeout=10)
         try:
             return parse_http_result(result), memory
         except ServerForbidden:
