@@ -159,7 +159,8 @@ def on_server(memory, options, method, payload, session, files=None):
     global on_server_lock
 
     try:
-        on_server_lock.acquire()
+
+        #on_server_lock.acquire()
         server = options.server
         cryptobox = options.cryptobox
         cookies = {}
@@ -182,7 +183,9 @@ def on_server(memory, options, method, payload, session, files=None):
         except ServerForbidden:
             return (None, None), memory
     finally:
-        on_server_lock.release()
+        pass
+
+        #on_server_lock.release()
 
 
 def download_server(memory, options, url, output_name_item_percentage=None):
@@ -296,7 +299,6 @@ def authorize_user(memory, options, force=False):
     """
 
     #noinspection PyBroadException
-
     try:
         if memory.has("authorized"):
             if force:
@@ -339,3 +341,18 @@ def authorized(memory, options):
         memory.replace("authorized", result[0])
 
     return memory
+
+
+def new_mandate(memory, options, mandate_key_param):
+    """
+    @type options: optparse.Values, instance
+    @type memory: Memory
+    @type mandate_key_param: str
+    """
+    if not memory.has_get("authorized"):
+        message_json("request_mandate not authorized")
+
+        raise NotAuthorized("new_mandate")
+
+    result = on_server(memory, options, "newmandate", {"mandate_key_param": mandate_key_param}, session=memory.get("session"))
+    return result

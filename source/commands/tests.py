@@ -15,9 +15,10 @@ from cba_main import cryptobox_command
 from cba_utils import get_files_dir, Memory, Dict2Obj
 from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local, hide_config, restore_hidden_config, decrypt_and_build_filetree
 from cba_blobs import get_blob_dir, get_data_dir
-from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound, authorize_user
+from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
 from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
+from cba_network import authorize_user, new_mandate, NotAuthorized
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
@@ -49,7 +50,7 @@ def pc(p):
     """
     @type p: int
     """
-    print "tests.py:52", p
+    print "tests.py:53", p
 
 
 def count_files_dir(fpath):
@@ -64,7 +65,7 @@ def print_progress(p):
     """
     :param p: percentage
     """
-    print "tests.py:67", "progress", p
+    print "tests.py:68", "progress", p
 
 
 class CryptoboxAppTest(unittest.TestCase):
@@ -84,8 +85,9 @@ class CryptoboxAppTest(unittest.TestCase):
         for i in range(0, sizemb):
             fp_in.seek(0)
             fp_out.write(fp_in.read())
+
             #fp_out.write("hello")
-        print "tests.py:87", "made", name
+        print "tests.py:90", "made", name
 
     def setUp(self):
         """
@@ -800,10 +802,9 @@ class CryptoboxAppTest(unittest.TestCase):
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
 
-
     def test_symlink(self):
         """
-
+        test_symlink
         """
         self.do_wait_for_tasks = True
         self.reset_cb_db_synced()
@@ -816,16 +817,14 @@ class CryptoboxAppTest(unittest.TestCase):
 
     def test_super_large_file(self):
         """
-
+        test_super_large_file
         """
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
-
         self.make_testfile("3000MB.txt", 3000)
         os.system("rm testdata/test/all_types/*")
         os.system("rm -Rf testdata/test/smalltest")
         os.system("cp testdata/3000MB.txt testdata/test/all_types/")
-
         localindex, self.cbmemory = sync_server(self.cbmemory, self.cboptions)
         self.assertTrue(self.files_synced())
         datadir = get_data_dir(self.cboptions)
@@ -834,7 +833,6 @@ class CryptoboxAppTest(unittest.TestCase):
         org_files = get_files_dir(p, ignore_hidden=True)
         org_files = [x for x in org_files if "memory.pickle.json" not in x]
         org_files1 = [make_sha1_hash_file(fpath=x) for x in org_files]
-
         self.delete_hidden_configs()
         self.do_wait_for_tasks = False
         self.cboptions.remove = True
@@ -843,7 +841,6 @@ class CryptoboxAppTest(unittest.TestCase):
         self.cbmemory.save(datadir)
         hide_config(self.cboptions, salt, secret)
         self.assertEqual(count_files_dir(get_blob_dir(self.cboptions)), 0)
-
         options = self.cboptions
         options.encrypt = False
         options.decrypt = True
@@ -853,12 +850,22 @@ class CryptoboxAppTest(unittest.TestCase):
         memory = Memory()
         memory.load(datadir)
         decrypt_and_build_filetree(memory, options, secret)
-
         org_files2 = get_files_dir(p, ignore_hidden=True)
         org_files3 = [make_sha1_hash_file(fpath=x) for x in org_files2]
         self.assertEqual(set(org_files1), set(org_files3))
-
         os.system("rm -Rf testdata/test")
+
+    def test_client_mandate(self):
+        """
+        test_client_mandate
+        """
+        mandate_key = "test_from_app"
+        with self.assertRaisesRegexp(NotAuthorized, "new_mandate"):
+            new_mandate(self.cbmemory, self.cboptions, mandate_key)
+
+        self.cbmemory = authorize_user(self.cbmemory, self.cboptions, force=True)
+        mandate = new_mandate(self.cbmemory, self.cboptions, mandate_key)
+        print "tests.py:868", mandate
 
 
 if __name__ == '__main__':
