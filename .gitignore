@@ -1,3 +1,5 @@
+.idea
+.idea/*
 source/commands/testdata/rabshakeh.dump
 source/commands/testdata/test
 source/commands/testdata/100MB.zip
