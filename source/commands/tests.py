@@ -873,6 +873,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.assertIsNotNone(mandate1)
 
         # try to login with a mandate
+        # noinspection PyUnusedLocal
         mandate_name, mandate_private_key = get_mandate(self.cbmemory, self.cboptions, mandate1)
         pass
 
