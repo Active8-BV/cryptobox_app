@@ -3,7 +3,7 @@
 file operations
 """
 import os
-from cba_utils import strcmp, get_files_dir, update_item_progress, output_json
+from cba_utils import strcmp, get_files_dir, update_item_progress, output_json, Memory
 from cba_crypto import make_sha1_hash_file, decrypt_file_smp, encrypt_file_smp, get_named_temporary_file
 
 
