@@ -18,8 +18,6 @@ g_tray = new gui.Tray(
     icon: "images/cryptoboxstatus-idle-lep.tiff",
     alticon: "images/cryptoboxstatus-idle-lep-inv.tiff",
 )
-
-
 g_tray.on 'click', ->
     alert
 
@@ -300,7 +298,7 @@ store_user_var = (k, v, $q) ->
     if not exist(db)
         p.reject("no db")
     else
-        record = 
+        record =
             _id: k
             value: v
         db.get k, (e, d) ->
@@ -462,7 +460,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
 
 
 update_sync_state = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
@@ -531,7 +529,7 @@ cryptobox_locked_status_change = (locked, scope) ->
 
 
 get_option = (scope) ->
-    option = 
+    option =
         dir: scope.cb_folder_text
         username: scope.cb_username
         password: scope.cb_password
