@@ -45,7 +45,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes_hashes = [fhash for fhash in all_unique_nodes if not have_blob(options, fhash)]
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     downloaded_files_cnt = 0
-    unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path"].lstrip(os.path.sep)))]
+    unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path_p64s"].lstrip(os.path.sep)))]
     unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size"])
 
     for node in unique_nodes:
@@ -58,14 +58,14 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     update_progress(downloaded_files_cnt, len(unique_nodes), "downloading done")
 
     for lp in local_paths:
-        memory = add_local_path_history(memory, os.path.join(options.dir, lp["doc"]["m_path"].lstrip(os.sep)))
+        memory = add_local_path_history(memory, os.path.join(options.dir, lp["doc"]["m_path_p64s"].lstrip(os.sep)))
         source_path = None
-        file_path = os.path.join(options.dir, lp["doc"]["m_path"].lstrip(os.path.sep))
+        file_path = os.path.join(options.dir, lp["doc"]["m_path_p64s"].lstrip(os.path.sep))
 
         if not os.path.exists(file_path):
             for lph in all_unique_nodes:
                 if lph == lp["content_hash_latest_timestamp"][0]:
-                    source_path = os.path.join(options.dir, all_unique_nodes[lph]["doc"]["m_path"].lstrip(os.path.sep))
+                    source_path = os.path.join(options.dir, all_unique_nodes[lph]["doc"]["m_path_p64s"].lstrip(os.path.sep))
                     break
 
         datapath = data = None
@@ -87,7 +87,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
             st_mtime = int(lp["content_hash_latest_timestamp"][1])
             write_file(file_path, data, datapath, st_mtime, st_mtime, st_mode, st_uid, st_gid)
 
-    local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path"].lstrip(os.path.sep)))]
+    local_paths_not_written = [fp for fp in local_paths if not os.path.exists(os.path.join(options.dir, fp["doc"]["m_path_p64s"].lstrip(os.path.sep)))]
 
     if len(local_paths_not_written) > 0:
         local_index = get_localindex(memory)
@@ -105,7 +105,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
                 if not w:
                     if strcmp(lfnw["content_hash_latest_timestamp"][0], lfh):
                         w = True
-                        open(os.path.join(options.dir, lfnw["doc"]["m_path"].lstrip(os.path.sep)), "w").write(open(local_path_hashes[lfh]).read())
+                        open(os.path.join(options.dir, lfnw["doc"]["m_path_p64s"].lstrip(os.path.sep)), "w").write(open(local_path_hashes[lfh]).read())
 
     return memory
 
@@ -402,7 +402,7 @@ def instruct_server_to_delete_folders(memory, options, serverindex, dirs_del_ser
     shortest_paths = return_shortest_paths(dirs_del_server)
 
     for dir_name_rel in shortest_paths:
-        short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path"] == dir_name_rel])
+        short_node_ids_to_delete.extend([node["doc"]["m_short_id"] for node in serverindex["doclist"] if node["doc"]["m_path_p64s"] == dir_name_rel])
 
     memory = instruct_server_to_delete_items(memory, options, short_node_ids_to_delete, "deleting folders on server")
     return memory
@@ -476,7 +476,7 @@ def path_to_server_guid(memory, options, serverindex, parent_path):
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
-    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], parent_path)]
+    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path_p64s"], parent_path)]
 
     if len(result) > 1:
         raise MultipleGuidsForPath(parent_path)
@@ -490,7 +490,7 @@ def path_to_server_guid(memory, options, serverindex, parent_path):
         shortid = result[0]
 
     if not shortid:
-        result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], "/")]
+        result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path_p64s"], "/")]
 
         if len(result) > 1:
             raise MultipleGuidsForPath(parent_path)
@@ -526,7 +526,7 @@ def short_id_to_server_path(memory, serverindex, short_id):
     @return: @rtype: @raise MultipleGuidsForPath:
 
     """
-    result = [x["doc"]["m_path"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_short_id"], short_id)]
+    result = [x["doc"]["m_path_p64s"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_short_id"], short_id)]
 
     if len(result) == 0:
         raise NoPathFound(short_id)
@@ -548,7 +548,7 @@ def path_to_server_shortid(options, serverindex, path):
 
     """
     path = path.replace(options.dir, "")
-    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path"], path)]
+    result = [x["doc"]["m_short_id"] for x in serverindex["doclist"] if strcmp(x["doc"]["m_path_p64s"], path)]
 
     if len(result) == 0:
         raise NoParentFound(path)
@@ -612,8 +612,8 @@ def get_server_index(memory, options):
 
     serverindex = result[1]
 
-    dirlistfiles = [os.path.dirname(x["doc"]["m_path"]) for x in serverindex["doclist"] if x["doc"]["m_nodetype"] == "file"]
-    dirlistfolders = [x["doc"]["m_path"] for x in serverindex["doclist"] if x["doc"]["m_nodetype"] == "folder"]
+    dirlistfiles = [os.path.dirname(x["doc"]["m_path_p64s"]) for x in serverindex["doclist"] if x["doc"]["m_nodetype"] == "file"]
+    dirlistfolders = [x["doc"]["m_path_p64s"] for x in serverindex["doclist"] if x["doc"]["m_nodetype"] == "folder"]
     dirlistserver = dirlistfiles
     dirlistserver.extend(dirlistfolders)
     serverindex["dirlist"] = tuple(list(set(dirlistserver)))
@@ -635,9 +635,9 @@ def parse_serverindex(serverindex):
 
     for node in serverindex["doclist"]:
         if node["doc"]["m_nodetype"] == "folder":
-            dirname_of_path = node["doc"]["m_path"]
+            dirname_of_path = node["doc"]["m_path_p64s"]
         else:
-            dirname_of_path = os.path.dirname(node["doc"]["m_path"])
+            dirname_of_path = os.path.dirname(node["doc"]["m_path_p64s"])
 
         node["dirname_of_path"] = dirname_of_path
         unique_dirs.add(dirname_of_path)
@@ -665,7 +665,7 @@ def diff_new_files_on_server(memory, options, server_path_nodes, dirs_scheduled_
     file_downloads = []
 
     for fnode in server_path_nodes:
-        server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path"].lstrip(os.path.sep))
+        server_path_to_local = os.path.join(options.dir, fnode["doc"]["m_path_p64s"].lstrip(os.path.sep))
 
         if os.path.exists(server_path_to_local):
             pass
@@ -674,7 +674,7 @@ def diff_new_files_on_server(memory, options, server_path_nodes, dirs_scheduled_
             seen_local_path_before, memory = in_local_path_history(memory, server_path_to_local)
 
             if seen_local_path_before:
-                file_del_server.append(fnode["doc"]["m_path"])
+                file_del_server.append(fnode["doc"]["m_path_p64s"])
             else:
                 file_downloads.append(fnode)
 
@@ -708,7 +708,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
                                   "parent_short_id": None,
                                   "rel_path": rel_local_path }
 
-            corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == upload_file_object["rel_path"]]
+            corresponding_server_nodes = [x for x in serverindex["doclist"] if x["doc"]["m_path_p64s"] == upload_file_object["rel_path"]]
 
             if not seen_local_path_before:
                 if len(corresponding_server_nodes) == 0 or not corresponding_server_nodes:
@@ -740,7 +740,7 @@ def diff_files_locally(memory, options, localindex, serverindex):
                             raise
 
     file_del_local = []
-    server_paths = [str(os.path.join(options.dir, x["doc"]["m_path"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
+    server_paths = [str(os.path.join(options.dir, x["doc"]["m_path_p64s"].lstrip(os.path.sep))) for x in serverindex["doclist"]]
     for local_path in local_pathnames_set:
         if os.path.exists(local_path):
             if local_path not in server_paths:
@@ -763,7 +763,7 @@ def print_pickle_variable_for_debugging(var, varname):
 def get_content_hash_server(options, serverindex, path):
     rel_path = path.replace(options.dir, "")
 
-    doc = [x for x in serverindex["doclist"] if x["doc"]["m_path"] == rel_path]
+    doc = [x for x in serverindex["doclist"] if x["doc"]["m_path_p64s"] == rel_path]
 
     if len(doc) == 1:
         return doc[0]["content_hash_latest_timestamp"][0]
@@ -851,7 +851,7 @@ def checksum_all_files_on_server(dir_del_server_shortestpath, serverindex):
     @type dir_del_server_shortestpath: tuple
     @type serverindex: dict
     """
-    dirnames_content_hash = [(x["dirname_of_path"], x["content_hash"], x["doc"]["m_path"]) for x in serverindex["doclist"] if x["content_hash"]]
+    dirnames_content_hash = [(x["dirname_of_path"], x["content_hash"], x["doc"]["m_path_p64s"]) for x in serverindex["doclist"] if x["content_hash"]]
     all_hashes_on_server = []
 
     for dirname_content_hash in dirnames_content_hash:
@@ -1244,7 +1244,7 @@ def sync_server(memory, options):
 
     if len(dir_make_server) > 0:
         serverindex, memory = instruct_server_to_make_folders(memory, options, dir_make_server)
-        serverdirpaths = [x["doc"]["m_path"] for x in serverindex["doclist"]]
+        serverdirpaths = [x["doc"]["m_path_p64s"] for x in serverindex["doclist"]]
         for fpath in serverdirpaths:
             memory = add_path_history(fpath, memory)
 

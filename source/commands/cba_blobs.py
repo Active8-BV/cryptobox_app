@@ -89,7 +89,7 @@ def write_blob_to_filepath(memory, node, options, data, content_path):
         raise NoTimeStamp(str(node))
 
     st_mtime = int(node["content_hash_latest_timestamp"][1])
-    dirname_of_path = os.path.dirname(node["doc"]["m_path"])
+    dirname_of_path = os.path.dirname(node["doc"]["m_path_p64s"])
     new_path = os.path.join(options.dir, os.path.join(dirname_of_path.lstrip(os.path.sep), node["doc"]["m_name"]))
     memory = add_local_path_history(memory, new_path)
     output_json({"msg": new_path})
@@ -116,7 +116,7 @@ def write_blobs_to_filepaths(memory, options, file_nodes, data, downloaded_fhash
             files_same_hash.append(sfile)
 
     for fnode in files_same_hash:
-        memory = add_server_path_history(memory, fnode["doc"]["m_path"])
+        memory = add_server_path_history(memory, fnode["doc"]["m_path_p64s"])
         write_blob_to_filepath(memory, fnode, options, data, content_path)
         file_nodes_copy.remove(fnode)
 
