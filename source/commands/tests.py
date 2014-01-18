@@ -17,7 +17,7 @@ from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
-from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_all_cpu_apply, cleanup_tempfiles, encrypt_object, decrypt_object
+from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_apply, cleanup_tempfiles, encrypt_object, decrypt_object
 from cba_network import authorize_user, new_mandate, NotAuthorized, get_mandate
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
@@ -230,11 +230,11 @@ class CryptoboxAppTest(unittest.TestCase):
         self.reset_cb_db_clean()
         self.unzip_testfiles_clean()
 
-    def test_smp_all_cpu_apply(self):
+    def test_smp_apply(self):
         self.do_wait_for_tasks = False
         items = [(x, x + random.randint(1, 10)) for x in range(0, 10)]
         res_items = [x[0] + x[1] for x in items]
-        res_items2 = smp_all_cpu_apply(add, items)
+        res_items2 = smp_apply(add, items)
         self.assertEquals(res_items, res_items2)
 
     def test_encrypt_file_smp(self):

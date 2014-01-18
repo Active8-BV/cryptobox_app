@@ -147,7 +147,7 @@ def log_json(msg):
     output_json({"log": msg})
 
 
-def smp_all_cpu_apply_0(method, items, progress_callback=None):
+def smp_apply_0(method, items, progress_callback=None):
     """
     @type method: function
     @type items: list

@@ -287,7 +287,7 @@ def encrypt_file_smp(secret, fname, progress_callback=None, single_file=False):
     initialization_vector = Random.new().read(AES.block_size)
     chunklist = make_chunklist(fname)
     chunklist = [(secret, fname, chunk_size, initialization_vector) for chunk_size in chunklist]
-    enc_files = smp_all_cpu_apply(encrypt_chunk, chunklist, progress_callback)
+    enc_files = smp_apply(encrypt_chunk, chunklist, progress_callback)
 
     if single_file:
         enc_file = tempfile.SpooledTemporaryFile(max_size=524288000)
@@ -382,7 +382,7 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=tuple(), progress_callback
 
         dec_file = get_named_temporary_file(auto_delete=True)
         chunks_param_sorted = [(secret, file_path) for file_path in enc_files]
-        smp_all_cpu_apply(decrypt_chunk, chunks_param_sorted, progress_callback, listener=listener_file_writer, listener_param=tuple([dec_file.name]))
+        smp_apply(decrypt_chunk, chunks_param_sorted, progress_callback, listener=listener_file_writer, listener_param=tuple([dec_file.name]))
         dec_file.seek(0)
         return dec_file
     finally:
@@ -430,7 +430,7 @@ def decrypt_object(secret, obj_string):
     return obj, secret
 
 
-def smp_all_cpu_apply(method, items, progress_callback=None, dummy_pool=False, listener=None, listener_param=tuple(), num_procs_param=None):
+def smp_apply(method, items, progress_callback=None, dummy_pool=False, listener=None, listener_param=tuple(), num_procs_param=None):
     """
     @type method: function
     @type items: list
