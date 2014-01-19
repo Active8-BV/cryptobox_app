@@ -23,7 +23,7 @@ import shutil
 import Tkinter
 import tkFileDialog
 from optparse import OptionParser
-from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle, log_json, Timers
+from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle, log_json, Events
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -168,7 +168,7 @@ def cryptobox_command(options):
     @return: succes indicator
     @rtype: bool
     """
-    timers = Timers()
+    Events = Events()
 
     try:
         if options.acommand:
@@ -393,11 +393,11 @@ def cryptobox_command(options):
                     if quick_lock_check(options):
                         return False
                     ensure_directory(options.dir)
-                    timers.event("check get_server_index")
+                    Events.event("check get_server_index")
                     serverindex, memory = get_server_index(memory, options)
-                    timers.event("check make_local_index")
+                    Events.event("check make_local_index")
                     localindex = make_local_index(options)
-                    timers.event("check get_sync_changes")
+                    Events.event("check get_sync_changes")
                     memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content, rename_server, rename_dirs, rename_local_dirs = get_sync_changes(memory, options, localindex, serverindex)
                     all_synced = all_item_zero_len([file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, rename_server, rename_dirs])
                     outputdict = {"file_del_server": file_del_server,
@@ -423,10 +423,10 @@ def cryptobox_command(options):
                         message_json("cryptobox is locked, nothing can be added now first decrypt (-d)")
                         return False
                     ensure_directory(options.dir)
-                    timers.event("check sync_server")
+                    Events.event("check sync_server")
                     localindex, memory = sync_server(memory, options)
 
-                    #timers.report_measurements()
+                    #Events.report_measurements()
 
         salt = secret = None
         if options.encrypt:

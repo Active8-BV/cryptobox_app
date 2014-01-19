@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex, store_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_blob_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Timers, log_json
+from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Events, log_json
 from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, make_cryptogit_hash, read_file_to_fdict, make_cryptogit_filehash
 from cba_crypto import password_derivation, make_sha1_hash_file, make_checksum_tuple
 from cba_file import write_file, read_file, decrypt_file
@@ -939,32 +939,32 @@ def get_sync_changes(memory, options, localindex, serverindex):
     @type serverindex: dict
     @rtype (memory, options, file_del_server, file_downloads, file_uploads, dir_del_server, dir_make_local, dir_make_server, dir_del_local, file_del_local, server_path_nodes, unique_content): tuple
     """
-    timers = Timers()
+    Events = Events()
     memory = wait_for_tasks(memory, options, "waiting for server to finish tasks")
 
     if False:
         print_pickle_variable_for_debugging(memory, "memory")
         print_pickle_variable_for_debugging(localindex, "localindex")
         print_pickle_variable_for_debugging(serverindex, "serverindex")
-    timers.event("parse_serverindex")
+    Events.event("parse_serverindex")
     dirname_hashes_server, server_path_nodes, unique_content, unique_dirs = parse_serverindex(serverindex)
 
     # server dirs
-    timers.event("dirs_on_server")
+    Events.event("dirs_on_server")
     dir_del_server_tmp, dir_make_local, memory = dirs_on_server(memory, options, unique_dirs)
     del unique_dirs
 
     #local dirs
-    timers.event("dirs_on_local")
+    Events.event("dirs_on_local")
     dir_make_server, dir_del_local = dirs_on_local(memory, options, localindex, dirname_hashes_server, serverindex)
     del dirname_hashes_server
 
     # find new files on server
-    timers.event("diff_new_files_on_server")
+    Events.event("diff_new_files_on_server")
     memory, file_del_server, file_downloads = diff_new_files_on_server(memory, options, server_path_nodes, dir_del_server_tmp)
 
     #local files
-    timers.event("diff_files_locally")
+    Events.event("diff_files_locally")
     file_uploads, file_del_local, memory, localindex = diff_files_locally(memory, options, localindex, serverindex)
     file_del_local = [x for x in file_del_local if os.path.dirname(x) not in [y["dirname"] for y in dir_del_local]]
 
@@ -984,14 +984,14 @@ def get_sync_changes(memory, options, localindex, serverindex):
         dir_del_local = [x for x in dir_del_local if old_dir not in x["relname"]]
 
     # filter out file uploads from dirs to delete
-    timers.event("find dirs to delete")
+    Events.event("find dirs to delete")
     dir_del_local = tuple([x for x in dir_del_local if x["dirname"] not in [os.path.dirname(y["local_path"]) for y in file_uploads]])
-    timers.event("find dirs to make on server")
+    Events.event("find dirs to make on server")
     dirnames_file_upload = [os.path.dirname(y["local_path"]) for y in file_uploads]
     dir_make_server = [x for x in dir_make_server if x["dirname"] not in dirnames_file_upload]
 
     # filter out dirs to make from file_uploads:
-    timers.event("prune folder making")
+    Events.event("prune folder making")
     dir_make_server_tmp = []
 
     for dms in dir_make_server:
@@ -1007,7 +1007,7 @@ def get_sync_changes(memory, options, localindex, serverindex):
     dir_make_server = dir_make_server_tmp
 
     # prune directories to delete from files to download
-    timers.event("prune folder deleting")
+    Events.event("prune folder deleting")
     dir_del_server = []
     file_download_dirs = list(set([x["dirname_of_path"] for x in file_downloads]))
     for dds_path in dir_del_server_tmp:
@@ -1025,13 +1025,13 @@ def get_sync_changes(memory, options, localindex, serverindex):
 
     file_uploads = [add_size_relpath(f) for f in file_uploads]
     file_uploads = sorted(file_uploads, key=lambda k: k["size"])
-    timers.event("check_renames_server")
+    Events.event("check_renames_server")
     renames_files, file_uploads, file_del_server, localindex = check_renames_server(memory, options, localindex, serverindex, file_uploads, file_del_server, dir_del_server)
     del serverindex
     file_del_server = tuple([f for f in file_del_server if os.path.dirname(f) not in dir_del_server])
-    timers.event("store_localindex")
+    Events.event("store_localindex")
     memory = store_localindex(memory, localindex)
-    del timers
+    del Events
     renames_server = list(renames_files)
     rename_files_server = frozenset(renames_server)
     rename_folders_server = frozenset(server_dir_renames)

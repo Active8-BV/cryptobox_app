@@ -814,12 +814,12 @@ def console(*args):
     return
 
 
-class Timers(object):
+class Events(object):
     """
-    Timers
+    Events
     """
-    timers = {}
-    done_timers = []
+    Events = {}
+    done_Events = []
     _instance = None
     last_event = []
     total = 0.0
@@ -841,7 +841,7 @@ class Timers(object):
         #noinspection PyProtectedMember
         if not cls._instance:
             #noinspection PyArgumentList,PyAttributeOutsideInit
-            cls._instance = super(Timers, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super(Events, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
     def event(self, name):
@@ -858,16 +858,16 @@ class Timers(object):
             if name == last_name:
                 return
 
-        if last_name in self.timers:
+        if last_name in self.Events:
             if last_name in self.last_event:
                 self.last_event.remove(last_name)
 
             result = {"name": last_name,
-                      "time": time.time() - self.timers[last_name]}
-            self.done_timers.append(result)
-            del self.timers[last_name]
+                      "time": time.time() - self.Events[last_name]}
+            self.done_Events.append(result)
+            del self.Events[last_name]
         self.last_event.append(name)
-        self.timers[name] = time.time()
+        self.Events[name] = time.time()
 
         #noinspection PyAttributeOutsideInit
         self.last_event_name = name
@@ -913,13 +913,13 @@ class Timers(object):
         self.event("done")
         total = 0.0
 
-        for result in self.done_timers:
+        for result in self.done_Events:
             total = self.print_result(result, total)
 
         if self.print_totals:
             totals = "%0.4f" % total
             console("total runtime", totals)
 
-        self.timers = {}
-        self.done_timers = []
+        self.Events = {}
+        self.done_Events = []
         self.last_event = []
