@@ -815,111 +815,177 @@ def console(*args):
 
 
 class Events(object):
-    """
-    Events
-    """
-    Events = {}
-    done_Events = []
-    _instance = None
-    last_event = []
-    total = 0.0
-    print_totals = True
-    last_event_name = ""
 
-    def __new__(cls, *args, **kwargs):
+    def __init__(self, show_events=False):
         """
-        @param cls:
-        @type cls:
-        @param args:
-        @type args:
-        @param kwargs:
-        @type kwargs:
-        @return:
-        @rtype:
+        @type show_events: bool
         """
+        self.done = "07d4fb33602048ac861e2c6eeec7d0b9"
+        self.results = []
+        self.events = []
+        self.show_events = show_events
+        self.start_timer = time.time()
 
-        #noinspection PyProtectedMember
-        if not cls._instance:
-            #noinspection PyArgumentList,PyAttributeOutsideInit
-            cls._instance = super(Events, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
 
-    def event(self, name):
+    def event(self, name, to_console=False):
         """
-        @param name:
-        @type name:
-        @return: @rtype:
+        @type name: str
+        @type to_console: bool
         """
-        last_name = None
+        if to_console or self.show_events:
+            console("event", name, line_num_only=3)
 
-        if len(self.last_event) > 0:
-            last_name = self.last_event.pop()
+        now = time.time()
+        event = {"time": now,
+                 "name": name,
+                 "uuid": get_guid()}
 
-            if name == last_name:
-                return
+        self.events.append(event)
 
-        if last_name in self.Events:
-            if last_name in self.last_event:
-                self.last_event.remove(last_name)
 
-            result = {"name": last_name,
-                      "time": time.time() - self.Events[last_name]}
-            self.done_Events.append(result)
-            del self.Events[last_name]
-        self.last_event.append(name)
-        self.Events[name] = time.time()
-
-        #noinspection PyAttributeOutsideInit
-        self.last_event_name = name
-        return
-
-    def event_stop(self):
+    def get_events(self):
         """
-        event_stop
+        get_events
         """
-        self.event(self.last_event_name)
+        self.event(self.done)
+        self.events = sorted(self.events, key=lambda k: k['time'])
+        return self.events
 
-    def print_result(self, result, total):
-        """
-        @param result:
-        @type result:
-        @param total:
-        @type total:
-        @return: @rtype:
-        """
-        total += float(result["time"])
-        fv = float(result["time"])
-        result["time"] = "%0.4f" % float(result["time"])
-        totals = "%0.4f" % total
 
-        if self.print_totals:
-            if fv > 0.85:
-                console(result["name"], str("* " + str(result["time"]) + " *"), totals)
+    def new_result_item(self, result, results):
+        add = True
+
+        for current_result in results:
+            if current_result["uuid"] == result["uuid"]:
+                add = False
+
+        return add
+
+
+    def add_result(self, result):
+        add = self.new_result_item(result, self.results)
+
+        if add:
+            self.results.append(result)
+
+
+    def extend(self, events):
+        """
+        @type events: dict, list
+        """
+        new_events = []
+        event_lists = []
+
+        for event in events:
+            if isinstance(event, list):
+                event_lists.append(event)
             else:
-                console(result["name"], str(result["time"]), totals)
+                new_events.append(event)
+
+        for event_list in event_lists:
+            cnt = 0
+
+            for event in event_list:
+                result = event
+                cnt += 1
+
+                if cnt < len(event_list):
+                    result["nextevent"] = event_list[cnt]
+                    self.add_result(result)
+
+        for event in new_events:
+            self.events.append(event)
+
+
+    def print_result(self, result, total, items=None):
+        """
+        @type result: {}
+        @type total: str
+        @type items: str, None
+        """
+        duration = result["duration"]
+        total += float(duration)
+        fv = float(duration)
+        duration = "%0.2f" % float(duration)
+        totals = "%0.2f" % total
+        if items is not None:
+            if items > 1:
+                items = str(items)+ " calls"
+            else:
+                items = None
+        if fv > 0.35:
+            console(result["name"], "* " + str("\033[91m" + str(duration)) + " *", totals, items, line_num_only=4)
         else:
-            if fv > 0.85:
-                console(result["name"], str("*" + str(result["time"]) + "*"))
-            else:
-                console(result["name"], str(result["time"]))
+            console(result["name"], str(duration), totals, items, line_num_only=4)
 
         return total
 
-    #noinspection PyAttributeOutsideInit
-    def report_measurements(self):
+    def _get_results(self):
         """
-        report_measurements(self):
+
+
         """
-        self.event("done")
+        prev_event = None
+        cnt = 0
+        for event in self.events:
+            result = event
+            cnt += 1
+
+            if cnt < len(self.events):
+                result["nextevent"] = self.events[cnt]
+                self.add_result(result)
+
+
+    def get_event_index_by_name(self, name, events):
+        """
+        @type name: str
+        @type events: list
+        """
+        index = 0
+
+        for event in events:
+
+            if event["name"] == name:
+                return index
+
+            index += 1
+
+        return -1
+
+
+    def report_measurements(self, group=False):
+        """
+        @type group: bool
+        """
         total = 0.0
+        self._get_results()
+        self.results = sorted(self.results, key=lambda k: k['time'])
 
-        for result in self.done_Events:
-            total = self.print_result(result, total)
+        if group:
+            grouped_results = []
+            grouped_Events_cnt = {}
 
-        if self.print_totals:
-            totals = "%0.4f" % total
-            console("total runtime", totals)
+            for result in self.results:
+                if result["name"] != self.done:
+                    result["duration"] = result["nextevent"]["time"] - result["time"]
+                    index = self.get_event_index_by_name(result["name"], grouped_results)
+                    if index >= 0:
+                        grouped_results[index]["duration"] += result["duration"]
+                        grouped_Events_cnt[result["name"]] += 1
+                    else:
+                        grouped_results.append(result)
+                        grouped_Events_cnt[result["name"]] = 1
 
-        self.Events = {}
-        self.done_Events = []
-        self.last_event = []
+            for result in grouped_results:
+                total = self.print_result(result, total, grouped_Events_cnt[result["name"]])
+        else:
+            for result in self.results:
+                if result["name"] != self.done:
+                    result["duration"] = result["nextevent"]["time"] - result["time"]
+                    total = self.print_result(result, total)
+
+        totals = "\033[93m%0.1f" % total
+        console("total compute time", totals, line_num_only=3)
+        total_runtime = "\033[93m%0.1f" % float(time.time() - self.start_timer)
+        console("total runtime", total_runtime, line_num_only=3)
+
