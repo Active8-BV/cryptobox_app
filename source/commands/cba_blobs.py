@@ -3,7 +3,7 @@
 blob routines, loosely based on git
 """
 import os
-from cba_utils import handle_exception, strcmp, update_progress, output_json
+from cba_utils import handle_ex, strcmp, update_progress, output_json
 from cba_file import read_and_encrypt_file, ensure_directory, decrypt_write_file, write_file, add_local_path_history, add_server_path_history
 
 
@@ -56,7 +56,7 @@ def decrypt_blob_to_filepaths(blobdir, localindex, fhash, secret):
         fdir = os.path.join(blobdir, fhash[:2])
         return decrypt_write_file(localindex, fdir, fhash, secret)
     except Exception:
-        handle_exception(False)
+        handle_ex(False)
 
 
 def have_blob(options, blob_hash):

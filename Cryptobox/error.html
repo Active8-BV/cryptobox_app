@@ -150,7 +150,7 @@
 
     <tr>
       <th>Exception Location:</th>
-      <td>/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/couchdb_api/__init__.py in handle_exception, line 534</td>
+      <td>/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/couchdb_api/__init__.py in handle_ex, line 534</td>
     </tr>
 
     <tr>
@@ -433,7 +433,7 @@
 
                 <ol start="94" class="pre-context" id="pre4533313120"><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        response[&#39;Content-Length&#39;] = content_len</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        response[&#39;Pragma&#39;] = &#39;no-cache&#39;</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        response[&#39;Cache-Control&#39;] = &#39;no-cache must-revalidate proxy-revalidate&#39;</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        cd = SaveEvent(dbase, userid=user.object_id, operation=&quot;download&quot;, dataid=encrypted_doc.object_id)</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        cd.save()</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        return response</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                    except Exception, e:</pre></li></ol>
 
-              <ol start="101" class="context-line"><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        handle_exception(e)</pre> <span>...</span></li></ol>
+              <ol start="101" class="context-line"><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                        handle_ex(e)</pre> <span>...</span></li></ol>
 
                 <ol start='102' class="post-context" id="post4533313120"><li onclick="toggle('pre4533313120', 'post4533313120')"><pre></pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>            else:</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>                raise Exception(&quot;error downloading doc, could not load user&quot;)</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre></pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>        else:</pre></li><li onclick="toggle('pre4533313120', 'post4533313120')"><pre>            return HttpResponseForbidden()</pre></li></ol>
 
@@ -531,12 +531,12 @@
         </li>
 
         <li class="frame user">
-          <code>/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/couchdb_api/__init__.py</code> in <code>handle_exception</code>
+          <code>/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/couchdb_api/__init__.py</code> in <code>handle_ex</code>
 
 
             <div class="context" id="c4533313480">
 
-                <ol start="527" class="pre-context" id="pre4533313480"><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        return error_msg.replace(&quot;\033[95m&quot;, &quot;&quot;)</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>    else:</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        import sys</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        sys.stdout.write(str(error_msg) + &#39;\033[0m&#39;)</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre></pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>    if raise_again:</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre></pre></li></ol>
+                <ol start="527" class="pre-context" id="pre4533313480"><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        return error_msg.replace(&quot;\033[95m&quot;, &quot;&quot;)</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>    else:</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        import sys</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        sys.stdout.write(str(error_msg) + &#39;\033[0m&#39;)</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre></pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>    if again:</pre></li><li onclick="toggle('pre4533313480', 'post4533313480')"><pre></pre></li></ol>
 
               <ol start="534" class="context-line"><li onclick="toggle('pre4533313480', 'post4533313480')"><pre>        raise exc</pre> <span>...</span></li></ol>
 
@@ -561,12 +561,12 @@
               <tbody>
 
                   <tr>
-                    <td>return_error</td>
+                    <td>give_string</td>
                     <td class="code"><pre>False</pre></td>
                   </tr>
 
                   <tr>
-                    <td>raise_again</td>
+                    <td>again</td>
                     <td class="code"><pre>True</pre></td>
                   </tr>
 
@@ -661,7 +661,7 @@
 
                   <tr>
                     <td>error_msg</td>
-                    <td class="code"><pre>&quot;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[95m[14/Oct/2013 12:45:05]   !!! EXCEPTION !!!\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93m[14/Oct/2013 12:45:05] &lt;type &#39;exceptions.AttributeError&#39;&gt;\n\x1b[93m[14/Oct/2013 12:45:05] &#39;NoneType&#39; object has no attribute &#39;data&#39;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93mserver/views_download_doc.py:55 |   encrypted_doc = CryptoDoc(dbase, object_id=node.data.m_data_id)\nserver/views_download_doc.py:101 in get: handle_exception(e)\n  generic/base.py:69 in dispatch: return handler(request\n    generic/base.py:48 in view: return self.dispatch(request\n      handlers/base.py:111 in get_response: response = callback(request\n        handlers/wsgi.py:241 in __call__: response = self.get_response(request)\n          staticfiles/handlers.py:67 in __call__: return self.application(environ\n            wsgiref/handlers.py:85 in run: self.result = application(self.environ\n              wsgiref/simple_server.py:124 in handle: handler.run(self.server.get_app())\n                python2.7/SocketServer.py:649 in __init__: self.handle()\n                  servers/basehttp.py:139 in __init__: super(WSGIRequestHandler\n                    python2.7/SocketServer.py:334 in finish_request: self.RequestHandlerClass(request\n                      python2.7/SocketServer.py:593 in process_request_thread: self.finish_request(request\n                        python2.7/threading.py:761 in run: self.__target(*self.__args\n                          python2.7/threading.py:808 in __bootstrap_inner: self.run()\n                            python2.7/threading.py:781 in __bootstrap: self.__bootstrap_inner()\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n&quot;</pre></td>
+                    <td class="code"><pre>&quot;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[95m[14/Oct/2013 12:45:05]   !!! EXCEPTION !!!\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93m[14/Oct/2013 12:45:05] &lt;type &#39;exceptions.AttributeError&#39;&gt;\n\x1b[93m[14/Oct/2013 12:45:05] &#39;NoneType&#39; object has no attribute &#39;data&#39;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93mserver/views_download_doc.py:55 |   encrypted_doc = CryptoDoc(dbase, object_id=node.data.m_data_id)\nserver/views_download_doc.py:101 in get: handle_ex(e)\n  generic/base.py:69 in dispatch: return handler(request\n    generic/base.py:48 in view: return self.dispatch(request\n      handlers/base.py:111 in get_response: response = callback(request\n        handlers/wsgi.py:241 in __call__: response = self.get_response(request)\n          staticfiles/handlers.py:67 in __call__: return self.application(environ\n            wsgiref/handlers.py:85 in run: self.result = application(self.environ\n              wsgiref/simple_server.py:124 in handle: handler.run(self.server.get_app())\n                python2.7/SocketServer.py:649 in __init__: self.handle()\n                  servers/basehttp.py:139 in __init__: super(WSGIRequestHandler\n                    python2.7/SocketServer.py:334 in finish_request: self.RequestHandlerClass(request\n                      python2.7/SocketServer.py:593 in process_request_thread: self.finish_request(request\n                        python2.7/threading.py:761 in run: self.__target(*self.__args\n                          python2.7/threading.py:808 in __bootstrap_inner: self.run()\n                            python2.7/threading.py:781 in __bootstrap: self.__bootstrap_inner()\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n&quot;</pre></td>
                   </tr>
 
                   <tr>
@@ -708,8 +708,8 @@ File "/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/django/views/
 File "/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/django/views/generic/base.py" in dispatch
   69.         return handler(request, *args, **kwargs)
 File "/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/server/views_download_doc.py" in get
-  101.                         handle_exception(e)
-File "/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/couchdb_api/__init__.py" in handle_exception
+  101.                         handle_ex(e)
+File "/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/couchdb_api/__init__.py" in handle_ex
   534.         raise exc
 
 Exception Type: AttributeError at /test/download/ksmq

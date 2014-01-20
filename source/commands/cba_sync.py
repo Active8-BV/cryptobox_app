@@ -14,7 +14,7 @@ import poster
 from cba_index import quick_lock_check, TreeLoadError, index_files_visit, make_local_index, get_localindex, store_localindex
 from cba_blobs import write_blobs_to_filepaths, have_blob, get_blob_dir
 from cba_network import download_server, on_server, NotAuthorized, authorize_user, authorized
-from cba_utils import handle_exception, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Events, log_json
+from cba_utils import handle_ex, strcmp, exit_app_warning, update_progress, update_item_progress, Memory, output_json, Events, log_json
 from cba_file import ensure_directory, add_server_path_history, in_server_path_history, add_local_path_history, in_local_path_history, del_server_path_history, del_local_path_history, path_to_relative_path_unix_style, make_cryptogit_hash, read_file_to_fdict, make_cryptogit_filehash
 from cba_crypto import password_derivation, make_sha1_hash_file, make_checksum_tuple
 from cba_file import write_file, read_file, decrypt_file
@@ -1096,7 +1096,7 @@ def upload_file(session, server, cryptobox, file_path, rel_file_path, parent):
         result = urllib2.urlopen(request)
         return file_path
     except Exception:
-        handle_exception(False)
+        handle_ex(False)
 
 
 def possible_new_dirs(file_path, memory):

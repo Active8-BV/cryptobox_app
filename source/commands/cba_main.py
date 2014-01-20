@@ -23,7 +23,7 @@ import shutil
 import Tkinter
 import tkFileDialog
 from optparse import OptionParser
-from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_exception, message_json, b64_encode_mstyle, log_json, Events
+from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_ex, message_json, b64_encode_mstyle, log_json, Events
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -478,7 +478,7 @@ def main():
     try:
         cryptobox_command(options)
     except Exception:
-        exs = handle_exception(False, True)
+        exs = handle_ex(False, True)
         output_json({"error_message": exs})
 
         raise

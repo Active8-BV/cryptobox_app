@@ -333,7 +333,7 @@ def error_prefix():
 
 
 #noinspection PyUnresolvedReferences
-def handle_exception(again=True, ret_err=False):
+def handle_ex(again=True, ret_err=False):
     """
     @param again: bool
     @type again:
@@ -343,7 +343,7 @@ def handle_exception(again=True, ret_err=False):
     import sys
     import traceback
     if again and ret_err:
-        raise Exception("handle_exception, raise_again and ret_err can't both be true")
+        raise Exception("handle_ex, again and ret_err can't both be true")
 
     exc_type, exc_value, exc_traceback = sys.exc_info()
     error = error_prefix() + " ---------------------------\n"
@@ -614,7 +614,7 @@ def update_item_progress(p, output_name="item_progress"):
         if 0 < int(p) <= 100:
             output_json({output_name: p})
     except Exception:
-        handle_exception(False)
+        handle_ex(False)
 
 
 def update_progress(curr, total, msg):
@@ -672,7 +672,7 @@ def check_command_folder(command_folder):
                         print "cba_utils.py:672", jdata
 
             except Exception:
-                handle_exception(False)
+                handle_ex(False)
             finally:
                 if str(fp).endswith(".cmd"):
                     if os.path.exists(fp):
