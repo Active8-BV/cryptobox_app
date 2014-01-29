@@ -13,57 +13,57 @@ from cba_utils import Memory, update_item_progress, message_json
 from cba_crypto import get_named_temporary_file
 
 
-def get_b64mstyle():
+def get_b64safe():
     """
-    get_b64mstyle
+    get_b64safe
     """
-    return "data:b64encode/mstyle,"
+    return "data:b64encode/safe,"
 
 
-def b64_decode_mstyle(s):
+def b64_decode_safe(s):
     """
-    b64_decode_mstyle
+    b64_decode_safe
     @type s: str, unicode
     """
     if not isinstance(s, str) and not isinstance(s, unicode):
         return s
 
-    b64mstyle = get_b64mstyle()
-    if s.find(b64mstyle) != 0:
+    b64safe = get_b64safe()
+    if s.find(b64safe) != 0:
         return s
 
-    s = s.replace(b64mstyle, "")
+    s = s.replace(b64safe, "")
     s = base64.decodestring(s.replace("-", "="))
     s = urllib.unquote(s)
     return s
 
 
-def b64_encode_mstyle(s):
+def b64_encode_safe(s):
     """
-    b64_encode_mstyle
+    b64_encode_safe
     @type s: str, unicode
     """
     if not isinstance(s, str) and not isinstance(s, unicode):
         return s
 
-    b64mstyle = get_b64mstyle()
-    if s.find(b64mstyle) != -1:
+    b64safe = get_b64safe()
+    if s.find(b64safe) != -1:
         return s
 
     s = urllib.quote(s, safe='~()*!.\'')
     s = base64.encodestring(s).replace("=", "-").replace("\n", "")
-    s = b64mstyle + s
+    s = b64safe + s
     return s
 
 
-def b64_object_mstyle(d):
+def b64_object_safe(d):
     """
-    b64_object_mstyle
+    b64_object_safe
     @type d: dict, list, object
     """
     if isinstance(d, dict):
         for k in d:
-            d[k] = b64_object_mstyle(d[k])
+            d[k] = b64_object_safe(d[k])
 
         return d
 
@@ -71,23 +71,23 @@ def b64_object_mstyle(d):
         cnt = 0
 
         for k in d:
-            d[cnt] = b64_object_mstyle(k)
+            d[cnt] = b64_object_safe(k)
             cnt += 1
 
         return d
 
-    d = b64_decode_mstyle(d)
+    d = b64_decode_safe(d)
     return d
 
 
-def object_b64_mstyle(d):
+def object_b64_safe(d):
     """
-    object_b64_mstyle
+    object_b64_safe
     @type d: dict, list, object
     """
     if isinstance(d, dict):
         for k in d:
-            d[k] = object_b64_mstyle(d[k])
+            d[k] = object_b64_safe(d[k])
 
         return d
 
@@ -95,12 +95,12 @@ def object_b64_mstyle(d):
         cnt = 0
 
         for k in d:
-            d[cnt] = object_b64_mstyle(k)
+            d[cnt] = object_b64_safe(k)
             cnt += 1
 
         return d
 
-    d = b64_encode_mstyle(d)
+    d = b64_encode_safe(d)
     return d
 
 

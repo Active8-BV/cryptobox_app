@@ -712,11 +712,11 @@ def add_command_result_to_folder(command_folder, data):
     open(os.path.join(command_folder, data["name"] + ".result"), "w").write(json.dumps(data))
 
 
-def get_b64mstyle():
+def get_b64safe():
     """
     @return: @rtype:
     """
-    return "data:b64encode:mstyle,"
+    return "data:b64encode:safe,"
 
 
 def key_ascii(s):
@@ -737,7 +737,7 @@ def key_ascii(s):
     return s2.encode("ascii")
 
 
-def b64_encode_mstyle(s):
+def b64_encode_safe(s):
     """
     @param s:
     @type s:
@@ -746,8 +746,8 @@ def b64_encode_mstyle(s):
     if not isinstance(s, str) and not isinstance(s, unicode):
         return s
 
-    b64mstyle = get_b64mstyle()
-    if s.find(b64mstyle) != -1:
+    b64safe = get_b64safe()
+    if s.find(b64safe) != -1:
         return s
     try:
         s = urllib.quote(s, safe='~()*!.\'')
@@ -755,7 +755,7 @@ def b64_encode_mstyle(s):
         s = key_ascii(s)
 
     s = base64.encodestring(s).replace("=", "-").replace("\n", "")
-    s = b64mstyle + s
+    s = b64safe + s
     return s
 
 

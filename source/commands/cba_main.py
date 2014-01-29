@@ -23,7 +23,7 @@ import shutil
 import Tkinter
 import tkFileDialog
 from optparse import OptionParser
-from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_ex, message_json, b64_encode_mstyle, log_json, Events
+from cba_utils import output_json, strcmp, Dict2Obj, Memory, open_folder, handle_ex, message_json, b64_encode_safe, log_json, Events
 from cba_index import restore_hidden_config, ensure_directory, hide_config, index_and_encrypt, make_local_index, reset_cryptobox_local, decrypt_and_build_filetree, quick_lock_check
 from cba_network import authorize_user, on_server, download_server
 from cba_sync import sync_server, get_server_index, get_sync_changes, get_tree_sequence
@@ -260,8 +260,8 @@ def cryptobox_command(options):
                 if not m.has_get("authorized"):
                     message_json("Username or password is not correct")
                 else:
-                    encoded_token = b64_encode_mstyle("session_token:" + m.get("session_token"))
-                    private_key = b64_encode_mstyle(m.get("private_key"))
+                    encoded_token = b64_encode_safe("session_token:" + m.get("session_token"))
+                    private_key = b64_encode_safe(m.get("private_key"))
                     webbrowser.open_new_tab(options.server + options.cryptobox + "/autologin/" + options.username + "/" + encoded_token + "/" + private_key)
             else:
                 print "cba_main.py:267", "unknown command"
