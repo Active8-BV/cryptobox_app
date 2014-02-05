@@ -971,7 +971,7 @@ angular.module("cryptoboxApp.base", []).factory("memory", function($q) {
       check_watch_vars("set_no_warning", key, value);
       return _set(key, value);
     },
-    all_prefix: function(key_prefix) {
+    all_keys_prefix: function(key_prefix) {
       var check, keys, result;
       keys = _.keys(window.globals);
       check = function(val) {
@@ -992,7 +992,7 @@ angular.module("cryptoboxApp.base", []).factory("memory", function($q) {
       return result;
     },
     prefix: function(kp) {
-      return this.all_prefix(kp);
+      return this.all_keys_prefix(kp);
     },
     del_prefix: function(kp) {
       var del_cache,
@@ -1000,7 +1000,7 @@ angular.module("cryptoboxApp.base", []).factory("memory", function($q) {
       del_cache = function(key) {
         return _this.del(key);
       };
-      return _.each(this.all_prefix(kp), del_cache);
+      return _.each(this.all_keys_prefix(kp), del_cache);
     },
     exist: function(key) {
       if (!exist(key)) {
