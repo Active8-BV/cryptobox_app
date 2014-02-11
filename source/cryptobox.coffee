@@ -401,7 +401,7 @@ set_sync_check_on_scope = (scope, sync_results) ->
     items_out_of_sync = 0
 
     human_readable_size = (item) ->
-        item.doc.m_size = g_format_file_size(item.doc.m_size)
+        item.doc.m_size_p64s = g_format_file_size(item.doc.m_size_p64s)
 
     human_readable_size2 = (item) ->
         item.size = g_format_file_size(item.size)

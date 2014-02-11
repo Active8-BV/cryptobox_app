@@ -46,7 +46,7 @@ def get_unique_content(memory, options, all_unique_nodes, local_paths):
     unique_nodes = [all_unique_nodes[fhash] for fhash in all_unique_nodes if fhash in unique_nodes_hashes]
     downloaded_files_cnt = 0
     unique_nodes = [node for node in unique_nodes if not os.path.exists(os.path.join(options.dir, node["doc"]["m_path_p64s"].lstrip(os.path.sep)))]
-    unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size"])
+    unique_nodes = sorted(unique_nodes, key=lambda k: k["doc"]["m_size_p64s"])
 
     for node in unique_nodes:
         update_progress(downloaded_files_cnt, len(unique_nodes), "downloading " + str(node["doc"]["m_name"]))

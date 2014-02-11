@@ -511,7 +511,7 @@ set_sync_check_on_scope = function(scope, sync_results) {
   scope.outofsync = false;
   items_out_of_sync = 0;
   human_readable_size = function(item) {
-    return item.doc.m_size = g_format_file_size(item.doc.m_size);
+    return item.doc.m_size_p64s = g_format_file_size(item.doc.m_size_p64s);
   };
   human_readable_size2 = function(item) {
     return item.size = g_format_file_size(item.size);
