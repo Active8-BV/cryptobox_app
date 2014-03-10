@@ -22,7 +22,7 @@ from cba_network import authorize_user, new_mandate, NotAuthorized, get_mandate
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
-from couchdb_api import MemcachedServer, CouchDBServer, sync_all_views
+from couchdb_api import RedisServer, CouchDBServer, sync_all_views
 
 #noinspection PyUnresolvedReferences
 import crypto_api
