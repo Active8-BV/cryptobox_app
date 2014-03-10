@@ -110,7 +110,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "numdownloadthreads": 12}
 
         self.cboptions = Dict2Obj(self.options_d)
-        mc = MemcachedServer(["127.0.0.1:11211"], "mutex")
+        mc = RedisServer("mutex")
         mc.flush_all()
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
@@ -191,7 +191,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("cp testdata/rabshakeh.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c rabshakeh", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
-        dbase = CouchDBServer(self.db_name, [server], memcached_server_list=["127.0.0.1:11211"])
+        dbase = CouchDBServer(self.db_name, [server])
         sync_all_views(dbase, ["couchdb_api", "crypto_api"])
         time.sleep(0.5)
 
