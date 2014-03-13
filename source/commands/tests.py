@@ -111,7 +111,7 @@ class CryptoboxAppTest(unittest.TestCase):
 
         self.cboptions = Dict2Obj(self.options_d)
         rs = RedisServer("mutex")
-        rs.flush_all()
+        rs.flush_namespace()
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
 
