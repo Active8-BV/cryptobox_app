@@ -22,7 +22,7 @@ from cba_network import authorize_user, new_mandate, NotAuthorized, get_mandate
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
 #noinspection PyUnresolvedReferences
-from couchdb_api import RedisServer, CouchDBServer, sync_all_views
+from crypto_data import RedisServer, CouchDBServer, sync_all_views
 
 #noinspection PyUnresolvedReferences
 import crypto_api
@@ -192,7 +192,7 @@ class CryptoboxAppTest(unittest.TestCase):
         self.pipe = Popen("nohup python server/manage.py load -c rabshakeh", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe.wait()
         dbase = CouchDBServer(self.db_name, [server])
-        sync_all_views(dbase, ["couchdb_api", "crypto_api"])
+        sync_all_views(dbase, ["crypto_data", "crypto_api"])
         time.sleep(0.5)
 
     def reset_cb_db_clean(self):
