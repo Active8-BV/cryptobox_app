@@ -305,9 +305,9 @@ def exit_app_warning(*arg):
     sys.exit(1)
 
 
-def timestamp_to_string(ts, short=False):
+def timestamp_to_string_gmt(ts, short=False):
     """Return the current time formatted for logging.
-    Return the current time formatted for logging.timestamp_to_string
+    Return the current time formatted for logging.timestamp_to_string_gmt
     @param ts: time string
     @type ts: string, unicode
     @param short: display format
