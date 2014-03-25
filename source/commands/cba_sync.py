@@ -325,7 +325,7 @@ def wait_for_tasks(memory, options, result_message_param=None):
         if memory.has("session"):
             session = memory.get("session")
 
-        result, memory = on_server(memory, options, "tasks", payload={}, session=session)
+        result, memory = on_server(memory, options, "crypto_tasks", payload={}, session=session)
 
         if result:
             if len(result) > 1:
