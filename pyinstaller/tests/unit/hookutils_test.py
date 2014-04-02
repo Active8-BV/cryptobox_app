@@ -91,19 +91,19 @@ class TestRemoveExtension(unittest.TestCase):
     # filename.
     def test_0(self):
         self.assertEqual("file", remove_file_extension("file"))
-        
+
     # A filename with two extensions should have only the first removed.
     def test_1(self):
         self.assertEqual("file.1", remove_file_extension("file.1.2"))
-        
+
     # Standard case - remove an extension
     def test_2(self):
         self.assertEqual("file", remove_file_extension("file.1"))
-        
+
     # Unix-style .files are not treated as extensions
     def test_3(self):
         self.assertEqual(".file", remove_file_extension(".file"))
-        
+
     # Unix-style .file.ext works
     def test_4(self):
         self.assertEqual(".file", remove_file_extension(".file.1"))
@@ -144,7 +144,7 @@ class TestCollectSubmodules(unittest.TestCase):
 
     # Check that all packages get included
     def test_3(self):
-        self.assertItemsEqual(self.mod_list, 
+        self.assertItemsEqual(self.mod_list,
                               [HOOKUTILS_TEST_FILES,
                                HOOKUTILS_TEST_FILES + '.two',
                                HOOKUTILS_TEST_FILES + '.four',
@@ -182,7 +182,7 @@ from os.path import join
 class TestCollectDataFiles(unittest.TestCase):
     # Use the hookutils_test_files package for testing.
     def setUp(self, package = HOOKUTILS_TEST_FILES):
-        self.basepath = join(os.getcwd(), HOOKUTILS_TEST_FILES)
+        self.parentpath = join(os.getcwd(), HOOKUTILS_TEST_FILES)
         # Fun Python behavior: __import__('mod.submod') returns mod,
         # where as __import__('mod.submod', fromlist = [a non-empty list])
         # returns mod.submod. See the docs on `__import__
@@ -206,7 +206,7 @@ class TestCollectDataFiles(unittest.TestCase):
     # subfiles.
     def assert_data_list_equal(self, subfiles):
         self.assertSequenceEqual(self.source_list,
-          [join(self.basepath, subpath) for subpath in subfiles])
+          [join(self.parentpath, subpath) for subpath in subfiles])
         self.assertSequenceEqual(self.dest_list,
           [os.path.dirname(join(HOOKUTILS_TEST_FILES, subpath))
           for subpath in subfiles])

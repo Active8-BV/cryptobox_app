@@ -117,7 +117,7 @@ def compile_pycos(toc):
 
     # For those modules that need to be rebuilt, use the build directory
     # PyInstaller creates during the build process.
-    basepath = os.path.join(WORKPATH, "localpycos")
+    parentpath = os.path.join(WORKPATH, "localpycos")
 
     new_toc = []
     for (nm, fnm, typ) in toc:
@@ -153,7 +153,7 @@ def compile_pycos(toc):
                     # as leading path and use "__init__" as the module name
                     leading, mod_name = nm.split("."), "__init__"
 
-                leading = os.path.join(basepath, *leading)
+                leading = os.path.join(parentpath, *leading)
 
                 if not os.path.exists(leading):
                     os.makedirs(leading)
@@ -1125,7 +1125,7 @@ class EXE(Target):
         self.resources = kwargs.get('resources', [])
         self.strip = kwargs.get('strip', False)
 
-        if config['hasUPX']: 
+        if config['hasUPX']:
            self.upx = kwargs.get('upx', False)
         else:
            self.upx = False
@@ -1134,7 +1134,7 @@ class EXE(Target):
         # app. New format includes only exename.
         #
         # Ignore fullpath in the 'name' and prepend DISTPATH or WORKPATH.
-        # DISTPATH - onefile 
+        # DISTPATH - onefile
         # WORKPATH - onedir
         if self.exclude_binaries:
             # onedir mode - create executable in WORKPATH.
@@ -1142,7 +1142,7 @@ class EXE(Target):
         else:
             # onefile mode - create executable in DISTPATH.
             self.name = os.path.join(DISTPATH, os.path.basename(self.name))
-        
+
         # Base name of the EXE file without .exe suffix.
         base_name = os.path.basename(self.name)
         if is_win or is_cygwin:
@@ -1347,7 +1347,7 @@ class COLLECT(Target):
         Target.__init__(self)
         self.strip_binaries = kws.get('strip', False)
 
-        if config['hasUPX']: 
+        if config['hasUPX']:
            self.upx_binaries = kws.get('upx', False)
         else:
            self.upx_binaries = False
@@ -1408,7 +1408,7 @@ class COLLECT(Target):
                 os.makedirs(todir)
             if typ in ('EXTENSION', 'BINARY'):
                 fnm = checkCache(fnm, strip=self.strip_binaries,
-                                 upx=(self.upx_binaries and (is_win or is_cygwin)), 
+                                 upx=(self.upx_binaries and (is_win or is_cygwin)),
                                  dist_nm=inm)
             if typ != 'DEPENDENCY':
                 shutil.copy2(fnm, tofnm)
@@ -1436,7 +1436,7 @@ class BUNDLE(Target):
         self.icon = os.path.abspath(self.icon)
 
         Target.__init__(self)
- 
+
         # .app bundle is created in DISTPATH.
         self.name = kws.get('name', None)
         base_name = os.path.basename(self.name)
@@ -1451,9 +1451,9 @@ class BUNDLE(Target):
         for arg in args:
             if isinstance(arg, EXE):
                 self.toc.append((os.path.basename(arg.name), arg.name, arg.typ))
-                self.toc.extend(arg.dependencies) 
+                self.toc.extend(arg.dependencies)
                 self.strip = arg.strip
-                self.upx = arg.upx 
+                self.upx = arg.upx
             elif isinstance(arg, TOC):
                 self.toc.extend(arg)
                 # TOC doesn't have a strip or upx attribute, so there is no way for us to
@@ -1461,7 +1461,7 @@ class BUNDLE(Target):
             elif isinstance(arg, COLLECT):
                 self.toc.extend(arg.toc)
                 self.strip = arg.strip_binaries
-                self.upx = arg.upx_binaries 
+                self.upx = arg.upx_binaries
             else:
                 logger.info("unsupported entry %s", arg.__class__.__name__)
         # Now, find values for app filepath (name), app name (appname), and name
@@ -1867,7 +1867,7 @@ def build(spec, distpath, workpath, clean_build):
     for pth in (DISTPATH, WORKPATH):
         if not os.path.exists(WORKPATH):
             os.makedirs(WORKPATH)
- 
+
     # Executing the specfile. The executed .spec file will use DISTPATH and
     # WORKPATH values.
     execfile(spec)
