@@ -1980,11 +1980,11 @@ the name of a script or imported module that will be found by Analysis.
 You should browse through the existing hooks in the
 <tt class="docutils literal">hooks</tt> folder of the <cite>PyInstaller</cite> distribution folder,
 if only to see the names of the many supported imports.</p>
-<p>For example <tt class="docutils literal"><span class="pre">hook-cPickle.py</span></tt> is a hook file telling
-about hidden imports used by the module <tt class="docutils literal">cPickle</tt>.
-When your script has <tt class="docutils literal">import cPickle</tt>
-the Analysis will note it and check for a hook file <tt class="docutils literal"><span class="pre">hook-cPickle.py</span></tt>.</p>
-<p>Typically a hook module has only one line; in <tt class="docutils literal"><span class="pre">hook-cPickle.py</span></tt> it is</p>
+<p>For example <tt class="docutils literal"><span class="pre">hook-msgpack.py</span></tt> is a hook file telling
+about hidden imports used by the module <tt class="docutils literal">msgpack</tt>.
+When your script has <tt class="docutils literal">import msgpack</tt>
+the Analysis will note it and check for a hook file <tt class="docutils literal"><span class="pre">hook-msgpack.py</span></tt>.</p>
+<p>Typically a hook module has only one line; in <tt class="docutils literal"><span class="pre">hook-msgpack.py</span></tt> it is</p>
 <blockquote>
 <tt class="docutils literal">hiddenimports = ['copy_reg', 'types', 'string']</tt></blockquote>
 <p>assigning a list of one or more module names to <tt class="docutils literal">hiddenimports</tt>.

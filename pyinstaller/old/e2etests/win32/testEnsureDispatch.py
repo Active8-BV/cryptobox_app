@@ -1,4 +1,4 @@
-# for older Pythons, we need to set up for the import of cPickle
+# for older Pythons, we need to set up for the import of msgpack
 import string
 import copy_reg
 

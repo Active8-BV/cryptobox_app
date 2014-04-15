@@ -9,7 +9,7 @@ import time
 import threading
 import multiprocessing
 import uuid as _uu
-import cPickle
+import msgpack
 import json
 import subprocess
 import base64
@@ -97,7 +97,7 @@ def pickle_object(path, targetobject, json_pickle=False):
     @type targetobject: object
     @type json_pickle: bool
     """
-    cPickle.dump(targetobject, open(path, "wb"), cPickle.HIGHEST_PROTOCOL)
+    msgpack.dump(targetobject, open(path, "wb"), msgpack.HIGHEST_PROTOCOL)
     if json_pickle:
         if isinstance(targetobject, dict):
             json_object(path, targetobject)
@@ -110,7 +110,7 @@ def unpickle_object(path):
     @type path: str or unicode
     @return: @rtype:
     """
-    return cPickle.load(open(path, "rb"))
+    return msgpack.load(open(path, "rb"))
 
 
 def output(msg):

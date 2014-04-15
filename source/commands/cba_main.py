@@ -15,7 +15,7 @@ import base64
 import urlparse
 import urllib2
 import json
-import cPickle
+import msgpack
 import multiprocessing.forking
 import multiprocessing
 import random
@@ -268,7 +268,7 @@ def cryptobox_command(options):
             return
 
         if options.motivation:
-            qlist = cPickle.load(open("quotes.list"))
+            qlist = msgpack.load(open("quotes.list"))
             q = qlist[random.randint(0, len(qlist)) - 1]
             output_json({"motivation": q[0] + "\n\n- " + q[1]})
             return

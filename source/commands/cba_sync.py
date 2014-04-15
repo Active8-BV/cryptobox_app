@@ -5,7 +5,7 @@ sync functions
 import os
 import time
 import uuid
-import cPickle
+import msgpack
 import base64
 import urllib
 import shutil
@@ -757,7 +757,7 @@ def print_pickle_variable_for_debugging(var, varname):
     :param var:
     :param varname:
     """
-    print "cba_sync.py:760", varname + " = cPickle.loads(base64.decodestring(\"" + base64.encodestring(cPickle.dumps(var)).replace("\n", "") + "\"))"
+    print "cba_sync.py:760", varname + " = msgpack.loads(base64.decodestring(\"" + base64.encodestring(msgpack.dumps(var)).replace("\n", "") + "\"))"
 
 
 def get_content_hash_server(options, serverindex, path):

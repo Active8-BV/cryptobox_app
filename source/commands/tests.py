@@ -7,7 +7,7 @@ import unittest
 import random
 import os
 import time
-import cPickle
+import msgpack
 import base64
 import sys
 from subprocess import Popen, PIPE
@@ -293,10 +293,10 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/test")
         self.unzip_testfiles_clean()
         self.cboptions.sync = False
-        localindex_check = cPickle.load(open("testdata/localindex_test.pickle"))
+        localindex_check = msgpack.load(open("testdata/localindex_test.pickle"))
         localindex = make_local_index(self.cboptions)
 
-        #cPickle.dump(localindex, open("testdata/localindex_test.pickle", "w"))
+        #msgpack.dump(localindex, open("testdata/localindex_test.pickle", "w"))
         self.assertTrue(localindex_check == localindex)
 
     def test_index_and_encrypt(self):

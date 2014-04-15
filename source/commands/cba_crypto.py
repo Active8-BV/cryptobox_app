@@ -8,7 +8,7 @@ import math
 import time
 import tempfile
 import base64
-import cPickle
+import msgpack
 import zlib
 import uuid
 import multiprocessing
@@ -401,7 +401,7 @@ def encrypt_object(secret, obj):
     @return: @rtype:
     """
     temp_file = get_named_temporary_file(auto_delete=True)
-    pickle_data = cPickle.dumps(obj)
+    pickle_data = msgpack.dumps(obj)
     temp_file.write(pickle_data)
     temp_file.seek(0)
     encrypted_file = encrypt_file_smp(secret, temp_file.name, single_file=True)
@@ -426,7 +426,7 @@ def decrypt_object(secret, obj_string):
     tf.seek(0)
     data = decrypt_file_smp(secret, enc_file=tf)
     pdata = data.read()
-    obj = cPickle.loads(pdata)
+    obj = msgpack.loads(pdata)
     return obj, secret
 
 
