@@ -394,7 +394,7 @@ def decrypt_file_smp(secret, enc_file=None, enc_files=tuple(), progress_callback
         cleanup_tempfiles()
 
 
-def encrypt_object(secret, obj):
+def msgpack_encrypt_pyobject(secret, obj):
     """
     @type secret: str or unicode
     @type obj: str or unicode or object
@@ -408,7 +408,7 @@ def encrypt_object(secret, obj):
     return base64.b64encode(encrypted_file.read())
 
 
-def decrypt_object(secret, obj_string):
+def msgpack_decrypt_pyobject(secret, obj_string):
     """
     @type secret: str or unicode
     @type obj_string: str
@@ -418,7 +418,7 @@ def decrypt_object(secret, obj_string):
         secret = None
 
     if not secret:
-        raise Exception("decrypt_object, no secret")
+        raise Exception("msgpack_decrypt_pyobject, no secret")
 
     tf = get_named_temporary_file(auto_delete=True)
     obj_string = base64.decodestring(obj_string)

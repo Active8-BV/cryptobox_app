@@ -17,7 +17,7 @@ from cba_index import make_local_index, index_and_encrypt, reset_cryptobox_local
 from cba_blobs import get_blob_dir, get_data_dir
 from cba_sync import instruct_server_to_rename_path, get_server_index, parse_serverindex, instruct_server_to_delete_folders, dirs_on_local, path_to_server_shortid, wait_for_tasks, sync_server, get_sync_changes, short_id_to_server_path, NoSyncDirFound
 from cba_file import ensure_directory, make_cryptogit_hash, make_sha1_hash_file, read_file_to_fdict
-from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_apply, cleanup_tempfiles, encrypt_object, decrypt_object
+from cba_crypto import encrypt_file_smp, decrypt_file_smp, smp_apply, cleanup_tempfiles, msgpack_encrypt_pyobject, msgpack_decrypt_pyobject
 from cba_network import authorize_user, new_mandate, NotAuthorized, get_mandate
 sys.path.append("/Users/rabshakeh/workspace/cryptobox")
 
@@ -269,8 +269,8 @@ class CryptoboxAppTest(unittest.TestCase):
         """
         self.do_wait_for_tasks = False
         mydict = {"hello": "world"}
-        encrypted_obj = encrypt_object("kjhfsd98", mydict)
-        mydict2, secret = decrypt_object("kjhfsd98", encrypted_obj)
+        encrypted_obj = msgpack_encrypt_pyobject("kjhfsd98", mydict)
+        mydict2, secret = msgpack_decrypt_pyobject("kjhfsd98", encrypted_obj)
         self.assertEqual(mydict, mydict2)
 
     def test_index_no_box_given(self):

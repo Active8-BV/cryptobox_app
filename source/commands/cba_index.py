@@ -7,7 +7,7 @@ import shutil
 import base64
 from Crypto import Random
 from cba_utils import strcmp, get_uuid, update_progress, unpickle_object, Memory, pickle_object, output_json
-from cba_crypto import password_derivation, encrypt_object, decrypt_object, make_sha1_hash_file, cleanup_tempfiles
+from cba_crypto import password_derivation, msgpack_encrypt_pyobject, msgpack_decrypt_pyobject, make_sha1_hash_file, cleanup_tempfiles
 from cba_blobs import encrypt_new_blobs, get_data_dir, decrypt_blob_to_filepaths
 from cba_file import ensure_directory, decrypt_file_and_write, read_and_encrypt_file, make_cryptogit_hash
 
@@ -103,7 +103,7 @@ def get_encrypted_configs(options, name_stop=None):
         config_file_path = os.path.join(config_file_path, config[1])
         cryptoboxname = unpickle_object(config_file_path)
         secret = password_derivation(options.password, cryptoboxname["salt"])
-        cryptoboxname, secret = decrypt_object(secret, obj_string=cryptoboxname["encrypted_name"])
+        cryptoboxname, secret = msgpack_decrypt_pyobject(secret, obj_string=cryptoboxname["encrypted_name"])
         encrypted_configs.append({"cryptoboxname": cryptoboxname, "secret": secret, "config_file_path": config_file_path})
         if name_stop == cryptoboxname:
             return encrypted_configs
@@ -147,7 +147,7 @@ def hide_config(options, salt, secret):
             while hidden_name in os.listdir(options.dir):
                 hidden_name = "." + get_uuid(3)
 
-            encrypted_name = encrypt_object(secret, options.cryptobox)
+            encrypted_name = msgpack_encrypt_pyobject(secret, options.cryptobox)
             pickle_object(os.path.join(options.dir, hidden_name + ".cryptoboxfolder"), {"encrypted_name": encrypted_name, "salt": salt})
             os.rename(options.dir, os.path.join(os.path.dirname(options.dir), hidden_name))
 
