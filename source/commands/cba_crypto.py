@@ -430,12 +430,12 @@ def msgpack_decrypt_pyobject(secret, obj_string):
     return obj, secret
 
 
-def smp_apply(method, items, progress_callback=None, dummy_pool=False, listener=None, listener_param=tuple(), num_procs_param=None):
+def smp_apply(method, items, progress_callback=None, use_threadpool=False, listener=None, listener_param=tuple(), num_procs_param=None):
     """
     @type method: function
     @type items: list
     @type progress_callback: function
-    @type dummy_pool: bool
+    @type use_threadpool: bool
     @type listener: function
     @type listener_param: tuple
     """
@@ -484,7 +484,7 @@ def smp_apply(method, items, progress_callback=None, dummy_pool=False, listener=
 
     manager = multiprocessing.Manager()
 
-    if dummy_pool:
+    if use_threadpool:
         from multiprocessing.dummy import Pool
         pool = Pool(processes=num_procs)
     else:
