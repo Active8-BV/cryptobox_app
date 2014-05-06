@@ -110,7 +110,7 @@ class CryptoboxAppTest(unittest.TestCase):
                           "numdownloadthreads": 12}
 
         self.cboptions = Dict2Obj(self.options_d)
-        rs = RedisServer("mutex")
+        rs = RedisServerSingleton("mutex")
         rs.flush_namespace()
         self.cbmemory = Memory()
         self.cbmemory.set("cryptobox_folder", self.cboptions.dir)
