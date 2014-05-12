@@ -74,7 +74,7 @@ def get_named_temporary_file(auto_delete):
     ntf = tempfile.NamedTemporaryFile(delete=auto_delete)
 
     if not auto_delete:
-        fname = "tempfile_" + str(uuid.uuid4().hex) + ".cba"
+        fname = "tempfile_" + str(uuid.uuid4().hex) + ".cbtmp"
         fpath = os.path.join(os.getcwd(), fname)
         logf = open(fpath, "w")
         logf.write(ntf.name)
@@ -89,8 +89,8 @@ def cleanup_tempfiles():
     """
     cleanup_tempfiles
     """
-    for fp in glob.glob("tempfile_*.cba"):
-        if str(fp).startswith("tempfile_") and str(fp).endswith(".cba"):
+    for fp in glob.glob("tempfile_*.cbtmp"):
+        if str(fp).startswith("tempfile_") and str(fp).endswith(".cbtmp"):
             if os.path.exists(os.path.join(os.getcwd(), fp)):
                 #noinspection PyBroadException
                 try:
