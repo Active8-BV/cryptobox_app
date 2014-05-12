@@ -246,7 +246,7 @@ def make_chunklist(fpath):
     #noinspection PyBroadException
     try:
         import multiprocessing
-        numcores = multiprocessing.cpu_count()
+        numcores = multiprocessing.g_cpu_count()
 
         if (numcores * chunksize) > fsize:
             chunksize = int(math.ceil(float(fsize) / numcores))
@@ -474,8 +474,8 @@ def smp_apply(method, items, progress_callback=None, use_threadpool=False, liste
         num_procs = num_procs_param
     else:
         try:
-            from multiprocessing import cpu_count
-            num_procs = cpu_count()
+            from multiprocessing import g_cpu_count
+            num_procs = g_cpu_count()
         except Exception, e:
             log_json(str(e))
 

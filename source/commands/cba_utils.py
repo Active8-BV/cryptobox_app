@@ -153,7 +153,7 @@ def smp_apply_0(method, items, progress_callback=None):
     @type items: list
     @type progress_callback: function
     """
-    pool = Pool(processes=multiprocessing.cpu_count())
+    pool = Pool(processes=multiprocessing.g_cpu_count())
     results_cnt = [0]
     last_update = [time.time()]
 
