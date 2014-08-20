@@ -572,7 +572,7 @@
 
                   <tr>
                     <td>val</td>
-                    <td class="code"><pre>&#39;encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id)&#39;</pre></td>
+                    <td class="code"><pre>&#39;encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id_foreignkey)&#39;</pre></td>
                   </tr>
 
                   <tr>
@@ -648,7 +648,7 @@
                     <td class="code"><pre>[(&#39;/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/server/views_download_doc.py&#39;,
   55,
   &#39;get&#39;,
-  &#39;encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id)&#39;)]</pre></td>
+  &#39;encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id_foreignkey)&#39;)]</pre></td>
                   </tr>
 
                   <tr>
@@ -656,12 +656,12 @@
                     <td class="code"><pre>(&#39;/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl/server/server/views_download_doc.py&#39;,
  55,
  &#39;get&#39;,
- &#39;encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id)&#39;)</pre></td>
+ &#39;encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id_foreignkey)&#39;)</pre></td>
                   </tr>
 
                   <tr>
                     <td>error_msg</td>
-                    <td class="code"><pre>&quot;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[95m[14/Oct/2013 12:45:05]   !!! EXCEPTION !!!\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93m[14/Oct/2013 12:45:05] &lt;type &#39;exceptions.AttributeError&#39;&gt;\n\x1b[93m[14/Oct/2013 12:45:05] &#39;NoneType&#39; object has no attribute &#39;data&#39;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93mserver/views_download_doc.py:55 |   encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id)\nserver/views_download_doc.py:101 in get: handle_ex(e)\n  generic/base.py:69 in dispatch: return handler(request\n    generic/base.py:48 in view: return self.dispatch(request\n      handlers/base.py:111 in get_response: response = callback(request\n        handlers/wsgi.py:241 in __call__: response = self.get_response(request)\n          staticfiles/handlers.py:67 in __call__: return self.application(environ\n            wsgiref/handlers.py:85 in run: self.result = application(self.environ\n              wsgiref/simple_server.py:124 in handle: handler.run(self.server.get_app())\n                python2.7/SocketServer.py:649 in __init__: self.handle()\n                  servers/basehttp.py:139 in __init__: super(WSGIRequestHandler\n                    python2.7/SocketServer.py:334 in finish_request: self.RequestHandlerClass(request\n                      python2.7/SocketServer.py:593 in process_request_thread: self.finish_request(request\n                        python2.7/threading.py:761 in run: self.__target(*self.__args\n                          python2.7/threading.py:808 in __bootstrap_inner: self.run()\n                            python2.7/threading.py:781 in __bootstrap: self.__bootstrap_inner()\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n&quot;</pre></td>
+                    <td class="code"><pre>&quot;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[95m[14/Oct/2013 12:45:05]   !!! EXCEPTION !!!\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93m[14/Oct/2013 12:45:05] &lt;type &#39;exceptions.AttributeError&#39;&gt;\n\x1b[93m[14/Oct/2013 12:45:05] &#39;NoneType&#39; object has no attribute &#39;data&#39;\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n\x1b[93mserver/views_download_doc.py:55 |   encrypted_doc = CryptoBlob(dbase, object_id=node.data.m_data_id_foreignkey)\nserver/views_download_doc.py:101 in get: handle_ex(e)\n  generic/base.py:69 in dispatch: return handler(request\n    generic/base.py:48 in view: return self.dispatch(request\n      handlers/base.py:111 in get_response: response = callback(request\n        handlers/wsgi.py:241 in __call__: response = self.get_response(request)\n          staticfiles/handlers.py:67 in __call__: return self.application(environ\n            wsgiref/handlers.py:85 in run: self.result = application(self.environ\n              wsgiref/simple_server.py:124 in handle: handler.run(self.server.get_app())\n                python2.7/SocketServer.py:649 in __init__: self.handle()\n                  servers/basehttp.py:139 in __init__: super(WSGIRequestHandler\n                    python2.7/SocketServer.py:334 in finish_request: self.RequestHandlerClass(request\n                      python2.7/SocketServer.py:593 in process_request_thread: self.finish_request(request\n                        python2.7/threading.py:761 in run: self.__target(*self.__args\n                          python2.7/threading.py:808 in __bootstrap_inner: self.run()\n                            python2.7/threading.py:781 in __bootstrap: self.__bootstrap_inner()\n\x1b[95m[14/Oct/2013 12:45:05] ---------------------------\n&quot;</pre></td>
                   </tr>
 
                   <tr>

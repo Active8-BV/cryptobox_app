@@ -12,7 +12,7 @@ Vm_parent
 p7
 V
 p8
-sVm_data_id
+sVm_data_id_foreignkey
 p9
 g8
 sVm_path
