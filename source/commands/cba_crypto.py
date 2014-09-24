@@ -71,7 +71,7 @@ def get_named_temporary_file(auto_delete):
     """
     get_named_temporary_file
     """
-    ntf = tempfile.NamedTemporaryFile(delete=auto_delete)
+    ntf = tempfile.NamedTemporaryFile(delete=auto_delete, suffix=".cbtmp")
 
     if not auto_delete:
         fname = "tempfile_" + str(uuid.uuid4().hex) + ".cbtmp"
