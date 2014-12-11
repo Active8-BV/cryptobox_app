@@ -190,7 +190,7 @@ class CryptoboxAppTest(unittest.TestCase):
         os.system("rm -Rf testdata/test")
         os.system("cp testdata/rabshakeh.dump /Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
         self.pipe = Popen("nohup python server/manage.py load -c rabshakeh", shell=True, stderr=PIPE, stdout=PIPE, cwd="/Users/rabshakeh/workspace/cryptobox/www_cryptobox_nl")
-        self.pipe.wait()
+        self.pipe.communicate()
         dbase = CouchDBServer(self.db_name, [server])
         sync_all_views(dbase, ["crypto_data", "crypto_api"])
         time.sleep(0.5)
