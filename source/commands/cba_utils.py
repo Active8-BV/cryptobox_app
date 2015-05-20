@@ -984,8 +984,8 @@ class Events(object):
                     result["duration"] = result["nextevent"]["time"] - result["time"]
                     total = self.print_result(result, total)
 
-        totals = "\033[93m%0.1f" % total
+        totals = "\033[33m%0.1f" % total
         console("total compute time", totals, line_num_only=3)
-        total_runtime = "\033[93m%0.1f" % float(time.time() - self.start_timer)
+        total_runtime = "\033[33m%0.1f" % float(time.time() - self.start_timer)
         console("total runtime", total_runtime, line_num_only=3)
 

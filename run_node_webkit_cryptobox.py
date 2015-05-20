@@ -19,14 +19,14 @@ def main():
                 if len(ls) > 0:
                     msg = ls[0].replace("\n", "").replace('"', "")
                     if ", source: file" in line:
-                        print "\033[93m" + msg + "\033[0m "
+                        print "\033[33m" + msg + "\033[0m "
                     else:
                         print "\033[91m" + msg + "\033[0m "
             if "at" in line and "file://" in line:
                 ls = line.split("(file://")
                 if len(ls) > 0:
                     msg = ls[0].replace("\n", "").replace('"', "")
-                    print "\033[93m    " + msg + "\033[0m "
+                    print "\033[33m    " + msg + "\033[0m "
             elif "cryptobox.cf" in line:
                 ls = line.split("cryptobox.cf:")
                 if len(ls) > 0:
