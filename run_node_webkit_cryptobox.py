@@ -43,7 +43,7 @@ def main():
                                 if cnt > 0:
                                     msg += " " + s
                                 cnt += 1
-                        print "\033[92m" + msg.replace('"', "") + "\033[0m "
+                        print "\033[32m" + msg.replace('"', "") + "\033[0m "
         else:
             break
 
